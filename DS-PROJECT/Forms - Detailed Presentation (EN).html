@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forms Tab — Detailed Presentation</title>
+<link rel="stylesheet" href="design-system/colors_and_type.css">
+<style>
+  deck-stage:not(:defined){visibility:hidden}
+  html,body{margin:0;background:#0A0703}
+  :root{--branco:#F6F5EB;--areia:#C5C29F;--azul:#89AAA3;--telha:#BE4A01;--verde-claro:#777D45;--verde:#3F3E20;--preto:#0A0703;--line:rgba(63,62,32,.16)}
+  .slide{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:'Montserrat',system-ui,sans-serif;color:var(--preto);background:var(--branco)}
+  .serif{font-family:'Merriweather',Georgia,serif}
+  .eyebrow{font-weight:700;font-size:24px;letter-spacing:.22em;text-transform:uppercase;color:var(--telha)}
+  .eyebrow.dk{color:var(--areia)}
+  .pad{position:absolute;inset:0;padding:108px 120px;display:flex;flex-direction:column}
+  .snum{position:absolute;bottom:54px;right:64px;font-size:24px;font-weight:600;color:var(--areia);letter-spacing:.1em}
+  .bg-verde{background:var(--verde);color:var(--branco)}
+  .bg-telha{background:var(--telha);color:var(--branco)}
+  .bg-areia{background:var(--areia)}
+  h1.title{font-weight:900;font-size:118px;line-height:.96;letter-spacing:-.02em;margin:0}
+  h2.head{font-weight:800;font-size:78px;line-height:1;letter-spacing:-.015em;margin:0;text-wrap:balance}
+  .lead{font-size:34px;line-height:1.5;color:var(--verde);max-width:32ch}
+  .lead.dk{color:rgba(246,245,235,.82)}
+
+  .split{position:absolute;inset:0;display:grid;grid-template-columns:42% 58%}
+  .explain-col{padding:0 70px 0 120px;display:flex;flex-direction:column;justify-content:center}
+  .explain-col .badge{display:inline-flex;align-items:center;gap:14px;font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha);margin-bottom:24px}
+  .explain-col .badge .cad{padding:7px 15px;border-radius:999px;color:#fff;font-size:16px}
+  .explain-col h2{font-weight:800;font-size:58px;line-height:1.02;letter-spacing:-.015em;margin:0 0 26px;color:var(--preto)}
+  .explain-col p{font-size:28px;line-height:1.5;color:var(--verde);margin:0 0 24px;max-width:26ch;font-family:'Merriweather',Georgia,serif}
+  .who{display:inline-flex;align-items:center;gap:12px;padding:16px 22px;background:#ECEADF;border-radius:16px;font-size:22px;font-weight:600;color:var(--verde);align-self:flex-start;max-width:32ch;line-height:1.35}
+  .who b{color:var(--telha)}
+  .mock-col{background:#ECEADF;display:flex;align-items:center;justify-content:center;padding:70px 90px 70px 70px}
+
+  .win{width:100%;background:var(--branco);border-radius:24px;overflow:hidden;box-shadow:0 40px 90px rgba(10,7,3,.34);border:1px solid rgba(0,0,0,.06)}
+  .win-body{padding:40px 44px}
+  /* dark phone form (Conta o Mês) */
+  .phone{width:560px;background:var(--verde);border-radius:30px;overflow:hidden;box-shadow:0 40px 90px rgba(10,7,3,.4)}
+  .ph-head{padding:30px 34px 8px}
+  .ph-eyebrow{font-weight:700;font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--areia)}
+  .ph-title{font-family:Georgia,serif;font-style:italic;font-size:40px;color:#F6F5EB;margin-top:8px}
+  .ph-card{margin:14px 18px;padding:22px 22px;border-radius:20px;background:rgba(246,245,235,.06);border:1px solid rgba(246,245,235,.12)}
+  .ph-step{font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha);margin-bottom:8px}
+  .ph-q{font-weight:800;font-size:24px;color:#F6F5EB}
+  .ph-p{font-size:16px;color:rgba(246,245,235,.7);margin-top:6px;line-height:1.4}
+  .ph-big{width:100%;margin-top:16px;padding:24px;border-radius:16px;background:var(--telha);color:#fff;text-align:center;font-weight:700;font-size:17px}
+
+  .qlist{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+  .qrow{display:flex;align-items:flex-start;gap:18px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 26px}
+  .qrow .qn{font-weight:900;font-size:26px;color:var(--areia);flex:0 0 auto;line-height:1.1}
+  .qrow .qt{font-weight:800;font-size:25px;color:var(--preto)}
+  .qrow .qd{font-size:19px;color:#5A5A3E;margin-top:4px;font-family:'Merriweather',serif}
+  .qrow .qhow{margin-left:auto;flex:0 0 auto;font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--verde);background:#ECEADF;padding:9px 15px;border-radius:999px;align-self:center}
+
+  .dimgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+  .dim{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px 26px}
+  .dim-cat{display:inline-block;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:999px;margin-bottom:12px}
+  .dim-q{font-weight:800;font-size:25px;color:var(--preto);margin-bottom:12px}
+  .dim-p{font-family:'Merriweather',serif;font-style:italic;font-size:19px;line-height:1.45;color:var(--verde)}
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#3F3E20"/><g transform="translate(50,50)"><rect x="-18" y="-22" width="36" height="44" rx="5" fill="none" stroke="#BE4A01" stroke-width="4"/><path d="M-9 -8h18M-9 2h18M-9 12h10" stroke="#F6F5EB" stroke-width="3.5" stroke-linecap="round"/></g></svg>
+</template>
+<deck-stage width="1920" height="1080">
+
+  <!-- 1 TITLE -->
+  <section data-label="Capa" class="slide bg-verde">
+    <div class="pad" style="justify-content:space-between">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:104px;height:104px">
+      <div>
+        <p class="eyebrow dk" style="margin:0 0 26px">The Forms tab, in detail</p>
+        <h1 class="title" style="color:var(--branco)">The voice<br>of the field.</h1>
+        <p class="lead dk serif" style="margin-top:36px;font-size:36px;max-width:46ch">Two forms bring news from the teams — what they ask, how to answer, when they happen and where to find them.</p>
+      </div>
+      <div style="font-size:24px;color:rgba(246,245,235,.7);font-weight:700;letter-spacing:.04em">Shemá · International Projects Ecosystem</div>
+    </div>
+    <div style="position:absolute;right:-120px;top:50%;transform:translateY(-50%);font-family:serif;font-size:520px;color:rgba(246,245,235,.06);line-height:1">שמע</div>
+  </section>
+
+  <!-- 2 OS DOIS FORMULÁRIOS -->
+  <section data-label="The two" class="slide bg-areia">
+    <div class="pad">
+      <p class="eyebrow">Two forms, two moments</p>
+      <h2 class="head" style="margin-top:22px">Each in its own time.</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:54px;flex:1">
+        <div style="background:var(--branco);border-radius:22px;padding:42px 44px;display:flex;flex-direction:column">
+          <div style="font-weight:700;font-size:18px;letter-spacing:.1em;text-transform:uppercase;color:var(--telha)">Monthly · by the field leader</div>
+          <div style="font-weight:800;font-size:46px;color:var(--preto);margin-top:14px">Monthly Pulse</div>
+          <p class="serif" style="font-size:25px;line-height:1.5;color:var(--verde);margin-top:14px">Five short questions on the phone. The leader answers on their own, every month, and returns a file.</p>
+          <div style="margin-top:auto;padding-top:20px;font-weight:700;font-size:19px;color:var(--verde-claro)">Voice · Photo · Numbers · Needs · Prayer</div>
+        </div>
+        <div style="background:var(--verde);border-radius:22px;padding:42px 44px;display:flex;flex-direction:column">
+          <div style="font-weight:700;font-size:18px;letter-spacing:.1em;text-transform:uppercase;color:var(--areia)">Quarterly · by the Facilitator</div>
+          <div style="font-weight:800;font-size:46px;color:var(--branco);margin-top:14px">Health Assessment</div>
+          <p class="serif" style="font-size:25px;line-height:1.5;color:rgba(246,245,235,.85);margin-top:14px">Run in an online meeting with the team. Four dimensions, with guiding questions.</p>
+          <div style="margin-top:auto;padding-top:20px;font-weight:700;font-size:19px;color:var(--areia)">Emotional · Relational · Spiritual · Physical</div>
+        </div>
+      </div>
+    </div>
+    <div class="snum" style="color:var(--verde)">02</div>
+  </section>
+
+  <!-- 3 PULSO — INTRO + TELA -->
+  <section data-label="Pulse · screen" class="slide">
+    <div class="split">
+      <div class="explain-col">
+        <div class="badge">Monthly Pulse <span class="cad" style="background:var(--telha)">Monthly</span></div>
+        <h2>Tell the month.</h2>
+        <p>It starts with the person, not the numbers: the team speaks first, shows a photo, and only then records the chapters. More human, less bureaucratic.</p>
+        <div class="who"><b>Works offline</b> on the phone — and saves itself.</div>
+      </div>
+      <div class="mock-col">
+        <div class="phone">
+          <div class="ph-head"><div class="ph-eyebrow">May · Asháninka · YWAM Aurora</div><div class="ph-title">Tell the month,<br>Fresia.</div></div>
+          <div class="ph-card"><div class="ph-step">01 · Your voice</div><div class="ph-q">How was this month?</div><div class="ph-p">Speak what matters — it doesn’t need to be perfect. We listen to all of it.</div><div class="ph-big">TAP TO RECORD · up to 5 min</div></div>
+          <div class="ph-card"><div class="ph-step">02 · A photo</div><div class="ph-q">Show the work.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="snum">03</div>
+  </section>
+
+  <!-- 4 PULSO — AS 5 PERGUNTAS -->
+  <section data-label="Pulse · questions" class="slide">
+    <div class="pad">
+      <p class="eyebrow">Monthly Pulse · The five questions</p>
+      <h2 class="head" style="margin-top:18px;font-size:64px">What is asked, and how it is answered.</h2>
+      <div class="qlist" style="margin-top:40px">
+        <div class="qrow"><span class="qn">01</span><div><div class="qt">How was this month?</div><div class="qd">"Your voice" — speak about what matters, the team, what God did.</div></div><span class="qhow">Audio or text</span></div>
+        <div class="qrow"><span class="qn">02</span><div><div class="qt">Show the work.</div><div class="qd">Team, elders, event, printed material.</div></div><span class="qhow">Photo</span></div>
+        <div class="qrow"><span class="qn">03</span><div><div class="qt">Chapters closed.</div><div class="qd">Translated · community-checked · approved.</div></div><span class="qhow">Counters +/−</span></div>
+        <div class="qrow"><span class="qn">04</span><div><div class="qt">Anything in the way?</div><div class="qd">What is missing this month: resources, equipment, training…</div></div><span class="qhow">Tap the chips</span></div>
+        <div class="qrow"><span class="qn">05</span><div><div class="qt">What do we lift in prayer?</div><div class="qd">The team’s request — with an option to authorize the intercessor network.</div></div><span class="qhow">Text or audio</span></div>
+      </div>
+    </div>
+    <div class="snum">04</div>
+  </section>
+
+  <!-- 5 PULSO — COMO VOLTA -->
+  <section data-label="Pulse · return" class="slide bg-verde">
+    <div class="pad">
+      <p class="eyebrow dk">How the pulse comes back</p>
+      <h2 class="head" style="margin-top:22px;color:var(--branco)">From phone to dashboard.</h2>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:64px;border-radius:20px;overflow:hidden">
+        <div style="padding:38px 30px;background:rgba(246,245,235,.07);border-right:1px solid rgba(246,245,235,.14)">
+          <div style="font-weight:900;font-size:28px;color:var(--areia)">01</div>
+          <div style="font-weight:800;font-size:25px;color:#fff;margin-top:12px">You generate</div>
+          <p class="serif" style="font-size:20px;line-height:1.4;color:rgba(246,245,235,.78);margin-top:8px">in the Forms tab, choose the project.</p>
+        </div>
+        <div style="padding:38px 30px;background:rgba(246,245,235,.07);border-right:1px solid rgba(246,245,235,.14)">
+          <div style="font-weight:900;font-size:28px;color:var(--areia)">02</div>
+          <div style="font-weight:800;font-size:25px;color:#fff;margin-top:12px">The leader answers</div>
+          <p class="serif" style="font-size:20px;line-height:1.4;color:rgba(246,245,235,.78);margin-top:8px">on the phone, and returns by WhatsApp or file.</p>
+        </div>
+        <div style="padding:38px 30px;background:rgba(246,245,235,.07);border-right:1px solid rgba(246,245,235,.14)">
+          <div style="font-weight:900;font-size:28px;color:var(--areia)">03</div>
+          <div style="font-weight:800;font-size:25px;color:#fff;margin-top:12px">You import</div>
+          <p class="serif" style="font-size:20px;line-height:1.4;color:rgba(246,245,235,.78);margin-top:8px">the .json updates the data automatically.</p>
+        </div>
+        <div style="padding:38px 30px;background:var(--telha)">
+          <div style="font-weight:900;font-size:28px;color:rgba(255,255,255,.6)">04</div>
+          <div style="font-weight:800;font-size:25px;color:#fff;margin-top:12px">It gets archived</div>
+          <p class="serif" style="font-size:20px;line-height:1.4;color:rgba(255,255,255,.9);margin-top:8px">the filled form is kept for download.</p>
+        </div>
+      </div>
+      <p class="serif" style="font-style:italic;font-size:25px;color:rgba(246,245,235,.85);margin-top:48px;max-width:72ch">And coordination is notified the moment the form arrives.</p>
+    </div>
+    <div class="snum" style="color:rgba(246,245,235,.5)">05</div>
+  </section>
+
+  <!-- 6 SAÚDE — INTRO -->
+  <section data-label="Health · screen" class="slide">
+    <div class="split">
+      <div class="explain-col">
+        <div class="badge">Health Assessment <span class="cad" style="background:var(--verde-claro)">Quarterly</span></div>
+        <h2>Caring for people.</h2>
+        <p>Not the leader alone: the Facilitator runs a live conversation with the team, going through four dimensions of field life.</p>
+        <div class="who"><b>Opened in the app</b> during the meeting — no file download.</div>
+      </div>
+      <div class="mock-col">
+        <div class="win"><div class="win-body" style="padding:0">
+          <div style="display:flex;align-items:center;gap:12px;padding:20px 30px;background:var(--verde);color:#fff">
+            <span style="width:12px;height:12px;border-radius:999px;background:#e2614a"></span>
+            <span style="font-weight:700;font-size:15px;letter-spacing:.08em;text-transform:uppercase">Live meeting · Zoom</span>
+            <span style="margin-left:auto;font-size:15px;color:rgba(246,245,235,.7)">38:14</span>
+          </div>
+          <div style="padding:32px 36px">
+            <div style="font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha)">Health Assessment</div>
+            <div style="font-weight:800;font-size:34px;color:var(--preto);margin-top:8px">How is the Asháninka team?</div>
+            <div style="display:flex;align-items:center;gap:10px;margin:22px 0 12px"><span style="font-weight:800;font-size:14px;color:#8A8970">01 / 04</span><span style="padding:6px 14px;border-radius:999px;background:#F2D8C2;color:var(--telha);font-weight:700;font-size:14px;text-transform:uppercase">Emotional</span></div>
+            <div style="font-weight:800;font-size:24px;color:var(--preto)">How are you feeling in your hearts?</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:18px">
+              <div style="border:1.5px solid var(--line);border-radius:14px;padding:14px;text-align:center;font-weight:700;font-size:17px;color:#5A5A3E">Good</div>
+              <div style="border:2px solid var(--telha);border-radius:14px;background:#F2D8C2;padding:14px;text-align:center;font-weight:700;font-size:17px;color:var(--telha)">Attention</div>
+              <div style="border:1.5px solid var(--line);border-radius:14px;padding:14px;text-align:center;font-weight:700;font-size:17px;color:#5A5A3E">Critical</div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="snum">06</div>
+  </section>
+
+  <!-- 7 SAÚDE — AS 4 DIMENSÕES -->
+  <section data-label="Health · dimensions" class="slide bg-areia">
+    <div class="pad">
+      <p class="eyebrow">Health Assessment · The four dimensions</p>
+      <h2 class="head" style="margin-top:16px;font-size:60px">What is asked in each one.</h2>
+      <div class="dimgrid" style="margin-top:34px;flex:1">
+        <div class="dim"><span class="dim-cat" style="background:#F2D8C2;color:var(--telha)">01 · Emotional</span><div class="dim-q">How are you feeling in your hearts?</div><div class="dim-p">"How have you been sleeping? Is anything taking your sleep or peace? Where do you find rest?"</div></div>
+        <div class="dim"><span class="dim-cat" style="background:#e5e8d6;color:var(--verde-claro)">02 · Relational</span><div class="dim-q">How are the relationships among you?</div><div class="dim-p">"Any unresolved conflicts? How do you care for each other? Anyone isolated? And with the community?"</div></div>
+        <div class="dim"><span class="dim-cat" style="background:#d8e3df;color:#4a6b62">03 · Spiritual</span><div class="dim-q">How is the walk with God?</div><div class="dim-p">"How is the prayer life? Can you worship together? What has God been saying?"</div></div>
+        <div class="dim"><span class="dim-cat" style="background:#efe6d4;color:#8a6a3a">04 · Physical</span><div class="dim-q">How is physical health?</div><div class="dim-p">"Anyone with health problems? Food, water? Have you rested? Any risks?"</div></div>
+      </div>
+      <p class="serif" style="font-style:italic;font-size:23px;color:var(--verde);margin-top:18px;max-width:80ch">Each dimension gets a status — Good, Attention or Critical — and at the end the app suggests pastoral care.</p>
+    </div>
+    <div class="snum" style="color:var(--verde)">07</div>
+  </section>
+
+  <!-- 8 ONDE ENCONTRAR + ARQUIVO -->
+  <section data-label="Where to find" class="slide">
+    <div class="split">
+      <div class="explain-col">
+        <div class="badge">The Forms tab</div>
+        <h2>Where everything lives.</h2>
+        <p>Choose the project, generate the Pulse or open the Health Assessment. And in "Forms received", each filled form is kept for download whenever you want.</p>
+        <div class="who"><b>Nothing is lost:</b> the originals stay archived in the app.</div>
+      </div>
+      <div class="mock-col">
+        <div class="win"><div class="win-body" style="padding:40px 44px">
+          <div style="font-weight:700;font-size:16px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha)">Forms received</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
+            <div style="display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px"><span style="font-weight:700;font-size:13px;text-transform:uppercase;background:#F2D8C2;color:var(--telha);padding:7px 13px;border-radius:999px">Pulse</span><div style="flex:1"><div style="font-weight:700;font-size:19px;color:var(--preto)">Asháninka</div><div style="font-size:15px;color:#8A8970">Fresia · May 14, 2026</div></div><span style="width:40px;height:40px;border-radius:999px;background:var(--telha);color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px">↓</span></div>
+            <div style="display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px"><span style="font-weight:700;font-size:13px;text-transform:uppercase;background:#e5ecd8;color:#4d5d24;padding:7px 13px;border-radius:999px">Health</span><div style="flex:1"><div style="font-weight:700;font-size:19px;color:var(--preto)">Baikeno</div><div style="font-size:15px;color:#8A8970">Facilitator · Apr 02, 2026</div></div><span style="width:40px;height:40px;border-radius:999px;background:var(--telha);color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px">↓</span></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="snum">08</div>
+  </section>
+
+  <!-- 9 CLOSING -->
+  <section data-label="Closing" class="slide bg-telha">
+    <div class="pad" style="justify-content:center;align-items:center;text-align:center">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:96px;height:96px;margin-bottom:44px">
+      <h2 class="head serif" style="font-style:italic;font-weight:400;font-size:80px;color:var(--branco);max-width:24ch">Listening well is the beginning of everything.</h2>
+      <p class="serif" style="font-size:30px;line-height:1.5;color:rgba(255,255,255,.92);margin-top:48px;max-width:48ch">Two simple forms, in the right rhythm — so no team works alone.</p>
+    </div>
+    <div style="position:absolute;left:-80px;bottom:-120px;font-family:serif;font-size:440px;color:rgba(246,245,235,.08);line-height:1">שמע</div>
+  </section>
+
+</deck-stage>
+<script src="deck-stage.js"></script>
+</body>
+</html>

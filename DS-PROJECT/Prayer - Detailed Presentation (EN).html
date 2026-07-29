@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prayer Tab — Detailed Presentation</title>
+<link rel="stylesheet" href="design-system/colors_and_type.css">
+<style>
+  deck-stage:not(:defined){visibility:hidden}
+  html,body{margin:0;background:#0A0703}
+  :root{--branco:#F6F5EB;--areia:#C5C29F;--azul:#89AAA3;--telha:#BE4A01;--verde-claro:#777D45;--verde:#3F3E20;--preto:#0A0703;--line:rgba(63,62,32,.16)}
+  .slide{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:'Montserrat',system-ui,sans-serif;color:var(--preto);background:var(--branco)}
+  .serif{font-family:'Merriweather',Georgia,serif}
+  .eyebrow{font-weight:700;font-size:24px;letter-spacing:.22em;text-transform:uppercase;color:var(--telha)}
+  .eyebrow.dk{color:var(--areia)}
+  .pad{position:absolute;inset:0;padding:108px 120px;display:flex;flex-direction:column}
+  .snum{position:absolute;bottom:54px;right:64px;font-size:24px;font-weight:600;color:var(--areia);letter-spacing:.1em}
+  .bg-verde{background:var(--verde);color:var(--branco)}
+  .bg-telha{background:var(--telha);color:var(--branco)}
+  .bg-areia{background:var(--areia)}
+  h1.title{font-weight:900;font-size:118px;line-height:.96;letter-spacing:-.02em;margin:0}
+  h2.head{font-weight:800;font-size:78px;line-height:1;letter-spacing:-.015em;margin:0;text-wrap:balance}
+  .lead{font-size:34px;line-height:1.5;color:var(--verde);max-width:32ch}
+  .lead.dk{color:rgba(246,245,235,.82)}
+
+  .split{position:absolute;inset:0;display:grid;grid-template-columns:42% 58%}
+  .explain-col{padding:0 70px 0 120px;display:flex;flex-direction:column;justify-content:center}
+  .explain-col .badge{display:inline-flex;align-items:center;gap:14px;font-weight:700;font-size:19px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha);margin-bottom:24px}
+  .explain-col h2{font-weight:800;font-size:60px;line-height:1.02;letter-spacing:-.015em;margin:0 0 26px;color:var(--preto)}
+  .explain-col p{font-size:28px;line-height:1.5;color:var(--verde);margin:0 0 24px;max-width:25ch;font-family:'Merriweather',Georgia,serif}
+  .who{display:inline-flex;align-items:center;gap:12px;padding:16px 22px;background:#ECEADF;border-radius:16px;font-size:21px;font-weight:600;color:var(--verde);align-self:flex-start;max-width:32ch;line-height:1.35}
+  .who b{color:var(--telha)}
+  .mock-col{background:#ECEADF;display:flex;align-items:center;justify-content:center;padding:80px 90px 80px 70px}
+
+  .win{width:100%;background:var(--branco);border-radius:24px;overflow:hidden;box-shadow:0 40px 90px rgba(10,7,3,.34);border:1px solid rgba(0,0,0,.06)}
+  .win-tabs{display:flex;gap:30px;padding:22px 36px 0;background:#fff;border-bottom:1px solid var(--line)}
+  .win-tab{font-weight:700;font-size:20px;color:#8A8970;padding-bottom:18px}
+  .win-tab.on{color:var(--telha);border-bottom:3px solid var(--telha)}
+  .win-body{padding:40px 44px}
+  .r-eyebrow{font-weight:700;font-size:17px;letter-spacing:.16em;text-transform:uppercase;color:var(--telha)}
+  .r-title{font-weight:800;font-size:44px;color:var(--preto);margin-top:12px;letter-spacing:-.01em}
+  .subtabs{display:inline-flex;gap:6px;padding:5px;background:#ECEADF;border-radius:999px;margin-top:22px}
+  .subtab{font-weight:700;font-size:17px;padding:11px 22px;border-radius:999px;color:#8A8970}
+  .subtab.on{background:#fff;color:var(--telha)}
+
+  /* prayer cards grid */
+  .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
+  .pcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+  .pcard.ans{background:#eef0e0;border-color:#c5cda0}
+  .pc-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .pc-lang{font-weight:800;font-size:21px;color:var(--preto)}
+  .pc-reg{font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#8A8970}
+  .pc-text{font-family:'Merriweather',serif;font-size:17px;line-height:1.45;color:var(--verde)}
+
+  .stat3{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px}
+  .stat{padding:22px 26px;border-radius:18px;background:#fff;border:1px solid var(--line)}
+  .stat.hero{background:var(--verde)}
+  .stat.hero .sn{color:#fff}.stat.hero .sl{color:var(--branco)}
+  .sn{font-weight:900;font-size:50px;color:var(--telha)}
+  .sl{font-weight:700;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--preto);margin-top:8px}
+
+  .roles{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .pill{font-weight:600;font-size:18px;color:#fff;padding:11px 18px;border-radius:999px}
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#3F3E20"/><g transform="translate(50,50)"><path d="M-14 14V2a8 8 0 0 1 14-5 8 8 0 0 1 14 5v12" fill="none" stroke="#BE4A01" stroke-width="4" stroke-linecap="round"/><path d="M0 -16v8" stroke="#F6F5EB" stroke-width="4" stroke-linecap="round"/></g></svg>
+</template>
+<deck-stage width="1920" height="1080">
+
+  <!-- 1 TITLE -->
+  <section data-label="Capa" class="slide bg-verde">
+    <div class="pad" style="justify-content:space-between">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:104px;height:104px">
+      <div>
+        <p class="eyebrow dk" style="margin:0 0 26px">The Prayer tab, in detail</p>
+        <h1 class="title" style="color:var(--branco)">Every request<br>is heard.</h1>
+        <p class="lead dk serif" style="margin-top:36px;font-size:36px;max-width:46ch">All the field’s prayer requests, gathered in one place — and an intercessor network worldwide to receive them. See how it all happens, and when.</p>
+      </div>
+      <div style="font-size:24px;color:rgba(246,245,235,.7);font-weight:700;letter-spacing:.04em">Shemá · International Projects Ecosystem</div>
+    </div>
+    <div style="position:absolute;right:-120px;top:50%;transform:translateY(-50%);font-family:serif;font-size:520px;color:rgba(246,245,235,.06);line-height:1">שמע</div>
+  </section>
+
+  <!-- 2 DE ONDE VÊM -->
+  <section data-label="Where they come from" class="slide bg-areia">
+    <div class="pad">
+      <p class="eyebrow">Where the requests come from</p>
+      <h2 class="head" style="margin-top:22px">Prayer is born in the field.</h2>
+      <p class="serif" style="font-size:30px;line-height:1.5;color:var(--verde);margin-top:26px;max-width:64ch;font-style:italic">The requests arrive automatically from the two forms the teams fill in — no manual typing. Each submission feeds the wall.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:52px;flex:1">
+        <div style="background:var(--branco);border-radius:22px;padding:40px 42px;display:flex;flex-direction:column">
+          <div style="font-weight:700;font-size:17px;letter-spacing:.1em;text-transform:uppercase;color:var(--telha)">Monthly · by the field leader</div>
+          <div style="font-weight:800;font-size:40px;color:var(--preto);margin-top:14px">Monthly Pulse</div>
+          <p class="serif" style="font-size:24px;line-height:1.5;color:var(--verde);margin-top:14px">The "Prayer request" card — text or audio. The team chooses whether to authorize sharing with the network.</p>
+        </div>
+        <div style="background:var(--verde);border-radius:22px;padding:40px 42px;display:flex;flex-direction:column">
+          <div style="font-weight:700;font-size:17px;letter-spacing:.1em;text-transform:uppercase;color:var(--areia)">Quarterly · by the Facilitator</div>
+          <div style="font-weight:800;font-size:40px;color:var(--branco);margin-top:14px">Health Assessment</div>
+          <p class="serif" style="font-size:24px;line-height:1.5;color:rgba(246,245,235,.85);margin-top:14px">During the meeting, the team’s prayer request is also recorded and goes to the wall.</p>
+        </div>
+      </div>
+    </div>
+    <div class="snum" style="color:var(--verde)">02</div>
+  </section>
+
+  <!-- 3 CONSENTIMENTO -->
+  <section data-label="Consent" class="slide">
+    <div class="split">
+      <div class="explain-col">
+        <div class="badge">With consent</div>
+        <h2>Only shares what the team authorizes.</h2>
+        <p>In the form, each team marks whether the request can be shared with the intercessor network. Without authorization, it stays only with coordination.</p>
+        <div class="who"><b>Privacy first:</b> it respects each field’s sensitive situations.</div>
+      </div>
+      <div class="mock-col">
+        <div class="win" style="background:var(--verde);max-width:620px"><div class="win-body" style="padding:44px">
+          <div style="font-weight:700;font-size:16px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha)">05 · Prayer request</div>
+          <div style="font-weight:800;font-size:34px;color:var(--branco);margin-top:10px">What do we lift in prayer?</div>
+          <div style="border:1px solid rgba(246,245,235,.18);background:rgba(246,245,235,.08);border-radius:14px;padding:18px;color:#F6F5EB;font-family:'Merriweather',serif;font-style:italic;font-size:19px;line-height:1.5;margin-top:20px">For the village elders receiving the Gospel of John this week. For rest during the drought.</div>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:18px;padding:16px 18px;background:rgba(246,245,235,.06);border:1px solid rgba(246,245,235,.14);border-radius:14px">
+            <span style="width:44px;height:25px;background:var(--telha);border-radius:999px;position:relative;flex:0 0 auto"><span style="position:absolute;right:2px;top:2px;width:21px;height:21px;background:#fff;border-radius:999px"></span></span>
+            <span style="font-weight:600;font-size:17px;color:#F6F5EB;line-height:1.35">I authorize sharing with the intercessor network</span>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="snum">03</div>
+  </section>
+
+  <!-- 4 O MURAL -->
+  <section data-label="The wall" class="slide">
+    <div class="split">
+      <div class="explain-col">
+        <div class="badge">Prayer wall</div>
+        <h2>All requests, gathered.</h2>
+        <p>Requests appear as cards, grouped by region, with language, base and date. Filter by continent and see how many were answered.</p>
+        <div class="who"><b>Self-updating:</b> each submitted form lands here.</div>
+      </div>
+      <div class="mock-col">
+        <div class="win"><div class="win-body" style="padding:38px 40px">
+          <div class="r-eyebrow">Prayer Wall · Intercessor network</div>
+          <div class="r-title" style="font-size:38px">Requests from the field</div>
+          <div class="subtabs"><span class="subtab on">Prayer wall</span><span class="subtab">Intercessor network</span></div>
+          <div class="pgrid">
+            <div class="pcard"><div class="pc-head"><span class="pc-lang">Asháninka</span><span class="pc-reg">S. America</span></div><div class="pc-text">For the elders receiving the Gospel of John.</div></div>
+            <div class="pcard ans"><div class="pc-head"><span class="pc-lang">Baikeno</span><span class="pc-reg">Asia</span></div><div class="pc-text">Mark completed — answered. Gratitude!</div></div>
+            <div class="pcard"><div class="pc-head"><span class="pc-lang">Banawá</span><span class="pc-reg">S. America</span></div><div class="pc-text">For resources and the health of leader Lidia.</div></div>
+            <div class="pcard"><div class="pc-head"><span class="pc-lang">Korowai</span><span class="pc-reg">Oceania</span></div><div class="pc-text">For unity in the team and openness from the elders.</div></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="snum">04</div>
+  </section>
+
+  <!-- 5 INDICADORES -->
+  <section data-label="Indicators" class="slide bg-verde">
+    <div class="pad">
+      <p class="eyebrow dk">At a glance</p>
+      <h2 class="head" style="margin-top:22px;color:var(--branco)">The intercession overview.</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:70px">
+        <div style="background:rgba(246,245,235,.08);border-radius:22px;padding:44px 46px">
+          <div style="font-weight:900;font-size:84px;line-height:.9;color:var(--branco)">38</div>
+          <div style="font-weight:700;font-size:18px;letter-spacing:.08em;text-transform:uppercase;color:var(--areia);margin-top:16px">Requests gathered</div>
+          <p class="serif" style="font-style:italic;font-size:21px;color:rgba(246,245,235,.8);margin-top:8px">from all regions</p>
+        </div>
+        <div style="background:rgba(246,245,235,.08);border-radius:22px;padding:44px 46px">
+          <div style="font-weight:900;font-size:84px;line-height:.9;color:var(--branco)">6</div>
+          <div style="font-weight:700;font-size:18px;letter-spacing:.08em;text-transform:uppercase;color:var(--areia);margin-top:16px">Regions</div>
+          <p class="serif" style="font-style:italic;font-size:21px;color:rgba(246,245,235,.8);margin-top:8px">one continent at a time</p>
+        </div>
+        <div style="background:rgba(246,245,235,.08);border-radius:22px;padding:44px 46px">
+          <div style="font-weight:900;font-size:84px;line-height:.9;color:#b4d18f">9</div>
+          <div style="font-weight:700;font-size:18px;letter-spacing:.08em;text-transform:uppercase;color:var(--areia);margin-top:16px">Answered</div>
+          <p class="serif" style="font-style:italic;font-size:21px;color:rgba(246,245,235,.8);margin-top:8px">testimonies to celebrate</p>
+        </div>
+      </div>
+      <p class="serif" style="font-style:italic;font-size:26px;color:rgba(246,245,235,.85);margin-top:56px;max-width:70ch">Answered cards are highlighted in green — a reminder to celebrate what God has already done.</p>
+    </div>
+    <div class="snum" style="color:rgba(246,245,235,.5)">05</div>
+  </section>
+
+  <!-- 6 CADASTRO DA REDE -->
+  <section data-label="Network registration" class="slide">
+    <div class="split">
+      <div class="explain-col">
+        <div class="badge">Intercessor network · Registration</div>
+        <h2>Who prays for the field.</h2>
+        <p>In the tab’s second view, register each intercessor or group by name, country and contact — WhatsApp or email. They’re grouped by country.</p>
+        <div class="who"><b>Saved in the app:</b> your prayer network stays registered and organized.</div>
+      </div>
+      <div class="mock-col">
+        <div class="win"><div class="win-body" style="padding:40px 44px">
+          <div class="subtabs" style="margin-top:0"><span class="subtab">Prayer wall</span><span class="subtab on">Intercessor network</span></div>
+          <div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin-top:22px;display:grid;grid-template-columns:1.2fr 1fr 1.4fr;gap:14px">
+            <div><div style="font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#8A8970">Name</div><div style="border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:18px;color:var(--preto);margin-top:6px">Vila Nova Church</div></div>
+            <div><div style="font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#8A8970">Country</div><div style="border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:18px;color:var(--preto);margin-top:6px">Brazil</div></div>
+            <div><div style="font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#8A8970">Contact</div><div style="border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:18px;color:var(--preto);margin-top:6px">+55 11 9••••-1234</div></div>
+          </div>
+          <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px"><span style="width:46px;height:46px;border-radius:999px;background:var(--telha);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px">I</span><div style="flex:1"><div style="font-weight:700;font-size:19px;color:var(--preto)">Vila Nova Church</div><div style="font-size:15px;color:#8A8970">+55 11 9••••-1234</div></div><span style="font-weight:700;font-size:14px;color:#fff;background:var(--telha);padding:10px 18px;border-radius:999px">WhatsApp</span></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="snum">06</div>
+  </section>
+
+  <!-- 7 ENVIO -->
+  <section data-label="Sending" class="slide bg-areia">
+    <div class="pad">
+      <p class="eyebrow">How requests reach the intercessors</p>
+      <h2 class="head" style="margin-top:22px">One click, and the prayer travels.</h2>
+      <div style="display:flex;flex-direction:column;gap:14px;margin-top:54px;flex:1">
+        <div style="display:flex;align-items:center;gap:24px;background:var(--branco);border-radius:16px;padding:26px 34px">
+          <div style="font-weight:900;font-size:30px;color:var(--areia)">01</div>
+          <div style="font-weight:800;font-size:30px;color:var(--preto);flex:1">Send to one intercessor</div>
+          <div class="serif" style="font-size:23px;color:var(--verde)">WhatsApp or email, pre-filled</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:24px;background:var(--branco);border-radius:16px;padding:26px 34px">
+          <div style="font-weight:900;font-size:30px;color:var(--areia)">02</div>
+          <div style="font-weight:800;font-size:30px;color:var(--preto);flex:1">Send the wall to everyone</div>
+          <div class="serif" style="font-size:23px;color:var(--verde)">A single broadcast to the whole network</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:24px;background:var(--branco);border-radius:16px;padding:26px 34px">
+          <div style="font-weight:900;font-size:30px;color:var(--areia)">03</div>
+          <div style="font-weight:800;font-size:30px;color:var(--preto);flex:1">Export the database</div>
+          <div class="serif" style="font-size:23px;color:var(--verde)">TXT for groups · CSV and JSON for records</div>
+        </div>
+      </div>
+      <p class="serif" style="font-style:italic;font-size:25px;color:var(--verde);margin-top:18px;max-width:74ch">The texts come ready with the verse from Matthew 6:10 — just share.</p>
+    </div>
+    <div class="snum" style="color:var(--verde)">07</div>
+  </section>
+
+  <!-- 8 QUANDO ACONTECE -->
+  <section data-label="When it happens" class="slide">
+    <div class="pad">
+      <p class="eyebrow">When each thing happens</p>
+      <h2 class="head" style="margin-top:22px">The prayer cycle.</h2>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:64px;border-radius:20px;overflow:hidden;border:1px solid var(--line)">
+        <div style="padding:36px 30px;background:#fff;border-right:1px solid var(--line)">
+          <div style="font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--telha)">Every month</div>
+          <div style="font-weight:800;font-size:26px;color:var(--preto);margin-top:12px">Team submits</div>
+          <p class="serif" style="font-size:20px;line-height:1.4;color:var(--verde);margin-top:8px">The Monthly Pulse brings the prayer request.</p>
+        </div>
+        <div style="padding:36px 30px;background:#fff;border-right:1px solid var(--line)">
+          <div style="font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--telha)">Every quarter</div>
+          <div style="font-weight:800;font-size:26px;color:var(--preto);margin-top:12px">Assessment records</div>
+          <p class="serif" style="font-size:20px;line-height:1.4;color:var(--verde);margin-top:8px">The health meeting also feeds the wall.</p>
+        </div>
+        <div style="padding:36px 30px;background:#fff;border-right:1px solid var(--line)">
+          <div style="font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--telha)">On arrival</div>
+          <div style="font-weight:800;font-size:26px;color:var(--preto);margin-top:12px">Lands on the wall</div>
+          <p class="serif" style="font-size:20px;line-height:1.4;color:var(--verde);margin-top:8px">If authorized, it appears automatically.</p>
+        </div>
+        <div style="padding:36px 30px;background:var(--telha);color:#fff">
+          <div style="font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.8)">Whenever you want</div>
+          <div style="font-weight:800;font-size:26px;color:#fff;margin-top:12px">You share</div>
+          <p class="serif" style="font-size:20px;line-height:1.4;color:rgba(255,255,255,.9);margin-top:8px">Send to the network by WhatsApp, email or file.</p>
+        </div>
+      </div>
+    </div>
+    <div class="snum">08</div>
+  </section>
+
+  <!-- 9 CLOSING -->
+  <section data-label="Closing" class="slide bg-telha">
+    <div class="pad" style="justify-content:center;align-items:center;text-align:center">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:96px;height:96px;margin-bottom:44px">
+      <h2 class="head serif" style="font-style:italic;font-weight:400;font-size:80px;color:var(--branco);max-width:24ch">No request is lost.</h2>
+      <p class="serif" style="font-size:30px;line-height:1.5;color:rgba(255,255,255,.92);margin-top:48px;max-width:48ch">From the field to the intercessor network worldwide — prayer circulates, and what God answers is celebrated.</p>
+    </div>
+    <div style="position:absolute;left:-80px;bottom:-120px;font-family:serif;font-size:440px;color:rgba(246,245,235,.08);line-height:1">שמע</div>
+  </section>
+
+</deck-stage>
+<script src="deck-stage.js"></script>
+</body>
+</html>

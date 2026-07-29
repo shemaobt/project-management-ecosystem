@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETEN Tab — Detailed Presentation</title>
+<link rel="stylesheet" href="design-system/colors_and_type.css">
+<style>
+  deck-stage:not(:defined){visibility:hidden}
+  html,body{margin:0;background:#0A0703}
+  :root{--branco:#F6F5EB;--areia:#C5C29F;--azul:#89AAA3;--telha:#BE4A01;--verde-claro:#777D45;--verde:#3F3E20;--preto:#0A0703;--line:rgba(63,62,32,.16)}
+  .slide{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:'Montserrat',system-ui,sans-serif;color:var(--preto);background:var(--branco)}
+  .serif{font-family:'Merriweather',Georgia,serif}
+  .eyebrow{font-weight:700;font-size:24px;letter-spacing:.22em;text-transform:uppercase;color:var(--telha)}
+  .eyebrow.dk{color:var(--areia)}
+  .pad{position:absolute;inset:0;padding:108px 120px;display:flex;flex-direction:column}
+  .snum{position:absolute;bottom:54px;right:64px;font-size:24px;font-weight:600;color:var(--areia);letter-spacing:.1em}
+  .bg-verde{background:var(--verde);color:var(--branco)}
+  .bg-telha{background:var(--telha);color:var(--branco)}
+  .bg-areia{background:var(--areia)}
+  h1.title{font-weight:900;font-size:118px;line-height:.96;letter-spacing:-.02em;margin:0}
+  h2.head{font-weight:800;font-size:78px;line-height:1;letter-spacing:-.015em;margin:0;text-wrap:balance}
+  .lead{font-size:34px;line-height:1.5;color:var(--verde);max-width:32ch}
+  .lead.dk{color:rgba(246,245,235,.82)}
+
+  .split{position:absolute;inset:0;display:grid;grid-template-columns:42% 58%}
+  .explain-col{padding:0 70px 0 120px;display:flex;flex-direction:column;justify-content:center}
+  .explain-col .badge{display:inline-flex;align-items:center;gap:14px;font-weight:700;font-size:19px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha);margin-bottom:24px}
+  .explain-col h2{font-weight:800;font-size:60px;line-height:1.02;letter-spacing:-.015em;margin:0 0 26px;color:var(--preto)}
+  .explain-col p{font-size:28px;line-height:1.5;color:var(--verde);margin:0 0 24px;max-width:25ch;font-family:'Merriweather',Georgia,serif}
+  .who{display:inline-flex;align-items:center;gap:12px;padding:16px 22px;background:#ECEADF;border-radius:16px;font-size:21px;font-weight:600;color:var(--verde);align-self:flex-start;max-width:32ch;line-height:1.35}
+  .who b{color:var(--telha)}
+  .mock-col{background:#ECEADF;display:flex;align-items:center;justify-content:center;padding:80px 90px 80px 70px}
+
+  .win{width:100%;background:var(--branco);border-radius:24px;overflow:hidden;box-shadow:0 40px 90px rgba(10,7,3,.34);border:1px solid rgba(0,0,0,.06)}
+  .win-tabs{display:flex;gap:30px;padding:22px 36px 0;background:#fff;border-bottom:1px solid var(--line)}
+  .win-tab{font-weight:700;font-size:20px;color:#8A8970;padding-bottom:18px}
+  .win-tab.on{color:var(--telha);border-bottom:3px solid var(--telha)}
+  .win-body{padding:40px 44px}
+  .r-eyebrow{font-weight:700;font-size:17px;letter-spacing:.16em;text-transform:uppercase;color:var(--telha)}
+  .r-title{font-weight:800;font-size:44px;color:var(--preto);margin-top:12px;letter-spacing:-.01em}
+
+  .stat3{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;margin-top:24px}
+  .stat{padding:24px 26px;border-radius:18px;background:#fff;border:1px solid var(--line)}
+  .stat.hero{background:var(--verde)}
+  .stat.hero .sn{color:#fff}.stat.hero .sl{color:var(--branco)}.stat.hero .ss{color:rgba(246,245,235,.7)}
+  .sn{font-weight:900;font-size:54px;line-height:1;color:var(--telha)}
+  .sl{font-weight:700;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--preto);margin-top:10px}
+  .ss{font-size:14px;color:#8A8970;margin-top:4px}
+
+  .etab{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:24px}
+  .etr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;align-items:center}
+  .eth{background:#ECEADF;font-weight:700;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:#8A8970}
+  .etr>span{padding:16px 18px;font-size:19px;border-top:1px solid var(--line)}
+  .eth>span{border-top:0}
+  .etr .nm{font-weight:700;color:var(--preto)}
+  .etr .nr{text-align:right;color:var(--verde-claro);font-weight:700}
+  .etr .cr{text-align:right;font-weight:800;color:var(--telha)}
+  .etf{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;background:var(--verde)}
+  .etf>span{padding:18px;color:var(--branco);font-weight:800}
+  .etf .crf{text-align:right;font-size:24px;color:#fff}
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#3F3E20"/><g transform="translate(50,48)"><circle r="20" fill="none" stroke="#BE4A01" stroke-width="4"/><path d="M-9 1 -3 7 9 -7" fill="none" stroke="#F6F5EB" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+</template>
+<deck-stage width="1920" height="1080">
+
+  <!-- 1 TITLE -->
+  <section data-label="Capa" class="slide bg-verde">
+    <div class="pad" style="justify-content:space-between">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:104px;height:104px">
+      <div>
+        <p class="eyebrow dk" style="margin:0 0 26px">The ETEN tab, in detail</p>
+        <h1 class="title" style="color:var(--branco)">Each chapter,<br>one credit.</h1>
+        <p class="lead dk serif" style="margin-top:36px;font-size:36px;max-width:46ch">The annual report that turns translation work into resources for the next cycle. See how credits are counted — and how to generate the report for ETEN.</p>
+      </div>
+      <div style="font-size:24px;color:rgba(246,245,235,.7);font-weight:700;letter-spacing:.04em">Shemá · International Projects Ecosystem</div>
+    </div>
+    <div style="position:absolute;right:-120px;top:50%;transform:translateY(-50%);font-family:serif;font-size:520px;color:rgba(246,245,235,.06);line-height:1">שמע</div>
+  </section>
+
+  <!-- 2 O QUE É O ETEN -->
+  <section data-label="What it is" class="slide bg-areia">
+    <div class="pad">
+      <p class="eyebrow">What ETEN is</p>
+      <h2 class="head" style="margin-top:22px">Who sustains the translation.</h2>
+      <p class="serif" style="font-size:30px;line-height:1.5;color:var(--verde);margin-top:26px;max-width:64ch;font-style:italic">ETEN funds most of Shemá’s resources. Each year we account for the progress: how many chapters each project translated. This report is the basis for the next funding cycle.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px;margin-top:56px;flex:1">
+        <div style="background:var(--branco);border-radius:22px;padding:38px 40px">
+          <div style="font-weight:800;font-size:30px;color:var(--preto)">1 chapter</div>
+          <p class="serif" style="font-size:23px;line-height:1.45;color:var(--verde);margin-top:12px">advanced in the year equals <strong style="color:var(--telha)">1 credit</strong>.</p>
+        </div>
+        <div style="background:var(--branco);border-radius:22px;padding:38px 40px">
+          <div style="font-weight:800;font-size:30px;color:var(--preto)">Sum of credits</div>
+          <p class="serif" style="font-size:23px;line-height:1.45;color:var(--verde);margin-top:12px">matches the <strong style="color:var(--telha)">next cycle’s resources</strong>.</p>
+        </div>
+        <div style="background:var(--branco);border-radius:22px;padding:38px 40px">
+          <div style="font-weight:800;font-size:30px;color:var(--preto)">Only ETEN projects</div>
+          <p class="serif" style="font-size:23px;line-height:1.45;color:var(--verde);margin-top:12px">only those on the list are <strong style="color:var(--telha)">counted</strong>.</p>
+        </div>
+      </div>
+    </div>
+    <div class="snum" style="color:var(--verde)">02</div>
+  </section>
+
+  <!-- 3 COMO CONTA -->
+  <section data-label="How it counts" class="slide">
+    <div class="split">
+      <div class="explain-col">
+        <div class="badge">Automatic counting</div>
+        <h2>The credits count themselves.</h2>
+        <p>For each project on the list: chapters translated by year-end, minus those at the end of the prior year. The difference is the credits earned.</p>
+        <div class="who"><b>No manual spreadsheet:</b> just keep the progress updated in the projects.</div>
+      </div>
+      <div class="mock-col">
+        <div class="win" style="background:var(--verde)"><div class="win-body" style="padding:50px 48px;text-align:center">
+          <div style="font-weight:700;font-size:17px;letter-spacing:.14em;text-transform:uppercase;color:var(--areia)">Asháninka · Calculation</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin-top:36px">
+            <div><div style="font-weight:900;font-size:72px;color:#fff;line-height:1">36</div><div style="font-size:17px;color:rgba(246,245,235,.7);margin-top:8px">end of 2025</div></div>
+            <div style="font-weight:300;font-size:54px;color:var(--areia)">−</div>
+            <div><div style="font-weight:900;font-size:72px;color:#fff;line-height:1">24</div><div style="font-size:17px;color:rgba(246,245,235,.7);margin-top:8px">end of 2024</div></div>
+            <div style="font-weight:300;font-size:54px;color:var(--areia)">=</div>
+            <div><div style="font-weight:900;font-size:72px;color:var(--telha);line-height:1">+12</div><div style="font-size:17px;color:var(--areia);margin-top:8px">credits</div></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="snum">03</div>
+  </section>
+
+  <!-- 4 A TELA -->
+  <section data-label="The screen" class="slide">
+    <div class="split">
+      <div class="explain-col">
+        <div class="badge">The ETEN tab</div>
+        <h2>The whole year on one panel.</h2>
+        <p>Choose the year and see the total credits, how many projects are in ETEN and how many advanced — with the full table by project.</p>
+        <div class="who">Opened by the <b>General Articulator</b> to report to ETEN.</div>
+      </div>
+      <div class="mock-col">
+        <div class="win"><div class="win-body" style="padding:38px 40px">
+          <div class="r-eyebrow">Annual report · Resources Circle</div>
+          <div class="r-title" style="font-size:38px">ETEN Credits · 2025</div>
+          <div class="stat3">
+            <div class="stat hero"><div class="sn">530</div><div class="sl">Credits this year</div><div class="ss">1 chapter = 1 credit</div></div>
+            <div class="stat"><div class="sn">66</div><div class="sl">Projects in ETEN</div></div>
+            <div class="stat"><div class="sn">48</div><div class="sl">With progress</div></div>
+          </div>
+          <div class="etab">
+            <div class="etr eth"><span>Project</span><span class="nr">Start</span><span class="nr">End</span><span class="cr">Credits</span></div>
+            <div class="etr"><span class="nm">Asháninka</span><span class="nr">24</span><span class="nr">36</span><span class="cr">+12</span></div>
+            <div class="etr"><span class="nm">Baikeno</span><span class="nr">19</span><span class="nr">28</span><span class="cr">+9</span></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="snum">04</div>
+  </section>
+
+  <!-- 5 SELETOR DE ANO -->
+  <section data-label="Year selector" class="slide bg-verde">
+    <div class="pad">
+      <p class="eyebrow dk">By year</p>
+      <h2 class="head" style="margin-top:22px;color:var(--branco)">Each year, its report.</h2>
+      <p class="serif" style="font-size:30px;line-height:1.5;color:rgba(246,245,235,.85);margin-top:24px;max-width:60ch;font-style:italic">A selector at the top picks the year. Everything recalculates instantly — total credits, projects with progress and the whole table.</p>
+      <div style="display:flex;gap:20px;margin-top:60px;flex:1;align-items:flex-start">
+        <div style="background:rgba(246,245,235,.08);border-radius:18px;padding:30px 40px;text-align:center"><div style="font-weight:900;font-size:40px;color:rgba(246,245,235,.55)">2023</div></div>
+        <div style="background:rgba(246,245,235,.08);border-radius:18px;padding:30px 40px;text-align:center"><div style="font-weight:900;font-size:40px;color:rgba(246,245,235,.55)">2024</div><div style="font-size:16px;color:var(--areia);margin-top:6px">538 credits</div></div>
+        <div style="background:var(--telha);border-radius:18px;padding:30px 48px;text-align:center"><div style="font-weight:900;font-size:48px;color:#fff">2025</div><div style="font-size:17px;color:rgba(255,255,255,.85);margin-top:6px;font-weight:600">530 credits</div></div>
+        <div style="background:rgba(246,245,235,.08);border-radius:18px;padding:30px 40px;text-align:center"><div style="font-weight:900;font-size:40px;color:rgba(246,245,235,.55)">2026</div><div style="font-size:16px;color:var(--areia);margin-top:6px">in progress</div></div>
+      </div>
+    </div>
+    <div class="snum" style="color:rgba(246,245,235,.5)">05</div>
+  </section>
+
+  <!-- 6 GERAR RELATÓRIO -->
+  <section data-label="Generate report" class="slide">
+    <div class="split">
+      <div class="explain-col">
+        <div class="badge">Reporting to ETEN</div>
+        <h2>The report, ready in one click.</h2>
+        <p>Generate the annual document formatted with the Shemá brand — ready to send — or download the CSV spreadsheet with credits project by project.</p>
+        <div class="who"><b>Two outputs:</b> a PDF report and a CSV database.</div>
+      </div>
+      <div class="mock-col">
+        <div class="win"><div class="win-body" style="padding:44px">
+          <div style="border-bottom:2px solid var(--verde);padding-bottom:20px">
+            <div style="font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha)">Annual translation report</div>
+            <div style="font-weight:800;font-size:36px;color:var(--preto);margin-top:8px">ETEN Credits · 2025</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px;margin-top:22px">
+            <div style="background:var(--verde);border-radius:14px;padding:18px 20px"><div style="font-weight:900;font-size:42px;color:#fff">530</div><div style="font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--areia);margin-top:6px">Credits</div></div>
+            <div style="background:#ECEADF;border-radius:14px;padding:18px 20px"><div style="font-weight:900;font-size:42px;color:var(--telha)">66</div><div style="font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--verde);margin-top:6px">Projects</div></div>
+            <div style="background:#ECEADF;border-radius:14px;padding:18px 20px"><div style="font-weight:900;font-size:42px;color:var(--telha)">48</div><div style="font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--verde);margin-top:6px">Progress</div></div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:24px">
+            <span style="flex:1;text-align:center;font-weight:700;font-size:17px;color:#fff;background:var(--telha);padding:15px;border-radius:999px">Generate report (PDF)</span>
+            <span style="text-align:center;font-weight:700;font-size:17px;color:var(--verde);border:1.5px solid var(--verde);padding:15px 24px;border-radius:999px">Download CSV</span>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="snum">06</div>
+  </section>
+
+  <!-- 7 COMO MANTER -->
+  <section data-label="How to maintain" class="slide bg-areia">
+    <div class="pad">
+      <p class="eyebrow">How to keep it updated</p>
+      <h2 class="head" style="margin-top:22px">The report maintains itself.</h2>
+      <div style="display:flex;flex-direction:column;gap:14px;margin-top:54px;flex:1">
+        <div style="display:flex;align-items:center;gap:24px;background:var(--branco);border-radius:16px;padding:26px 34px">
+          <div style="font-weight:900;font-size:30px;color:var(--areia)">01</div>
+          <div style="font-weight:800;font-size:28px;color:var(--preto);flex:1">Mark the project on the ETEN list</div>
+          <div class="serif" style="font-size:22px;color:var(--verde)">record tab 4 · Resources</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:24px;background:var(--branco);border-radius:16px;padding:26px 34px">
+          <div style="font-weight:900;font-size:30px;color:var(--areia)">02</div>
+          <div style="font-weight:800;font-size:28px;color:var(--preto);flex:1">Update the translated chapters</div>
+          <div class="serif" style="font-size:22px;color:var(--verde)">record tab 5 · Progress</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:24px;background:var(--branco);border-radius:16px;padding:26px 34px">
+          <div style="font-weight:900;font-size:30px;color:var(--areia)">03</div>
+          <div style="font-weight:800;font-size:28px;color:var(--preto);flex:1">The credits recalculate</div>
+          <div class="serif" style="font-size:22px;color:var(--verde)">automatically, by year</div>
+        </div>
+      </div>
+      <p class="serif" style="font-style:italic;font-size:25px;color:var(--verde);margin-top:18px;max-width:74ch">The teams’ monthly pulses also update the progress — so the report grows throughout the year.</p>
+    </div>
+    <div class="snum" style="color:var(--verde)">07</div>
+  </section>
+
+  <!-- 8 CLOSING -->
+  <section data-label="Closing" class="slide bg-telha">
+    <div class="pad" style="justify-content:center;align-items:center;text-align:center">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:96px;height:96px;margin-bottom:44px">
+      <h2 class="head serif" style="font-style:italic;font-weight:400;font-size:78px;color:var(--branco);max-width:24ch">Every chapter counts — literally.</h2>
+      <p class="serif" style="font-size:30px;line-height:1.5;color:rgba(255,255,255,.92);margin-top:48px;max-width:48ch">The faithful work of translation, turned into clear accountability and into resources to keep going.</p>
+    </div>
+    <div style="position:absolute;left:-80px;bottom:-120px;font-family:serif;font-size:440px;color:rgba(246,245,235,.08);line-height:1">שמע</div>
+  </section>
+
+</deck-stage>
+<script src="deck-stage.js"></script>
+</body>
+</html>

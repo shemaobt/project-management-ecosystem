@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barra lateral e Filtros — Apresentação</title>
+<link rel="stylesheet" href="design-system/colors_and_type.css">
+<style>
+  deck-stage:not(:defined){visibility:hidden}
+  html,body{margin:0;background:#0A0703}
+  :root{--branco:#F6F5EB;--areia:#C5C29F;--azul:#89AAA3;--telha:#BE4A01;--verde-claro:#777D45;--verde:#3F3E20;--preto:#0A0703;--line:rgba(63,62,32,.16)}
+  .slide{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:'Montserrat',system-ui,sans-serif;color:var(--preto);background:var(--branco)}
+  .serif{font-family:'Merriweather',Georgia,serif}
+  .eyebrow{font-weight:700;font-size:24px;letter-spacing:.22em;text-transform:uppercase;color:var(--telha)}
+  .eyebrow.dk{color:var(--areia)}
+  .pad{position:absolute;inset:0;padding:108px 120px;display:flex;flex-direction:column}
+  .snum{position:absolute;bottom:54px;right:64px;font-size:24px;font-weight:600;color:var(--areia);letter-spacing:.1em}
+  .bg-verde{background:var(--verde);color:var(--branco)}
+  .bg-telha{background:var(--telha);color:var(--branco)}
+  .bg-areia{background:var(--areia)}
+  h1.title{font-weight:900;font-size:110px;line-height:.96;letter-spacing:-.02em;margin:0}
+  h2.head{font-weight:800;font-size:74px;line-height:1;letter-spacing:-.015em;margin:0;text-wrap:balance}
+  .lead{font-size:34px;line-height:1.5;color:var(--verde);max-width:32ch}
+  .lead.dk{color:rgba(246,245,235,.82)}
+
+  .split{position:absolute;inset:0;display:grid;grid-template-columns:46% 54%}
+  .explain-col{padding:0 70px 0 120px;display:flex;flex-direction:column;justify-content:center}
+  .explain-col .badge{display:inline-flex;align-items:center;gap:14px;font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha);margin-bottom:24px}
+  .explain-col h2{font-weight:800;font-size:56px;line-height:1.02;letter-spacing:-.015em;margin:0 0 26px;color:var(--preto)}
+  .explain-col p{font-size:27px;line-height:1.5;color:var(--verde);margin:0 0 24px;max-width:26ch;font-family:'Merriweather',Georgia,serif}
+  .who{display:inline-flex;align-items:center;gap:12px;padding:16px 22px;background:#ECEADF;border-radius:16px;font-size:22px;font-weight:600;color:var(--verde);align-self:flex-start;max-width:32ch;line-height:1.35}
+  .who b{color:var(--telha)}
+  .mock-col{background:#ECEADF;display:flex;align-items:center;justify-content:center;padding:60px 80px}
+
+  /* sidebar mock */
+  .sb{width:520px;background:var(--branco);border-radius:22px;box-shadow:0 40px 90px rgba(10,7,3,.34);border:1px solid rgba(0,0,0,.06);padding:26px 24px;max-height:880px;overflow:hidden}
+  .sb-search{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:15px 18px;color:#8A8970;font-size:18px}
+  .sb-who{display:flex;align-items:center;gap:8px;padding:14px 6px 16px;font-size:14px;color:#8A8970}
+  .sb-who b{color:var(--verde)}
+  .preset-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .preset{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:12px 13px;font-weight:600;font-size:15px;color:var(--verde);background:#fff}
+  .preset .c{margin-left:auto;font-size:12px;font-weight:700;color:#8A8970;background:#ECEADF;padding:2px 8px;border-radius:999px}
+  .preset.on{background:var(--telha);color:#fff;border-color:var(--telha)}
+  .preset.on .c{background:rgba(255,255,255,.22);color:#fff}
+  .results{display:flex;justify-content:space-between;align-items:center;padding:14px 4px 0;font-size:14px;color:#8A8970}
+  .results b{color:var(--preto)}
+  .results .clr{color:var(--telha);font-weight:700}
+  .sec-lbl{font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8A8970;margin:20px 4px 10px}
+  .sec-head{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:10px;font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--preto)}
+  .chips-row{display:flex;flex-wrap:wrap;gap:7px;padding:4px 4px 0}
+  .chip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:8px 13px;font-size:14px;font-weight:500;color:var(--verde);background:#fff}
+  .chip .c{font-size:11px;font-weight:700;color:#8A8970}
+  .chip.on{background:var(--verde);color:#fff;border-color:var(--verde)}
+  .chip.on .c{color:rgba(246,245,235,.8)}
+  .chip.crit{border-color:#d8a08c}
+  .more{display:flex;align-items:center;justify-content:center;gap:8px;border:1px dashed var(--line-strong,rgba(63,62,32,.32));border-radius:999px;padding:11px;font-weight:600;font-size:14px;color:var(--verde);margin-top:14px}
+
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .feat{background:var(--branco);border-radius:20px;padding:34px 32px}
+  .feat .fn{font-weight:900;font-size:24px;color:var(--telha)}
+  .feat .ft{font-weight:800;font-size:28px;color:var(--preto);margin-top:12px}
+  .feat .fp{font-family:'Merriweather',serif;font-size:21px;line-height:1.45;color:var(--verde);margin-top:8px}
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#3F3E20"/><g transform="translate(50,50)"><rect x="-22" y="-20" width="16" height="40" rx="3" fill="#BE4A01"/><path d="M-2 -14h22M-2 0h22M-2 14h14" stroke="#F6F5EB" stroke-width="4" stroke-linecap="round"/></g></svg>
+</template>
+<deck-stage width="1920" height="1080" data-om-id="3134a219:12" style="--deck-rail-w: 188px;">
+
+  <!-- 1 TITLE -->
+  <section data-label="Capa" class="slide bg-verde" data-om-id="3134a219:13" data-screen-label="01 Capa" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="0">
+    <div class="pad" style="justify-content:space-between" data-om-id="3134a219:14">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:104px;height:104px" data-om-id="3134a219:15">
+      <div data-om-id="3134a219:16">
+        <p class="eyebrow dk" style="margin:0 0 26px" data-om-id="3134a219:17">A barra lateral, em detalhe</p>
+        <h1 class="title" style="color:var(--branco)" data-om-id="3134a219:18">Encontrar é<br data-om-id="3134a219:19">fácil.</h1>
+        <p class="lead dk serif" style="margin-top:36px;font-size:36px;max-width:46ch" data-om-id="3134a219:20">Busca, atalhos, filtros e visões salvas — tudo na barra lateral dos Projetos. Veja como achar exatamente o que procura entre 127 línguas.</p>
+      </div>
+      <div style="font-size:24px;color:rgba(246,245,235,.7);font-weight:700;letter-spacing:.04em" data-om-id="3134a219:21">Shemá · Ecossistema de Projetos Internacionais</div>
+    </div>
+    <div style="position:absolute;right:-120px;top:50%;transform:translateY(-50%);font-family:serif;font-size:520px;color:rgba(246,245,235,.06);line-height:1" data-om-id="3134a219:22">שמע</div>
+  </section>
+
+  <!-- 1c HERO TOPO -->
+  
+
+  <!-- 1b VISÃO GERAL · MAPA -->
+  <section data-label="Visão geral · mapa" class="slide bg-areia">
+    <div style="position:absolute;left:120px;top:48px;z-index:3">
+      <p class="eyebrow" style="margin:0">A página principal</p>
+    </div>
+    <img src="deck-assets/hero-topo.jpeg" alt="Página principal do app Shemá — hero, indicadores, abas e o globo" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:1500px;border-radius:18px;box-shadow:0 30px 70px rgba(10,7,3,0.3);display:block">
+    <div class="snum" style="color:var(--verde)">02</div>
+  </section>
+
+  <!-- 2b LISTA DE PROJETOS -->
+  <section data-label="Lista de projetos" class="slide bg-areia">
+    <div style="position:absolute;left:120px;top:48px;z-index:3">
+      <p class="eyebrow" style="margin:0">A lista de projetos</p>
+    </div>
+    <img src="deck-assets/lista-projetos.png" alt="Lista de projetos do app Shemá — cards com progresso, base e prazo" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:1500px;border-radius:18px;box-shadow:0 30px 70px rgba(10,7,3,0.3);display:block">
+    <div class="snum" style="color:var(--verde)">03</div>
+  </section>
+
+  <!-- 2 PANORAMA -->
+  <section data-label="Panorama" class="slide" data-om-id="3134a219:119" data-screen-label="04 Panorama" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="3">
+    <div class="split" data-om-id="3134a219:120">
+      <div class="explain-col" data-om-id="3134a219:121">
+        <div class="badge" data-om-id="3134a219:122">A barra lateral</div>
+        <h2 data-om-id="3134a219:123">Quatro formas de filtrar.</h2>
+        <p data-om-id="3134a219:124">Busca livre no topo, atalhos combináveis, o painel de times por região, e os filtros detalhados. Tudo se soma para refinar a lista.</p>
+        <div class="who" data-om-id="3134a219:125"><b data-om-id="3134a219:126">Sempre à vista:</b> a lista de projetos reage na hora.</div>
+      </div>
+      <div class="mock-col" data-om-id="3134a219:127">
+        <div class="sb" data-om-id="3134a219:128">
+          <div class="sb-search" data-om-id="3134a219:129"><span style="font-weight:700" data-om-id="3134a219:130">⌕</span> Língua, equipe, parceiro…</div>
+          <div class="sb-who" data-om-id="3134a219:131">◴ <span data-om-id="3134a219:132">Você é</span> <b data-om-id="3134a219:133">Karina Marinho</b></div>
+          <div class="preset-row" data-om-id="3134a219:134">
+            <div class="preset on" data-om-id="3134a219:135">Pedem atenção <span class="c" data-om-id="3134a219:136">9</span></div>
+            <div class="preset" data-om-id="3134a219:137">Em oração <span class="c" data-om-id="3134a219:138">14</span></div>
+            <div class="preset" data-om-id="3134a219:139">Celebrar <span class="c" data-om-id="3134a219:140">6</span></div>
+            <div class="preset" data-om-id="3134a219:141">Recentes <span class="c" data-om-id="3134a219:142">21</span></div>
+          </div>
+          <div class="results" data-om-id="3134a219:143"><span data-om-id="3134a219:144">Mostrando <b data-om-id="3134a219:145">18</b> de <b data-om-id="3134a219:146">127</b></span><span class="clr" data-om-id="3134a219:147">Limpar tudo</span></div>
+          <div class="sec-lbl" data-om-id="3134a219:148">Filtros detalhados</div>
+          <div class="sec-head" style="background:#ECEADF" data-om-id="3134a219:149">Status <span data-om-id="3134a219:150">−</span></div>
+          <div class="chips-row" data-om-id="3134a219:151"><span class="chip" data-om-id="3134a219:152">Todos <span class="c" data-om-id="3134a219:153">127</span></span><span class="chip on" data-om-id="3134a219:154">Em andamento <span class="c" data-om-id="3134a219:155">63</span></span><span class="chip" data-om-id="3134a219:156">Concluído <span class="c" data-om-id="3134a219:157">6</span></span></div>
+          <div class="more" data-om-id="3134a219:158">Mais filtros ⌄</div>
+        </div>
+      </div>
+    </div>
+    <div class="snum" data-om-id="3134a219:159">02</div>
+  </section>
+
+  <!-- 3 BUSCA + IDENTIDADE -->
+  <section data-label="Busca" class="slide bg-areia" data-om-id="3134a219:160" data-screen-label="05 Busca" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="4">
+    <div class="pad" data-om-id="3134a219:161">
+      <p class="eyebrow" data-om-id="3134a219:162">No topo da barra</p>
+      <h2 class="head" style="margin-top:22px" data-om-id="3134a219:163">Buscar e contar.</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:54px;flex:1" data-om-id="3134a219:164">
+        <div style="background:var(--branco);border-radius:22px;padding:42px 44px" data-om-id="3134a219:165">
+          <div style="font-weight:800;font-size:34px;color:var(--preto)" data-om-id="3134a219:166">A busca livre</div>
+          <p class="serif" style="font-size:25px;line-height:1.5;color:var(--verde);margin-top:14px" data-om-id="3134a219:167">Digite língua, equipe ou parceiro — a lista filtra enquanto você escreve.</p>
+        </div>
+        <div style="background:var(--branco);border-radius:22px;padding:42px 44px" data-om-id="3134a219:168">
+          <div style="font-weight:800;font-size:34px;color:var(--preto)" data-om-id="3134a219:169">"Mostrando 18 de 127"</div>
+          <p class="serif" style="font-size:25px;line-height:1.5;color:var(--verde);margin-top:14px" data-om-id="3134a219:170">A contagem mostra quantos projetos sobraram após os filtros — e "Limpar tudo" zera num clique.</p>
+        </div>
+      </div>
+      <p class="serif" style="font-style:italic;font-size:24px;color:var(--verde);margin-top:18px;max-width:74ch" data-om-id="3134a219:171">A linha "Você é Karina Marinho" identifica quem está usando — e personaliza o que cada um vê.</p>
+    </div>
+    <div class="snum" style="color:var(--verde)" data-om-id="3134a219:172">03</div>
+  </section>
+
+  <!-- 4 OS ATALHOS -->
+  <section data-label="Atalhos" class="slide" data-om-id="3134a219:173" data-screen-label="06 Atalhos" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="5">
+    <div class="pad" data-om-id="3134a219:174">
+      <p class="eyebrow" data-om-id="3134a219:175">Atalhos combináveis</p>
+      <h2 class="head" style="margin-top:18px;font-size:64px" data-om-id="3134a219:176">Quatro chips, um clique cada.</h2>
+      <p class="serif" style="font-size:27px;line-height:1.5;color:var(--verde);margin-top:20px;max-width:70ch;font-style:italic" data-om-id="3134a219:177">Toque um ou mais — eles se somam. Cada chip mostra quantos projetos atende.</p>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:42px;flex:1" data-om-id="3134a219:178">
+        <div style="background:var(--telha);border-radius:20px;padding:32px 36px;color:#fff;display:flex;align-items:center;gap:24px" data-om-id="3134a219:179">
+          <div style="font-weight:900;font-size:46px" data-om-id="3134a219:180">9</div>
+          <div data-om-id="3134a219:181"><div style="font-weight:800;font-size:30px" data-om-id="3134a219:182">Pedem atenção</div><div class="serif" style="font-size:21px;color:rgba(255,255,255,.88);margin-top:4px" data-om-id="3134a219:183">Saúde crítica · sem notícias · necessidades urgentes</div></div>
+        </div>
+        <div style="background:var(--branco);border:1px solid var(--line);border-radius:20px;padding:32px 36px;display:flex;align-items:center;gap:24px" data-om-id="3134a219:184">
+          <div style="font-weight:900;font-size:46px;color:var(--telha)" data-om-id="3134a219:185">14</div>
+          <div data-om-id="3134a219:186"><div style="font-weight:800;font-size:30px;color:var(--preto)" data-om-id="3134a219:187">Em oração</div><div class="serif" style="font-size:21px;color:var(--verde);margin-top:4px" data-om-id="3134a219:188">Pedidos compartilhados pelas equipes</div></div>
+        </div>
+        <div style="background:var(--branco);border:1px solid var(--line);border-radius:20px;padding:32px 36px;display:flex;align-items:center;gap:24px" data-om-id="3134a219:189">
+          <div style="font-weight:900;font-size:46px;color:var(--telha)" data-om-id="3134a219:190">6</div>
+          <div data-om-id="3134a219:191"><div style="font-weight:800;font-size:30px;color:var(--preto)" data-om-id="3134a219:192">Celebrar</div><div class="serif" style="font-size:21px;color:var(--verde);margin-top:4px" data-om-id="3134a219:193">Concluídos · orações respondidas</div></div>
+        </div>
+        <div style="background:var(--branco);border:1px solid var(--line);border-radius:20px;padding:32px 36px;display:flex;align-items:center;gap:24px" data-om-id="3134a219:194">
+          <div style="font-weight:900;font-size:46px;color:var(--telha)" data-om-id="3134a219:195">21</div>
+          <div data-om-id="3134a219:196"><div style="font-weight:800;font-size:30px;color:var(--preto)" data-om-id="3134a219:197">Recentes</div><div class="serif" style="font-size:21px;color:var(--verde);margin-top:4px" data-om-id="3134a219:198">Atualizados nos últimos 30 dias</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="snum" data-om-id="3134a219:199">04</div>
+  </section>
+
+  <!-- 5 FILTROS DETALHADOS -->
+  <section data-label="Filtros" class="slide bg-verde" data-om-id="3134a219:200" data-screen-label="07 Filtros" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="6">
+    <div class="pad" data-om-id="3134a219:201">
+      <p class="eyebrow dk" data-om-id="3134a219:202">Filtros detalhados</p>
+      <h2 class="head" style="margin-top:18px;color:var(--branco);font-size:62px" data-om-id="3134a219:203">Filtre por tudo que importa.</h2>
+      <p class="serif" style="font-size:26px;line-height:1.5;color:rgba(246,245,235,.85);margin-top:18px;max-width:68ch;font-style:italic" data-om-id="3134a219:204">Sempre à vista: Status, Base e Saúde. Em "Mais filtros", todo o resto — cada opção com a sua contagem.</p>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:44px;flex:1" data-om-id="3134a219:205">
+        <div style="background:rgba(246,245,235,.08);border-radius:16px;padding:26px 24px" data-om-id="3134a219:206"><div style="font-weight:800;font-size:24px;color:#fff" data-om-id="3134a219:207">Status</div><div class="serif" style="font-size:18px;color:rgba(246,245,235,.72);margin-top:6px" data-om-id="3134a219:208">Em andamento, concluído, pausado…</div></div>
+        <div style="background:rgba(246,245,235,.08);border-radius:16px;padding:26px 24px" data-om-id="3134a219:209"><div style="font-weight:800;font-size:24px;color:#fff" data-om-id="3134a219:210">Base · YWAM</div><div class="serif" style="font-size:18px;color:rgba(246,245,235,.72);margin-top:6px" data-om-id="3134a219:211">por base de origem da equipe</div></div>
+        <div style="background:rgba(246,245,235,.08);border-radius:16px;padding:26px 24px" data-om-id="3134a219:212"><div style="font-weight:800;font-size:24px;color:#fff" data-om-id="3134a219:213">Saúde</div><div class="serif" style="font-size:18px;color:rgba(246,245,235,.72);margin-top:6px" data-om-id="3134a219:214">boa, atenção, crítica</div></div>
+        <div style="background:rgba(246,245,235,.08);border-radius:16px;padding:26px 24px" data-om-id="3134a219:215"><div style="font-weight:800;font-size:24px;color:#fff" data-om-id="3134a219:216">País · Continente</div><div class="serif" style="font-size:18px;color:rgba(246,245,235,.72);margin-top:6px" data-om-id="3134a219:217">por geografia</div></div>
+        <div style="background:rgba(246,245,235,.08);border-radius:16px;padding:26px 24px" data-om-id="3134a219:218"><div style="font-weight:800;font-size:24px;color:#fff" data-om-id="3134a219:219">Objetivo · Tipo</div><div class="serif" style="font-size:18px;color:rgba(246,245,235,.72);margin-top:6px" data-om-id="3134a219:220">NT, histórias · OBT, sinais</div></div>
+        <div style="background:rgba(246,245,235,.08);border-radius:16px;padding:26px 24px" data-om-id="3134a219:221"><div style="font-weight:800;font-size:24px;color:#fff" data-om-id="3134a219:222">ETEN · Recursos</div><div class="serif" style="font-size:18px;color:rgba(246,245,235,.72);margin-top:6px" data-om-id="3134a219:223">na lista · fonte de recurso</div></div>
+        <div style="background:rgba(246,245,235,.08);border-radius:16px;padding:26px 24px" data-om-id="3134a219:224"><div style="font-weight:800;font-size:24px;color:#fff" data-om-id="3134a219:225">% Progresso · Vitalidade</div><div class="serif" style="font-size:18px;color:rgba(246,245,235,.72);margin-top:6px" data-om-id="3134a219:226">faixa de avanço · vitalidade da língua</div></div>
+        <div style="background:rgba(246,245,235,.08);border-radius:16px;padding:26px 24px" data-om-id="3134a219:227"><div style="font-weight:800;font-size:24px;color:#fff" data-om-id="3134a219:228">Necessidades · Mídia · Atualização</div><div class="serif" style="font-size:18px;color:rgba(246,245,235,.72);margin-top:6px" data-om-id="3134a219:229">o que falta · fotos/vídeos · sem notícias</div></div>
+      </div>
+    </div>
+    <div class="snum" style="color:rgba(246,245,235,.5)" data-om-id="3134a219:230">05</div>
+  </section>
+
+  <!-- 6 TIME POR REGIÃO -->
+  <section data-label="Time por região" class="slide" data-om-id="3134a219:231" data-screen-label="08 Time por região" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="7">
+    <div class="split" data-om-id="3134a219:232">
+      <div class="explain-col" data-om-id="3134a219:233">
+        <div class="badge" data-om-id="3134a219:234">Na própria barra lateral</div>
+        <h2 data-om-id="3134a219:235">Filtre pela região.</h2>
+        <p data-om-id="3134a219:236">O painel "Time por região" mostra cada continente com seus três papéis. Clique no cabeçalho e a lista filtra para aquela região.</p>
+        <div class="who" data-om-id="3134a219:237"><b data-om-id="3134a219:238">Dois em um:</b> consulta a equipe e filtra ao mesmo tempo.</div>
+      </div>
+      <div class="mock-col" data-om-id="3134a219:239">
+        <div class="sb" style="width:480px" data-om-id="3134a219:240">
+          <div class="sec-lbl" style="margin-top:0" data-om-id="3134a219:241">Time por região</div>
+          <div style="border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:10px" data-om-id="3134a219:242">
+            <div style="background:var(--verde);color:#fff;padding:12px 18px;display:flex;justify-content:space-between" data-om-id="3134a219:243"><span style="font-weight:800;font-size:14px;letter-spacing:.06em;text-transform:uppercase" data-om-id="3134a219:244">Oceania</span><span style="font-size:12px;background:rgba(246,245,235,.18);padding:4px 10px;border-radius:999px" data-om-id="3134a219:245">36</span></div>
+            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px" data-om-id="3134a219:246">
+              <div data-om-id="3134a219:247"><div style="font-size:11px;text-transform:uppercase;color:#8A8970;font-weight:700" data-om-id="3134a219:248">Anfitrião Regional</div><div style="font-size:16px;color:var(--verde-claro);font-weight:600" data-om-id="3134a219:249">Mateus Lai</div></div>
+              <div data-om-id="3134a219:250"><div style="font-size:11px;text-transform:uppercase;color:#8A8970;font-weight:700" data-om-id="3134a219:251">Facilitador de Projetos</div><div style="font-size:16px;color:var(--verde-claro);font-weight:600" data-om-id="3134a219:252">Hannah Wright</div></div>
+            </div>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:16px;overflow:hidden" data-om-id="3134a219:253">
+            <div style="background:var(--verde);color:#fff;padding:12px 18px;display:flex;justify-content:space-between" data-om-id="3134a219:254"><span style="font-weight:800;font-size:14px;letter-spacing:.06em;text-transform:uppercase" data-om-id="3134a219:255">Ásia</span><span style="font-size:12px;background:rgba(246,245,235,.18);padding:4px 10px;border-radius:999px" data-om-id="3134a219:256">31</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="snum" data-om-id="3134a219:257">06</div>
+  </section>
+
+  <!-- 7 VISÕES SALVAS -->
+  <section data-label="Visões salvas" class="slide bg-areia" data-om-id="3134a219:258" data-screen-label="09 Visões salvas" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="8">
+    <div class="pad" data-om-id="3134a219:259">
+      <p class="eyebrow" data-om-id="3134a219:260">Para a sua rotina</p>
+      <h2 class="head" style="margin-top:22px" data-om-id="3134a219:261">Salve a sua vista.</h2>
+      <p class="serif" style="font-size:29px;line-height:1.5;color:var(--verde);margin-top:24px;max-width:64ch;font-style:italic" data-om-id="3134a219:262">Montou um conjunto de filtros que usa toda semana? Salve como uma "visão" e volte a ela com um clique — sem refiltrar tudo de novo.</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:54px;flex:1" data-om-id="3134a219:263">
+        <div style="background:var(--branco);border-radius:20px;padding:34px 32px" data-om-id="3134a219:264">
+          <div style="font-weight:900;font-size:24px;color:var(--telha)" data-om-id="3134a219:265">01</div>
+          <div style="font-weight:800;font-size:26px;color:var(--preto);margin-top:12px" data-om-id="3134a219:266">Filtre</div>
+          <p class="serif" style="font-size:21px;line-height:1.45;color:var(--verde);margin-top:8px" data-om-id="3134a219:267">Combine atalhos e filtros como quiser.</p>
+        </div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 32px" data-om-id="3134a219:268">
+          <div style="font-weight:900;font-size:24px;color:var(--telha)" data-om-id="3134a219:269">02</div>
+          <div style="font-weight:800;font-size:26px;color:var(--preto);margin-top:12px" data-om-id="3134a219:270">Salve a visão</div>
+          <p class="serif" style="font-size:21px;line-height:1.45;color:var(--verde);margin-top:8px" data-om-id="3134a219:271">Dê um nome — "Minha vista de segunda".</p>
+        </div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 32px" data-om-id="3134a219:272">
+          <div style="font-weight:900;font-size:24px;color:var(--telha)" data-om-id="3134a219:273">03</div>
+          <div style="font-weight:800;font-size:26px;color:var(--preto);margin-top:12px" data-om-id="3134a219:274">Volte num clique</div>
+          <p class="serif" style="font-size:21px;line-height:1.45;color:var(--verde);margin-top:8px" data-om-id="3134a219:275">A visão aplica todos os filtros de novo.</p>
+        </div>
+      </div>
+    </div>
+    <div class="snum" style="color:var(--verde)" data-om-id="3134a219:276">07</div>
+  </section>
+
+  <!-- 8 CLOSING -->
+  <section data-label="Encerramento" class="slide bg-telha" data-om-id="3134a219:277" data-screen-label="10 Encerramento" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="9" data-deck-last-visible="">
+    <div class="pad" style="justify-content:center;align-items:center;text-align:center" data-om-id="3134a219:278">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:96px;height:96px;margin-bottom:44px" data-om-id="3134a219:279">
+      <h2 class="head serif" style="font-style:italic;font-weight:400;font-size:78px;color:var(--branco);max-width:24ch" data-om-id="3134a219:280">Do todo ao detalhe, num olhar.</h2>
+      <p class="serif" style="font-size:30px;line-height:1.5;color:rgba(255,255,255,.92);margin-top:48px;max-width:50ch" data-om-id="3134a219:281">Buscar, filtrar, combinar e salvar — para que nenhuma equipe se perca entre as 127 línguas.</p>
+    </div>
+    <div style="position:absolute;left:-80px;bottom:-120px;font-family:serif;font-size:440px;color:rgba(246,245,235,.08);line-height:1" data-om-id="3134a219:282">שמע</div>
+  </section>
+
+</deck-stage>
+<script src="deck-stage.js"></script>
+</body>
+</html>

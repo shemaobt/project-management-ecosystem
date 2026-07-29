@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Record — Presentation</title>
+<link rel="stylesheet" href="design-system/colors_and_type.css">
+<style>
+  deck-stage:not(:defined){visibility:hidden}
+  html,body{margin:0;background:#0A0703}
+  :root{--branco:#F6F5EB;--areia:#C5C29F;--azul:#89AAA3;--telha:#BE4A01;--verde-claro:#777D45;--verde:#3F3E20;--preto:#0A0703;--line:rgba(63,62,32,.16)}
+  .slide{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:'Montserrat',system-ui,sans-serif;color:var(--preto);background:var(--branco)}
+  .serif{font-family:'Merriweather',Georgia,serif}
+  .eyebrow{font-weight:700;font-size:24px;letter-spacing:.22em;text-transform:uppercase;color:var(--telha)}
+  .eyebrow.dk{color:var(--areia)}
+  .pad{position:absolute;inset:0;padding:108px 120px;display:flex;flex-direction:column}
+  .snum{position:absolute;bottom:54px;right:64px;font-size:24px;font-weight:600;color:var(--areia);letter-spacing:.1em}
+  .bg-verde{background:var(--verde);color:var(--branco)}
+  .bg-telha{background:var(--telha);color:var(--branco)}
+  .bg-areia{background:var(--areia)}
+  h1.title{font-weight:900;font-size:120px;line-height:.96;letter-spacing:-.02em;margin:0}
+  h2.head{font-weight:800;font-size:80px;line-height:1;letter-spacing:-.015em;margin:0;text-wrap:balance}
+  .lead{font-size:34px;line-height:1.5;color:var(--verde);max-width:30ch}
+  .lead.dk{color:rgba(246,245,235,.82)}
+
+  /* split layout: mock left, explain right */
+  .split{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr}
+  .mock-col{background:var(--bg-muted, #ECEADF);display:flex;align-items:center;justify-content:center;padding:80px 70px}
+  .explain-col{padding:120px 100px;display:flex;flex-direction:column;justify-content:center}
+  .explain-col .num-badge{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:999px;background:var(--telha);color:#fff;font-weight:900;font-size:30px;margin-bottom:30px}
+  .explain-col h2{font-weight:800;font-size:64px;line-height:1.02;letter-spacing:-.015em;margin:0 0 28px;color:var(--preto)}
+  .explain-col p{font-size:30px;line-height:1.5;color:var(--verde);margin:0 0 28px;max-width:26ch;font-family:'Merriweather',Georgia,serif}
+  .who{display:inline-flex;align-items:center;gap:14px;padding:16px 24px;background:var(--bg-muted,#ECEADF);border-radius:16px;font-size:22px;font-weight:600;color:var(--verde);align-self:flex-start;max-width:30ch;line-height:1.3}
+  .who b{color:var(--telha)}
+
+  /* form mock window */
+  .win{width:100%;max-width:760px;background:var(--branco);border-radius:22px;overflow:hidden;box-shadow:0 40px 90px rgba(10,7,3,.34);border:1px solid rgba(0,0,0,.06)}
+  .win-head{background:var(--verde);padding:26px 32px}
+  .win-eyebrow{font-weight:700;font-size:15px;letter-spacing:.18em;text-transform:uppercase;color:var(--areia)}
+  .win-title{font-weight:800;font-size:40px;color:var(--branco);margin-top:8px}
+  .win-tabs{display:flex;gap:8px;padding:18px 26px;background:#34331b;overflow:hidden}
+  .win-tab{display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:999px;background:rgba(246,245,235,.10);font-size:15px;font-weight:600;color:rgba(246,245,235,.65);white-space:nowrap}
+  .win-tab .tn{width:22px;height:22px;border-radius:999px;background:rgba(246,245,235,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
+  .win-tab.on{background:var(--branco);color:var(--preto)}
+  .win-tab.on .tn{background:var(--telha)}
+  .win-body{padding:36px 36px 40px}
+  .sec-title{display:flex;align-items:center;gap:14px;font-weight:800;font-size:18px;letter-spacing:.12em;text-transform:uppercase;color:var(--preto);margin-bottom:26px}
+  .sec-title .sn{width:34px;height:34px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px}
+  .f{display:flex;flex-direction:column;gap:9px}
+  .f.full{grid-column:1 / -1}
+  .f label{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle,#8A8970)}
+  .f .inp{border:1px solid var(--line);border-radius:12px;background:#fff;padding:15px 16px;font-size:19px;color:var(--preto);min-height:54px;display:flex;align-items:center}
+  .f .inp.ph{color:var(--fg-subtle,#8A8970)}
+  .f .inp.sel::after{content:'▾';margin-left:auto;color:var(--fg-subtle,#8A8970)}
+  .f .inp.sel{justify-content:space-between}
+  .chips{display:flex;flex-wrap:wrap;gap:10px}
+  .chip{padding:11px 18px;border-radius:999px;border:1.5px solid var(--line);background:#fff;font-size:18px;font-weight:600;color:var(--verde)}
+  .chip.on{background:var(--verde);color:#fff;border-color:var(--verde)}
+  .chip.on.telha{background:var(--telha);border-color:var(--telha)}
+  /* health pills */
+  .hrow{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--line)}
+  .hrow:first-child{border-top:0}
+  .hrow .hl{font-size:20px;font-weight:600;color:var(--preto)}
+  .hpill{padding:8px 16px;border-radius:999px;font-size:16px;font-weight:700}
+  .hpill.boa{background:#e5ecd8;color:#4d5d24}
+  .hpill.at{background:var(--accent-soft,#F2D8C2);color:var(--telha)}
+  /* progress table */
+  .ptab{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .ptr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;align-items:center}
+  .pth{background:var(--bg-muted,#ECEADF);font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-subtle,#8A8970)}
+  .ptr>span{padding:14px 16px;font-size:18px;border-top:1px solid var(--line)}
+  .pth>span{border-top:0}
+  .ptr .nm{font-weight:700;color:var(--preto)}
+  .ptr .nr{text-align:center;color:var(--verde);font-weight:700}
+  /* photo grid mock */
+  .pgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .ptile{aspect-ratio:4/3;border-radius:12px;background:linear-gradient(135deg,var(--telha),var(--verde-claro));display:flex;align-items:flex-end;padding:12px}
+  .ptile.alt{background:linear-gradient(160deg,#8a6a3a,var(--telha))}
+  .ptile.alt2{background:linear-gradient(200deg,var(--verde-claro),#4a5a30)}
+  .ptile.empty{background:#fff;border:1.5px dashed var(--line);align-items:center;justify-content:center;color:var(--fg-subtle,#8A8970);font-size:30px}
+  .ptile .cap{font-size:14px;color:#fff;font-weight:600}
+  .notes-box{border:1px solid var(--line);border-radius:14px;background:#fff;padding:22px;font-size:21px;line-height:1.55;color:var(--verde);font-family:'Merriweather',Georgia,serif;min-height:160px}
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#3F3E20"/><g transform="translate(50,52)"><circle r="21" fill="none" stroke="#BE4A01" stroke-width="4"/><path d="M-9 0h5l3 9 5-19 3 10h7" fill="none" stroke="#F6F5EB" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+</template>
+<deck-stage width="1920" height="1080">
+
+  <!-- 1 TITLE -->
+  <section data-label="Capa" class="slide bg-verde">
+    <div class="pad" style="justify-content:space-between">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:104px;height:104px">
+      <div>
+        <p class="eyebrow dk" style="margin:0 0 26px">How to register a project</p>
+        <h1 class="title" style="color:var(--branco)">The 9 tabs<br>of the record</h1>
+        <p class="lead dk serif" style="margin-top:36px;font-size:36px;max-width:42ch">Each translation project is described across nine simple tabs — from the language identification to the final notes. See what each one holds.</p>
+      </div>
+      <div style="font-size:24px;color:rgba(246,245,235,.7);font-weight:700;letter-spacing:.04em">Shemá · International Projects Ecosystem</div>
+    </div>
+    <div style="position:absolute;right:-120px;top:50%;transform:translateY(-50%);font-family:serif;font-size:520px;color:rgba(246,245,235,.06);line-height:1">שמע</div>
+  </section>
+
+  <!-- 2 OVERVIEW -->
+  <section data-label="As 9 abas" class="slide bg-areia">
+    <div class="pad">
+      <p class="eyebrow">Overview</p>
+      <h2 class="head" style="margin-top:24px">Nine tabs, one complete story.</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:74px;flex:1">
+        <div style="background:var(--branco);border-radius:20px;padding:34px 36px"><div style="font-weight:900;font-size:26px;color:var(--telha)">1</div><div style="font-weight:800;font-size:32px;margin-top:10px">Identification</div><div class="serif" style="font-size:24px;color:var(--verde);margin-top:8px">The language and where it lives.</div></div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 36px"><div style="font-weight:900;font-size:26px;color:var(--telha)">2</div><div style="font-weight:800;font-size:32px;margin-top:10px">Team</div><div class="serif" style="font-size:24px;color:var(--verde);margin-top:8px">Who makes it happen.</div></div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 36px"><div style="font-weight:900;font-size:26px;color:var(--telha)">3</div><div style="font-weight:800;font-size:32px;margin-top:10px">Objective</div><div class="serif" style="font-size:24px;color:var(--verde);margin-top:8px">What will be translated.</div></div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 36px"><div style="font-weight:900;font-size:26px;color:var(--telha)">4</div><div style="font-weight:800;font-size:32px;margin-top:10px">Financial Resources</div><div class="serif" style="font-size:24px;color:var(--verde);margin-top:8px">Who sustains it · ETEN.</div></div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 36px"><div style="font-weight:900;font-size:26px;color:var(--telha)">5</div><div style="font-weight:800;font-size:32px;margin-top:10px">Progress</div><div class="serif" style="font-size:24px;color:var(--verde);margin-top:8px">How much has advanced.</div></div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 36px"><div style="font-weight:900;font-size:26px;color:var(--telha)">6</div><div style="font-weight:800;font-size:32px;margin-top:10px">Team Health</div><div class="serif" style="font-size:24px;color:var(--verde);margin-top:8px">How people are doing.</div></div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 36px"><div style="font-weight:900;font-size:26px;color:var(--telha)">7</div><div style="font-weight:800;font-size:32px;margin-top:10px">Needs</div><div class="serif" style="font-size:24px;color:var(--verde);margin-top:8px">What is missing now.</div></div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 36px"><div style="font-weight:900;font-size:26px;color:var(--telha)">8</div><div style="font-weight:800;font-size:32px;margin-top:10px">Photos / Videos</div><div class="serif" style="font-size:24px;color:var(--verde);margin-top:8px">Moments from the field.</div></div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 36px"><div style="font-weight:900;font-size:26px;color:var(--telha)">9</div><div style="font-weight:800;font-size:32px;margin-top:10px">Notes</div><div class="serif" style="font-size:24px;color:var(--verde);margin-top:8px">Anything that matters most.</div></div>
+      </div>
+    </div>
+    <div class="snum" style="color:var(--verde)">02</div>
+  </section>
+
+  <!-- 3 ABA 1 IDENTIFICAÇÃO -->
+  <section data-label="Tab 1 · Identification" class="slide">
+    <div class="split">
+      <div class="mock-col">
+        <div class="win">
+          <div class="win-head"><div class="win-eyebrow">Edit project</div><div class="win-title">Asháninka</div></div>
+          <div class="win-tabs"><span class="win-tab on"><span class="tn">1</span>Identification</span><span class="win-tab"><span class="tn">2</span>Team</span><span class="win-tab"><span class="tn">3</span>Objective</span></div>
+          <div class="win-body">
+            <div class="sec-title"><span class="sn" style="background:var(--verde)">1</span>Identification</div>
+            <div class="fgrid">
+              <div class="f"><label>Language Name *</label><div class="inp">Asháninka</div></div>
+              <div class="f"><label>ISO Code</label><div class="inp">cni</div></div>
+              <div class="f"><label>Bridge Language *</label><div class="inp">Spanish</div></div>
+              <div class="f"><label>Vitality</label><div class="inp sel">Vulnerable</div></div>
+              <div class="f full"><label>Country / Region / Location</label><div class="inp">Peru</div></div>
+              <div class="f"><label>Number of Speakers</label><div class="inp">35.000</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-col">
+        <span class="num-badge">1</span>
+        <h2>Identification</h2>
+        <p>Who this language is and where it lives. Name, ISO code, the bridge language used to translate, how endangered it is and how many people speak it.</p>
+        <span class="who">It is the starting point — it <b>identifies</b> each project uniquely.</span>
+      </div>
+    </div>
+    <div class="snum">03</div>
+  </section>
+
+  <!-- 4 ABA 2 EQUIPE -->
+  <section data-label="Tab 2 · Team" class="slide">
+    <div class="split">
+      <div class="mock-col">
+        <div class="win">
+          <div class="win-head"><div class="win-eyebrow">Edit project</div><div class="win-title">Asháninka</div></div>
+          <div class="win-tabs"><span class="win-tab"><span class="tn">1</span>Identification</span><span class="win-tab on"><span class="tn">2</span>Team</span><span class="win-tab"><span class="tn">3</span>Objective</span></div>
+          <div class="win-body">
+            <div class="sec-title"><span class="sn" style="background:var(--verde-claro)">2</span>Team</div>
+            <div class="fgrid">
+              <div class="f"><label>Team / Base *</label><div class="inp">YWAM Aurora</div></div>
+              <div class="f"><label>Leader</label><div class="inp">Fresia</div></div>
+              <div class="f"><label>Regional Host</label><div class="inp">Daniel Furtado</div></div>
+              <div class="f"><label>International Project Facilitator</label><div class="inp">Ana Beatriz Rocha</div></div>
+              <div class="f full"><label>Financial Resource Mobilizer</label><div class="inp">Lucas Ferreira</div></div>
+              <div class="f full"><label>Translators</label><div class="inp ph">Translation team names…</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-col">
+        <span class="num-badge">2</span>
+        <h2>Team</h2>
+        <p>Who makes it happen: the field team, the leader, and the region’s three partnerships — Host, Facilitator and Mobilizer — plus translators and reviewers.</p>
+        <span class="who">Shows <b>everyone</b> connected to the project and how to reach them.</span>
+      </div>
+    </div>
+    <div class="snum">04</div>
+  </section>
+
+  <!-- 5 ABA 3 OBJETIVO -->
+  <section data-label="Tab 3 · Objective" class="slide">
+    <div class="split">
+      <div class="mock-col">
+        <div class="win">
+          <div class="win-head"><div class="win-eyebrow">Edit project</div><div class="win-title">Asháninka</div></div>
+          <div class="win-tabs"><span class="win-tab"><span class="tn">2</span>Team</span><span class="win-tab on"><span class="tn">3</span>Objective</span><span class="win-tab"><span class="tn">4</span>Resources</span></div>
+          <div class="win-body">
+            <div class="sec-title"><span class="sn" style="background:var(--azul)">3</span>Objective</div>
+            <div class="f full" style="margin-bottom:22px"><label style="margin-bottom:12px;display:block">What will be translated *</label><div class="chips"><span class="chip on">New Testament</span><span class="chip">OT</span><span class="chip on">Stories</span><span class="chip">Jesus Film</span></div></div>
+            <div class="f full" style="margin-bottom:22px"><label style="margin-bottom:12px;display:block">Translation Type</label><div class="chips"><span class="chip on">OBT</span><span class="chip">OMT</span><span class="chip">Sign Language</span></div></div>
+            <div class="fgrid"><div class="f"><label>Start</label><div class="inp">03/2023</div></div><div class="f"><label>Deadline</label><div class="inp">12/2027</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-col">
+        <span class="num-badge">3</span>
+        <h2>Objective</h2>
+        <p>What this project aims to translate — New Testament, stories, Jesus Film — and in which mode: text, oral, sign language. Plus start and deadline.</p>
+        <span class="who">Defines <b>the goal</b> and the work schedule.</span>
+      </div>
+    </div>
+    <div class="snum">05</div>
+  </section>
+
+  <!-- 6 ABA 4 RECURSOS -->
+  <section data-label="Tab 4 · Resources" class="slide">
+    <div class="split">
+      <div class="mock-col">
+        <div class="win">
+          <div class="win-head"><div class="win-eyebrow">Edit project</div><div class="win-title">Asháninka</div></div>
+          <div class="win-tabs"><span class="win-tab"><span class="tn">3</span>Objective</span><span class="win-tab on"><span class="tn">4</span>Financial Resources</span><span class="win-tab"><span class="tn">5</span>Progress</span></div>
+          <div class="win-body">
+            <div class="sec-title"><span class="sn" style="background:var(--telha)">4</span>Financial Resources</div>
+            <div class="f full" style="margin-bottom:22px"><label style="margin-bottom:12px;display:block">On the ETEN list?</label><div class="chips"><span class="chip on telha">Yes</span><span class="chip">No</span></div></div>
+            <div class="f full"><label style="margin-bottom:12px;display:block">Resource sources</label><div class="chips"><span class="chip on">OBT TABLE · ETEN</span><span class="chip">Seed Company</span><span class="chip">Global Partnerships</span><span class="chip">Innovation Lab</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-col">
+        <span class="num-badge">4</span>
+        <h2>Financial Resources</h2>
+        <p>Who sustains the project. Most importantly: whether it is on the ETEN list — because only those count in the annual credits report.</p>
+        <span class="who">Connects each project to its <b>resource sources</b>.</span>
+      </div>
+    </div>
+    <div class="snum">06</div>
+  </section>
+
+  <!-- 7 ABA 5 PROGRESSO -->
+  <section data-label="Tab 5 · Progress" class="slide">
+    <div class="split">
+      <div class="mock-col">
+        <div class="win">
+          <div class="win-head"><div class="win-eyebrow">Edit project</div><div class="win-title">Asháninka</div></div>
+          <div class="win-tabs"><span class="win-tab"><span class="tn">4</span>Resources</span><span class="win-tab on"><span class="tn">5</span>Progress</span><span class="win-tab"><span class="tn">6</span>Health</span></div>
+          <div class="win-body">
+            <div class="sec-title"><span class="sn" style="background:#c98b2d">5</span>Progress</div>
+            <div class="f full" style="margin-bottom:22px"><label style="margin-bottom:12px;display:block">Status</label><div class="chips"><span class="chip on">In progress</span><span class="chip">Paused</span><span class="chip">Planned</span></div></div>
+            <div class="ptab">
+              <div class="ptr pth"><span>Book</span><span class="nr">Transl.</span><span class="nr">Comm.</span><span class="nr">Appr.</span></div>
+              <div class="ptr"><span class="nm">John</span><span class="nr">21</span><span class="nr">14</span><span class="nr">9</span></div>
+              <div class="ptr"><span class="nm">Mark</span><span class="nr">16</span><span class="nr">8</span><span class="nr">5</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-col">
+        <span class="num-badge">5</span>
+        <h2>Progress</h2>
+        <p>How much has been translated. By book or story, it counts the chapters translated, community-checked and approved — the heart of the project’s numbers.</p>
+        <span class="who">Each chapter here <b>becomes an ETEN credit</b>.</span>
+      </div>
+    </div>
+    <div class="snum">07</div>
+  </section>
+
+  <!-- 8 ABA 6 SAÚDE -->
+  <section data-label="Tab 6 · Health" class="slide">
+    <div class="split">
+      <div class="mock-col">
+        <div class="win">
+          <div class="win-head"><div class="win-eyebrow">Edit project</div><div class="win-title">Asháninka</div></div>
+          <div class="win-tabs"><span class="win-tab"><span class="tn">5</span>Progress</span><span class="win-tab on"><span class="tn">6</span>Team Health</span><span class="win-tab"><span class="tn">7</span>Needs</span></div>
+          <div class="win-body">
+            <div class="sec-title"><span class="sn" style="background:#a85972">6</span>Team Health</div>
+            <div style="margin-bottom:8px">
+              <div class="hrow"><span class="hl">Emotional</span><span class="hpill at">Attention</span></div>
+              <div class="hrow"><span class="hl">Relational</span><span class="hpill boa">Good</span></div>
+              <div class="hrow"><span class="hl">Spiritual</span><span class="hpill boa">Good</span></div>
+              <div class="hrow"><span class="hl">Physical</span><span class="hpill at">Attention</span></div>
+            </div>
+            <div class="f full" style="margin-top:18px"><label>Prayer request</label><div class="inp ph" style="min-height:64px;align-items:flex-start;padding-top:14px">For the elders receiving the Gospel…</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-col">
+        <span class="num-badge">6</span>
+        <h2>Team Health</h2>
+        <p>How people are doing — across four dimensions: emotional, relational, spiritual and physical. With prayer requests and a pastoral-care suggestion.</p>
+        <span class="who">Filled in by the <b>International Project Facilitator</b> in the care meetings.</span>
+      </div>
+    </div>
+    <div class="snum">08</div>
+  </section>
+
+  <!-- 9 ABA 7 NECESSIDADES -->
+  <section data-label="Tab 7 · Needs" class="slide">
+    <div class="split">
+      <div class="mock-col">
+        <div class="win">
+          <div class="win-head"><div class="win-eyebrow">Edit project</div><div class="win-title">Asháninka</div></div>
+          <div class="win-tabs"><span class="win-tab"><span class="tn">6</span>Health</span><span class="win-tab on"><span class="tn">7</span>Needs</span><span class="win-tab"><span class="tn">8</span>Photos</span></div>
+          <div class="win-body">
+            <div class="sec-title"><span class="sn" style="background:var(--areia);color:var(--verde)">7</span>Needs</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="border:1px solid var(--line);border-radius:14px;padding:18px 20px;background:#fff">
+                <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><span class="chip on telha" style="padding:6px 13px;font-size:15px">Resources · urgent</span><span class="chip" style="padding:6px 13px;font-size:15px">In prayer</span></div>
+                <div style="font-size:20px;color:var(--verde);font-family:'Merriweather',serif">Narrative-checking training for Marina.</div>
+              </div>
+              <div style="border:1px solid var(--line);border-radius:14px;padding:18px 20px;background:#fff">
+                <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><span class="chip" style="padding:6px 13px;font-size:15px">Equipment</span></div>
+                <div style="font-size:20px;color:var(--verde);font-family:'Merriweather',serif">Audio recorder for the oral work.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-col">
+        <span class="num-badge">7</span>
+        <h2>Needs</h2>
+        <p>What is missing now for the work to flow — resources, equipment, training. Each item has urgency, status and can be marked as a prayer request.</p>
+        <span class="who">The <b>Financial Resource Mobilizer</b> works together with the Articulator, the Host and the International Project Facilitator to try to meet these needs.</span>
+      </div>
+    </div>
+    <div class="snum">09</div>
+  </section>
+
+  <!-- 10 ABA 8 FOTOS -->
+  <section data-label="Tab 8 · Photos" class="slide">
+    <div class="split">
+      <div class="mock-col">
+        <div class="win">
+          <div class="win-head"><div class="win-eyebrow">Edit project</div><div class="win-title">Asháninka</div></div>
+          <div class="win-tabs"><span class="win-tab"><span class="tn">7</span>Needs</span><span class="win-tab on"><span class="tn">8</span>Photos / Videos</span><span class="win-tab"><span class="tn">9</span>Notes</span></div>
+          <div class="win-body">
+            <div class="sec-title"><span class="sn" style="background:var(--verde-claro)">8</span>Photos / Videos</div>
+            <div class="pgrid">
+              <div class="ptile"><span class="cap">Team in the field</span></div>
+              <div class="ptile alt"><span class="cap">John handover</span></div>
+              <div class="ptile alt2"><span class="cap">Elder reading</span></div>
+              <div class="ptile empty">+</div>
+              <div class="ptile empty">+</div>
+              <div class="ptile empty">+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-col">
+        <span class="num-badge">8</span>
+        <h2>Photos / Videos</h2>
+        <p>Moments from the field: the team, the translated material, handover events, trainings. Images that tell the story behind the numbers.</p>
+        <span class="who">Gives <b>a face and life</b> to each project.</span>
+      </div>
+    </div>
+    <div class="snum">10</div>
+  </section>
+
+  <!-- 11 ABA 9 NOTAS -->
+  <section data-label="Tab 9 · Notes" class="slide">
+    <div class="split">
+      <div class="mock-col">
+        <div class="win">
+          <div class="win-head"><div class="win-eyebrow">Edit project</div><div class="win-title">Asháninka</div></div>
+          <div class="win-tabs"><span class="win-tab"><span class="tn">7</span>Needs</span><span class="win-tab"><span class="tn">8</span>Photos</span><span class="win-tab on"><span class="tn">9</span>Notes</span></div>
+          <div class="win-body">
+            <div class="sec-title"><span class="sn" style="background:var(--verde)">9</span>Notes</div>
+            <div class="notes-box">The community received the first chapters of John with great joy. This year’s drought has made it harder for the team to travel between villages. We pray for rain and for rest.</div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-col">
+        <span class="num-badge">9</span>
+        <h2>Notes</h2>
+        <p>Free space for everything the numbers don’t capture — context, stories, observations and anything else worth telling about the project.</p>
+        <span class="who">The <b>living memory</b> of each project.</span>
+      </div>
+    </div>
+    <div class="snum">11</div>
+  </section>
+
+  <!-- 12 DIVIDER — FORMS -->
+  <section data-label="The forms" class="slide bg-verde">
+    <div class="pad" style="justify-content:center">
+      <p class="eyebrow dk">What keeps the record alive</p>
+      <h2 class="head" style="margin-top:24px;color:var(--branco);max-width:22ch">Two forms keep the record alive.</h2>
+      <p class="lead dk serif" style="margin-top:40px;font-size:34px;max-width:54ch">The record isn’t filled once and forgotten. Two forms bring news from the field and update the tabs automatically — month by month, quarter by quarter.</p>
+      <div style="display:flex;gap:24px;margin-top:64px">
+        <div style="flex:1;background:rgba(246,245,235,.07);border:1px solid rgba(246,245,235,.18);border-radius:20px;padding:40px 40px">
+          <div style="font-weight:700;font-size:20px;letter-spacing:.12em;text-transform:uppercase;color:var(--areia)">Monthly · by the field team leader</div>
+          <div style="font-weight:800;font-size:44px;color:var(--branco);margin-top:16px">Full Update</div>
+          <p class="serif" style="font-size:26px;line-height:1.45;color:rgba(246,245,235,.8);margin-top:16px">Feeds Progress, Health and Needs.</p>
+        </div>
+        <div style="flex:1;background:rgba(246,245,235,.07);border:1px solid rgba(246,245,235,.18);border-radius:20px;padding:40px 40px">
+          <div style="font-weight:700;font-size:20px;letter-spacing:.12em;text-transform:uppercase;color:var(--areia)">Quarterly · by the Facilitator</div>
+          <div style="font-weight:800;font-size:44px;color:var(--branco);margin-top:16px">Health Assessment</div>
+          <p class="serif" style="font-size:26px;line-height:1.45;color:rgba(246,245,235,.8);margin-top:16px">Feeds the Team Health tab.</p>
+        </div>
+      </div>
+    </div>
+    <div class="snum" style="color:rgba(246,245,235,.5)">12</div>
+  </section>
+
+  <!-- 13 ATUALIZAÇÃO COMPLETA -->
+  <section data-label="Form · Full Update" class="slide">
+    <div class="split">
+      <div class="mock-col">
+        <div class="win" style="max-width:600px">
+          <div class="win-head"><div class="win-eyebrow">Monthly Pulse · May</div><div class="win-title">Hi, Fresia.</div></div>
+          <div class="win-body">
+            <div style="font-weight:700;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-subtle,#8A8970);margin-bottom:14px"><span style="color:var(--telha);font-weight:800">01</span> &nbsp;Team’s heart</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px">
+              <div style="border:1.5px solid var(--line);border-radius:16px;background:#fff;padding:18px 8px;text-align:center;color:var(--fg-subtle,#8A8970)"><div style="font-size:34px;line-height:1">◡</div><div style="font-size:15px;font-weight:600;margin-top:6px">Well</div></div>
+              <div style="border:2px solid var(--telha);border-radius:16px;background:var(--accent-soft,#F2D8C2);padding:18px 8px;text-align:center;color:var(--telha)"><div style="font-size:34px;line-height:1">—</div><div style="font-size:15px;font-weight:700;margin-top:6px">Tired</div></div>
+              <div style="border:1.5px solid var(--line);border-radius:16px;background:#fff;padding:18px 8px;text-align:center;color:var(--fg-subtle,#8A8970)"><div style="font-size:34px;line-height:1">◠</div><div style="font-size:15px;font-weight:600;margin-top:6px">Hard</div></div>
+            </div>
+            <div style="font-weight:700;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-subtle,#8A8970);margin-bottom:14px"><span style="color:var(--telha);font-weight:800">02</span> &nbsp;Progress</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:28px">
+              <div><div style="font-weight:700;font-size:19px;color:var(--preto)">Chapters translated</div><div style="font-size:15px;color:var(--fg-subtle,#8A8970);margin-top:2px">was 32 · now</div></div>
+              <div style="display:flex;align-items:center;gap:12px"><span style="width:36px;height:36px;border-radius:999px;background:var(--bg-muted,#ECEADF);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--verde)">−</span><span style="font-weight:800;font-size:26px;color:var(--preto)">36</span><span style="width:36px;height:36px;border-radius:999px;background:var(--bg-muted,#ECEADF);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--verde)">+</span></div>
+            </div>
+            <div style="font-weight:700;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-subtle,#8A8970);margin-bottom:14px"><span style="color:var(--telha);font-weight:800">03</span> &nbsp;Needs</div>
+            <div class="chips"><span class="chip on telha" style="font-size:16px">Resources · urgent</span><span class="chip on" style="font-size:16px">Training</span><span class="chip" style="font-size:16px">Equipment</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-col">
+        <div style="font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha);margin-bottom:18px">Form · Monthly</div>
+        <h2>Full Update</h2>
+        <p>Five short questions the leader answers on the phone: how the team is, how many chapters advanced, what is missing, a prayer request and a photo.</p>
+        <p style="font-size:24px;color:var(--fg-muted,#5A5A3E)">Works offline and returns by WhatsApp or file. On arrival, it automatically updates the Progress, Health and Needs tabs.</p>
+        <span class="who">Filled in by the <b>team leader</b>, every month.</span>
+      </div>
+    </div>
+    <div class="snum">13</div>
+  </section>
+
+  <!-- 14 AVALIAÇÃO DE SAÚDE -->
+  <section data-label="Form · Health Assessment" class="slide">
+    <div class="split">
+      <div class="mock-col">
+        <div class="win" style="max-width:620px">
+          <div style="display:flex;align-items:center;gap:12px;padding:16px 26px;background:var(--verde);color:var(--branco)">
+            <span style="width:11px;height:11px;border-radius:999px;background:#e2614a;box-shadow:0 0 0 5px rgba(226,97,74,.25)"></span>
+            <span style="font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase">Live meeting · Zoom</span>
+            <span style="margin-left:auto;font-size:14px;color:rgba(246,245,235,.65)">38:14</span>
+          </div>
+          <div class="win-head" style="padding-top:22px"><div class="win-eyebrow">Health Assessment · International Project Facilitator</div><div class="win-title" style="font-size:34px">How is the Asháninka team?</div></div>
+          <div class="win-body">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span style="font-weight:800;font-size:13px;letter-spacing:.12em;color:var(--fg-subtle,#8A8970)">01 / 04</span><span style="padding:5px 12px;border-radius:999px;background:var(--accent-soft,#F2D8C2);color:var(--telha);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase">Emotional</span></div>
+            <div style="font-weight:800;font-size:24px;color:var(--preto);margin-bottom:14px">How are you feeling in your hearts?</div>
+            <div style="background:var(--bg-muted,#ECEADF);border-radius:12px;padding:16px 18px;margin-bottom:18px">
+              <div style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-subtle,#8A8970);margin-bottom:8px">What to ask</div>
+              <div class="serif" style="font-size:18px;font-style:italic;color:var(--verde);line-height:1.5">· How have you been sleeping this month?<br>· Where have you been finding rest?</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+              <div style="border:1.5px solid var(--line);border-radius:14px;background:#fff;padding:14px;text-align:center;font-weight:700;font-size:16px;color:var(--fg-muted,#5A5A3E)">Good</div>
+              <div style="border:2px solid var(--telha);border-radius:14px;background:var(--accent-soft,#F2D8C2);padding:14px;text-align:center;font-weight:700;font-size:16px;color:var(--telha)">Attention</div>
+              <div style="border:1.5px solid var(--line);border-radius:14px;background:#fff;padding:14px;text-align:center;font-weight:700;font-size:16px;color:var(--fg-muted,#5A5A3E)">Critical</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="explain-col">
+        <div style="font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha);margin-bottom:18px">Form · Quarterly</div>
+        <h2>Health Assessment</h2>
+        <p>During an online meeting with the team, it covers four dimensions — emotional, relational, spiritual and physical — with guiding questions to talk through.</p>
+        <p style="font-size:24px;color:var(--fg-muted,#5A5A3E)">At the end, it suggests pastoral care and updates the Team Health tab. Coordination is notified right away.</p>
+        <span class="who">Run by the <b>International Project Facilitator</b>, every quarter.</span>
+      </div>
+    </div>
+    <div class="snum">14</div>
+  </section>
+
+  <!-- 15 CLOSING -->
+  <section data-label="Closing" class="slide bg-telha">
+    <div class="pad" style="justify-content:center;align-items:center;text-align:center">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:88px;height:88px;margin-bottom:44px">
+      <h2 class="head serif" style="font-style:italic;font-weight:400;font-size:84px;color:var(--branco);max-width:24ch">Nine tabs. One story listened to with care.</h2>
+      <p class="serif" style="font-size:30px;line-height:1.5;color:rgba(255,255,255,.92);margin-top:50px;max-width:46ch">From the language identification to the final notes — each project becomes complete, clear and ready to be tracked.</p>
+    </div>
+    <div style="position:absolute;left:-80px;bottom:-120px;font-family:serif;font-size:440px;color:rgba(246,245,235,.08);line-height:1">שמע</div>
+  </section>
+
+</deck-stage>
+<script src="deck-stage.js"></script>
+</body>
+</html>

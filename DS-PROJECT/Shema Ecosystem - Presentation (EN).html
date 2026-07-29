@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shemá Ecosystem — Presentation</title>
+<link rel="stylesheet" href="design-system/colors_and_type.css">
+<style>
+  deck-stage:not(:defined) { visibility: hidden; }
+  html, body { margin: 0; background: #0A0703; }
+
+  :root {
+    --branco: #F6F5EB; --areia: #C5C29F; --azul: #89AAA3;
+    --telha: #BE4A01; --verde-claro: #777D45; --verde: #3F3E20; --preto: #0A0703;
+    --line: rgba(63,62,32,0.16);
+  }
+
+  .slide {
+    width: 1920px; height: 1080px; overflow: hidden; position: relative;
+    font-family: 'Montserrat', system-ui, sans-serif; color: var(--preto);
+    background: var(--branco);
+  }
+  .serif { font-family: 'Merriweather', Georgia, serif; }
+
+  /* shared atoms */
+  .eyebrow { font-weight: 700; font-size: 24px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--telha); }
+  .eyebrow.on-dark { color: var(--areia); }
+  .pad { position: absolute; inset: 0; padding: 110px 130px; display: flex; flex-direction: column; }
+  .slide-num { position: absolute; bottom: 54px; right: 64px; font-size: 24px; font-weight: 600; color: var(--areia); letter-spacing: 0.1em; }
+  .kicker-mark { position: absolute; top: 64px; right: 72px; width: 64px; height: 64px; opacity: 0.9; }
+
+  /* backgrounds */
+  .bg-verde { background: var(--verde); color: var(--branco); }
+  .bg-telha { background: var(--telha); color: var(--branco); }
+  .bg-areia { background: var(--areia); }
+
+  h1.title { font-weight: 900; font-size: 132px; line-height: 0.96; letter-spacing: -0.02em; margin: 0; }
+  h2.head { font-weight: 800; font-size: 84px; line-height: 1.0; letter-spacing: -0.015em; margin: 0; text-wrap: balance; }
+  .lead { font-size: 34px; line-height: 1.5; color: var(--verde); max-width: 30ch; }
+  .lead.on-dark { color: rgba(246,245,235,0.82); }
+
+  /* screenshot frame */
+  .browser { border-radius: 22px; overflow: hidden; box-shadow: 0 40px 90px rgba(10,7,3,0.4); background: #fff; border: 1px solid rgba(0,0,0,0.08); }
+  .browser-bar { height: 56px; background: #e9e7dc; display: flex; align-items: center; gap: 12px; padding: 0 24px; }
+  .browser-bar span { width: 16px; height: 16px; border-radius: 999px; background: #c7c3ad; }
+  .browser-bar .url { margin-left: 18px; height: 30px; flex: 1; background: #fff; border-radius: 99px; }
+  .shot { display: block; width: 100%; }
+  .shot-crop { overflow: hidden; }
+
+  /* number row */
+  .stat-num { font-weight: 900; font-size: 120px; line-height: 0.9; letter-spacing: -0.02em; }
+  .stat-label { font-weight: 700; font-size: 24px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 14px; }
+  .stat-sub { font-style: italic; font-size: 24px; margin-top: 6px; opacity: 0.7; }
+  :root { --folha-clara:#8C9258; --folha-escura:#5E6236; }
+  .pill{display:inline-block;font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;padding:8px 16px;border-radius:999px}
+  .tree-card{position:absolute;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 18px;text-align:center;box-shadow:0 12px 28px rgba(10,7,3,.14)}
+  .tc-title{font-weight:800;font-size:20px;color:var(--preto);line-height:1.12}
+  .tc-sub{font-size:13px;color:var(--fg-subtle,#8A8970);margin-top:4px;letter-spacing:.02em}
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#3F3E20"/><g transform="translate(50,52)"><circle r="21" fill="none" stroke="#BE4A01" stroke-width="4"/><path d="M-9 0h5l3 9 5-19 3 10h7" fill="none" stroke="#F6F5EB" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+</template>
+<deck-stage width="1920" height="1080" data-om-id="8b9c171e:12" style="--deck-rail-w: 188px;">
+
+  <section data-label="Cover" class="slide bg-verde" data-om-id="8b9c171e:13" data-screen-label="01 Cover" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="0">
+    <div class="pad" style="justify-content: space-between;" data-om-id="8b9c171e:14">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width: 120px; height: 120px;" data-om-id="8b9c171e:15">
+      <div data-om-id="8b9c171e:16">
+        <p class="eyebrow on-dark" style="margin: 0 0 28px;" data-om-id="8b9c171e:17">Come and listen.</p>
+        <h1 class="title" style="color: var(--branco); font-size: 96px;" data-om-id="8b9c171e:18">International<br data-om-id="8b9c171e:19">Projects<br data-om-id="8b9c171e:20">Ecosystem</h1>
+        <p class="lead on-dark serif" style="margin-top: 40px; font-size: 38px; max-width: 40ch;" data-om-id="8b9c171e:22">One platform to track the progress, health and resources of every translation — in all mother tongues.</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 24px; font-size: 24px; color: rgba(246,245,235,0.7);" data-om-id="8b9c171e:23">
+        <span style="font-weight: 700; letter-spacing: 0.04em;" data-om-id="8b9c171e:24">Shemá · Multimodal Bible Translation</span>
+        <span style="opacity: 0.5;" data-om-id="8b9c171e:25">|</span>
+        <span data-om-id="8b9c171e:26">Presentation to the team and leadership</span>
+      </div>
+    </div>
+    <div style="position: absolute; right: -120px; top: 50%; transform: translateY(-50%); font-family: serif; font-size: 520px; color: rgba(246,245,235,0.06); line-height: 1;" data-om-id="8b9c171e:27">שמע</div>
+  </section>
+
+  <section data-label="The challenge" class="slide" data-om-id="8b9c171e:28" data-screen-label="02 The challenge" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="1">
+    <img class="kicker-mark" src="design-system/assets/icon-telha.svg" alt="" data-om-id="8b9c171e:29">
+    <div class="pad" data-om-id="8b9c171e:30">
+      <p class="eyebrow" data-om-id="8b9c171e:31">The challenge</p>
+      <h2 class="head" style="margin-top: 28px; max-width: 24ch;" data-om-id="8b9c171e:32">A living ecosystem,<br data-om-id="8b9c171e:33">spread across the world.</h2>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px; margin-top: 110px;" data-om-id="8b9c171e:34">
+        <div data-om-id="8b9c171e:35">
+          <div class="stat-num" style="color: var(--telha);" data-om-id="8b9c171e:36">127</div>
+          <div class="stat-label" style="color: var(--verde);" data-om-id="8b9c171e:37">Languages</div>
+          <div class="stat-sub serif" data-om-id="8b9c171e:38">in motion</div>
+        </div>
+        <div data-om-id="8b9c171e:39">
+          <div class="stat-num" style="color: var(--verde);" data-om-id="8b9c171e:40">21</div>
+          <div class="stat-label" style="color: var(--verde);" data-om-id="8b9c171e:41">YWAM/JOCUM bases</div>
+          <div class="stat-sub serif" data-om-id="8b9c171e:42">in several countries</div>
+        </div>
+        <div data-om-id="8b9c171e:43">
+          <div class="stat-num" style="color: var(--verde);" data-om-id="8b9c171e:44">5</div>
+          <div class="stat-label" style="color: var(--verde);" data-om-id="8b9c171e:45">Continents</div>
+          <div class="stat-sub serif" data-om-id="8b9c171e:46">one team per region</div>
+        </div>
+        <div data-om-id="8b9c171e:47">
+          <div class="stat-num" style="color: var(--telha);" data-om-id="8b9c171e:48">4</div>
+          <div class="stat-label" style="color: var(--verde);" data-om-id="8b9c171e:49">Roles</div>
+          <div class="stat-sub serif" data-om-id="8b9c171e:50">working together</div>
+        </div>
+      </div>
+      <p class="lead serif" style="margin-top: 96px; max-width: 52ch; font-style: italic;" data-om-id="8b9c171e:51">How do we track every team, care for people and account for resources — without losing sight of anyone?</p>
+    </div>
+    <div class="slide-num" data-om-id="8b9c171e:52">02</div>
+  </section>
+
+  <!-- HOME / PÁGINA PRINCIPAL -->
+  <section data-label="Home" class="slide" data-om-id="26c9dfc0:52" data-screen-label="03 Home" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="2">
+    <div style="position:absolute; left:120px; top:96px; z-index:3;" data-om-id="26c9dfc0:53">
+      <p class="eyebrow" data-om-id="26c9dfc0:54">The platform</p>
+      <h2 class="head" style="margin-top:14px; font-size:62px;" data-om-id="26c9dfc0:55">Everything in one place.</h2>
+    </div>
+    <div style="position:absolute; left:50%; top:54%; transform:translate(-50%,-50%); width:1640px;" data-om-id="26c9dfc0:56">
+      <div class="browser" data-om-id="26c9dfc0:57">
+        <div class="browser-bar" data-om-id="26c9dfc0:58"><span data-om-id="26c9dfc0:59"></span><span data-om-id="26c9dfc0:60"></span><span data-om-id="26c9dfc0:61"></span><div class="url" data-om-id="26c9dfc0:62"></div></div>
+        <div style="background:#F6F5EB;" data-om-id="26c9dfc0:63">
+          <!-- app header -->
+          <div style="background:#3F3E20; padding:22px 40px; display:flex; align-items:center; gap:22px;" data-om-id="26c9dfc0:64">
+            <span style="width:34px; height:34px; background:#BE4A01; border-radius:9px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:17px;" data-om-id="26c9dfc0:65">ש</span>
+            <span style="font:800 22px/1 'Montserrat',sans-serif; color:#F6F5EB; letter-spacing:.04em;" data-om-id="26c9dfc0:66">SHEMÁ</span>
+            <span style="font:italic 14px/1.3 'Merriweather',serif; color:rgba(246,245,235,.6);" data-om-id="26c9dfc0:67">International Projects Ecosystem · YWAM</span>
+            <div style="margin-left:auto; display:flex; gap:12px; align-items:center;" data-om-id="26c9dfc0:68">
+              <span style="font:700 13px/1 'Montserrat',sans-serif; color:rgba(246,245,235,.7); border:1px solid rgba(246,245,235,.3); padding:9px 13px; border-radius:999px;" data-om-id="26c9dfc0:69">PT</span>
+              <span style="font:600 14px/1 'Montserrat',sans-serif; color:#F6F5EB; border:1px solid rgba(246,245,235,.3); padding:10px 18px; border-radius:999px;" data-om-id="26c9dfc0:70">Receive Update</span>
+              <span style="font:700 14px/1 'Montserrat',sans-serif; color:#fff; background:#BE4A01; padding:10px 20px; border-radius:999px;" data-om-id="26c9dfc0:71">+ New Project</span>
+            </div>
+          </div>
+          <!-- tab nav -->
+          <div style="background:#fff; padding:0 40px; display:flex; gap:30px; border-bottom:1px solid rgba(63,62,32,0.16);" data-om-id="26c9dfc0:72">
+            <span style="font:700 19px/1 'Montserrat',sans-serif; color:#BE4A01; padding:20px 0; border-bottom:3px solid #BE4A01;" data-om-id="26c9dfc0:73">Projects</span>
+            <span style="font:700 19px/1 'Montserrat',sans-serif; color:#8A8970; padding:20px 0;" data-om-id="26c9dfc0:74">Rhythm</span>
+            <span style="font:700 19px/1 'Montserrat',sans-serif; color:#8A8970; padding:20px 0;" data-om-id="26c9dfc0:75">Prayer</span>
+            <span style="font:700 19px/1 'Montserrat',sans-serif; color:#8A8970; padding:20px 0;" data-om-id="26c9dfc0:76">ETEN</span>
+            <span style="font:700 19px/1 'Montserrat',sans-serif; color:#8A8970; padding:20px 0;" data-om-id="26c9dfc0:77">Forms</span>
+            <span style="font:700 19px/1 'Montserrat',sans-serif; color:#8A8970; padding:20px 0;" data-om-id="26c9dfc0:78">Team</span>
+          </div>
+          <!-- hero -->
+          <div style="padding:44px 48px 40px; position:relative; overflow:hidden;" data-om-id="26c9dfc0:79">
+            <div style="position:absolute; right:30px; top:10px; font-family:serif; font-size:200px; color:rgba(190,74,1,0.07); line-height:1;" data-om-id="26c9dfc0:80">שמע</div>
+            <p style="font:700 14px/1 'Montserrat',sans-serif; letter-spacing:.18em; text-transform:uppercase; color:#BE4A01;" data-om-id="26c9dfc0:81">Come and listen.</p>
+            <h1 style="font:400 56px/1.05 'Merriweather',Georgia,serif; font-style:italic; color:#BE4A01; margin-top:14px;" data-om-id="26c9dfc0:82">On earth<br data-om-id="26c9dfc0:83">as it is in heaven.</h1>
+            <p style="font:400 19px/1.5 'Montserrat',sans-serif; color:#5A5A3E; margin-top:18px; max-width:60ch;" data-om-id="26c9dfc0:84">Each project is a community hearing the Word in its own voice. Track the progress, health and needs of the field teams.</p>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:0; margin-top:40px; border-top:1px solid rgba(63,62,32,0.16); padding-top:30px;" data-om-id="26c9dfc0:85">
+              <div style="border-right:1px solid rgba(63,62,32,0.12); padding-right:30px;" data-om-id="26c9dfc0:86">
+                <div style="display:flex; gap:48px;" data-om-id="26c9dfc0:87">
+                  <div data-om-id="26c9dfc0:88"><div style="font:800 52px/1 'Montserrat',sans-serif; color:#0A0703;" data-om-id="26c9dfc0:89">127</div><div style="font:700 13px/1 'Montserrat',sans-serif; letter-spacing:.06em; text-transform:uppercase; color:#5A5A3E; margin-top:8px;" data-om-id="26c9dfc0:90">Languages</div></div>
+                  <div data-om-id="26c9dfc0:91"><div style="font:800 52px/1 'Montserrat',sans-serif; color:#BE4A01;" data-om-id="26c9dfc0:92">3</div><div style="font:700 13px/1 'Montserrat',sans-serif; letter-spacing:.06em; text-transform:uppercase; color:#5A5A3E; margin-top:8px;" data-om-id="26c9dfc0:93">Completed</div></div>
+                </div>
+              </div>
+              <div style="border-right:1px solid rgba(63,62,32,0.12); padding:0 30px;" data-om-id="26c9dfc0:94">
+                <div style="display:flex; gap:48px;" data-om-id="26c9dfc0:95">
+                  <div data-om-id="26c9dfc0:96"><div style="font:800 52px/1 'Montserrat',sans-serif; color:#0A0703;" data-om-id="26c9dfc0:97">20</div><div style="font:700 13px/1 'Montserrat',sans-serif; letter-spacing:.06em; text-transform:uppercase; color:#5A5A3E; margin-top:8px;" data-om-id="26c9dfc0:98">Bases</div></div>
+                  <div data-om-id="26c9dfc0:99"><div style="font:800 52px/1 'Montserrat',sans-serif; color:#BE4A01;" data-om-id="26c9dfc0:100">2</div><div style="font:700 13px/1 'Montserrat',sans-serif; letter-spacing:.06em; text-transform:uppercase; color:#5A5A3E; margin-top:8px;" data-om-id="26c9dfc0:101">Urgent</div></div>
+                </div>
+              </div>
+              <div style="padding-left:30px;" data-om-id="26c9dfc0:102">
+                <div style="display:flex; gap:48px;" data-om-id="26c9dfc0:103">
+                  <div data-om-id="26c9dfc0:104"><div style="font:800 52px/1 'Montserrat',sans-serif; color:#0A0703;" data-om-id="26c9dfc0:105">63</div><div style="font:700 13px/1 'Montserrat',sans-serif; letter-spacing:.06em; text-transform:uppercase; color:#5A5A3E; margin-top:8px;" data-om-id="26c9dfc0:106">In progress</div></div>
+                  <div data-om-id="26c9dfc0:107"><div style="font:800 52px/1 'Montserrat',sans-serif; color:#BE4A01;" data-om-id="26c9dfc0:108">47</div><div style="font:700 13px/1 'Montserrat',sans-serif; letter-spacing:.06em; text-transform:uppercase; color:#5A5A3E; margin-top:8px;" data-om-id="26c9dfc0:109">No news</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" data-om-id="26c9dfc0:110">03</div>
+  </section>
+
+  <section data-label="Six fronts" class="slide bg-areia" data-om-id="8b9c171e:53" data-screen-label="06 Six fronts" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="5">
+    <div class="pad" data-om-id="8b9c171e:54">
+      <p class="eyebrow" data-om-id="8b9c171e:55">A plataforma</p>
+      <h2 class="head" style="margin-top: 24px;" data-om-id="8b9c171e:56">Six fronts, one flow.</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 56px; flex: 1;" data-om-id="8b9c171e:57">
+        <div style="background: var(--branco); border-radius: 22px; padding: 34px 36px;" data-om-id="8b9c171e:58">
+          <div style="font-weight: 900; font-size: 24px; color: var(--telha);" data-om-id="a9492239:85">01</div>
+          <div style="font-weight: 800; font-size: 34px; margin-top: 14px; color: var(--preto);" data-om-id="a9492239:86">Projetos</div>
+          <p class="serif" style="font-size: 24px; line-height: 1.45; color: var(--verde); margin-top: 12px;" data-om-id="a9492239:87">Each language, team, progress and health — on a living map by region.</p>
+        </div>
+        <div style="background: var(--branco); border-radius: 22px; padding: 34px 36px;" data-om-id="8b9c171e:62">
+          <div style="font-weight: 900; font-size: 24px; color: var(--telha);" data-om-id="a9492239:89">02</div>
+          <div style="font-weight: 800; font-size: 34px; margin-top: 14px; color: var(--preto);" data-om-id="a9492239:90">Ritmo</div>
+          <p class="serif" style="font-size: 24px; line-height: 1.45; color: var(--verde); margin-top: 12px;" data-om-id="a9492239:91">The cascade of listening — the meetings that keep everything healthy.</p>
+        </div>
+        <div style="background: var(--branco); border-radius: 22px; padding: 34px 36px;" data-om-id="8b9c171e:66">
+          <div style="font-weight: 900; font-size: 24px; color: var(--telha);" data-om-id="a9492239:93">03</div>
+          <div style="font-weight: 800; font-size: 34px; margin-top: 14px; color: var(--preto);" data-om-id="a9492239:94">Prayer</div>
+          <p class="serif" style="font-size: 24px; line-height: 1.45; color: var(--verde); margin-top: 12px;" data-om-id="a9492239:95">The prayer wall and the intercessor network worldwide.</p>
+        </div>
+        <div style="background: var(--branco); border-radius: 22px; padding: 34px 36px;" data-om-id="a9492239:96">
+          <div style="font-weight: 900; font-size: 24px; color: var(--telha);" data-om-id="a9492239:97">04</div>
+          <div style="font-weight: 800; font-size: 34px; margin-top: 14px; color: var(--preto);" data-om-id="a9492239:98">ETEN</div>
+          <p class="serif" style="font-size: 24px; line-height: 1.45; color: var(--verde); margin-top: 12px;" data-om-id="a9492239:99">The annual credits report for funding.</p>
+        </div>
+        <div style="background: var(--branco); border-radius: 22px; padding: 34px 36px;" data-om-id="a9492239:100">
+          <div style="font-weight: 900; font-size: 24px; color: var(--telha);" data-om-id="a9492239:101">05</div>
+          <div style="font-weight: 800; font-size: 34px; margin-top: 14px; color: var(--preto);" data-om-id="a9492239:102">Formulários</div>
+          <p class="serif" style="font-size: 24px; line-height: 1.45; color: var(--verde); margin-top: 12px;" data-om-id="a9492239:103">Where to generate, send and archive the two field forms.</p>
+        </div>
+        <div style="background: var(--branco); border-radius: 22px; padding: 34px 36px;" data-om-id="a9492239:104">
+          <div style="font-weight: 900; font-size: 24px; color: var(--telha);" data-om-id="a9492239:105">06</div>
+          <div style="font-weight: 800; font-size: 34px; margin-top: 14px; color: var(--preto);" data-om-id="a9492239:106">Team</div>
+          <p class="serif" style="font-size: 24px; line-height: 1.45; color: var(--verde); margin-top: 12px;" data-om-id="a9492239:107">The editable org chart of each region’s roles.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color: var(--verde);" data-om-id="8b9c171e:70">03</div>
+  </section><section data-label="The 4 roles" class="slide bg-verde" data-om-id="8b9c171e:96" data-screen-label="04 The 4 roles" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="3" data-deck-active="">
+    <div class="pad" data-om-id="8b9c171e:97">
+      <p class="eyebrow on-dark" data-om-id="8b9c171e:98">Who makes it happen</p>
+      <h2 class="head" style="margin-top: 28px; color: var(--branco);" data-om-id="8b9c171e:99">Four partnerships, one flow.</h2>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; margin-top: 52px; flex: 1;" data-om-id="8b9c171e:100">
+        <div style="background: var(--telha); border-radius: 22px; padding: 44px 36px; display: flex; flex-direction: column;" data-om-id="8b9c171e:101">
+          <div style="font-weight: 600; font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55);" data-om-id="8b9c171e:102">International Projects Team</div>
+          <div style="font-weight: 800; font-size: 38px; margin-top: 18px; color: #fff;" data-om-id="8b9c171e:103">General Articulator</div>
+          <p class="serif" style="font-size: 24px; line-height: 1.45; color: rgba(255,255,255,0.9); margin-top: 18px;" data-om-id="8b9c171e:104">Sees the whole ecosystem. <strong data-om-id="8b9c171e:105">Articulates</strong> the flow and the strategic meetings.</p>
+        </div>
+        <div style="background: rgba(246,245,235,0.07); border: 1px solid rgba(246,245,235,0.18); border-radius: 22px; padding: 44px 36px;" data-om-id="8b9c171e:106">
+          <div style="font-weight: 600; font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(246,245,235,0.55);" data-om-id="8b9c171e:107">International Projects Team</div>
+          <div style="font-weight: 800; font-size: 38px; margin-top: 18px; color: var(--branco);" data-om-id="8b9c171e:108">International Project Facilitator</div>
+          <p class="serif" style="font-size: 24px; line-height: 1.45; color: rgba(246,245,235,0.78); margin-top: 18px;" data-om-id="8b9c171e:109"><strong style="color:var(--branco);font-weight:600;" data-om-id="8b9c171e:110">Facilitates</strong> the region’s operation and cares for the field teams.</p>
+        </div>
+        <div style="background: rgba(246,245,235,0.07); border: 1px solid rgba(246,245,235,0.18); border-radius: 22px; padding: 44px 36px;" data-om-id="8b9c171e:111">
+          <div style="font-weight: 600; font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(246,245,235,0.55);" data-om-id="8b9c171e:112">Resources Circle</div>
+          <div style="font-weight: 800; font-size: 38px; margin-top: 18px; color: var(--branco);" data-om-id="8b9c171e:113">Financial Resource Mobilizer</div>
+          <p class="serif" style="font-size: 24px; line-height: 1.45; color: rgba(246,245,235,0.78); margin-top: 18px;" data-om-id="8b9c171e:114"><strong style="color:var(--branco);font-weight:600;" data-om-id="8b9c171e:115">Mobilizes</strong> the resources for each need.</p>
+        </div>
+        <div style="background: rgba(246,245,235,0.07); border: 1px solid rgba(246,245,235,0.18); border-radius: 22px; padding: 44px 36px;" data-om-id="8b9c171e:116">
+          <div style="font-weight: 600; font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(246,245,235,0.55);" data-om-id="8b9c171e:117">Regional Person of Peace</div>
+          <div style="font-weight: 800; font-size: 38px; margin-top: 18px; color: var(--branco);" data-om-id="8b9c171e:118">Regional Host</div>
+          <p class="serif" style="font-size: 24px; line-height: 1.45; color: rgba(246,245,235,0.78); margin-top: 18px;" data-om-id="8b9c171e:119"><strong style="color:var(--branco);font-weight:600;" data-om-id="8b9c171e:120">Welcomes</strong> and walks alongside the team, present in the territory.</p>
+        </div>
+      </div>
+      <p class="lead on-dark serif" style="margin-top: 40px; font-style: italic; max-width: 70ch;" data-om-id="8b9c171e:121">Articulate, facilitate, mobilize, welcome — partnerships so the flow can flow, not a chain of command.</p>
+    </div>
+    <div class="slide-num" style="color: rgba(246,245,235,0.5);" data-om-id="8b9c171e:122">05</div>
+  </section>
+
+  <section data-label="Org chart" class="slide" data-om-id="8b9c171e:123" data-screen-label="05 Org chart" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="4">
+    <div style="position:absolute;left:120px;top:78px;z-index:4" data-om-id="8b9c171e:124">
+      <p class="eyebrow" style="margin:0" data-om-id="8b9c171e:125">The ecosystem</p>
+      <h2 class="head" style="margin:13px 0 0;" data-om-id="8b9c171e:126">A tree that bears fruit.</h2>
+    </div>
+    <img src="deck-assets/floresta.jpeg" alt="Forest ecosystem — translation teams as trees at different stages; the roles in the roots; Shemá Leadership as the soil" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1760px;border-radius:18px;box-shadow:0 30px 70px rgba(10,7,3,0.28);display:block" data-om-id="8b9c171e:127">
+    <div class="slide-num" style="color: var(--verde);" data-om-id="8b9c171e:128">06</div>
+  </section>
+
+  
+
+  <section data-label="Projetos" class="slide" data-om-id="8b9c171e:71" data-screen-label="07 Projects" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="6">
+    <div style="position: absolute; left: 0; top: 0; width: 720px; height: 100%; padding: 110px 0 110px 130px; display: flex; flex-direction: column; justify-content: center;" data-om-id="8b9c171e:72">
+      <p class="eyebrow" data-om-id="8b9c171e:73">Tab 01 · Projects</p>
+      <h2 class="head" style="margin-top: 28px; font-size: 76px;" data-om-id="8b9c171e:74">The living map<br data-om-id="8b9c171e:75">of the ecosystem.</h2>
+      <ul class="serif" style="font-size: 28px; line-height: 1.45; color: var(--verde); margin: 56px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 26px; max-width: 24ch;" data-om-id="8b9c171e:76">
+        <li style="padding-left: 34px; position: relative;" data-om-id="8b9c171e:77"><span style="position:absolute;left:0;top:12px;width:14px;height:14px;border-radius:99px;background:var(--telha);" data-om-id="8b9c171e:78"></span>Each language with progress, deadline and team health.</li>
+        <li style="padding-left: 34px; position: relative;" data-om-id="8b9c171e:79"><span style="position:absolute;left:0;top:12px;width:14px;height:14px;border-radius:99px;background:var(--telha);" data-om-id="8b9c171e:80"></span>Search and shortcuts: <em data-om-id="8b9c171e:81">Need attention</em>, <em data-om-id="8b9c171e:82">In prayer</em>, <em data-om-id="8b9c171e:83">Celebrate</em>.</li>
+        <li style="padding-left: 34px; position: relative;" data-om-id="8b9c171e:84"><span style="position:absolute;left:0;top:12px;width:14px;height:14px;border-radius:99px;background:var(--telha);" data-om-id="8b9c171e:85"></span>Saved views for your weekly routine.</li>
+      </ul>
+    </div>
+    <div style="position: absolute; right: 70px; top: 50%; transform: translateY(-50%); width: 1010px;" data-om-id="8b9c171e:86">
+      <div class="browser" data-om-id="8b9c171e:87">
+        <div class="browser-bar" data-om-id="8b9c171e:88"><span data-om-id="8b9c171e:89"></span><span data-om-id="8b9c171e:90"></span><span data-om-id="8b9c171e:91"></span><div class="url" data-om-id="8b9c171e:92"></div></div>
+        <div class="shot-crop" style="height: 820px; display:flex; flex-direction:column;" data-om-id="e23470ef:120">
+          <div style="display:flex; gap:28px; padding:20px 30px 0; border-bottom:1px solid rgba(63,62,32,0.16); background:#fff; flex:0 0 auto;" data-om-id="26c9dfc0:197">
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#BE4A01; padding-bottom:14px; border-bottom:3px solid #BE4A01;" data-om-id="26c9dfc0:198">Projects</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:14px;" data-om-id="26c9dfc0:199">Rhythm</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:14px;" data-om-id="26c9dfc0:200">Prayer</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:14px;" data-om-id="26c9dfc0:201">ETEN</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:14px;" data-om-id="26c9dfc0:202">Forms</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:14px;" data-om-id="26c9dfc0:203">Team</span>
+          </div>
+          <div style="display:flex; flex:1; overflow:hidden;" data-om-id="26c9dfc0:204">
+          <!-- sidebar mock -->
+          <div style="width:300px; flex:0 0 300px; background:#F6F5EB; border-right:1px solid rgba(63,62,32,0.16); padding:26px 22px; overflow:hidden;" data-om-id="e23470ef:121">
+            <div style="display:flex; align-items:center; gap:10px; background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:999px; padding:13px 16px;" data-om-id="e23470ef:122"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8970" stroke-width="1.9" stroke-linecap="round" data-om-id="e23470ef:123"><circle cx="11" cy="11" r="7" data-om-id="e23470ef:124"></circle><path d="m20 20-3.5-3.5" data-om-id="e23470ef:125"></path></svg><span style="font-size:17px; color:#8A8970;" data-om-id="e23470ef:126">Search language, base…</span></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:18px;" data-om-id="e23470ef:127">
+              <div style="background:#BE4A01; color:#fff; border-radius:12px; padding:12px 10px; font-size:14px; font-weight:700;" data-om-id="e23470ef:128">Need attention <span style="opacity:.8;" data-om-id="e23470ef:129">9</span></div>
+              <div style="background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:12px; padding:12px 10px; font-size:14px; font-weight:700; color:#3F3E20;" data-om-id="e23470ef:130">In prayer <span style="color:#8A8970;" data-om-id="e23470ef:131">14</span></div>
+              <div style="background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:12px; padding:12px 10px; font-size:14px; font-weight:700; color:#3F3E20;" data-om-id="e23470ef:132">Celebrate <span style="color:#8A8970;" data-om-id="e23470ef:133">6</span></div>
+              <div style="background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:12px; padding:12px 10px; font-size:14px; font-weight:700; color:#3F3E20;" data-om-id="e23470ef:134">Recent <span style="color:#8A8970;" data-om-id="e23470ef:135">21</span></div>
+            </div>
+            <div style="margin-top:22px; font-size:12px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#8A8970;" data-om-id="e23470ef:136">Team by region</div>
+            <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;" data-om-id="e23470ef:137">
+              <div style="background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:12px; padding:13px 14px; font-size:15px; font-weight:700; color:#3F3E20; display:flex; justify-content:space-between;" data-om-id="e23470ef:138">Oceania <span style="color:#8A8970;" data-om-id="e23470ef:139">36</span></div>
+              <div style="background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:12px; padding:13px 14px; font-size:15px; font-weight:700; color:#3F3E20; display:flex; justify-content:space-between;" data-om-id="e23470ef:140">Asia <span style="color:#8A8970;" data-om-id="e23470ef:141">31</span></div>
+              <div style="background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:12px; padding:13px 14px; font-size:15px; font-weight:700; color:#3F3E20; display:flex; justify-content:space-between;" data-om-id="e23470ef:142">South America <span style="color:#8A8970;" data-om-id="e23470ef:143">29</span></div>
+            </div>
+          </div>
+          <!-- globe -->
+          <div style="flex:1; overflow:hidden;" data-om-id="e23470ef:144"><img class="shot" src="deck-assets/shot-projetos-globo.png" alt="Globe — living map of projects" style="display:block; width:100%; height:100%; object-fit:cover; object-position:left center; margin-top:0;" data-om-id="e23470ef:145"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" data-om-id="8b9c171e:95">04</div>
+  </section>
+
+  <section data-label="Ritmo" class="slide" data-om-id="8b9c171e:129" data-screen-label="08 Rhythm" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="7">
+    <div style="position: absolute; left: 0; top: 0; width: 760px; height: 100%; padding: 110px 0 110px 130px; display: flex; flex-direction: column; justify-content: center;" data-om-id="8b9c171e:130">
+      <p class="eyebrow" data-om-id="8b9c171e:131">Tab 02 · Rhythm</p>
+      <h2 class="head" style="margin-top: 28px; font-size: 76px;" data-om-id="8b9c171e:132">The cascade<br data-om-id="8b9c171e:133">of listening.</h2>
+      <p class="serif" style="font-size: 30px; line-height: 1.55; color: var(--verde); margin-top: 40px; max-width: 26ch;" data-om-id="8b9c171e:134">Shemá means <em data-om-id="8b9c171e:135">"listen"</em>. Information flows from the field to leadership — and care flows back. Forms feed the meetings; meetings feed the decisions.</p>
+    </div>
+    <div style="position: absolute; right: -60px; top: 50%; transform: translateY(-50%); width: 1080px;" data-om-id="8b9c171e:136">
+      <div class="browser" data-om-id="8b9c171e:137">
+        <div class="browser-bar" data-om-id="8b9c171e:138"><span data-om-id="8b9c171e:139"></span><span data-om-id="8b9c171e:140"></span><span data-om-id="8b9c171e:141"></span><div class="url" data-om-id="8b9c171e:142"></div></div>
+        <div class="shot-crop" style="height: 760px; background:#F6F5EB; overflow:hidden;" data-om-id="e23470ef:161">
+          <!-- topnav with Ritmo active -->
+          <div style="display:flex; gap:28px; padding:24px 40px 0; border-bottom:1px solid rgba(63,62,32,0.16);" data-om-id="e23470ef:162">
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:16px;" data-om-id="e23470ef:163">Projects</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#BE4A01; padding-bottom:16px; border-bottom:3px solid #BE4A01;" data-om-id="e23470ef:164">Rhythm</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:16px;" data-om-id="26c9dfc0:249">Prayer</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:16px;" data-om-id="e23470ef:165">ETEN</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:16px;" data-om-id="26c9dfc0:251">Forms</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:16px;" data-om-id="26c9dfc0:252">Team</span>
+          </div>
+          <div style="padding:40px 44px;" data-om-id="e23470ef:166">
+            <div style="font:700 17px/1 'Montserrat',sans-serif; letter-spacing:0.16em; text-transform:uppercase; color:#BE4A01;" data-om-id="e23470ef:167">Cascade of listening</div>
+            <div style="font:800 52px/1.05 'Montserrat',sans-serif; color:#0A0703; margin-top:16px;" data-om-id="e23470ef:168">The rhythm of the ecosystem</div>
+            <div style="font:italic 24px/1.5 'Merriweather',Georgia,serif; color:#5A5A3E; margin-top:18px; max-width:46ch;" data-om-id="e23470ef:169">Shemá means "listen". Each meeting is a floor of that listening — information flows from the field to leadership, and care flows back.</div>
+            <!-- meeting rows -->
+            <div style="margin-top:34px; display:flex; flex-direction:column; gap:14px;" data-om-id="e23470ef:170">
+              <div style="display:flex; align-items:center; gap:18px; background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:16px; padding:20px 24px;" data-om-id="e23470ef:171">
+                <span style="font:800 22px/1 'Montserrat',sans-serif; color:#C5C29F;" data-om-id="e23470ef:172">01</span>
+                <span style="font:800 26px/1 'Montserrat',sans-serif; color:#0A0703; flex:1;" data-om-id="e23470ef:173">Monthly Pulse</span>
+                <span style="font:700 15px/1 'Montserrat',sans-serif; letter-spacing:0.1em; text-transform:uppercase; color:#fff; background:#BE4A01; padding:8px 16px; border-radius:999px;" data-om-id="e23470ef:174">Monthly</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:18px; background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:16px; padding:20px 24px;" data-om-id="e23470ef:175">
+                <span style="font:800 22px/1 'Montserrat',sans-serif; color:#C5C29F;" data-om-id="e23470ef:176">02</span>
+                <span style="font:800 26px/1 'Montserrat',sans-serif; color:#0A0703; flex:1;" data-om-id="e23470ef:177">Field care</span>
+                <span style="font:700 15px/1 'Montserrat',sans-serif; letter-spacing:0.1em; text-transform:uppercase; color:#777D45; background:#ECEADF; padding:8px 16px; border-radius:999px;" data-om-id="e23470ef:178">Quarterly</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:18px; background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:16px; padding:20px 24px;" data-om-id="e23470ef:179">
+                <span style="font:800 22px/1 'Montserrat',sans-serif; color:#C5C29F;" data-om-id="e23470ef:180">03</span>
+                <span style="font:800 26px/1 'Montserrat',sans-serif; color:#0A0703; flex:1;" data-om-id="e23470ef:181">Regional strategy</span>
+                <span style="font:700 15px/1 'Montserrat',sans-serif; letter-spacing:0.1em; text-transform:uppercase; color:#777D45; background:#ECEADF; padding:8px 16px; border-radius:999px;" data-om-id="e23470ef:182">Quarterly</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" data-om-id="8b9c171e:145">07</div>
+  </section>
+
+  <section data-label="The meetings" class="slide bg-areia" data-om-id="8b9c171e:146" data-screen-label="09 The meetings" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="8">
+    <div class="pad" data-om-id="8b9c171e:147">
+      <p class="eyebrow" data-om-id="8b9c171e:148">The rhythm in practice</p>
+      <h2 class="head" style="margin-top: 24px;" data-om-id="8b9c171e:149">Five meetings, one calendar.</h2>
+      <div style="display: flex; flex-direction: column; gap: 18px; margin-top: 70px; flex: 1;" data-om-id="8b9c171e:150">
+        <div style="display: grid; grid-template-columns: 60px 1fr 360px 280px; align-items: center; gap: 28px; background: var(--branco); border-radius: 18px; padding: 28px 40px;" data-om-id="8b9c171e:151">
+          <div style="font-weight: 900; font-size: 32px; color: var(--areia);" data-om-id="8b9c171e:152">01</div>
+          <div style="font-weight: 800; font-size: 34px;" data-om-id="8b9c171e:153" data-cc-id="cc-1">Monthly Pulse</div>
+          <div class="serif" style="font-size: 24px; color: var(--verde);" data-om-id="8b9c171e:154">Articulator + Facilitator</div>
+          <div style="font-weight: 700; font-size: 24px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--telha);" data-om-id="8b9c171e:155">Monthly</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 60px 1fr 360px 280px; align-items: center; gap: 28px; background: var(--branco); border-radius: 18px; padding: 28px 40px;" data-om-id="8b9c171e:156">
+          <div style="font-weight: 900; font-size: 32px; color: var(--areia);" data-om-id="8b9c171e:157">02</div>
+          <div style="font-weight: 800; font-size: 34px;" data-om-id="8b9c171e:158">Field care</div>
+          <div class="serif" style="font-size: 24px; color: var(--verde);" data-om-id="8b9c171e:159">Facilitator + Teams</div>
+          <div style="font-weight: 700; font-size: 24px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--verde-claro);" data-om-id="8b9c171e:160">Quarterly</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 60px 1fr 360px 280px; align-items: center; gap: 28px; background: var(--branco); border-radius: 18px; padding: 28px 40px;" data-om-id="8b9c171e:161">
+          <div style="font-weight: 900; font-size: 32px; color: var(--areia);" data-om-id="8b9c171e:162">03</div>
+          <div style="font-weight: 800; font-size: 34px;" data-om-id="8b9c171e:163">Regional strategy</div>
+          <div class="serif" style="font-size: 24px; color: var(--verde);" data-om-id="8b9c171e:164">Full regional team</div>
+          <div style="font-weight: 700; font-size: 24px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--verde-claro);" data-om-id="8b9c171e:165">Quarterly</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 60px 1fr 360px 280px; align-items: center; gap: 28px; background: var(--branco); border-radius: 18px; padding: 28px 40px;" data-om-id="8b9c171e:166">
+          <div style="font-weight: 900; font-size: 32px; color: var(--areia);" data-om-id="8b9c171e:167">04</div>
+          <div style="font-weight: 800; font-size: 34px;" data-om-id="8b9c171e:168">Governance</div>
+          <div class="serif" style="font-size: 24px; color: var(--verde);" data-om-id="8b9c171e:169">Articulator + Shemá Leadership</div>
+          <div style="font-weight: 700; font-size: 24px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--verde-claro);" data-om-id="8b9c171e:170">Quarterly</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 60px 1fr 360px 280px; align-items: center; gap: 28px; background: var(--verde); border-radius: 18px; padding: 28px 40px;" data-om-id="8b9c171e:171">
+          <div style="font-weight: 900; font-size: 32px; color: rgba(246,245,235,0.4);" data-om-id="8b9c171e:172">05</div>
+          <div style="font-weight: 800; font-size: 34px; color: var(--branco);" data-om-id="8b9c171e:173">Annual celebration</div>
+          <div class="serif" style="font-size: 24px; color: rgba(246,245,235,0.85);" data-om-id="8b9c171e:174">Everyone together</div>
+          <div style="font-weight: 700; font-size: 24px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--areia);" data-om-id="8b9c171e:175">Annual</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color: var(--verde);" data-om-id="8b9c171e:176">08</div>
+  </section>
+
+  <!-- RITMO — diagrama do ecossistema -->
+  <section data-label="Rhythm · diagram" class="slide">
+    <div style="position:absolute; left:120px; top:0; width:740px; height:100%; display:flex; flex-direction:column; justify-content:center;">
+      <p class="eyebrow">Rhythm of the ecosystem</p>
+      <h2 class="head" style="margin-top:14px; font-size:66px;">The cycle of<br>meetings.</h2>
+      <p class="serif" style="font-size:28px; line-height:1.5; color:var(--verde); margin-top:28px; max-width:26ch; font-style:italic;">The monthly cycle of forms feeds the quarterly meetings; the meetings feed the decisions. Listening flows from the field to leadership, and care flows back.</p>
+    </div>
+    <img src="deck-assets/ritmo-diagrama.png" alt="Monthly and quarterly meeting cycle of the Shemá ecosystem" style="position:absolute; right:90px; top:50%; transform:translateY(-50%); height:980px; border-radius:16px; box-shadow:0 30px 70px rgba(10,7,3,0.28); display:block;">
+    <div class="slide-num">10</div>
+  </section>
+
+  <section data-label="Prayer" class="slide" data-om-id="a9492239:445" data-screen-label="10 Prayer" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="9">
+    <div style="position:absolute; left:0; top:0; width:720px; height:100%; padding:110px 60px 110px 130px; display:flex; flex-direction:column; justify-content:center;" data-om-id="a9492239:446">
+      <p class="eyebrow" data-om-id="a9492239:447">Tab 03 · Prayer</p>
+      <h2 class="head" style="margin-top:18px; font-size:72px;" data-om-id="a9492239:448">Every request<br data-om-id="a9492239:449">is heard.</h2>
+      <p class="serif" style="font-size:29px; line-height:1.5; color:var(--verde); margin-top:28px; max-width:24ch;" data-om-id="a9492239:450">All prayer requests — coming from the field forms — gathered on one wall. And an intercessor network worldwide to receive them.</p>
+      <div style="margin-top:30px; font-size:22px; color:var(--fg-muted,#5A5A3E);" data-om-id="a9492239:451"><strong style="color:var(--preto);" data-om-id="a9492239:452">With consent:</strong> only shares what the team authorizes.</div>
+    </div>
+    <div style="position:absolute; right:90px; top:50%; transform:translateY(-50%); width:840px; display:flex; flex-direction:column; gap:16px;" data-om-id="a9492239:453">
+      <div style="background:var(--verde); border-radius:22px; padding:34px 38px; color:var(--branco);" data-om-id="a9492239:454">
+        <div style="font-weight:700; font-size:15px; letter-spacing:.14em; text-transform:uppercase; color:var(--areia);" data-om-id="a9492239:455">Prayer wall</div>
+        <div style="display:flex; gap:40px; margin-top:18px;" data-om-id="a9492239:456">
+          <div data-om-id="a9492239:457"><div style="font-weight:900; font-size:54px; line-height:1;" data-om-id="a9492239:458">38</div><div style="font-size:15px; color:rgba(246,245,235,.7); margin-top:6px;" data-om-id="a9492239:459">requests gathered</div></div>
+          <div data-om-id="a9492239:460"><div style="font-weight:900; font-size:54px; line-height:1; color:var(--areia);" data-om-id="a9492239:461">6</div><div style="font-size:15px; color:rgba(246,245,235,.7); margin-top:6px;" data-om-id="a9492239:462">regions</div></div>
+          <div data-om-id="a9492239:463"><div style="font-weight:900; font-size:54px; line-height:1; color:#b4d18f;" data-om-id="a9492239:464">9</div><div style="font-size:15px; color:rgba(246,245,235,.7); margin-top:6px;" data-om-id="a9492239:465">answered</div></div>
+        </div>
+      </div>
+      <div style="background:#fff; border:1px solid var(--line); border-radius:22px; padding:30px 34px;" data-om-id="a9492239:466">
+        <div style="font-weight:700; font-size:15px; letter-spacing:.14em; text-transform:uppercase; color:var(--telha);" data-om-id="a9492239:467">Intercessor network</div>
+        <p class="serif" style="font-size:22px; line-height:1.45; color:var(--verde); margin-top:12px;" data-om-id="a9492239:468">Registered by name, country and contact. Requests go to each one by WhatsApp or email, with one click.</p>
+        <div style="display:flex; gap:10px; margin-top:18px;" data-om-id="a9492239:469">
+          <span style="font-weight:600; font-size:16px; color:#fff; background:var(--telha); padding:9px 18px; border-radius:999px;" data-om-id="a9492239:470">Send to all</span>
+          <span style="font-weight:600; font-size:16px; color:var(--verde); background:var(--bg-muted,#ECEADF); padding:9px 18px; border-radius:999px;" data-om-id="a9492239:471">TXT · CSV · JSON</span>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" data-om-id="a9492239:472">18</div>
+  </section>
+
+  <section data-label="ETEN" class="slide" data-om-id="8b9c171e:193" data-screen-label="11 ETEN" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="10">
+    <div style="position: absolute; left: 0; top: 0; width: 760px; height: 100%; padding: 110px 0 110px 130px; display: flex; flex-direction: column; justify-content: center;" data-om-id="8b9c171e:194">
+      <p class="eyebrow" data-om-id="8b9c171e:195">Tab 04 · ETEN</p>
+      <h2 class="head" style="margin-top: 28px; font-size: 76px;" data-om-id="8b9c171e:196">Each chapter,<br data-om-id="8b9c171e:197">one credit.</h2>
+      <p class="serif" style="font-size: 30px; line-height: 1.55; color: var(--verde); margin-top: 40px; max-width: 26ch;" data-om-id="8b9c171e:198">Each year we report how many chapters each project on the ETEN list advanced. The sum of credits matches the next cycle’s resources — computed automatically, ready to send.</p>
+      <div style="display: flex; gap: 48px; margin-top: 56px;" data-om-id="8b9c171e:199">
+        <div data-om-id="8b9c171e:200"><div class="stat-num" style="font-size: 90px; color: var(--telha);" data-om-id="8b9c171e:201">530</div><div class="stat-label" style="color: var(--verde);" data-om-id="8b9c171e:202">Credits · 2025</div></div>
+        <div data-om-id="8b9c171e:203"><div class="stat-num" style="font-size: 90px; color: var(--verde);" data-om-id="8b9c171e:204">66</div><div class="stat-label" style="color: var(--verde);" data-om-id="8b9c171e:205">Projects in ETEN</div></div>
+      </div>
+    </div>
+    <div style="position: absolute; right: -60px; top: 50%; transform: translateY(-50%); width: 1060px;" data-om-id="8b9c171e:206">
+      <div class="browser" data-om-id="8b9c171e:207">
+        <div class="browser-bar" data-om-id="8b9c171e:208"><span data-om-id="8b9c171e:209"></span><span data-om-id="8b9c171e:210"></span><span data-om-id="8b9c171e:211"></span><div class="url" data-om-id="8b9c171e:212"></div></div>
+        <div class="shot-crop" style="height: 760px; background:#F6F5EB; overflow:hidden;" data-om-id="e23470ef:453">
+          <div style="display:flex; gap:28px; padding:24px 40px 0; border-bottom:1px solid rgba(63,62,32,0.16);" data-om-id="e23470ef:454">
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:16px;" data-om-id="e23470ef:455">Projects</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:16px;" data-om-id="e23470ef:456">Rhythm</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:16px;" data-om-id="26c9dfc0:354">Prayer</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#BE4A01; padding-bottom:16px; border-bottom:3px solid #BE4A01;" data-om-id="e23470ef:457">ETEN</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:16px;" data-om-id="26c9dfc0:356">Forms</span>
+            <span style="font:700 20px/1 'Montserrat',sans-serif; color:#8A8970; padding-bottom:16px;" data-om-id="26c9dfc0:357">Team</span>
+          </div>
+          <div style="padding:40px 44px;" data-om-id="e23470ef:458">
+            <div style="font:700 17px/1 'Montserrat',sans-serif; letter-spacing:0.16em; text-transform:uppercase; color:#BE4A01;" data-om-id="e23470ef:459">Annual report · Resources Circle</div>
+            <div style="font:800 52px/1.05 'Montserrat',sans-serif; color:#0A0703; margin-top:16px;" data-om-id="e23470ef:460">ETEN Credits · 2025</div>
+            <!-- stat cards -->
+            <div style="display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:18px; margin-top:30px;" data-om-id="e23470ef:461">
+              <div style="background:#3F3E20; border-radius:20px; padding:28px 30px;" data-om-id="e23470ef:462"><div style="font:800 56px/1 'Montserrat',sans-serif; color:#fff;" data-om-id="e23470ef:463">530</div><div style="font:700 15px/1.2 'Montserrat',sans-serif; letter-spacing:0.08em; text-transform:uppercase; color:#F6F5EB; margin-top:10px;" data-om-id="e23470ef:464">Credits this year</div><div style="font:400 14px/1.3 'Montserrat',sans-serif; color:rgba(246,245,235,0.7); margin-top:4px;" data-om-id="e23470ef:465">1 chapter = 1 credit</div></div>
+              <div style="background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:20px; padding:28px 30px;" data-om-id="e23470ef:466"><div style="font:800 56px/1 'Montserrat',sans-serif; color:#BE4A01;" data-om-id="e23470ef:467">66</div><div style="font:700 15px/1.2 'Montserrat',sans-serif; letter-spacing:0.08em; text-transform:uppercase; color:#0A0703; margin-top:10px;" data-om-id="e23470ef:468">Projects in ETEN</div></div>
+              <div style="background:#fff; border:1px solid rgba(63,62,32,0.16); border-radius:20px; padding:28px 30px;" data-om-id="e23470ef:469"><div style="font:800 56px/1 'Montserrat',sans-serif; color:#BE4A01;" data-om-id="e23470ef:470">48</div><div style="font:700 15px/1.2 'Montserrat',sans-serif; letter-spacing:0.08em; text-transform:uppercase; color:#0A0703; margin-top:10px;" data-om-id="e23470ef:471">With progress</div></div>
+            </div>
+            <!-- table head + rows -->
+            <div style="margin-top:30px; border:1px solid rgba(63,62,32,0.16); border-radius:16px; overflow:hidden;" data-om-id="e23470ef:472">
+              <div style="display:grid; grid-template-columns:2fr 1fr 1fr; background:#ECEADF; padding:16px 24px; font:700 14px/1 'Montserrat',sans-serif; letter-spacing:0.08em; text-transform:uppercase; color:#8A8970;" data-om-id="e23470ef:473"><span data-om-id="e23470ef:474">Project</span><span style="text-align:right;" data-om-id="e23470ef:475">End 2025</span><span style="text-align:right;" data-om-id="e23470ef:476">Credits</span></div>
+              <div style="display:grid; grid-template-columns:2fr 1fr 1fr; padding:18px 24px; border-top:1px solid rgba(63,62,32,0.12); font:600 20px/1 'Montserrat',sans-serif; color:#0A0703;" data-om-id="e23470ef:477"><span data-om-id="e23470ef:478">Asháninka</span><span style="text-align:right; color:#777D45;" data-om-id="e23470ef:479">36</span><span style="text-align:right; font-weight:800; color:#BE4A01;" data-om-id="e23470ef:480">+12</span></div>
+              <div style="display:grid; grid-template-columns:2fr 1fr 1fr; padding:18px 24px; border-top:1px solid rgba(63,62,32,0.12); font:600 20px/1 'Montserrat',sans-serif; color:#0A0703;" data-om-id="e23470ef:481"><span data-om-id="e23470ef:482">Baikeno</span><span style="text-align:right; color:#777D45;" data-om-id="e23470ef:483">28</span><span style="text-align:right; font-weight:800; color:#BE4A01;" data-om-id="e23470ef:484">+9</span></div>
+              <div style="display:grid; grid-template-columns:2fr 1fr 1fr; padding:18px 24px; border-top:1px solid rgba(63,62,32,0.12); font:600 20px/1 'Montserrat',sans-serif; color:#0A0703;" data-om-id="e23470ef:485"><span data-om-id="e23470ef:486">Korowai</span><span style="text-align:right; color:#777D45;" data-om-id="e23470ef:487">21</span><span style="text-align:right; font-weight:800; color:#BE4A01;" data-om-id="e23470ef:488">+7</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" data-om-id="8b9c171e:215">17</div>
+  </section>
+
+  <section data-label="Forms" class="slide" data-om-id="8b9c171e:177" data-screen-label="12 Forms" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="11">
+    <img class="kicker-mark" src="design-system/assets/icon-telha.svg" alt="" data-om-id="8b9c171e:178">
+    <div class="pad" data-om-id="8b9c171e:179">
+      <p class="eyebrow" data-om-id="8b9c171e:180">Tab 05 · Forms</p>
+      <h2 class="head" style="margin-top: 28px;" data-om-id="8b9c171e:181">Listening that becomes data.</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 90px; flex: 1;" data-om-id="8b9c171e:182">
+        <div style="border: 2px solid var(--line); border-radius: 24px; padding: 60px 56px; display: flex; flex-direction: column;" data-om-id="8b9c171e:183">
+          <div style="font-weight: 700; font-size: 24px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--telha);" data-om-id="8b9c171e:184">Monthly · by the leader</div>
+          <div style="font-weight: 800; font-size: 52px; margin-top: 22px;" data-om-id="8b9c171e:185">Monthly Pulse</div>
+          <p class="serif" style="font-size: 28px; line-height: 1.5; color: var(--verde); margin-top: 26px;" data-om-id="8b9c171e:186">Five short questions on the phone: the team’s heart, chapters advanced, needs, prayer and a photo. Works offline; returns by WhatsApp or file.</p>
+        </div>
+        <div style="background: var(--verde); border-radius: 24px; padding: 60px 56px; display: flex; flex-direction: column;" data-om-id="8b9c171e:187">
+          <div style="font-weight: 700; font-size: 24px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--areia);" data-om-id="8b9c171e:188">Quarterly · by the International Project Facilitator</div>
+          <div style="font-weight: 800; font-size: 52px; margin-top: 22px; color: var(--branco);" data-om-id="8b9c171e:189">Health Assessment</div>
+          <p class="serif" style="font-size: 28px; line-height: 1.5; color: rgba(246,245,235,0.85); margin-top: 26px;" data-om-id="8b9c171e:190">During the online meeting, across four dimensions — emotional, relational, spiritual and physical — with guiding questions and a pastoral-care suggestion.</p>
+        </div>
+      </div>
+      <p class="lead serif" style="margin-top: 70px; font-style: italic; max-width: 64ch;" data-om-id="8b9c171e:191">With each submission, coordination is notified automatically.</p>
+    </div>
+    <div class="slide-num" data-om-id="8b9c171e:192">16</div>
+  </section>
+
+  <section data-label="Team" class="slide bg-areia" data-om-id="26c9dfc0:406" data-screen-label="13 Team" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="12">
+    <div class="pad" data-om-id="26c9dfc0:407">
+      <p class="eyebrow" data-om-id="26c9dfc0:408">Tab 06 · Team</p>
+      <h2 class="head" style="margin-top:18px;" data-om-id="26c9dfc0:409">The team of each region.</h2>
+      <p class="serif" style="font-size:27px; line-height:1.5; color:var(--verde); margin-top:22px; max-width:60ch; font-style:italic;" data-om-id="26c9dfc0:410">An editable org chart: the General Articulator, and the three roles of each continent — updatable at any time. Changes are reflected across the whole platform.</p>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:50px; flex:1;" data-om-id="26c9dfc0:411">
+        <div style="background:#fff; border-radius:20px; overflow:hidden; border:1px solid var(--line);" data-om-id="26c9dfc0:412">
+          <div style="background:var(--verde); color:var(--branco); padding:16px 22px; font-weight:800; font-size:18px; letter-spacing:.06em; text-transform:uppercase;" data-om-id="26c9dfc0:413">Asia</div>
+          <div style="padding:22px 24px; display:flex; flex-direction:column; gap:18px;" data-om-id="26c9dfc0:414">
+            <div data-om-id="26c9dfc0:415"><div style="font-weight:700; font-size:18px; color:var(--preto);" data-om-id="26c9dfc0:416">Regional Host</div><div style="font-size:20px; color:var(--verde-claro); margin-top:4px;" data-om-id="26c9dfc0:417">Priscila Tan</div></div>
+            <div data-om-id="26c9dfc0:418"><div style="font-weight:700; font-size:18px; color:var(--preto);" data-om-id="26c9dfc0:419">Project Facilitator</div><div style="font-size:20px; color:var(--verde-claro); margin-top:4px;" data-om-id="26c9dfc0:420">Ravi Kumar</div></div>
+            <div data-om-id="26c9dfc0:421"><div style="font-weight:700; font-size:18px; color:var(--preto);" data-om-id="26c9dfc0:422">Resource Mobilizer</div><div style="font-size:20px; color:var(--verde-claro); margin-top:4px;" data-om-id="26c9dfc0:423">Mei Lin</div></div>
+          </div>
+        </div>
+        <div style="background:#fff; border-radius:20px; overflow:hidden; border:1px solid var(--line);" data-om-id="26c9dfc0:424">
+          <div style="background:var(--verde); color:var(--branco); padding:16px 22px; font-weight:800; font-size:18px; letter-spacing:.06em; text-transform:uppercase;" data-om-id="26c9dfc0:425">South America</div>
+          <div style="padding:22px 24px; display:flex; flex-direction:column; gap:18px;" data-om-id="26c9dfc0:426">
+            <div data-om-id="26c9dfc0:427"><div style="font-weight:700; font-size:18px; color:var(--preto);" data-om-id="26c9dfc0:428">Regional Host</div><div style="font-size:20px; color:var(--verde-claro); margin-top:4px;" data-om-id="26c9dfc0:429">Daniel Furtado</div></div>
+            <div data-om-id="26c9dfc0:430"><div style="font-weight:700; font-size:18px; color:var(--preto);" data-om-id="26c9dfc0:431">Project Facilitator</div><div style="font-size:20px; color:var(--verde-claro); margin-top:4px;" data-om-id="26c9dfc0:432">Ana Beatriz Rocha</div></div>
+            <div data-om-id="26c9dfc0:433"><div style="font-weight:700; font-size:18px; color:var(--preto);" data-om-id="26c9dfc0:434">Resource Mobilizer</div><div style="font-size:20px; color:var(--verde-claro); margin-top:4px;" data-om-id="26c9dfc0:435">Lucas Ferreira</div></div>
+          </div>
+        </div>
+        <div style="background:#fff; border-radius:20px; overflow:hidden; border:1px solid var(--line);" data-om-id="26c9dfc0:436">
+          <div style="background:var(--verde); color:var(--branco); padding:16px 22px; font-weight:800; font-size:18px; letter-spacing:.06em; text-transform:uppercase;" data-om-id="26c9dfc0:437">Oceania</div>
+          <div style="padding:22px 24px; display:flex; flex-direction:column; gap:18px;" data-om-id="26c9dfc0:438">
+            <div data-om-id="26c9dfc0:439"><div style="font-weight:700; font-size:18px; color:var(--preto);" data-om-id="26c9dfc0:440">Regional Host</div><div style="font-size:20px; color:var(--verde-claro); margin-top:4px;" data-om-id="26c9dfc0:441">Mateus Lai</div></div>
+            <div data-om-id="26c9dfc0:442"><div style="font-weight:700; font-size:18px; color:var(--preto);" data-om-id="26c9dfc0:443">Project Facilitator</div><div style="font-size:20px; color:var(--verde-claro); margin-top:4px;" data-om-id="26c9dfc0:444">Hannah Wright</div></div>
+            <div data-om-id="26c9dfc0:445"><div style="font-weight:700; font-size:18px; color:var(--preto);" data-om-id="26c9dfc0:446">Resource Mobilizer</div><div style="font-size:20px; color:var(--verde-claro); margin-top:4px;" data-om-id="26c9dfc0:447">David Pule</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-num" style="color:var(--verde);" data-om-id="26c9dfc0:448">EQ</div>
+  </section>
+
+  <section data-label="Closing" class="slide bg-telha" data-om-id="8b9c171e:246" data-screen-label="14 Closing" data-om-validate="no_overflowing_text,no_overlapping_text,slide_sized_text" data-deck-slide="13" data-deck-last-visible="">
+    <div class="pad" style="justify-content: center; align-items: center; text-align: center;" data-om-id="8b9c171e:247">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width: 96px; height: 96px; margin-bottom: 48px;" data-om-id="8b9c171e:248">
+      <h2 class="head serif" style="font-style: italic; font-weight: 400; font-size: 96px; color: var(--branco); max-width: 22ch;" data-om-id="8b9c171e:249">"On earth<br data-om-id="8b9c171e:250">as it is in heaven."</h2>
+      <p style="font-weight: 700; font-size: 24px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.8); margin-top: 44px;" data-om-id="8b9c171e:251">Matthew 6:10</p>
+      <p class="serif" style="font-size: 32px; line-height: 1.5; color: rgba(255,255,255,0.92); margin-top: 64px; max-width: 44ch;" data-om-id="8b9c171e:252">An ecosystem that listens to every team, cares for every person and celebrates every chapter — in all mother tongues.</p>
+    </div>
+    <div style="position: absolute; left: -80px; bottom: -120px; font-family: serif; font-size: 440px; color: rgba(246,245,235,0.08); line-height: 1;" data-om-id="8b9c171e:253">שמע</div>
+  </section>
+
+</deck-stage>
+
+<script src="deck-stage.js"></script>
+</body>
+</html>

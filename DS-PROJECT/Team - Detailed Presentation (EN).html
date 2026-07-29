@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team tab — Detailed Presentation</title>
+<link rel="stylesheet" href="design-system/colors_and_type.css">
+<style>
+  deck-stage:not(:defined){visibility:hidden}
+  html,body{margin:0;background:#0A0703}
+  :root{--branco:#F6F5EB;--areia:#C5C29F;--azul:#89AAA3;--telha:#BE4A01;--verde-claro:#777D45;--verde:#3F3E20;--preto:#0A0703;--line:rgba(63,62,32,.16)}
+  .slide{width:1920px;height:1080px;overflow:hidden;position:relative;font-family:'Montserrat',system-ui,sans-serif;color:var(--preto);background:var(--branco)}
+  .serif{font-family:'Merriweather',Georgia,serif}
+  .eyebrow{font-weight:700;font-size:24px;letter-spacing:.22em;text-transform:uppercase;color:var(--telha)}
+  .eyebrow.dk{color:var(--areia)}
+  .pad{position:absolute;inset:0;padding:108px 120px;display:flex;flex-direction:column}
+  .snum{position:absolute;bottom:54px;right:64px;font-size:24px;font-weight:600;color:var(--areia);letter-spacing:.1em}
+  .bg-verde{background:var(--verde);color:var(--branco)}
+  .bg-telha{background:var(--telha);color:var(--branco)}
+  .bg-areia{background:var(--areia)}
+  h1.title{font-weight:900;font-size:118px;line-height:.96;letter-spacing:-.02em;margin:0}
+  h2.head{font-weight:800;font-size:78px;line-height:1;letter-spacing:-.015em;margin:0;text-wrap:balance}
+  .lead{font-size:34px;line-height:1.5;color:var(--verde);max-width:32ch}
+  .lead.dk{color:rgba(246,245,235,.82)}
+
+  .split{position:absolute;inset:0;display:grid;grid-template-columns:42% 58%}
+  .explain-col{padding:0 70px 0 120px;display:flex;flex-direction:column;justify-content:center}
+  .explain-col .badge{display:inline-flex;align-items:center;gap:14px;font-weight:700;font-size:20px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha);margin-bottom:24px}
+  .explain-col h2{font-weight:800;font-size:58px;line-height:1.02;letter-spacing:-.015em;margin:0 0 26px;color:var(--preto)}
+  .explain-col p{font-size:28px;line-height:1.5;color:var(--verde);margin:0 0 24px;max-width:26ch;font-family:'Merriweather',Georgia,serif}
+  .who{display:inline-flex;align-items:center;gap:12px;padding:16px 22px;background:#ECEADF;border-radius:16px;font-size:22px;font-weight:600;color:var(--verde);align-self:flex-start;max-width:32ch;line-height:1.35}
+  .who b{color:var(--telha)}
+  .mock-col{background:#ECEADF;display:flex;align-items:center;justify-content:center;padding:70px 90px 70px 70px}
+
+  .win{width:100%;background:var(--branco);border-radius:24px;overflow:hidden;box-shadow:0 40px 90px rgba(10,7,3,.34);border:1px solid rgba(0,0,0,.06)}
+  .win-body{padding:40px 44px}
+
+  /* region team card */
+  .rcard{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden}
+  .rcard-head{background:var(--verde);color:var(--branco);padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+  .rcard-name{font-weight:800;font-size:20px;letter-spacing:.06em;text-transform:uppercase}
+  .rcard-count{font-weight:700;font-size:14px;background:rgba(246,245,235,.16);padding:5px 12px;border-radius:999px}
+  .rcard-body{padding:22px 24px;display:flex;flex-direction:column;gap:18px}
+  .role .rl{font-weight:700;font-size:17px;color:var(--preto)}
+  .role .rt{font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#8A8970;margin-top:2px}
+  .role .rn{font-weight:600;font-size:19px;color:var(--verde-claro);margin-top:4px}
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#3F3E20"/><g transform="translate(50,50)" fill="none" stroke="#BE4A01" stroke-width="4"><circle cx="-13" cy="-3" r="8"/><circle cx="13" cy="-3" r="8"/><path d="M-24 19a11 11 0 0 1 22 0M2 19a11 11 0 0 1 22 0" stroke="#F6F5EB"/></g></svg>
+</template>
+<deck-stage width="1920" height="1080">
+
+  <!-- 1 TITLE -->
+  <section data-label="Cover" class="slide bg-verde">
+    <div class="pad" style="justify-content:space-between">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:104px;height:104px">
+      <div>
+        <p class="eyebrow dk" style="margin:0 0 26px">The Team tab, in detail</p>
+        <h1 class="title" style="color:var(--branco)">Who walks<br>with each region.</h1>
+        <p class="lead dk serif" style="margin-top:36px;font-size:36px;max-width:46ch">The ecosystem's living org chart: each region's roles, always editable. See how to register them and how everything connects.</p>
+      </div>
+      <div style="font-size:24px;color:rgba(246,245,235,.7);font-weight:700;letter-spacing:.04em">Shemá · International Projects Ecosystem</div>
+    </div>
+    <div style="position:absolute;right:-120px;top:50%;transform:translateY(-50%);font-family:serif;font-size:520px;color:rgba(246,245,235,.06);line-height:1">שמע</div>
+  </section>
+
+  <!-- 2 THE ROLES -->
+  <section data-label="The roles" class="slide bg-areia">
+    <div class="pad">
+      <p class="eyebrow">Who forms the ecosystem</p>
+      <h2 class="head" style="margin-top:22px">Four roles, one per region.</h2>
+      <p class="serif" style="font-size:29px;line-height:1.5;color:var(--verde);margin-top:24px;max-width:64ch;font-style:italic">The General Articulator oversees everything. In each region, three partnerships keep the work flowing — each from a different table.</p>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:50px;flex:1">
+        <div style="background:var(--telha);border-radius:20px;padding:34px 30px;display:flex;flex-direction:column">
+          <div style="font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.78)">Global</div>
+          <div style="font-weight:800;font-size:30px;color:#fff;margin-top:14px">General Articulator</div>
+          <p class="serif" style="font-size:21px;line-height:1.4;color:rgba(255,255,255,.9);margin-top:auto;padding-top:18px">Sees the whole ecosystem.</p>
+        </div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 30px;display:flex;flex-direction:column">
+          <div style="font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--verde-claro)">Local · in the region</div>
+          <div style="font-weight:800;font-size:30px;color:var(--preto);margin-top:14px">Regional Host</div>
+          <p class="serif" style="font-size:21px;line-height:1.4;color:var(--verde);margin-top:auto;padding-top:18px">Welcomes and walks alongside.</p>
+        </div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 30px;display:flex;flex-direction:column">
+          <div style="font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--verde-claro)">Int'l Projects</div>
+          <div style="font-weight:800;font-size:30px;color:var(--preto);margin-top:14px">Project Facilitator</div>
+          <p class="serif" style="font-size:21px;line-height:1.4;color:var(--verde);margin-top:auto;padding-top:18px">Facilitates the operation.</p>
+        </div>
+        <div style="background:var(--branco);border-radius:20px;padding:34px 30px;display:flex;flex-direction:column">
+          <div style="font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--verde-claro)">Resources Circle</div>
+          <div style="font-weight:800;font-size:30px;color:var(--preto);margin-top:14px">Resource Mobilizer</div>
+          <p class="serif" style="font-size:21px;line-height:1.4;color:var(--verde);margin-top:auto;padding-top:18px">Mobilizes the resources.</p>
+        </div>
+      </div>
+    </div>
+    <div class="snum" style="color:var(--verde)">02</div>
+  </section>
+
+  <!-- 3 THE SCREEN -->
+  <section data-label="The screen" class="slide">
+    <div class="split">
+      <div class="explain-col">
+        <div class="badge">The Team tab</div>
+        <h2>An editable org chart.</h2>
+        <p>The General Articulator, and below each region with its three roles in editable fields. Type the names and save.</p>
+        <div class="who"><b>Saved in the app:</b> reflected in the sidebar, in Rhythm and in the projects.</div>
+      </div>
+      <div class="mock-col">
+        <div class="win"><div class="win-body" style="padding:40px 44px">
+          <div style="font-weight:700;font-size:16px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha)">Org chart · Team by region</div>
+          <div style="background:var(--telha);color:#fff;border-radius:16px;padding:18px 22px;text-align:center;margin:20px auto 0;max-width:380px">
+            <div style="font-weight:700;font-size:18px">Karina Marinho</div>
+            <div style="font-size:14px;color:rgba(255,255,255,.82);margin-top:2px">General Articulator · International Projects</div>
+          </div>
+          <div style="width:2px;height:22px;background:var(--line);margin:0 auto"></div>
+          <div class="rcard">
+            <div class="rcard-head"><span class="rcard-name">Asia</span><span class="rcard-count">31</span></div>
+            <div class="rcard-body">
+              <div class="role"><div class="rt">Regional Host</div><div class="rn">Priscila Tan</div></div>
+              <div class="role"><div class="rt">Int'l Project Facilitator</div><div class="rn">Ravi Kumar</div></div>
+              <div class="role"><div class="rt">Financial Resource Mobilizer</div><div class="rn">Mei Lin</div></div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="snum">03</div>
+  </section>
+
+  <!-- 3b FULL SCREEN -->
+  <section data-label="Full screen" class="slide bg-areia">
+    <div style="position:absolute;left:120px;top:64px">
+      <p class="eyebrow" style="margin:0">The Team tab</p>
+      <h2 style="font-weight:800;font-size:46px;line-height:1;margin:10px 0 0;color:var(--preto)">The full screen.</h2>
+    </div>
+    <div style="position:absolute;left:50%;top:560px;transform:translate(-50%,-50%);width:1680px">
+      <div class="win">
+        <div style="background:var(--verde);padding:18px 34px;display:flex;align-items:center;gap:18px">
+          <span style="width:30px;height:30px;background:var(--telha);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px">ש</span>
+          <span style="font-weight:800;font-size:19px;color:#F6F5EB;letter-spacing:.04em">SHEMÁ</span>
+          <span style="font-family:'Merriweather',serif;font-style:italic;font-size:14px;color:rgba(246,245,235,.6)">International Projects Ecosystem · YWAM</span>
+        </div>
+        <div style="background:#fff;padding:0 34px;display:flex;gap:26px;border-bottom:1px solid var(--line)">
+          <span style="font-weight:700;font-size:16px;color:#8A8970;padding:16px 0">Projects</span>
+          <span style="font-weight:700;font-size:16px;color:#8A8970;padding:16px 0">Rhythm</span>
+          <span style="font-weight:700;font-size:16px;color:#8A8970;padding:16px 0">Prayer</span>
+          <span style="font-weight:700;font-size:16px;color:#8A8970;padding:16px 0">ETEN</span>
+          <span style="font-weight:700;font-size:16px;color:#8A8970;padding:16px 0">Forms</span>
+          <span style="font-weight:700;font-size:16px;color:var(--telha);padding:16px 0;border-bottom:3px solid var(--telha)">Team</span>
+        </div>
+        <div style="padding:30px 40px 40px">
+          <div style="font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--telha)">Org chart · Team by region</div>
+          <div style="font-weight:800;font-size:34px;color:var(--preto);margin-top:6px">Each region's team</div>
+          <div style="background:var(--telha);color:#fff;border-radius:14px;padding:14px 20px;text-align:center;margin:22px auto 0;max-width:420px">
+            <div style="font-weight:700;font-size:18px">Karina Marinho</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.82);margin-top:2px">General Articulator · International Projects Team</div>
+          </div>
+          <div style="width:2px;height:18px;background:var(--line);margin:0 auto"></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+            <div class="rcard"><div class="rcard-head"><span class="rcard-name" style="font-size:16px">Oceania</span><span class="rcard-count">36</span></div><div class="rcard-body" style="gap:12px;padding:18px 18px"><div class="role"><div class="rt" style="font-size:11px">Regional Host</div><div class="rn" style="font-size:16px">Mateus Lai</div></div><div class="role"><div class="rt" style="font-size:11px">Project Facilitator</div><div class="rn" style="font-size:16px">Hannah Wright</div></div><div class="role"><div class="rt" style="font-size:11px">Resource Mobilizer</div><div class="rn" style="font-size:16px">David Pule</div></div></div></div>
+            <div class="rcard"><div class="rcard-head"><span class="rcard-name" style="font-size:16px">Asia</span><span class="rcard-count">31</span></div><div class="rcard-body" style="gap:12px;padding:18px 18px"><div class="role"><div class="rt" style="font-size:11px">Regional Host</div><div class="rn" style="font-size:16px">Priscila Tan</div></div><div class="role"><div class="rt" style="font-size:11px">Project Facilitator</div><div class="rn" style="font-size:16px">Roberto Batista</div></div><div class="role"><div class="rt" style="font-size:11px">Resource Mobilizer</div><div class="rn" style="font-size:16px">Jessy Lin</div></div></div></div>
+            <div class="rcard"><div class="rcard-head"><span class="rcard-name" style="font-size:16px">S. America</span><span class="rcard-count">29</span></div><div class="rcard-body" style="gap:12px;padding:18px 18px"><div class="role"><div class="rt" style="font-size:11px">Regional Host</div><div class="rn" style="font-size:16px">Daniel Furtado</div></div><div class="role"><div class="rt" style="font-size:11px">Project Facilitator</div><div class="rn" style="font-size:16px">Ana Beatriz Rocha</div></div><div class="role"><div class="rt" style="font-size:11px">Resource Mobilizer</div><div class="rn" style="font-size:16px">Lucas Ferreira</div></div></div></div>
+            <div class="rcard"><div class="rcard-head"><span class="rcard-name" style="font-size:16px">Africa</span><span class="rcard-count">18</span></div><div class="rcard-body" style="gap:12px;padding:18px 18px"><div class="role"><div class="rt" style="font-size:11px">Regional Host</div><div class="rn" style="font-size:16px">Josué Bemba</div></div><div class="role"><div class="rt" style="font-size:11px">Project Facilitator</div><div class="rn" style="font-size:16px">Grace Achieng</div></div><div class="role"><div class="rt" style="font-size:11px">Resource Mobilizer</div><div class="rn" style="font-size:16px">Samuel Okoro</div></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="snum" style="color:var(--verde)">04</div>
+  </section>
+
+  <!-- 4 EDITABLE -->
+  <section data-label="Editable" class="slide bg-verde">
+    <div class="pad">
+      <p class="eyebrow dk">Always editable</p>
+      <h2 class="head" style="margin-top:22px;color:var(--branco)">People change. The app keeps up.</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:62px;flex:1">
+        <div style="background:rgba(246,245,235,.08);border-radius:22px;padding:40px 38px">
+          <div style="font-weight:900;font-size:40px;color:var(--areia)">01</div>
+          <div style="font-weight:800;font-size:30px;color:#fff;margin-top:14px">Type the names</div>
+          <p class="serif" style="font-size:23px;line-height:1.45;color:rgba(246,245,235,.8);margin-top:10px">Each role of each region, right in the field.</p>
+        </div>
+        <div style="background:rgba(246,245,235,.08);border-radius:22px;padding:40px 38px">
+          <div style="font-weight:900;font-size:40px;color:var(--areia)">02</div>
+          <div style="font-weight:800;font-size:30px;color:#fff;margin-top:14px">Save the changes</div>
+          <p class="serif" style="font-size:23px;line-height:1.45;color:rgba(246,245,235,.8);margin-top:10px">A fixed button keeps everything in the browser.</p>
+        </div>
+        <div style="background:var(--telha);border-radius:22px;padding:40px 38px">
+          <div style="font-weight:900;font-size:40px;color:rgba(255,255,255,.6)">03</div>
+          <div style="font-weight:800;font-size:30px;color:#fff;margin-top:14px">Reflected everywhere</div>
+          <p class="serif" style="font-size:23px;line-height:1.45;color:rgba(255,255,255,.9);margin-top:10px">Sidebar, Rhythm meetings and every project.</p>
+        </div>
+      </div>
+    </div>
+    <div class="snum" style="color:rgba(246,245,235,.5)">04</div>
+  </section>
+
+  <!-- 5 HOW IT CONNECTS -->
+  <section data-label="Connection" class="slide">
+    <div class="split">
+      <div class="explain-col">
+        <div class="badge">Why it matters</div>
+        <h2>One name, everywhere.</h2>
+        <p>The name registered here appears in the sidebar's "Team by region", in the Rhythm meeting cards and on each project's record in the region.</p>
+        <div class="who"><b>A single source:</b> update in one place, change everywhere.</div>
+      </div>
+      <div class="mock-col">
+        <div class="win"><div class="win-body" style="padding:36px 40px">
+          <div style="font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:#8A8970">Appears in…</div>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:18px">
+            <div style="display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px"><span style="width:42px;height:42px;border-radius:11px;background:#F2D8C2;color:var(--telha);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px">P</span><div style="flex:1"><div style="font-weight:700;font-size:19px;color:var(--preto)">Projects · sidebar</div><div style="font-size:15px;color:#8A8970">Team by region</div></div></div>
+            <div style="display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px"><span style="width:42px;height:42px;border-radius:11px;background:#e5ecd8;color:#4d5d24;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px">R</span><div style="flex:1"><div style="font-weight:700;font-size:19px;color:var(--preto)">Rhythm · meetings</div><div style="font-size:15px;color:#8A8970">who takes part in each one</div></div></div>
+            <div style="display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px"><span style="width:42px;height:42px;border-radius:11px;background:#d8e3df;color:#4a6b62;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px">R</span><div style="flex:1"><div style="font-weight:700;font-size:19px;color:var(--preto)">Record · project form</div><div style="font-size:15px;color:#8A8970">on each project's record</div></div></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <div class="snum">05</div>
+  </section>
+
+  <!-- 6 CLOSING -->
+  <section data-label="Closing" class="slide bg-telha">
+    <div class="pad" style="justify-content:center;align-items:center;text-align:center">
+      <img src="design-system/assets/icon-branco.svg" alt="" style="width:96px;height:96px;margin-bottom:44px">
+      <h2 class="head serif" style="font-style:italic;font-weight:400;font-size:80px;color:var(--branco);max-width:24ch">No one walks alone.</h2>
+      <p class="serif" style="font-size:30px;line-height:1.5;color:rgba(255,255,255,.92);margin-top:48px;max-width:48ch">Each region with its team, each role with a face — partnerships that sustain the translation.</p>
+    </div>
+    <div style="position:absolute;left:-80px;bottom:-120px;font-family:serif;font-size:440px;color:rgba(246,245,235,.08);line-height:1">שמע</div>
+  </section>
+
+</deck-stage>
+<script src="deck-stage.js"></script>
+</body>
+</html>
