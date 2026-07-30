@@ -27,19 +27,19 @@ export default defineConfig([
     },
   },
   {
-    files: ["src/components/**/*.{ts,tsx}"],
+    files: ["src/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-syntax": [
         "error",
         {
           selector: "Literal[value=/#[0-9a-fA-F]{3,8}/]",
           message:
-            "Hex cru não é permitido em src/components. Use um token do design system (src/index.css @theme).",
+            "Hex cru não é permitido em src. Use um token do design system (src/index.css @theme).",
         },
         {
           selector: "TemplateElement[value.raw=/#[0-9a-fA-F]{3,8}/]",
           message:
-            "Hex cru não é permitido em src/components. Use um token do design system (src/index.css @theme).",
+            "Hex cru não é permitido em src. Use um token do design system (src/index.css @theme).",
         },
         {
           selector:
@@ -54,12 +54,12 @@ export default defineConfig([
             "Cinzas genéricos do Tailwind não são permitidos. Use a paleta Shemá (areia, azul, verde, telha) ou a camada semântica (fg-muted, fg-subtle, line).",
         },
         {
-          selector: "Literal[value=/(^| )bg-white( |$)/]",
+          selector: "Literal[value=/bg-white/]",
           message:
             "bg-white não é permitido. Superfícies elevadas usam bg-elevated.",
         },
         {
-          selector: "TemplateElement[value.raw=/(^| )bg-white( |$)/]",
+          selector: "TemplateElement[value.raw=/bg-white/]",
           message:
             "bg-white não é permitido. Superfícies elevadas usam bg-elevated.",
         },

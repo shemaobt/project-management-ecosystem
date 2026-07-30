@@ -2,13 +2,17 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 
 const PALETTE = [
-  { token: "branco", swatch: "bg-branco", value: "#F6F5EB" },
-  { token: "areia", swatch: "bg-areia", value: "#C5C29F" },
-  { token: "azul", swatch: "bg-azul", value: "#89AAA3" },
-  { token: "telha", swatch: "bg-telha", value: "#BE4A01" },
-  { token: "verde-claro", swatch: "bg-verde-claro", value: "#777D45" },
-  { token: "verde", swatch: "bg-verde", value: "#3F3E20" },
-  { token: "preto", swatch: "bg-preto", value: "#0A0703" },
+  { token: "branco", swatch: "bg-branco", variable: "--shema-branco" },
+  { token: "areia", swatch: "bg-areia", variable: "--shema-areia" },
+  { token: "azul", swatch: "bg-azul", variable: "--shema-azul" },
+  { token: "telha", swatch: "bg-telha", variable: "--shema-telha" },
+  {
+    token: "verde-claro",
+    swatch: "bg-verde-claro",
+    variable: "--shema-verde-claro",
+  },
+  { token: "verde", swatch: "bg-verde", variable: "--shema-verde" },
+  { token: "preto", swatch: "bg-preto", variable: "--shema-preto" },
 ];
 
 const SEMANTIC = [
@@ -79,7 +83,9 @@ function TokensPreview() {
                 />
                 <div className="flex flex-col">
                   <span className="text-small font-semibold">{color.token}</span>
-                  <span className="text-micro text-fg-subtle">{color.value}</span>
+                  <span className="text-micro text-fg-subtle">
+                    {color.variable}
+                  </span>
                 </div>
               </div>
             ))}
