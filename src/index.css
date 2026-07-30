@@ -4,42 +4,42 @@
 
 @font-face {
   font-family: "Montserrat";
-  src: url("/fonts/Montserrat-Regular.ttf") format("truetype");
+  src: url("/fonts/Montserrat-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Montserrat";
-  src: url("/fonts/Montserrat-Italic.ttf") format("truetype");
+  src: url("/fonts/Montserrat-Italic.woff2") format("woff2");
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 @font-face {
   font-family: "Montserrat";
-  src: url("/fonts/Montserrat-Medium.ttf") format("truetype");
+  src: url("/fonts/Montserrat-Medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Montserrat";
-  src: url("/fonts/Montserrat-SemiBold.ttf") format("truetype");
+  src: url("/fonts/Montserrat-SemiBold.woff2") format("woff2");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Montserrat";
-  src: url("/fonts/Montserrat-Bold.ttf") format("truetype");
+  src: url("/fonts/Montserrat-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Montserrat";
-  src: url("/fonts/Montserrat-Black.ttf") format("truetype");
+  src: url("/fonts/Montserrat-Black.woff2") format("woff2");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -47,28 +47,28 @@
 
 @font-face {
   font-family: "Merriweather";
-  src: url("/fonts/Merriweather-Light.ttf") format("truetype");
+  src: url("/fonts/Merriweather-Light.woff2") format("woff2");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Merriweather";
-  src: url("/fonts/Merriweather-Regular.ttf") format("truetype");
+  src: url("/fonts/Merriweather-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Merriweather";
-  src: url("/fonts/Merriweather-Italic.ttf") format("truetype");
+  src: url("/fonts/Merriweather-Italic.woff2") format("woff2");
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 @font-face {
   font-family: "Merriweather";
-  src: url("/fonts/Merriweather-Bold.ttf") format("truetype");
+  src: url("/fonts/Merriweather-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
