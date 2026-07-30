@@ -26,4 +26,44 @@ export default defineConfig([
       ],
     },
   },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Literal[value=/#[0-9a-fA-F]{3,8}/]",
+          message:
+            "Hex cru não é permitido em src. Use um token do design system (src/index.css @theme).",
+        },
+        {
+          selector: "TemplateElement[value.raw=/#[0-9a-fA-F]{3,8}/]",
+          message:
+            "Hex cru não é permitido em src. Use um token do design system (src/index.css @theme).",
+        },
+        {
+          selector:
+            "Literal[value=/(bg|text|border|ring|outline|fill|stroke|divide|from|via|to)-(slate|gray|grey|zinc|neutral|stone)-[0-9]{2,3}/]",
+          message:
+            "Cinzas genéricos do Tailwind não são permitidos. Use a paleta Shemá (areia, azul, verde, telha) ou a camada semântica (fg-muted, fg-subtle, line).",
+        },
+        {
+          selector:
+            "TemplateElement[value.raw=/(bg|text|border|ring|outline|fill|stroke|divide|from|via|to)-(slate|gray|grey|zinc|neutral|stone)-[0-9]{2,3}/]",
+          message:
+            "Cinzas genéricos do Tailwind não são permitidos. Use a paleta Shemá (areia, azul, verde, telha) ou a camada semântica (fg-muted, fg-subtle, line).",
+        },
+        {
+          selector: "Literal[value=/bg-white/]",
+          message:
+            "bg-white não é permitido. Superfícies elevadas usam bg-elevated.",
+        },
+        {
+          selector: "TemplateElement[value.raw=/bg-white/]",
+          message:
+            "bg-white não é permitido. Superfícies elevadas usam bg-elevated.",
+        },
+      ],
+    },
+  },
 ]);
