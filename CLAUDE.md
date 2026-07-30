@@ -5,6 +5,9 @@ This file defines the conventions for LLM agents working in this repository. Fol
 > **Rule zero — the frontend is built from `DS-PROJECT/`.**
 > `DS-PROJECT/` is the approved, client-validated design and interaction prototype for this product. Every screen, layout, component, token, flow, label and interaction in the frontend MUST be derived from it. Do not invent screens, do not redesign, do not substitute a different visual language. See §2.
 
+> **Rule one — no backend is being built.**
+> `tripod-api` exists, runs, and already contains a scaffolded **Shemá module**. Every backend need in this project is an addition *inside* that module. Any plan, issue or document that says "build a backend", "scaffold FastAPI" or names a repo called `shema-backend` is stale wording for *extend `tripod-api`*. See §3.2.
+
 ---
 
 ## 1. What this project is
@@ -22,15 +25,25 @@ Everything else (Rhythm, Prayer, ETEN, Forms, Team) is a loop that keeps those f
 
 **Source of truth for scope:** the Linear project [Project management (Ecossistema SHEMA)](https://linear.app/shema-obt/project/project-managementecossistema-shema-bec344a3cf31/overview), team `OBT`, and the attached **PRD v1.1 (jul/2026)** (`prd-ecossistema-shema.pdf` / `prd-ecosystem-shema-en.pdf`, in the project's *Docs* document).
 
-**Repos referenced by the plan:**
-- Frontend — `shema-console` (React 18 + Vite + Tailwind v4)
-- Backend — **`tripod-api`** (`git@github.com:shemaobt/tripod-api.git`) — FastAPI, service-driven. This is an **existing, running backend**, not a greenfield scaffold: the Shemá domain is added *inside* it, reusing its auth, roles, projects, storage and notification infrastructure. See §3.
+### The two repos
+
+| | Repo | Role |
+|---|---|---|
+| Frontend | **`shemaobt/project-management-ecosystem`** — *this repo* | The console. Today it holds only `CLAUDE.md`, `DS-PROJECT/` and a stub `README.md`; wave 1 builds the app here. |
+| Backend | **`shemaobt/tripod-api`** | Existing, running FastAPI service. Shemá is a **module inside it**, already scaffolded. |
+
+> ⚠️ Older Linear text (the project description body, the B1 milestone, the "Working plan" document) still names a frontend repo `shema-console` and a backend repo `shema-backend`. **Both names are stale.** The frontend is this repo — issue FE-01 ([OBT-348](https://linear.app/shema-obt/issue/OBT-348)) states it directly. The backend is `tripod-api` — issue BE-01 ([OBT-390](https://linear.app/shema-obt/issue/OBT-390)) states it directly: *"Shemá is a module inside it (`/api/shema`, `app/services/shema/`), not a new service."*
 
 ---
 
 ## 2. DS-PROJECT is the design source of truth
 
 `DS-PROJECT/` is a **standalone HTML prototype** (React 18 via UMD + Babel standalone, plain CSS, no build step). It is **not** the production stack and its code must not be copy-pasted wholesale. It **is** the specification for how the product looks and behaves.
+
+### Two references — do not confuse them
+
+- **`DS-PROJECT/` is the design authority.** What the product looks like and how it behaves. When it and any other source disagree about appearance, the prototype wins.
+- **`shemaobt/meaning-map-ui` is the engineering reference only.** Dependency versions, `src/` layout, the `cn()` + Radix + `cva` pattern, ESLint config, Dockerfile / nginx / Cloud Run wiring. **It says nothing about how this product looks.** Never copy its screens, its components' appearance, or its visual decisions.
 
 ### What you MUST take from DS-PROJECT
 
@@ -41,8 +54,9 @@ Everything else (Rhythm, Prayer, ETEN, Forms, Team) is a loop that keeps those f
 | Logo, icon marks, pattern tile, photography | `design-system/assets/` |
 | Component & page styling | `app.css` (4.2k lines, sectioned by area) |
 | App shell, header, hero, sidebar, filters, toolbar | `app.jsx` |
-| Project cards — three metaphors | `cards.jsx` |
+| Project cards — the list metaphors | `cards.jsx` |
 | Project record: detail + edit, 10 sections | `modals.jsx` |
+| Approved option vocabularies (`TRANSLATION_TYPES`, `FINANCIAL_RESOURCES`, `OBJECTIVES`, `NEED_CATEGORIES`) | `modals.jsx` — port verbatim, do not re-derive from the PRD |
 | Health assessment wizard (4 dimensions) | `health-modal.jsx` |
 | Rhythm / meetings cascade | `ritmo.jsx` |
 | ETEN annual credit report | `eten.jsx` |
@@ -59,21 +73,22 @@ Everything else (Rhythm, Prayer, ETEN, Forms, Team) is a loop that keeps those f
 ### How to work with it
 
 - **Before building any screen**, open the corresponding `DS-PROJECT` file (and its `.html` presentation, if one exists) and read it. Match structure, hierarchy, spacing, wording and states.
-- **Port, don't reinvent.** Translate prototype markup + CSS into React 18 + TypeScript + Tailwind v4 components. The visual result must be indistinguishable from the prototype.
+- **Port, don't reinvent.** Translate prototype markup + CSS into React + TypeScript + Tailwind v4 components. The visual result must be indistinguishable from the prototype.
+- **Port the logic too, where it exists.** `Sidebar` already computes every facet count in a single pass; `modals.jsx` already holds the approved option lists; `data.js` already implements the domain derivations. Port them rather than rewriting from the PRD.
 - **CSS variables map 1:1 to Tailwind tokens.** Do not reintroduce raw CSS variables in JSX where a Tailwind token exists. Do not introduce hex values not present in the prototype.
 - **Copy is part of the design.** Labels, eyebrows, empty-state text, tooltips and toast messages come from `data.js` (`I18N.pt` / `I18N.en`). Reuse them verbatim as i18n keys.
-- **If the prototype and this document disagree, the prototype wins** on visuals; the PRD and Linear issues win on behaviour and business rules. If the prototype has no answer for something the PRD requires, ask before designing it.
-- **Do not modify `DS-PROJECT/`** as part of implementation work. It is a read-only reference.
+- **If the prototype and this document disagree, the prototype wins** on visuals; the PRD and Linear issues win on behaviour and scope. Where a question is scope dressed as visuals, it is a gate — see §5.1 (Coral).
+- **Do not modify `DS-PROJECT/`** as part of implementation work. It is a read-only reference, and every issue's Scope section repeats it.
 
 ---
 
 ## 3. Stack and Build
 
-### Frontend (`shema-console`)
+### 3.1 Frontend (this repo)
 
-- **Framework**: React 18
-- **Language**: TypeScript
-- **Build / dev**: Vite (`@vitejs/plugin-react`, `@tailwindcss/vite`)
+- **Framework**: React — **19.2 is the plan of record** (milestone F1, matching `meaning-map-ui`)
+- **Language**: TypeScript 5.9
+- **Build / dev**: Vite 7 (`@vitejs/plugin-react`, `@tailwindcss/vite`)
 - **Routing**: react-router-dom v7 (`BrowserRouter`, routes declared in `App.tsx`)
 - **Styling**: **Tailwind CSS v4 only** — no CSS-in-JS, no styled-components, no SASS
 - **UI primitives**: Radix UI via shadcn-style components in `src/components/ui/`
@@ -81,18 +96,32 @@ Everything else (Rhythm, Prayer, ETEN, Forms, Team) is a loop that keeps those f
 - **HTTP**: Axios — a single client in `src/services/api.ts` with JWT auth interceptors
 - **Icons**: lucide-react, outline only (the prototype's inline SVGs are lucide-style at `strokeWidth 1.75`)
 - **Toasts**: sonner
+- **i18n**: i18next, PT/EN toggle, keys ported from `DS-PROJECT/data.js`
 - **Utilities**: `cva`, `clsx`, `tailwind-merge`; use `cn()` from `src/utils/cn.ts`
-- **Maps**: react-leaflet + leaflet (Atlas view — SHM-05.6)
-- **i18n**: PT/EN toggle, keys ported from `DS-PROJECT/data.js`
+- **Maps**: react-leaflet + leaflet (Atlas view)
 
 Do not introduce Redux, MobX, or a second styling system.
 
-### Backend (`tripod-api`)
+> ⚠️ **React major — confirm before pinning.** Milestone F1 and `meaning-map-ui` both say React 19.2 / TS 5.9 / Vite 7. FE-01 ([OBT-348](https://linear.app/shema-obt/issue/OBT-348)) flags the React major as needing team confirmation and makes "update this section to match reality" part of its Definition of Done. Whoever lands FE-01 records the answer here.
+
+### 3.2 Backend — the Shemá module inside `tripod-api`
 
 **Local reference checkout:** `/home/levig/tripod-api-main/tripod-api` (branch `main`).
-Its own `CLAUDE.md` at the repo root is authoritative for backend conventions — read it before writing backend code. This section summarises what matters for the Shemá work; where the two disagree, `tripod-api/CLAUDE.md` wins.
+Its own `CLAUDE.md` at the repo root is authoritative for backend conventions — read it before writing backend code. Where it and this section disagree, `tripod-api/CLAUDE.md` wins.
 
-> Other local checkouts of the same repo exist (`/home/levig/backend-tripod/tripod-api`, `/home/levig/tripod-console/tripod-back/tripod-api`, the latter on a feature branch). Use the `main` checkout above as the reference unless told otherwise.
+> Other local checkouts of the same repo exist (`/home/levig/backend-tripod/tripod-api`, `/home/levig/tripod-console/tripod-back/tripod-api`, the latter on a feature branch). Use the `main` checkout above unless told otherwise.
+
+#### The module already exists
+
+Scaffolded by commit `dd6bac4` *(feat(OBT-266): scaffold the Shemá module — api → services → models)*:
+
+```text
+app/api/shema/          # router, registered in app/main.py at prefix /api/shema
+app/services/shema/     # business logic + all data access
+app/models/shema.py     # Pydantic schemas
+```
+
+**Never create a second Shemá service, app or repo.** New endpoints are added under `/api/shema`; new logic goes in `app/services/shema/`.
 
 #### Stack and runtime
 
@@ -123,14 +152,14 @@ app/
 - **Zero database access in `app/api/`.** No `db.execute()`, `db.add()`, `db.commit()`, `select()`, or any SQLAlchemy query in a router. No importing SQLAlchemy models or query constructs in routers — `AsyncSession` for dependency injection is the only exception.
 - **Every query lives in `app/services/`.** If a router needs data, add a service function.
 - **Services never import `fastapi.HTTPException`.** They raise business exceptions from `app/core/exceptions.py`; routers (or the global handlers) map them to status codes. Available: `NotFoundError`, `ConflictError`, `AuthorizationError`, `AuthenticationError`, `RoleError`, `ValidationError`, `InvalidTokenError`, `UpstreamServiceError`.
-- Routers do input parsing, service calls and exception mapping — nothing else. No business rules, no orchestration, no model construction.
+- Routers do input parsing, service calls and exception mapping — nothing else.
 - Use the injected `AsyncSession` from `get_db`; never create ad-hoc engines or sessions.
-- Every schema change ships as an Alembic migration. No manual DDL.
-- One router per domain area, registered in `app/main.py`. Protected routes use the shared dependencies in `app/core/auth_middleware.py` (`get_current_user`, `require_platform_admin`).
+- Every schema change ships as an Alembic migration. No manual DDL. Two migrations authored the same day create a multi-head that only fails at deploy — check the chain before opening a PR.
+- Services stay function-oriented and composable — one file per operation, as `app/services/project/` does.
 
 #### What already exists — reuse it, do not rebuild it
 
-The Shemá epics are **not** starting from an empty backend. Before writing anything, check what `tripod-api` already provides:
+**The single largest risk in wave 2 is rebuilding what exists.** Before writing anything, check what `tripod-api` already provides:
 
 | Need | Already in `tripod-api` |
 |---|---|
@@ -143,26 +172,18 @@ The Shemá epics are **not** starting from an empty backend. Before writing anyt
 | Notifications | `app/db/models/notification.py`, `app/services/notifications/`, `app/api/notifications.py` |
 | Content translation helpers | `app/services/i18n/` |
 
-Concretely, this reframes two epics:
+**BE-01 ([OBT-390](https://linear.app/shema-obt/issue/OBT-390)) is the audit that turns this table into decisions** — a reuse / extend / not-applicable verdict per capability, *based on reading the code*, reviewed by a `tripod-api` maintainer before implementation starts. It is the first backend issue and it blocks the rest of B1.
 
-- **SHM-01 (backend + auth)** is mostly *extension*, not scaffolding — add the Shemá role/region model on top of the existing auth and authorization services rather than standing up a new FastAPI app.
-- **SHM-03.4 (media storage + signed URLs)** already has an implementation in `app/services/storage/upload.py`; extend it for per-item authorization instead of writing a second uploader.
+> ⚠️ **The hardest boundary question is the project entity.** `tripod-api` has projects; Shemá has projects; they are probably not the same projects. Whether Shemá extends the existing entity or introduces its own related one is decided in BE-01. Getting it wrong is a migration, not a refactor.
 
-> ⚠️ `tripod-api` already contains a `project_health` module (`app/api/project_health/`, `app/services/project_health/` — interviews, prompts, agents, voice, reports). It is **not** the same instrument as Shemá's SHM-08 *Avaliação de Saúde* (a 4-dimension assessment filled in-app by an OBT Lab mentor). Read the existing module before assuming either reuse or duplication, and do not conflate the two data models.
+> ⚠️ `tripod-api` also contains a `project_health` module (`app/api/project_health/`, `app/services/project_health/` — interviews, prompts, agents, voice, reports). It is **not** the same instrument as Shemá's *Avaliação de Saúde* (a 4-dimension assessment filled in-app by an OBT Lab mentor). Read the existing module before assuming either reuse or duplication, and do not conflate the two data models.
 
 #### Shemá-specific backend requirements
 
-- Auth is **by role and by region** (SHM-01.4). A regional role-holder sees and edits their region; global roles see everything. The existing org-scope helpers are the pattern to follow, not necessarily the exact mechanism.
-- All endpoints require `Authorization: Bearer <token>` except login and the public leader link (SHM-01.5).
-- The Monthly Pulse import (SHM-07.3) must be **idempotent and transactional**.
-- Sensitive-country redaction (§6.1) and consent (§6.2) are enforced **in services**, on every output path — never only in the frontend.
-
-#### Backend code style
-
-- Async end-to-end in API and service paths.
-- Strong typing on public functions (params + return type); prefer explicit typed models over bare `dict` when the shape is known.
-- Services stay function-oriented and composable — one file per operation, as the existing `app/services/project/` does.
-- Concise docstrings on public service functions; no comments that restate the code.
+- Auth is **by role and by region**. A regional role-holder sees and edits their region; global roles see everything. The existing org-scope helpers are the pattern to follow, not necessarily the exact mechanism.
+- All endpoints require `Authorization: Bearer <token>` except login and the public leader link.
+- The Monthly Pulse import must be **idempotent and transactional** — a double import is a no-op.
+- Sensitive-country redaction (§6.1) and consent (§6.2) are enforced **in services**, on every output path. A frontend-only rule is not a rule.
 
 ---
 
@@ -181,13 +202,24 @@ src/
 │   └── ui/                 # Radix + cva primitives (Button, Card, Dialog, Input, ...)
 ├── contexts/               # AuthContext, ThemeContext
 ├── stores/                 # Zustand: filters/savedViews, regions/team, notifications, ...
+├── hooks/
 ├── services/               # api.ts — single Axios client, namespaced APIs
+├── fixtures/               # wave 1 data layer — see §4.1
 ├── types/                  # TS interfaces (project, region, role, meeting, prayer, eten, ...)
 ├── constants/              # token keys, region list, status/health enums
 ├── utils/                  # cn.ts, format.ts, progress.ts, health.ts
 ├── i18n/                   # pt.ts / en.ts — ported from DS-PROJECT/data.js
 └── styles/                 # centralized Tailwind class constants (cards, badges, layout, states)
 ```
+
+### 4.1 The fixture layer — how wave 1 works
+
+**Wave 1 ships the whole frontend with no backend and no API calls.** The 127 projects in `DS-PROJECT/projects.js` and the `SHEMA` helpers in `DS-PROJECT/data.js` become a **typed fixture module** that every screen reads from.
+
+- Every screen reads through the *same* fixture module. That is what makes wave-2 integration mechanical and reversible one screen at a time.
+- Types grown against fixtures are the input to the data contract (§10, FE-44) — they are not throwaway.
+- `vite.config.ts` carries the `/api → http://localhost:8000` dev proxy from day one, **wired but unused**, so wave 2 changes no config.
+- Auth in wave 1 is a **mocked session** in `AppShell`.
 
 ### Component rules
 
@@ -197,32 +229,38 @@ src/
 - Extract any UI pattern that appears twice into `components/common/` or `components/ui/`.
 - Keep state local; lift to Zustand only when shared across routes.
 
+> `DS-PROJECT/modals.jsx` is 1,525 lines. Porting the project record is a **port *and* a decomposition** — one folder, one component per tab. That decomposition is what makes the ten tabs parallelisable.
+
 ---
 
 ## 5. Product areas (the six tabs)
 
 The app shell is: **TopBar → Hero (6 indicators) → TopNav (6 areas) → area content**, exactly as in `DS-PROJECT/app.jsx`.
 
-| Tab | PT / EN | Epic | Prototype file |
-|---|---|---|---|
-| Projetos | Projects | SHM-05 | `app.jsx` (Sidebar/Toolbar), `cards.jsx`, `globe.jsx`, `worldmap.jsx` |
-| Ritmo | Rhythm | SHM-09 | `ritmo.jsx` |
-| Oração | Prayer | SHM-10 | `oracao.jsx`, `intercessores.jsx` |
-| ETEN | ETEN | SHM-11 | `eten.jsx` |
-| Formulários | Forms | SHM-07, SHM-08 | `forms-hub.jsx`, `health-modal.jsx`, `modals.jsx` (generators) |
-| Equipe | Team | SHM-12 | `equipe.jsx` |
+| Tab | PT / EN | Prototype file | Wave 1 | Wave 2 |
+|---|---|---|---|---|
+| Projetos | Projects | `app.jsx`, `cards.jsx`, `globe.jsx`, `worldmap.jsx` | FE-10…17 | BE-05, INT-02 |
+| Ritmo | Rhythm | `ritmo.jsx` | FE-31 | BE-10, INT-07 |
+| Oração | Prayer | `oracao.jsx`, `intercessores.jsx` | FE-32, FE-33 | BE-09, INT-06 |
+| ETEN | ETEN | `eten.jsx` | FE-34 | BE-11, INT-08 |
+| Formulários | Forms | `forms-hub.jsx`, `health-modal.jsx`, `modals.jsx` | FE-35, FE-37 | BE-12, INT-09 |
+| Equipe | Team | `equipe.jsx` | FE-36 | BE-13, INT-10 |
 
-### 5.1 Projetos — the living map (SHM-05)
+Plus the project record (`modals.jsx`) as FE-20…28 / BE-06 / INT-03, and Início (hero + indicators) as FE-30.
+
+### 5.1 Projetos — the living map
 
 - **Sidebar** (sticky top block): search → current-user identity → **4 combinable preset chips** (`attention` / `prayer` / `celebrate` / `recent`) → live `Mostrando X de N` + *Limpar tudo*.
 - Then: **Saved views** → **Time por região** (region cards showing the 3 role-holders, clicking filters by continent) → **active filter chips** → **primary filter sections** (Status, Base, Saúde) → **Mais filtros** (País, Objetivo, Tipo de Tradução, ETEN, País sensível, Recursos, % Progresso, Vitalidade, Necessidades, Mídia, Atualização).
-- Every filter option shows its **count**. Options with count 0 are hidden; presets with count 0 are disabled.
-- **Toolbar**: result count + **metaphor pill** (Atlas / Diário / Coral) + sort (deadline, name, progress, team, health).
-- **Card metaphors** — all three are required (`cards.jsx`): `CardAtlas` (wide horizontal logbook entry), `CardDiario` (field-journal page with washi tape), `CardCoral` (arc/wave shapes).
+- Every filter option shows its **count**. Options with count 0 are hidden; presets with count 0 are disabled. The counting logic already exists in `Sidebar` as a single pass — port it.
+- **Toolbar**: result count + **metaphor pill** + sort (deadline, name, progress, team, health).
+- **Card metaphors** (`cards.jsx`): `CardAtlas` (wide horizontal logbook entry), `CardDiario` (field-journal page with washi tape), `CardCoral` (arc/wave shapes).
 - **Atlas** additionally renders the rotating night globe with photo medallions above the grid.
 - Pagination: 30 items, *Mostrar mais* +30.
 
-### 5.2 Cadastro do projeto — the living record (SHM-04)
+> ⚠️ **Two views or three? — client gate, FE-17 ([OBT-362](https://linear.app/shema-obt/issue/OBT-362)).** The prototype implements three metaphors; the PRD v1.1 revision history records a client decision that *"list views reduced to Atlas and Journal."* This is scope dressed as a visual, so §2's "prototype wins on visuals" does not settle it. Do not finish or delete Coral before the answer lands — and record the decision, its date and its author here when it does.
+
+### 5.2 Cadastro do projeto — the living record
 
 Ten numbered sections, in this order, in both the detail modal and the edit form (`modals.jsx`):
 
@@ -237,14 +275,14 @@ Ten numbered sections, in this order, in both the detail modal and the edit form
 9. **Notas**
 10. **Materiais Traduzidos**
 
-Tab shell must support **partial save (draft)** — SHM-04.2.
+The tab shell must support **partial save (draft)** — a coordinator must never lose work mid-form.
 
-### 5.3 Formulários — the field's voice (SHM-07, SHM-08)
+### 5.3 Formulários — the field's voice
 
 Two distinct instruments. Do not merge them.
 
-- **Pulso Mensal** (SHM-07) — the console **generates a self-contained offline HTML form** per project (5 questions), the leader fills it on a phone with no connectivity, returns a `.json` (typically over WhatsApp), and the console **receives** it via an **idempotent, transactional import**. Received submissions are archived. Prayer/needs ingestion is **consent-gated**: when the leader opts out of sharing, the shared prayer text is cleared.
-- **Avaliação de Saúde** (SHM-08) — filled **in-app** by the OBT Lab mentor during an online meeting. A 4-dimension wizard (`health-modal.jsx`) with guiding questions:
+- **Pulso Mensal** — the console **generates a self-contained offline HTML form** per project (5 questions), the leader fills it on a phone with no connectivity, returns a `.json` (typically over WhatsApp), and the console **receives** it via an **idempotent, transactional import**. Received submissions are archived byte-identically. Prayer/needs ingestion is **consent-gated**: when the leader opts out of sharing, the shared prayer text is cleared.
+- **Avaliação de Saúde** — filled **in-app** by the OBT Lab mentor during an online meeting. A 4-dimension wizard (`health-modal.jsx`) with guiding questions:
 
   | Dimension | Question |
   |---|---|
@@ -257,7 +295,9 @@ Two distinct instruments. Do not merge them.
 
 - **Link do líder** — a generated public intake form for registering a brand-new project (`generateIntakeFormHTML`).
 
-### 5.4 Ritmo — the listening cascade (SHM-09)
+> The offline artifact is the project's highest technical risk: an unknown Android phone, no connectivity, and a file round trip through WhatsApp. Prove it on a real device early, not when you reach it.
+
+### 5.4 Ritmo — the listening cascade
 
 Five meetings, each with a cadence, a scope and the roles that attend (`ritmo.jsx`):
 
@@ -271,19 +311,19 @@ Five meetings, each with a cadence, a scope and the roles that attend (`ritmo.js
 
 Each meeting+region+period has a status: `done` / `pending` / `overdue` / `new`. Registering a meeting recalculates the next occurrence and appends to the history.
 
-> ⚠️ The final meeting set (Prayer Pulse vs. Governance) is a **client gate** — [OBT-312](https://linear.app/shema-obt/issue/OBT-312).
+> ⚠️ The final meeting set (Prayer Pulse vs. Governance) is a **client gate** — GATE-02 ([OBT-388](https://linear.app/shema-obt/issue/OBT-388)).
 
-### 5.5 Oração (SHM-10)
+### 5.5 Oração
 
 Prayer wall compiled from every project's shared requests, with indicators and continent filter; intercessor CRUD by country; mark-answered (green highlight); share + export TXT/CSV/JSON. Requests arrive automatically from the Pulse and Health forms — **only when consent was given**.
 
-### 5.6 ETEN (SHM-11)
+### 5.6 ETEN
 
-Annual credit report: yearly snapshot, credit calculation from the **delta** between snapshots, report endpoint by year, Shemá-branded PDF + CSV export, and the ETEN page (year selector, indicators, table, outputs).
+Annual credit report: yearly snapshot, credit calculation from the **delta** between snapshots, report by year, Shemá-branded PDF + CSV export, and the ETEN page (year selector, indicators, table, outputs).
 
-> ⚠️ The credit counting method is a **client gate** (Youngshin) — [OBT-322](https://linear.app/shema-obt/issue/OBT-322). Do not implement a calculation before it is fixed.
+> ⚠️ The credit counting method is a **client gate** (Youngshin) — GATE-01 ([OBT-387](https://linear.app/shema-obt/issue/OBT-387)). Do not implement a calculation before it is fixed.
 
-### 5.7 Equipe — the living org chart (SHM-12)
+### 5.7 Equipe — the living org chart
 
 **One source of truth** for who holds which role in which region. Three roles per region:
 
@@ -305,7 +345,7 @@ Ported from `DS-PROJECT/data.js` — these are the canonical enums and derivatio
 
 - **Project status**: `nao-iniciado` · `em-andamento` · `final` · `concluido` · `pausado` · `cancelado` · `planejado` · `desconhecido`
 - **Health**: `boa` · `atencao` · `critica` · `na` — overall health is the worst of the four dimensions
-- **Staleness**: `em-dia` · `atencao` · `critico`, derived from days since the last progress update (**60-day rule**, SHM-06.1)
+- **Staleness**: `em-dia` · `atencao` · `critico`, derived from days since the last progress update (**60-day rule**)
 - **Progress**: `bookProgress` / `storyProgress` / `otherProgress` roll up into `translatedUnits`, `communityCheckedUnits`, `approvedUnits`, `totalUnits`. Every change appends to `progressHistory` with the previous values and the source (`fromField`, `formType`).
 - **Presets** (combinable booleans):
   - `attention` — critical health **or** critical staleness **or** an unfulfilled high-urgency need
@@ -318,13 +358,15 @@ Ported from `DS-PROJECT/data.js` — these are the canonical enums and derivatio
 
 `sensitiveCountry` projects must be handled with **devida cautela in every output path**: the map, exports (JSON/CSV/TXT/HTML/PDF), the prayer wall, the ETEN report and notifications.
 
-This is **SHM-13.4** and it is deliberately scheduled in **phase 2**, before the epics that produce outputs. Treat it as a cross-cutting invariant: any new output surface must go through the same redaction rule. Enforce it in `tripod-api`'s service layer so it holds for every consumer, not only the console.
+Treat it as a cross-cutting invariant: any new output surface must go through the same redaction rule. It is scheduled deliberately **early in the backend wave** (BE-04, [OBT-393](https://linear.app/shema-obt/issue/OBT-393)), before anything that emits data, and enforced in `tripod-api`'s service layer so it holds for every consumer, not only the console.
 
-> ⚠️ What "devida cautela" means per output is a **client gate** — [OBT-333](https://linear.app/shema-obt/issue/OBT-333).
+> ⚠️ What "devida cautela" means per output is a **client gate**.
 
 ### 6.2 Consent
 
 Prayer requests and needs are shared **only** with the field leader's explicit authorization. When consent is withdrawn, previously shared text is cleared, not merely hidden. Media items carry per-item authorization.
+
+The guarantee to test: **an unauthorized prayer request is absent from all four output paths.**
 
 ---
 
@@ -395,18 +437,21 @@ Define a single global `*:focus-visible` outline using the telha focus ring. Com
 
 ### API
 
-All backend calls target **`tripod-api`** and go through a single Axios instance in `src/services/api.ts`, with namespaced APIs (`authAPI`, `projectsAPI`, `regionsAPI`, `meetingsAPI`, `prayerAPI`, `etenAPI`, `formsAPI`, `mediaAPI`). Add new methods to the right namespace — never create a second client or duplicate auth handling.
+**Wave 1 makes no API calls** — every screen reads the fixture layer (§4.1). The Axios client and the `/api` dev proxy are wired but unused; that seam is what wave 2 plugs into.
 
-- Dev: Vite proxy `/api` → the local `tripod-api` container
-- Prod: `API_BASE_URL` injected at container entrypoint (SHM-03.3)
-- Keep TypeScript request/response types aligned with the Pydantic schemas in `app/models/`. When a payload shape is unclear, read the schema in `tripod-api` rather than inferring it from a sample response.
-- Before adding an endpoint, check whether `tripod-api` already exposes one (see the reuse table in §3) — `projects`, `languages`, `organizations`, `roles`, `uploads` and `notifications` already exist.
+From wave 2 on, all backend calls target **`tripod-api`** and go through a single Axios instance in `src/services/api.ts`, with namespaced APIs (`authAPI`, `projectsAPI`, `regionsAPI`, `meetingsAPI`, `prayerAPI`, `etenAPI`, `formsAPI`, `mediaAPI`). Add new methods to the right namespace — never create a second client or duplicate auth handling.
+
+- Dev: Vite proxy `/api` → `http://localhost:8000`
+- Prod: `BACKEND_URL` injected at container entrypoint
+- Keep TypeScript types aligned with the Pydantic schemas in `tripod-api`'s `app/models/`. `tripod-api` produces its own OpenAPI from FastAPI — read the schema rather than inferring shapes from a sample response.
+- Before adding an endpoint, check whether `tripod-api` already exposes one (§3.2 reuse table).
 
 ### Auth
 
-- JWT access + refresh in localStorage; request interceptor attaches the bearer token; a 401 triggers refresh-and-retry, and on refresh failure clears tokens and redirects to `/login`.
-- Authorization is **by role and by region** (SHM-01.4). A regional role-holder sees and edits their region; global roles see everything.
-- A simplified **leader link token** grants access to the public intake form only (SHM-01.5).
+- Wave 1: a **mocked session** in `AppShell`. No real login.
+- Wave 2: JWT access + refresh in localStorage; request interceptor attaches the bearer token; a 401 triggers refresh-and-retry, and on refresh failure clears tokens and redirects to `/login`.
+- Authorization is **by role and by region**. A regional role-holder sees and edits their region; global roles see everything.
+- A simplified **leader link token** grants access to the public intake form only.
 - The frontend never *enforces* authorization — it only reflects it. Every rule is enforced in `tripod-api`'s service layer; hiding a control in the UI is presentation, not security.
 
 ---
@@ -424,36 +469,57 @@ All backend calls target **`tripod-api`** and go through a single Axios instance
 
 ## 10. Delivery plan (Linear)
 
-Epics `SHM-01…13` are parent issues in Linear team `OBT`; 2–3 day sub-tasks are sub-issues. Every issue follows: **Goal / Context & specs (citing the PRD by § and FR-ID) / Scope / Definition of Done / Out of scope**.
+Team `OBT`. Every issue follows: **Goal / Read these first / Context & specs / Scope (files this issue may touch) / Definition of Done / Out of scope**, and every Scope section repeats *do not touch `DS-PROJECT/`*.
 
-**Labels:** `Essential` · `Nice-to-have` (mirroring the PRD priority column) · `needs-client-decision` (blocked on a client answer).
+**Labels:** `Essential` · `Nice-to-have` (mirroring the PRD priority column) · `needs-client-decision`.
 
-### Milestones
+### Two waves
 
-| # | Milestone | Epics |
+**Wave 1 — the frontend, against fixtures.** The whole product, clickable on a real URL, before any backend exists. This is the point: twelve screens settle the questions the PRD left open, and the types they grow become the contract wave 2 implements.
+
+| Milestone | Issues | What it is |
 |---|---|---|
-| 1 | Fundação | SHM-01 (auth + roles/regions **inside `tripod-api`**), SHM-02 (frontend + design system), SHM-03 (infra) |
-| 2 | Núcleo | SHM-12 → SHM-04 → SHM-05, SHM-06 (+ SHM-13.4) |
-| 3 | Voz do campo | SHM-07, SHM-08 |
-| 4 | Escuta e cuidado | SHM-09, SHM-10 |
-| 5 | Prestação de contas + transversais | SHM-11, rest of SHM-13 |
+| **F1 · Base do front** | FE-01…07 | Scaffold, tokens + fonts, UI primitives, style constants, **fixture layer**, AppShell + 6 routes + mocked session, i18n from `data.js` |
+| **F2 · Projetos** | FE-10…17 | Sidebar (search, chips, detailed filters), Time por região, Atlas, Diário/Coral, saved views |
+| **F3 · Ficha do projeto** | FE-20…28 | Record shell (modal, 10 tabs, draft) then one issue per tab |
+| **F4 · Demais áreas** | FE-30…39 | Início, Ritmo, Oração, Intercessores, ETEN, Formulários, Equipe, Health wizard, notifications, header modals |
+| **F5 · Deploy no Cloud Run** | FE-40…44 | CI (lint + `tsc -b`), Dockerfile + nginx + entrypoint, Cloud Run via Artifact Registry, a11y/responsive pass, **freeze the data contracts** |
 
-Two deliberate re-orderings, both from real dependencies:
+**Wave 2 — the backend and integration.**
 
-- **SHM-12 moved ahead of SHM-04.** SHM-04.4 (Team tab), SHM-05.5 (Team by region) and SHM-09.4 (Rhythm cards) all resolve role-holders from the org chart by reference. Building it later means those three ship against a placeholder and the "single source of truth" becomes a slogan.
-- **SHM-13.4 (sensitive-country rule) moved into phase 2.** It is a safety property every output path depends on; any epic that ships an output before it is a hole to hunt down later.
+| Milestone | Issues | What it is |
+|---|---|---|
+| **B1 · Backend** | GATE-01…03, BE-01…16 | **BE-01 audits `tripod-api` first**, then the Shemá model + migrations, roles/region scope, sensitive-country rule, and one issue per area. BE-16 migrates the 127 projects from the Notion export. |
+| **B2 · Integração por tela** | INT-01…12 | Swap the fixture layer for the real API **one screen at a time**, reversible per screen, fixtures kept behind a flag for local dev. INT-12 closes with a privacy and production-readiness review. |
+
+### Rules of engagement
+
+- **Contracts before implementation.** No screen is built against a hand-written type; no endpoint is implemented before its shape is agreed. FE-44 ([OBT-386](https://linear.app/shema-obt/issue/OBT-386)) is where wave 1's types become wave 2's written contract — including the privacy rules, stated as *server-side* requirements.
+- **Watch the shared files.** `src/components/ui/**`, the i18n catalogues, and on the backend the Alembic chain, are where two people collide.
+- **Do not skip the Definition of Done checkboxes.** Several encode the actual product guarantee — the byte-identical archive round trip, the double-import no-op, the unauthorized prayer request absent from all four output paths. Those tests *are* the requirement.
 
 ### ⚠️ Open client gates
 
-Do not freeze the corresponding contracts before these are answered:
+Do not freeze the corresponding contracts before these are answered. They cost about a day of team effort but an unknown number of weeks of someone else's calendar — send them early.
 
-| Gate | Issue |
+| Gate | Issue | Blocks |
+|---|---|---|
+| ETEN credit counting method (Youngshin) | GATE-01 · [OBT-387](https://linear.app/shema-obt/issue/OBT-387) | BE-11, INT-08 |
+| Final meeting set — Prayer Pulse vs. Governance | GATE-02 · [OBT-388](https://linear.app/shema-obt/issue/OBT-388) | BE-10, FE-31 |
+| Monthly Pulse file format (`.html` / `.json`) | GATE-03 · [OBT-389](https://linear.app/shema-obt/issue/OBT-389) | the Pulse epic — the riskiest work |
+| Coral: two list views or three? | FE-17 · [OBT-362](https://linear.app/shema-obt/issue/OBT-362) | FE-15, and §5.1 of this file |
+| What "devida cautela" means per output | — | BE-04 and every output surface |
+
+### Stale references you will encounter
+
+The Linear project description body, the B1 milestone description and the *"Working plan — two developers in parallel"* document predate the current backlog. When they conflict with this section, **this section and the issues themselves win**:
+
+| Stale wording | Current reality |
 |---|---|
-| ETEN credit counting method (Youngshin) | [OBT-322](https://linear.app/shema-obt/issue/OBT-322) |
-| Final meeting set — Prayer Pulse vs. Governance | [OBT-312](https://linear.app/shema-obt/issue/OBT-312) |
-| Monthly Pulse file format (`.html` / `.json`) | [OBT-302](https://linear.app/shema-obt/issue/OBT-302) |
-| Hosting / infrastructure | [OBT-336](https://linear.app/shema-obt/issue/OBT-336), [OBT-278](https://linear.app/shema-obt/issue/OBT-278) |
-| What "devida cautela" means per output | [OBT-333](https://linear.app/shema-obt/issue/OBT-333) |
+| repo `shema-console` | this repo, `shemaobt/project-management-ecosystem` |
+| repo `shema-backend`, "FastAPI scaffold", "build the backend" | the **existing** `shemaobt/tripod-api`; Shemá is a module inside it, already scaffolded |
+| epics `SHM-01…13`, issues `OBT-266`…`OBT-346` | `FE-*` / `BE-*` / `INT-*` / `GATE-*`, issues `OBT-348`…`OBT-417` |
+| milestones "1 Fundação … 5 Prestação de contas" | F1…F5 (wave 1), B1…B2 (wave 2) |
 
 ---
 
@@ -472,13 +538,13 @@ Do not freeze the corresponding contracts before these are answered:
 
 When the user says the code is ready or asks for a PR:
 
-1. Create a branch from HEAD with the name from linear issue ID.
+1. Create a branch from HEAD using the issue's `gitBranchName` from Linear (e.g. `levigft/obt-348-fe-01-scaffold-do-app-em-project-management-ecosystem`).
 2. Commit in small, scoped commits — one logical change each.
 3. Push with `-u`.
 4. Open a PR against `main` via `gh pr create`, title under 70 chars, body with `## Summary` and `## Test plan`.
 5. Return the PR URL.
 
-Reference the Linear issue ID (`OBT-###`) in the branch name. Never force-push or amend published commits.
+Reference the Linear issue ID (`OBT-###`) in the branch name and PR body. Never force-push or amend published commits.
 
 ---
 
@@ -486,9 +552,10 @@ Reference the Linear issue ID (`OBT-###`) in the branch name. Never force-push o
 
 ### Frontend
 
-- [ ] **Every frontend screen is derived from `DS-PROJECT/`** — file opened and matched before implementing.
-- [ ] `DS-PROJECT/` was not modified.
-- [ ] Stack only: React 18, TypeScript, Vite, Tailwind v4, Zustand, Context, Axios, Radix/shadcn primitives, lucide-react, sonner, react-leaflet.
+- [ ] **Every screen is derived from `DS-PROJECT/`** — file opened and matched before implementing.
+- [ ] `DS-PROJECT/` was not modified — verified in the diff.
+- [ ] `meaning-map-ui` consulted for engineering patterns only, never for appearance.
+- [ ] Stack only: React, TypeScript, Vite, Tailwind v4, Zustand, Context, Axios, Radix/shadcn primitives, lucide-react, sonner, i18next, react-leaflet.
 - [ ] Tokens exactly as in `design-system/colors_and_type.css`; no stray hex; telha reserved for CTAs and active states.
 - [ ] `bg-elevated` for cards/modals/inputs; `bg-canvas` for pages; `bg-muted` for subtle fills. Never `bg-white`.
 - [ ] Cards have **no borders** — shadow only.
@@ -496,26 +563,26 @@ Reference the Linear issue ID (`OBT-###`) in the branch name. Never force-push o
 - [ ] Functional components, under 300 lines, split by responsibility.
 - [ ] Tailwind only; `cn()` for merging; `cva` for variants; centralized constants in `src/styles/`.
 - [ ] Dark mode verified; global `*:focus-visible` outline used, no ring utilities.
-- [ ] Zustand for cross-page state, Context for auth/theme, local state otherwise.
-- [ ] Single `api.ts` client; JWT interceptors; types aligned with `tripod-api`'s Pydantic schemas.
+- [ ] Screens read the **fixture layer**, not a hand-rolled local copy (wave 1).
 - [ ] PT/EN strings both present, keys ported from `data.js`.
 - [ ] Guided empty states, InfoTooltips, live counts.
 
 ### Backend (`tripod-api`)
 
 - [ ] `tripod-api/CLAUDE.md` read before writing backend code.
-- [ ] Checked whether the endpoint/service **already exists** before building it (§3 reuse table).
+- [ ] Work lands **inside the existing Shemá module** (`app/api/shema/`, `app/services/shema/`) — no new service, no new repo.
+- [ ] Checked whether the capability **already exists** before building it (§3.2 reuse table); BE-01's verdict respected.
 - [ ] `app/api/` stays thin — **zero database access in routers**, no SQLAlchemy imports beyond `AsyncSession`.
 - [ ] All queries in `app/services/`; services raise from `app/core/exceptions.py` and never import `HTTPException`.
 - [ ] Async end-to-end, session injected via `get_db`.
-- [ ] Schema change ships with an Alembic migration.
+- [ ] Schema change ships with an Alembic migration; migration chain has a single head.
 - [ ] Secrets via GCP Secret Manager; commands run inside Docker Compose.
-- [ ] Shemá's SHM-08 health assessment kept distinct from the existing `project_health` module.
+- [ ] Shemá's health assessment kept distinct from the existing `project_health` module.
 
 ### Cross-cutting
 
 - [ ] Role **and region** authorization enforced in services, not just hidden in the UI.
 - [ ] Sensitive-country rule applied to every new output surface, enforced backend-side.
-- [ ] Consent respected for prayer, needs and media.
+- [ ] Consent respected for prayer, needs and media — unauthorized requests absent from **all four** output paths.
 - [ ] Team roles resolved **by reference** to the Equipe org chart — never duplicated.
 - [ ] No client-gated contract frozen before its Linear issue is answered.
