@@ -86,9 +86,9 @@ Everything else (Rhythm, Prayer, ETEN, Forms, Team) is a loop that keeps those f
 
 ### 3.1 Frontend (this repo)
 
-- **Framework**: React — **19.2 is the plan of record** (milestone F1, matching `meaning-map-ui`)
-- **Language**: TypeScript 5.9
-- **Build / dev**: Vite 7 (`@vitejs/plugin-react`, `@tailwindcss/vite`)
+- **Framework**: React **19.2** — pinned in FE-01
+- **Language**: TypeScript **5.9**
+- **Build / dev**: Vite **7** (`@vitejs/plugin-react`, `@tailwindcss/vite`)
 - **Routing**: react-router-dom v7 (`BrowserRouter`, routes declared in `App.tsx`)
 - **Styling**: **Tailwind CSS v4 only** — no CSS-in-JS, no styled-components, no SASS
 - **UI primitives**: Radix UI via shadcn-style components in `src/components/ui/`
@@ -102,7 +102,12 @@ Everything else (Rhythm, Prayer, ETEN, Forms, Team) is a loop that keeps those f
 
 Do not introduce Redux, MobX, or a second styling system.
 
-> ⚠️ **React major — confirm before pinning.** Milestone F1 and `meaning-map-ui` both say React 19.2 / TS 5.9 / Vite 7. FE-01 ([OBT-348](https://linear.app/shema-obt/issue/OBT-348)) flags the React major as needing team confirmation and makes "update this section to match reality" part of its Definition of Done. Whoever lands FE-01 records the answer here.
+**Resolved in FE-01 ([OBT-348](https://linear.app/shema-obt/issue/OBT-348)), 30/jul/2026 — Levi Gomes.** Two questions this section left open are now closed:
+
+- **React major: 19.2**, aligning with milestone F1 and the house frontend `meaning-map-ui` (React 19.2 / TS 5.9 / Vite 7). React 18 was stale wording and no longer appears here.
+- **Repo name**: the frontend is this repo, `shemaobt/project-management-ecosystem`. `shema-console` is stale everywhere it appears (§10).
+
+FE-01 pinned the whole stack in `package.json` so no later wave-1 issue has to choose a version: React 19.2 · react-dom 19.2 · TypeScript 5.9 · Vite 7 · Tailwind 4.3 · react-router-dom 7 · Zustand 5 · Axios 1.19 · i18next 25 + react-i18next 16 · lucide-react · sonner 2 · `cva` / `clsx` / `tailwind-merge` · react-leaflet 5 + leaflet 1.9 · `@radix-ui/react-slot` (the remaining Radix primitives are added by FE-03, one per component that needs it).
 
 ### 3.2 Backend — the Shemá module inside `tripod-api`
 
@@ -218,7 +223,7 @@ src/
 
 - Every screen reads through the *same* fixture module. That is what makes wave-2 integration mechanical and reversible one screen at a time.
 - Types grown against fixtures are the input to the data contract (§10, FE-44) — they are not throwaway.
-- `vite.config.ts` carries the `/api → http://localhost:8000` dev proxy from day one, **wired but unused**, so wave 2 changes no config.
+- `vite.config.ts` carries the `/api` dev proxy from day one, **wired but unused**, so wave 2 changes no config. Its target is `VITE_API_PROXY_TARGET` (default `http://localhost:8000`, where `tripod-api` runs locally); `.env.example` documents it.
 - Auth in wave 1 is a **mocked session** in `AppShell`.
 
 ### Component rules
