@@ -29,7 +29,7 @@ Everything else (Rhythm, Prayer, ETEN, Forms, Team) is a loop that keeps those f
 
 | | Repo | Role |
 |---|---|---|
-| Frontend | **`shemaobt/project-management-ecosystem`** — *this repo* | The console. Today it holds only `CLAUDE.md`, `DS-PROJECT/` and a stub `README.md`; wave 1 builds the app here. |
+| Frontend | **`shemaobt/project-management-ecosystem`** — *this repo* | The console. Holds the Vite app scaffolded in FE-01; wave 1 builds the product here. `DS-PROJECT/` is a **local-only** reference, not versioned here — see §2. |
 | Backend | **`shemaobt/tripod-api`** | Existing, running FastAPI service. Shemá is a **module inside it**, already scaffolded. |
 
 > ⚠️ Older Linear text (the project description body, the B1 milestone, the "Working plan" document) still names a frontend repo `shema-console` and a backend repo `shema-backend`. **Both names are stale.** The frontend is this repo — issue FE-01 ([OBT-348](https://linear.app/shema-obt/issue/OBT-348)) states it directly. The backend is `tripod-api` — issue BE-01 ([OBT-390](https://linear.app/shema-obt/issue/OBT-390)) states it directly: *"Shemá is a module inside it (`/api/shema`, `app/services/shema/`), not a new service."*
@@ -39,6 +39,8 @@ Everything else (Rhythm, Prayer, ETEN, Forms, Team) is a loop that keeps those f
 ## 2. DS-PROJECT is the design source of truth
 
 `DS-PROJECT/` is a **standalone HTML prototype** (React 18 via UMD + Babel standalone, plain CSS, no build step). It is **not** the production stack and its code must not be copy-pasted wholesale. It **is** the specification for how the product looks and behaves.
+
+It is **not versioned in this repo** (`.gitignore`). Get the design package from the Linear project's *Docs* document, under **Arquivos do Design**, and unzip it into `DS-PROJECT/` at the repo root. It stays read-only — see the last bullet of this section.
 
 ### Two references — do not confuse them
 

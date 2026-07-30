@@ -38,7 +38,7 @@ React 19.2 · TypeScript 5.9 · Vite 7 · Tailwind CSS v4 (via `@tailwindcss/vit
 src/
 ├── App.tsx  main.tsx  index.css
 ├── components/{common,layout,pages,ui}/
-├── contexts/  stores/  services/  hooks/
+├── contexts/  stores/  services/  hooks/  fixtures/
 ├── types/  constants/  utils/  styles/  i18n/
 ```
 
@@ -49,10 +49,6 @@ A estrutura é a do `CLAUDE.md` §4 e as pastas existem mesmo vazias — cada is
 `vite.config.ts` encaminha `/api` para `VITE_API_PROXY_TARGET` (padrão `http://localhost:8000`, onde o `tripod-api` roda localmente).
 
 **Não é usado na wave 1**: nenhuma tela faz chamada HTTP — todas leem a camada de fixtures (`src/fixtures/`, FE-05). O proxy está configurado desde já para que a wave 2 (integração tela a tela) não precise mexer em configuração.
-
-## DS-PROJECT
-
-`DS-PROJECT/` é o protótipo aprovado pelo cliente e a fonte da verdade de design. É **somente leitura** — não é modificado por trabalho de implementação e não é versionado neste repositório (veja `.gitignore`).
 
 ## Convenções
 
