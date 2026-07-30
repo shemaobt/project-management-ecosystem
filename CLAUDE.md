@@ -426,6 +426,16 @@ Rules:
 
 Tailwind v4 `@custom-variant dark`; all overrides live in `@layer base { .dark { ... } }` using the same token names so token-based styling adapts automatically. The Atlas night globe is dark by design in both themes.
 
+**Raised in FE-02 ([OBT-349](https://linear.app/shema-obt/issue/OBT-349)), 30/jul/2026 — open, pending design.** `DS-PROJECT/design-system/colors_and_type.css` defines **light surfaces only**, and `app.css` has no `.dark` block or `prefers-color-scheme` query anywhere. The prototype's only dark surfaces are `--bg-inverse` (verde) and `.surface-black` (preto) — enough for the topbar, not for a full theme: `--bg-elevated`, `--bg-muted`, `--fg-muted` and `--fg-subtle` have no dark counterpart in the design authority.
+
+Per §2 the prototype wins on visuals, so a dark palette is a **design deliverable, not an engineering choice**. FE-02 therefore shipped the mechanism and not the palette:
+
+- `@custom-variant dark (&:where(.dark, .dark *))` is declared in `src/index.css`.
+- The semantic tier is defined as `var()` indirections over the raw tokens (not `@theme inline`), so a later `.dark` block only has to reassign `--bg`, `--fg`, `--line`, … and every component follows without a code change.
+- **No `.dark` overrides exist yet, and no component should ship `dark:` utilities** until the palette lands here.
+
+Unblocking it needs the seven dark values from the brand owner (or an explicit "derive them"). Record the decision, its date and its author here when it lands.
+
 ### 7.5 Focus
 
 Define a single global `*:focus-visible` outline using the telha focus ring. Components must **not** add `focus:ring-*` utilities.
