@@ -228,6 +228,14 @@ src/
 - `vite.config.ts` carries the `/api` dev proxy from day one, **wired but unused**, so wave 2 changes no config. Its target is `VITE_API_PROXY_TARGET` (default `http://localhost:8000`, where `tripod-api` runs locally); `.env.example` documents it.
 - Auth in wave 1 is a **mocked session** in `AppShell`.
 
+**Built in FE-05 ([OBT-352](https://linear.app/shema-obt/issue/OBT-352)), 30/jul/2026 — Levi Gomes.** The layer exists; these are its rules:
+
+- **One entry point: `src/fixtures` (the index).** It exposes `projectsAPI`, `regionsAPI`, `meetingsAPI`, `prayerAPI`, `intercessorsAPI`, `etenAPI`, `geoAPI` — namespaces that mirror §8's Axios client — and every method is `async`. Screens `await` them exactly as they will `await` the API in wave 2. Deep imports (`fixtures/projects`, `fixtures/data/*.json`) are **blocked by ESLint** for `components/`, `contexts/`, `hooks/`, `stores/` and `services/`.
+- **The data is verbatim.** `src/fixtures/data/projects.json` is the Notion export as it is — empty fields, mixed casing, `Waima’a`, `Ngäbere`. Every read hands out a `structuredClone`, so a screen cannot corrupt the shared record.
+- **Every derivation is a pure function of `(project, now)`** in `src/utils/` — `getProjectStatus`, `getProgress`, `rollUpProgress`, `getOverallHealth`, `healthScore`, `getPriority`, `getStaleStatus`, `getDaysSinceUpdate`, `getDeadlineInfo`, `isRecentlyUpdated`, `matchesPreset`, `getRegion`. No hidden clock: `now` defaults to `new Date()` and is injected in tests. `tripod-api` has to reproduce these exactly, so they are pinned by `src/utils/__tests__/dataJsParity.json` — the output of the prototype's own `data.js` over all 127 records at the reference date `2026-05-14`. **Changing a derivation means regenerating that file from `DS-PROJECT/data.js`, never hand-editing it.**
+- **The Notion export writes dates as `DD/MM/YYYY`** (`startDate`, `lastUpdated`), which neither the prototype nor this port can parse: staleness falls back to `em-dia` and the `recent` preset matches nothing. The behaviour is ported as-is and pinned by tests. **This is a data question for the client, not a bug to fix in the fixture** — resolve it before BE-16 migrates the 127 projects.
+- **No ETEN credit calculation exists here.** `etenAPI.report(year)` returns the year-end snapshots only; the counting method is GATE-01 ([OBT-387](https://linear.app/shema-obt/issue/OBT-387)) and must not be implemented before the gate closes.
+
 ### Component rules
 
 - **Functional components only.** No class components.
