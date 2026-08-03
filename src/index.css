@@ -162,8 +162,91 @@
   --container-max: 1200px;
   --container-narrow: 760px;
   --container-pad: clamp(20px, 4vw, 56px);
+  --container-modal: 900px;
+
+  --animate-fade-in: fade-in var(--duration) var(--ease-out);
+  --animate-slide-up: slide-up 280ms var(--ease-out);
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
   --spacing: 4px;
+
+  --status-good: var(--shema-verde-claro);
+  --status-good-bg: rgba(119, 125, 69, 0.14);
+  --status-good-line: rgba(119, 125, 69, 0.3);
+  --status-attention: #c98b2d;
+  --status-attention-fg: #8b6018;
+  --status-attention-bg: rgba(201, 139, 45, 0.14);
+  --status-attention-line: rgba(201, 139, 45, 0.3);
+  --status-critical: var(--shema-telha);
+  --status-critical-bg: var(--accent-soft);
+  --status-critical-line: rgba(190, 74, 1, 0.3);
+  --status-na: var(--shema-areia);
+
+  --rhythm-done-fg: #4d5d24;
+  --rhythm-done-bg: #e5ecd8;
+  --rhythm-pending-fg: var(--shema-telha);
+  --rhythm-pending-bg: var(--accent-soft);
+  --rhythm-overdue-fg: #9a3412;
+  --rhythm-overdue-bg: #f3d4c8;
+  --rhythm-new-fg: var(--fg-subtle);
+  --rhythm-new-bg: var(--bg-muted);
+
+  --answered-fg: #4d5d24;
+  --answered-bg: #eef0e0;
+  --answered-line: #c5cda0;
+
+  --paper: #fbfaf1;
+  --shadow-paper: 0 1px 0 rgba(63, 62, 32, 0.04),
+    0 6px 14px -8px rgba(63, 62, 32, 0.18),
+    0 18px 30px -20px rgba(63, 62, 32, 0.12);
+  --shadow-paper-hover: 0 2px 0 rgba(63, 62, 32, 0.06),
+    0 14px 30px -12px rgba(63, 62, 32, 0.28),
+    0 30px 50px -28px rgba(63, 62, 32, 0.18);
+  --color-paper: var(--paper);
+
+  --color-status-good: var(--status-good);
+  --color-status-good-bg: var(--status-good-bg);
+  --color-status-good-line: var(--status-good-line);
+  --color-status-attention: var(--status-attention);
+  --color-status-attention-fg: var(--status-attention-fg);
+  --color-status-attention-bg: var(--status-attention-bg);
+  --color-status-attention-line: var(--status-attention-line);
+  --color-status-critical: var(--status-critical);
+  --color-status-critical-bg: var(--status-critical-bg);
+  --color-status-critical-line: var(--status-critical-line);
+  --color-status-na: var(--status-na);
+
+  --color-rhythm-done-fg: var(--rhythm-done-fg);
+  --color-rhythm-done-bg: var(--rhythm-done-bg);
+  --color-rhythm-pending-fg: var(--rhythm-pending-fg);
+  --color-rhythm-pending-bg: var(--rhythm-pending-bg);
+  --color-rhythm-overdue-fg: var(--rhythm-overdue-fg);
+  --color-rhythm-overdue-bg: var(--rhythm-overdue-bg);
+  --color-rhythm-new-fg: var(--rhythm-new-fg);
+  --color-rhythm-new-bg: var(--rhythm-new-bg);
+
+  --color-answered-fg: var(--answered-fg);
+  --color-answered-bg: var(--answered-bg);
+  --color-answered-line: var(--answered-line);
 
   --color-branco: var(--shema-branco);
   --color-areia: var(--shema-areia);
