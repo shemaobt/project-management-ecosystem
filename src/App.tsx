@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Toaster } from "sonner";
+import { DesignSystemPage } from "./components/pages/design-system/DesignSystemPage";
+import { Toaster } from "./components/ui";
 
 const PALETTE = [
   { token: "branco", swatch: "bg-branco", variable: "--shema-branco" },
@@ -169,9 +170,10 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/design-system" element={<DesignSystemPage />} />
         <Route path="*" element={<TokensPreview />} />
       </Routes>
-      <Toaster position="bottom-right" />
+      <Toaster />
     </BrowserRouter>
   );
 }
