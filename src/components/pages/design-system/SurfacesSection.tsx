@@ -19,6 +19,7 @@ import {
   Sheet,
   SheetBody,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -149,9 +150,8 @@ export function SurfacesSection() {
             </SheetTrigger>
             <SheetContent closeLabel="Fechar">
               <SheetHeader>
-                <SheetTitle className="text-h4 font-semibold text-fg-strong">
-                  Notificações
-                </SheetTitle>
+                <SheetTitle>Notificações</SheetTitle>
+                <SheetDescription>Preferências de envio</SheetDescription>
               </SheetHeader>
               <SheetBody>
                 <EmptyState message="Nada por aqui ainda." />

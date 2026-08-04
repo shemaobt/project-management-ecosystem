@@ -163,9 +163,12 @@
   --container-narrow: 760px;
   --container-pad: clamp(20px, 4vw, 56px);
   --container-modal: 900px;
+  --container-modal-narrow: 560px;
 
   --animate-fade-in: fade-in var(--duration) var(--ease-out);
   --animate-slide-up: slide-up 280ms var(--ease-out);
+  --animate-slide-in-right: slide-in-right 280ms var(--ease-out);
+  --animate-slide-in-left: slide-in-left 280ms var(--ease-out);
 
   @keyframes fade-in {
     from {
@@ -184,6 +187,28 @@
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
 

@@ -1,4 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react";
 import type { ComponentPropsWithoutRef, HTMLAttributes } from "react";
 import { cn } from "../../utils/cn";
@@ -22,8 +23,24 @@ export function DialogOverlay({
   );
 }
 
+export const dialogContentVariants = cva(
+  "relative z-50 my-auto w-full animate-slide-up overflow-hidden rounded-lg bg-elevated shadow-lg",
+  {
+    variants: {
+      size: {
+        default: "max-w-modal",
+        narrow: "max-w-modal-narrow",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+    },
+  },
+);
+
 export interface DialogContentProps
-  extends ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  extends ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
+    VariantProps<typeof dialogContentVariants> {
   closeLabel: string;
 }
 
@@ -31,16 +48,14 @@ export function DialogContent({
   className,
   children,
   closeLabel,
+  size,
   ...props
 }: DialogContentProps) {
   return (
     <DialogPrimitive.Portal>
       <DialogOverlay>
         <DialogPrimitive.Content
-          className={cn(
-            "relative z-50 my-auto w-full max-w-modal animate-slide-up overflow-hidden rounded-lg bg-elevated shadow-lg",
-            className,
-          )}
+          className={cn(dialogContentVariants({ size }), className)}
           {...props}
         >
           {children}

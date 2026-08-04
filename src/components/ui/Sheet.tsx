@@ -7,24 +7,20 @@ import { cn } from "../../utils/cn";
 export const Sheet = DialogPrimitive.Root;
 export const SheetTrigger = DialogPrimitive.Trigger;
 export const SheetClose = DialogPrimitive.Close;
-export const SheetTitle = DialogPrimitive.Title;
-export const SheetDescription = DialogPrimitive.Description;
 
-const sheetVariants = cva(
-  "fixed z-50 flex flex-col bg-elevated shadow-lg animate-slide-up",
-  {
-    variants: {
-      side: {
-        right: "inset-y-0 right-0 h-full w-full max-w-md rounded-l-lg",
-        left: "inset-y-0 left-0 h-full w-full max-w-md rounded-r-lg",
-        bottom: "inset-x-0 bottom-0 max-h-[85vh] rounded-t-lg",
-      },
-    },
-    defaultVariants: {
-      side: "right",
+const sheetVariants = cva("fixed z-50 flex flex-col bg-elevated shadow-lg", {
+  variants: {
+    side: {
+      right:
+        "inset-y-0 right-0 h-full w-full max-w-md animate-slide-in-right rounded-l-lg",
+      left: "inset-y-0 left-0 h-full w-full max-w-md animate-slide-in-left rounded-r-lg",
+      bottom: "inset-x-0 bottom-0 max-h-[85vh] animate-slide-up rounded-t-lg",
     },
   },
-);
+  defaultVariants: {
+    side: "right",
+  },
+});
 
 export interface SheetContentProps
   extends ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
@@ -64,7 +60,34 @@ export function SheetHeader({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("border-b border-line px-6 py-5", className)}
+      className={cn(
+        "flex flex-col gap-1 border-b border-line px-6 py-5",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function SheetTitle({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<typeof DialogPrimitive.Title>) {
+  return (
+    <DialogPrimitive.Title
+      className={cn("text-h4 font-semibold text-fg-strong", className)}
+      {...props}
+    />
+  );
+}
+
+export function SheetDescription({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<typeof DialogPrimitive.Description>) {
+  return (
+    <DialogPrimitive.Description
+      className={cn("font-serif text-small italic text-fg-muted", className)}
       {...props}
     />
   );
