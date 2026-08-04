@@ -3,6 +3,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react";
 import type { ComponentPropsWithoutRef, HTMLAttributes } from "react";
 import { cn } from "../../utils/cn";
+import {
+  circleControl,
+  footerRow,
+  headerRow,
+  transitionColors,
+} from "../../styles";
 
 export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
@@ -61,7 +67,11 @@ export function DialogContent({
           {children}
           <DialogPrimitive.Close
             aria-label={closeLabel}
-            className="absolute top-5 right-5 inline-flex size-9.5 items-center justify-center rounded-pill bg-branco/10 text-branco transition-colors duration-[140ms] ease-out hover:bg-branco/20"
+            className={cn(
+              circleControl,
+              transitionColors,
+              "absolute top-5 right-5 size-9.5 bg-branco/10 text-branco hover:bg-branco/20",
+            )}
           >
             <X size={18} strokeWidth={1.75} />
           </DialogPrimitive.Close>
@@ -78,7 +88,8 @@ export function DialogHeader({
   return (
     <div
       className={cn(
-        "relative flex items-start justify-between gap-4 overflow-hidden bg-inverse px-8 pt-7 pb-6 text-on-dark",
+        headerRow,
+        "relative gap-4 overflow-hidden bg-inverse px-8 pt-7 pb-6 text-on-dark",
         className,
       )}
       {...props}
@@ -132,7 +143,8 @@ export function DialogFooter({
   return (
     <div
       className={cn(
-        "flex items-center justify-between gap-2.5 border-t border-line bg-muted px-8 py-4.5",
+        footerRow,
+        "border-t border-line bg-muted px-8 py-4.5",
         className,
       )}
       {...props}

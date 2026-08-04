@@ -1,13 +1,20 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { HTMLAttributes } from "react";
 import { cn } from "../../utils/cn";
+import {
+  footerRow,
+  headerRow,
+  surfaceElevated,
+  surfaceOutlined,
+  titleText,
+} from "../../styles";
 
 export const cardVariants = cva("bg-elevated", {
   variants: {
     variant: {
-      elevated: "rounded-md shadow-card",
-      outlined: "rounded-md border border-line",
-      soft: "rounded-lg shadow-card",
+      elevated: `rounded-md ${surfaceElevated}`,
+      outlined: `rounded-md ${surfaceOutlined}`,
+      soft: `rounded-lg ${surfaceElevated}`,
       paper: "rounded-[2px] bg-paper shadow-paper",
     },
     padding: {
@@ -76,7 +83,7 @@ export function CardHeader({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex items-start justify-between gap-3", className)}
+      className={cn(headerRow, "gap-3", className)}
       {...props}
     />
   );
@@ -88,7 +95,7 @@ export function CardTitle({
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn("text-h4 font-semibold text-fg-strong", className)}
+      className={cn(titleText, className)}
       {...props}
     />
   );
@@ -107,7 +114,7 @@ export function CardFooter({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex items-center justify-between gap-2.5", className)}
+      className={cn(footerRow, className)}
       {...props}
     />
   );

@@ -1,15 +1,14 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { HEALTH_ICONS, RHYTHM_ICONS } from "../components/common/StatusBadge";
 import {
-  HEALTH_ICONS,
   HEALTH_TONES,
   PRAYER_TONES,
   PRIORITY_TONES,
-  RHYTHM_ICONS,
   RHYTHM_TONES,
   STALE_TONES,
-} from "../components/common/StatusBadge";
+} from "../styles";
 import { MEETING_STATES } from "./meetings";
 import {
   OVERALL_HEALTH_STATES,

@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes } from "react";
 import { cn } from "../../utils/cn";
-import { fieldBase, fieldInvalid } from "./fieldStyles";
+import { fieldBase, fieldInvalid } from "../../styles";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   invalid?: boolean;

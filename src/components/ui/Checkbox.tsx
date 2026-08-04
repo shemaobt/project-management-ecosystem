@@ -2,6 +2,7 @@ import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import { Check } from "lucide-react";
 import type { ComponentPropsWithoutRef } from "react";
 import { cn } from "../../utils/cn";
+import { transitionColors } from "../../styles";
 
 export function Checkbox({
   className,
@@ -10,7 +11,7 @@ export function Checkbox({
   return (
     <CheckboxPrimitive.Root
       className={cn(
-        "flex size-4 shrink-0 items-center justify-center rounded-xs border border-line-strong bg-elevated transition-colors duration-[140ms] ease-out data-[state=checked]:border-telha data-[state=checked]:bg-telha disabled:cursor-not-allowed disabled:opacity-50",
+        `flex size-4 shrink-0 items-center justify-center rounded-xs border border-line-strong bg-elevated ${transitionColors} data-[state=checked]:border-telha data-[state=checked]:bg-telha disabled:cursor-not-allowed disabled:opacity-50`,
         className,
       )}
       {...props}
@@ -36,7 +37,7 @@ export function CheckboxField({
   return (
     <label
       className={cn(
-        "inline-flex cursor-pointer items-center gap-1.5 rounded-xs px-2 py-1 text-[13px] transition-colors duration-[140ms] ease-out select-none hover:bg-muted has-[[data-state=checked]]:font-bold has-[[data-state=checked]]:text-telha",
+        `inline-flex cursor-pointer items-center gap-1.5 rounded-xs px-2 py-1 text-[13px] ${transitionColors} select-none hover:bg-muted has-[[data-state=checked]]:font-bold has-[[data-state=checked]]:text-telha`,
         className,
       )}
       htmlFor={id}

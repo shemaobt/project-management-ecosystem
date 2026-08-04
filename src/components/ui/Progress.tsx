@@ -16,7 +16,7 @@ const trackVariants = cva("w-full overflow-hidden rounded-pill bg-verde/8", {
 });
 
 const fillVariants = cva(
-  "h-full rounded-pill transition-[width] duration-[380ms] ease-out",
+  "h-full rounded-pill transition-[width] duration-(--duration-slow) ease-out",
   {
     variants: {
       tone: {

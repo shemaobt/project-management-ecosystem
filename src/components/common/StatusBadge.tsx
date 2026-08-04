@@ -2,6 +2,16 @@ import { cva } from "class-variance-authority";
 import { AlertTriangle, Check, Circle, Minus, X } from "lucide-react";
 import type { ComponentType } from "react";
 import { HEALTH_SYMBOLS, type PrayerState } from "../../constants/status";
+import {
+  HEALTH_DOT_TONES,
+  HEALTH_TONES,
+  PRAYER_TONES,
+  PRIORITY_TONES,
+  RHYTHM_TONES,
+  STALE_TONES,
+  circleControl,
+  pillBase,
+} from "../../styles";
 import type { MeetingState } from "../../types/meeting";
 import type {
   OverallHealth,
@@ -11,48 +21,6 @@ import type {
 import { cn } from "../../utils/cn";
 
 type IconComponent = ComponentType<{ size?: number; strokeWidth?: number }>;
-
-export const HEALTH_TONES: Record<OverallHealth, string> = {
-  boa: "bg-status-good-bg text-verde-claro",
-  atencao: "bg-status-attention-bg text-status-attention-fg",
-  critica: "bg-status-critical-bg text-telha",
-  na: "bg-muted text-fg-subtle",
-};
-
-export const HEALTH_DOT_TONES: Record<OverallHealth, string> = {
-  boa: "bg-status-good text-branco",
-  atencao: "bg-status-attention text-branco",
-  critica: "bg-status-critical text-branco",
-  na: "bg-status-na text-verde opacity-60",
-};
-
-export const STALE_TONES: Record<StaleStatus, string> = {
-  "em-dia": "bg-status-good-bg text-verde-claro",
-  atencao: "bg-status-attention-bg text-status-attention-fg",
-  critico: "bg-status-critical-bg text-telha",
-};
-
-export const RHYTHM_TONES: Record<MeetingState, string> = {
-  done: "bg-rhythm-done-bg text-rhythm-done-fg",
-  pending: "bg-rhythm-pending-bg text-rhythm-pending-fg",
-  overdue: "bg-rhythm-overdue-bg text-rhythm-overdue-fg",
-  new: "bg-rhythm-new-bg text-rhythm-new-fg",
-};
-
-export const PRAYER_TONES: Record<PrayerState, string> = {
-  answered: "bg-answered-bg text-answered-fg",
-};
-
-export const PRIORITY_TONES: Record<ProjectPriority, string> = {
-  critical: "bg-status-critical",
-  warning: "bg-status-attention",
-  completed: "bg-status-good",
-  canceled: "bg-status-na",
-  paused: "bg-status-na",
-  planned: "bg-azul",
-  unknown: "bg-status-na",
-  default: "bg-status-na",
-};
 
 export const HEALTH_ICONS: Record<OverallHealth, IconComponent> = {
   boa: Check,
@@ -78,24 +46,21 @@ export const PRAYER_ICONS: Record<PrayerState, IconComponent> = {
   answered: Check,
 };
 
-const badgeBase =
-  "inline-flex items-center gap-1 rounded-pill px-2.5 py-1.25 text-[11px] font-bold tracking-[0.04em] uppercase";
-
-export const healthBadgeVariants = cva(badgeBase, {
+export const healthBadgeVariants = cva(pillBase, {
   variants: { state: HEALTH_TONES },
 });
-export const staleBadgeVariants = cva(badgeBase, {
+export const staleBadgeVariants = cva(pillBase, {
   variants: { state: STALE_TONES },
 });
-export const rhythmBadgeVariants = cva(badgeBase, {
+export const rhythmBadgeVariants = cva(pillBase, {
   variants: { state: RHYTHM_TONES },
 });
-export const prayerBadgeVariants = cva(badgeBase, {
+export const prayerBadgeVariants = cva(pillBase, {
   variants: { state: PRAYER_TONES },
 });
 
 export const healthDotVariants = cva(
-  "inline-flex size-4.5 items-center justify-center rounded-pill text-[9px] font-black",
+  `${circleControl} size-4.5 text-[9px] font-black`,
   { variants: { state: HEALTH_DOT_TONES } },
 );
 

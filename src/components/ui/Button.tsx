@@ -2,9 +2,10 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ButtonHTMLAttributes } from "react";
 import { cn } from "../../utils/cn";
+import { disabledControl, transitionAll } from "../../styles";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-1.5 rounded-pill border border-transparent font-bold uppercase tracking-[0.08em] transition-all duration-[140ms] ease-out disabled:pointer-events-none disabled:opacity-50",
+  `inline-flex items-center justify-center gap-1.5 rounded-pill border border-transparent font-bold uppercase tracking-[0.08em] ${transitionAll} ${disabledControl}`,
   {
     variants: {
       variant: {

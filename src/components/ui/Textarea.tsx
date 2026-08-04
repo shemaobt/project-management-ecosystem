@@ -1,6 +1,6 @@
 import type { TextareaHTMLAttributes } from "react";
 import { cn } from "../../utils/cn";
-import { fieldBase, fieldInvalid } from "./fieldStyles";
+import { fieldBase, fieldInvalid } from "../../styles";
 
 export interface TextareaProps
   extends TextareaHTMLAttributes<HTMLTextAreaElement> {

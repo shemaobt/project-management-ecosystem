@@ -3,6 +3,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react";
 import type { ComponentPropsWithoutRef, HTMLAttributes } from "react";
 import { cn } from "../../utils/cn";
+import {
+  circleControl,
+  divider,
+  footerRow,
+  titleText,
+  transitionColors,
+} from "../../styles";
 
 export const Sheet = DialogPrimitive.Root;
 export const SheetTrigger = DialogPrimitive.Trigger;
@@ -45,7 +52,11 @@ export function SheetContent({
         {children}
         <DialogPrimitive.Close
           aria-label={closeLabel}
-          className="absolute top-4 right-4 inline-flex size-8 items-center justify-center rounded-pill text-fg-muted transition-colors duration-[140ms] ease-out hover:bg-muted hover:text-telha"
+          className={cn(
+            circleControl,
+            transitionColors,
+            "absolute top-4 right-4 size-8 text-fg-muted hover:bg-muted hover:text-telha",
+          )}
         >
           <X size={16} strokeWidth={1.75} />
         </DialogPrimitive.Close>
@@ -61,7 +72,8 @@ export function SheetHeader({
   return (
     <div
       className={cn(
-        "flex flex-col gap-1 border-b border-line px-6 py-5",
+        divider,
+        "flex flex-col gap-1 px-6 py-5",
         className,
       )}
       {...props}
@@ -75,7 +87,7 @@ export function SheetTitle({
 }: ComponentPropsWithoutRef<typeof DialogPrimitive.Title>) {
   return (
     <DialogPrimitive.Title
-      className={cn("text-h4 font-semibold text-fg-strong", className)}
+      className={cn(titleText, className)}
       {...props}
     />
   );
@@ -109,7 +121,8 @@ export function SheetFooter({
   return (
     <div
       className={cn(
-        "flex items-center justify-between gap-2.5 border-t border-line bg-muted px-6 py-4",
+        footerRow,
+        "border-t border-line bg-muted px-6 py-4",
         className,
       )}
       {...props}

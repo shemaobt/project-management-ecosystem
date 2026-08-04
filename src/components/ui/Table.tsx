@@ -4,13 +4,14 @@ import type {
   ThHTMLAttributes,
 } from "react";
 import { cn } from "../../utils/cn";
+import { divider, surfaceOutlined, transitionColors } from "../../styles";
 
 export function Table({
   className,
   ...props
 }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="overflow-x-auto rounded-md border border-line bg-elevated">
+    <div className={cn("overflow-x-auto rounded-md", surfaceOutlined)}>
       <table
         className={cn("w-full border-collapse text-left", className)}
         {...props}
@@ -25,7 +26,7 @@ export function TableHead({
 }: HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <thead
-      className={cn("border-b border-line bg-muted", className)}
+      className={cn(divider, "bg-muted", className)}
       {...props}
     />
   );
@@ -60,7 +61,9 @@ export function TableRow({
   return (
     <tr
       className={cn(
-        "border-b border-line transition-colors duration-[140ms] ease-out last:border-b-0 hover:bg-muted",
+        transitionColors,
+        divider,
+        "last:border-b-0 hover:bg-muted",
         className,
       )}
       {...props}
