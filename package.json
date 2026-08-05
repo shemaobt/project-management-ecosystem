@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest run",
+    "fixtures:import": "node scripts/import-fixture-data.mjs",
+    "fixtures:parity": "node scripts/generate-parity.mjs",
     "test:watch": "vitest",
     "preview": "vite preview"
   },
