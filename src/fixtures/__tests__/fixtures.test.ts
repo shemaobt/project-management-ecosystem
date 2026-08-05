@@ -3,6 +3,8 @@ import { PROJECT_STATUSES } from "../../constants/project";
 import { REGIONS } from "../../constants/regions";
 import type { ProjectStatus } from "../../types/project";
 import type { RegionKey } from "../../types/region";
+import { createEmptyProject } from "../blank";
+import { buildEtenReport } from "../eten";
 import {
   etenAPI,
   fixtures,
@@ -182,6 +184,67 @@ describe("eten fixture", () => {
     expect(report.year).toBe(2025);
     expect(report.listedProjects).toBe(listed.length);
     expect(report.snapshots).toHaveLength(listed.length);
+  });
+
+  it("starts with no credit informed", async () => {
+    expect(await etenAPI.credits()).toEqual([]);
+    const report = await etenAPI.report(2025);
+    expect(report.totalCredits).toBe(0);
+    for (const snapshot of report.snapshots) {
+      expect(snapshot.credits).toBeNull();
+      expect(snapshot.creditsSource).toBeNull();
+    }
+  });
+
+  it("takes the credit from the ledger instead of deriving it", () => {
+    const project = {
+      ...createEmptyProject("kadiweu"),
+      languageName: "Kadiwéu",
+      location: "Brazil",
+      inETEN: true,
+      totalUnits: 260,
+      translatedUnits: 40,
+      progressHistory: [
+        {
+          date: "2024-12-31",
+          translatedUnits: 12,
+          communityCheckedUnits: 0,
+          approvedUnits: 0,
+        },
+        {
+          date: "2025-12-31",
+          translatedUnits: 40,
+          communityCheckedUnits: 0,
+          approvedUnits: 0,
+        },
+      ],
+    };
+
+    const report = buildEtenReport(
+      [project],
+      2025,
+      [{ projectId: "kadiweu", year: 2025, credits: 25, source: "manual" }],
+      new Date("2026-05-14"),
+    );
+
+    expect(report.snapshots[0].translatedUnitsAtPreviousYearEnd).toBe(12);
+    expect(report.snapshots[0].translatedUnitsAtYearEnd).toBe(40);
+    expect(report.snapshots[0].credits).toBe(25);
+    expect(report.snapshots[0].creditsSource).toBe("manual");
+    expect(report.totalCredits).toBe(25);
+  });
+
+  it("keeps a credit informed for another year out of the report", () => {
+    const project = { ...createEmptyProject("kadiweu"), inETEN: true };
+    const report = buildEtenReport(
+      [project],
+      2025,
+      [{ projectId: "kadiweu", year: 2024, credits: 9, source: "manual" }],
+      new Date("2026-05-14"),
+    );
+
+    expect(report.snapshots[0].credits).toBeNull();
+    expect(report.totalCredits).toBe(0);
   });
 });
 

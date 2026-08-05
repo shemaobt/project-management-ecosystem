@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../tripod-api-main/tripod-api"
+		},
+		{
+			"path": "../meaning-map-ui-main"
+		}
+	],
+	"settings": {}
+}

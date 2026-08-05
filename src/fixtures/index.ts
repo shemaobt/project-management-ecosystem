@@ -1,10 +1,10 @@
-import type { EtenYearReport } from "../types/eten";
+import type { EtenCreditEntry, EtenYearReport } from "../types/eten";
 import type { MeetingDefinition, MeetingLogEntry } from "../types/meeting";
 import type { Intercessor, PrayerRequest } from "../types/prayer";
 import type { Project } from "../types/project";
 import type { GeoOutline, Region } from "../types/region";
 import { createEmptyProject } from "./blank";
-import { buildEtenReport } from "./eten";
+import { buildEtenReport, loadEtenCredits } from "./eten";
 import { loadContinentOutlines } from "./geo";
 import { loadIntercessors } from "./intercessors";
 import { loadMeetingLog, loadMeetings } from "./meetings";
@@ -50,7 +50,10 @@ export const intercessorsAPI = {
 
 export const etenAPI = {
   async report(year: number): Promise<EtenYearReport> {
-    return buildEtenReport(loadProjects(), year);
+    return buildEtenReport(loadProjects(), year, loadEtenCredits());
+  },
+  async credits(): Promise<EtenCreditEntry[]> {
+    return loadEtenCredits();
   },
 };
 
