@@ -306,6 +306,16 @@ describe("eten fixture", () => {
 });
 
 describe("geo fixture", () => {
+  it("hands out an isolated copy of the outlines on every read", async () => {
+    const outlines = await geoAPI.outlines();
+    outlines[0].push([0, 0]);
+    outlines[0][0][0] = 999;
+
+    const again = await geoAPI.outlines();
+    expect(again[0][0][0]).not.toBe(999);
+    expect(again[0].length).toBe(outlines[0].length - 1);
+  });
+
   it("carries the continent outlines the Atlas draws", async () => {
     const outlines = await geoAPI.outlines();
     expect(outlines).toHaveLength(77);
