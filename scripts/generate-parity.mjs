@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+process.env.TZ = "UTC";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ds = path.join(root, "DS-PROJECT");
 const target = path.join(root, "src", "utils", "__tests__", "dataJsParity.json");

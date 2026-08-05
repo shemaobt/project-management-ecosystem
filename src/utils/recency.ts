@@ -9,6 +9,10 @@ import { getProjectStatus } from "./progress";
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
+function atLocalMidnight(date: string): Date {
+  return new Date(`${date}T00:00:00`);
+}
+
 export function getLastProgressUpdate(project: Project): string | null {
   if (project.progressHistory.length > 0) {
     return project.progressHistory[project.progressHistory.length - 1].date;
@@ -22,7 +26,7 @@ export function getDaysSinceUpdate(
 ): number | null {
   const date = getLastProgressUpdate(project);
   if (!date) return null;
-  const last = new Date(`${date}T00:00:00`);
+  const last = atLocalMidnight(date);
   return Math.floor((now.getTime() - last.getTime()) / MS_PER_DAY);
 }
 
@@ -53,7 +57,7 @@ export function getDeadlineInfo(
 ): DeadlineInfo {
   if (!deadline) return { cls: "", days: null };
   const days = Math.ceil(
-    (new Date(deadline).getTime() - now.getTime()) / MS_PER_DAY,
+    (atLocalMidnight(deadline).getTime() - now.getTime()) / MS_PER_DAY,
   );
   if (days < 0) return { cls: "overdue", days };
   if (days < DEADLINE_SOON_DAYS) return { cls: "soon", days };
@@ -66,6 +70,7 @@ export function isRecentlyUpdated(
 ): boolean {
   if (!project.lastUpdated) return false;
   const days =
-    (now.getTime() - new Date(project.lastUpdated).getTime()) / MS_PER_DAY;
+    (now.getTime() - atLocalMidnight(project.lastUpdated).getTime()) /
+    MS_PER_DAY;
   return days <= RECENT_UPDATE_DAYS;
 }
