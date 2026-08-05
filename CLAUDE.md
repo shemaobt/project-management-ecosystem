@@ -240,6 +240,17 @@ src/
   - **BE-16 must reproduce the same conversion** when it migrates the 127 projects, and store real `date` columns rather than text. `toIsoDate` is the reference implementation. A migration that inserts `13/04/2024` into a text column moves the bug into the database, where the fix costs a migration instead of a function.
 - **The ETEN credit is a typed-in number, never a calculation.** Decided 30/jul/2026 by Levi Gomes: until GATE-01 ([OBT-387](https://linear.app/shema-obt/issue/OBT-387)) closes, the credit of a project in a year is **entered by hand** and stored as an `EtenCreditEntry` (`projectId` · `year` · `credits` · `source`). `etenAPI.report(year)` reads the ledger and returns `credits: null` where nobody informed a value — it derives nothing from `progressHistory`. When the gate closes and the counting is automated, the automation writes entries with `source: "calculated"`; that field is the seam, so no screen changes.
 
+#### 4.1.1 Reads come from the fixture module; wave-1 writes live in a store
+
+FE-05 shipped **reads only** — deliberately, since no screen writes yet. This is the rule for when they do, so the four writing screens (FE-20…28, FE-31, FE-32/33, FE-37) do not each invent their own. Decided 30/jul/2026 by Levi Gomes.
+
+- **The fixture module never mutates.** It hands out a `structuredClone` on every read and holds no edited state. Do not add save/update methods to it in wave 1.
+- **One Zustand store per domain owns the mutated copy** — `projectsStore`, `rhythmStore`, `prayerStore`, as each issue's Scope already names. The store **hydrates once** from the fixture namespace (`projectsAPI.list()`, `meetingsAPI.log()`, …) and from then on it is the single source of truth for that domain. Screens read the store, not the fixture, after hydration.
+- **Never two owners of the same collection.** A screen that edits a project edits it in `projectsStore`; a screen that lists projects lists them from the same store. Re-reading the fixture after a write would silently resurrect the original record.
+- **`persist` where the prototype persists** (§8) — the prototype keeps projects, the meeting log, intercessors and saved views in localStorage. Wave 1 matches that; nothing else is persisted.
+- **Drafts are not writes.** Unconfirmed input — FE-20's partial record — is UI state in the record store, separate from the confirmed collection. Only an explicit save touches the domain data.
+- **In wave 2 the store is the write seam and the fixture module the read seam.** `hydrate()` becomes the API call and each mutation method becomes a `POST`/`PATCH` in `services/api.ts`. That is why the store must expose *operations* (`saveProject`, `logMeeting`, `markPrayerAnswered`) rather than a bare `setState` — an operation maps to an endpoint, a `setState` does not. FE-44 freezes those operations alongside the read contracts.
+
 ### Component rules
 
 - **Functional components only.** No class components.
@@ -461,6 +472,7 @@ Define a single global `*:focus-visible` outline using the telha focus ring. Com
 ### State
 
 - **Zustand** — cross-page state: filters + saved views, regions/team org chart cache, notifications, onboarding dismissals. One store per domain, `persist` middleware where the prototype persists to localStorage.
+- **In wave 1 the store is also where writes live** — it hydrates once from the fixture module and owns the mutated copy from then on. The rules, and why the fixture module stays read-only, are in §4.1.1.
 - **React Context** — `AuthContext` (user, roles, region scope) and `ThemeContext` (light/dark/system).
 - **Local state** — forms, modals, table filters. Do not lift unless shared across routes.
 
