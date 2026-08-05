@@ -5,6 +5,8 @@ import type { ProjectStatus } from "../../types/project";
 import type { RegionKey } from "../../types/region";
 import { createEmptyProject } from "../blank";
 import { buildEtenReport } from "../eten";
+import { toIsoDate } from "../normalize";
+import { loadRawProjects } from "../projects";
 import {
   etenAPI,
   fixtures,
@@ -90,6 +92,61 @@ describe("projects fixture", () => {
 
   it("returns null for an unknown project", async () => {
     expect(await projectsAPI.get("nao-existe")).toBeNull();
+  });
+});
+
+describe("date normalization", () => {
+  it("rewrites the DD/MM/YYYY of the export as an ISO date", () => {
+    expect(toIsoDate("13/04/2024")).toBe("2024-04-13");
+    expect(toIsoDate("01/03/2022")).toBe("2022-03-01");
+    expect(toIsoDate("3/4/2024")).toBe("2024-04-03");
+  });
+
+  it("leaves anything that is not an export date untouched", () => {
+    expect(toIsoDate("")).toBe("");
+    expect(toIsoDate("2024-04-13")).toBe("2024-04-13");
+    expect(toIsoDate("abril de 2024")).toBe("abril de 2024");
+    expect(toIsoDate("13/13/2024")).toBe("13/13/2024");
+    expect(toIsoDate("32/04/2024")).toBe("32/04/2024");
+  });
+
+  it("converts every date the export actually carries", () => {
+    const raw = loadRawProjects();
+    const dates = raw.flatMap((project) => [
+      project.startDate,
+      project.deadline,
+      project.lastUpdated,
+      project.healthAssessmentDate,
+      ...project.progressHistory.map((entry) => entry.date),
+    ]);
+
+    for (const date of dates.filter(Boolean)) {
+      expect(toIsoDate(date)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  it("hands the screens ISO dates only", async () => {
+    const projects = await projectsAPI.list();
+    const dates = projects.flatMap((project) => [
+      project.startDate,
+      project.deadline,
+      project.lastUpdated,
+      project.healthAssessmentDate,
+    ]);
+
+    for (const date of dates.filter(Boolean)) {
+      expect(date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(Number.isNaN(new Date(`${date}T00:00:00`).getTime())).toBe(false);
+    }
+  });
+
+  it("keeps the raw export readable as it was written", () => {
+    const raw = loadRawProjects();
+    expect(raw.filter((project) => project.startDate)).toHaveLength(8);
+    expect(
+      raw.find((project) => project.id === "guajajara")?.startDate ??
+        raw.find((project) => project.startDate)?.startDate,
+    ).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
   });
 });
 
