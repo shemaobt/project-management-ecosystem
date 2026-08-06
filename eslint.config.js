@@ -50,6 +50,46 @@ const noRawValue = [
       "Constante de estilo não carrega valor bruto. Se falta um tamanho, o conserto é um token em src/index.css (FE-02), não um literal aqui.",
   },
 ];
+const USER_FACING_ATTRS = new Set([
+  "title",
+  "placeholder",
+  "alt",
+  "aria-label",
+  "aria-description",
+  "label",
+]);
+
+const noHardcodedCopy = {
+  meta: {
+    type: "problem",
+    schema: [],
+    messages: {
+      hardcoded:
+        "Texto de UI não sai hardcoded: use uma chave dos catálogos (src/i18n/locales) via t(). Dado de campo (nome de língua, nota, pedido) renderiza direto, sem passar por tradução.",
+    },
+  },
+  create(context) {
+    const hasCopy = (value) =>
+      typeof value === "string" && /\p{Ll}/u.test(value);
+    return {
+      JSXText(node) {
+        if (hasCopy(node.value)) {
+          context.report({ node, messageId: "hardcoded" });
+        }
+      },
+      JSXAttribute(node) {
+        if (
+          node.name.type === "JSXIdentifier" &&
+          USER_FACING_ATTRS.has(node.name.name) &&
+          node.value?.type === "Literal" &&
+          hasCopy(node.value.value)
+        ) {
+          context.report({ node, messageId: "hardcoded" });
+        }
+      },
+    };
+  },
+};
 
 export default defineConfig([
   globalIgnores(["dist", "DS-PROJECT"]),
@@ -99,6 +139,20 @@ export default defineConfig([
     files: ["src/components/ui/**/*.tsx", "src/components/common/**/*.tsx"],
     rules: {
       "react-refresh/only-export-components": "off",
+    },
+  },
+  {
+    files: ["src/components/**/*.tsx"],
+    ignores: [
+      "src/components/pages/**",
+      "src/components/layout/AppShell.tsx",
+      "src/components/layout/TopNav.tsx",
+    ],
+    plugins: {
+      shema: { rules: { "no-hardcoded-copy": noHardcodedCopy } },
+    },
+    rules: {
+      "shema/no-hardcoded-copy": "error",
     },
   },
   {
