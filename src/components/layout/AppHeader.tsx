@@ -1,4 +1,6 @@
 import { Bell } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import "../../i18n";
 import { toast } from "../ui";
 import { usePrefsStore } from "../../stores/prefsStore";
 import { cn } from "../../utils/cn";
@@ -11,21 +13,17 @@ const TB_BTN = cn(
 );
 
 const PENDING_ACTIONS = [
-  { key: "field", glyph: "📨", label: "Receber Atualização" },
-  { key: "export", glyph: "↓", label: "Exportar" },
-  { key: "import", glyph: "↑", label: "Importar" },
+  { key: "field", glyph: "📨", labelKey: "btn_field" },
+  { key: "export", glyph: "↓", labelKey: "btn_export" },
+  { key: "import", glyph: "↑", labelKey: "btn_import" },
   {
     key: "reload",
     glyph: "⟳",
-    label: "Recarregar",
-    title: "Recarregar dados da planilha (limpa o cache local)",
+    labelKey: "btn_reload",
+    titleKey: "btn_reload_title",
   },
-  { key: "intake", glyph: "🔗", label: "Link do líder" },
+  { key: "intake", glyph: "🔗", labelKey: "btn_intake" },
 ] as const;
-
-function notifyPending(label: string) {
-  toast(`"${label}" ainda não está disponível — chega nas próximas entregas.`);
-}
 
 function BrandMark() {
   return (
@@ -46,14 +44,12 @@ function BrandMark() {
 }
 
 export function AppHeader() {
+  const { t } = useTranslation();
   const lang = usePrefsStore((state) => state.lang);
   const toggleLang = usePrefsStore((state) => state.toggleLang);
 
-  const handleLangToggle = () => {
-    toggleLang();
-    toast(
-      "Preferência de idioma salva — a tradução da interface chega com o i18n.",
-    );
+  const notifyPending = (label: string) => {
+    toast(t("toast_pending", { label }));
   };
 
   return (
@@ -69,36 +65,36 @@ export function AppHeader() {
         <span>SHEMA</span>
         <span className="h-6 w-px bg-branco/30" />
         <span className="hidden font-serif text-small font-normal normal-case italic tracking-normal text-areia sm:inline">
-          Ecossistema de Projetos Internacionais · YWAM
+          {t("app_sub")}
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-2.5">
         <button
           type="button"
           className={cn(TB_BTN, "text-micro font-bold")}
-          title="Language"
-          onClick={handleLangToggle}
+          title={t("lang_toggle")}
+          onClick={toggleLang}
         >
           {lang === "pt" ? "🇺🇸 EN" : "🇧🇷 PT"}
         </button>
         <button
           type="button"
           className={TB_BTN}
-          title="Notificações"
-          onClick={() => notifyPending("Notificações")}
+          title={t("notif_bell")}
+          onClick={() => notifyPending(t("notif_bell"))}
         >
           <Bell size={16} strokeWidth={2} aria-hidden />
-          <span className="sr-only">Notificações</span>
+          <span className="sr-only">{t("notif_bell")}</span>
         </button>
         {PENDING_ACTIONS.map((action) => (
           <button
             key={action.key}
             type="button"
             className={TB_BTN}
-            title={"title" in action ? action.title : undefined}
-            onClick={() => notifyPending(action.label)}
+            title={"titleKey" in action ? t(action.titleKey) : undefined}
+            onClick={() => notifyPending(t(action.labelKey))}
           >
-            {action.glyph} {action.label}
+            {action.glyph} {t(action.labelKey)}
           </button>
         ))}
         <button
@@ -107,9 +103,9 @@ export function AppHeader() {
             TB_BTN,
             "border-telha bg-telha hover:border-accent-hover hover:bg-accent-hover",
           )}
-          onClick={() => notifyPending("Novo Projeto")}
+          onClick={() => notifyPending(t("btn_new"))}
         >
-          + Novo Projeto
+          + {t("btn_new")}
         </button>
       </div>
     </header>
