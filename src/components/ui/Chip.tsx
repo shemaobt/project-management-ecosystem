@@ -1,10 +1,10 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "../../utils/cn";
-import { disabledControl, surfaceOutlined, transitionAll } from "../../styles";
+import { surfaceOutlined, transitionAll } from "../../styles";
 
 const chipVariants = cva(
-  `inline-flex items-center gap-1.5 font-medium ${transitionAll} ${disabledControl}`,
+  `inline-flex items-center gap-1.5 font-medium ${transitionAll} disabled:pointer-events-none disabled:opacity-40`,
   {
     variants: {
       variant: {
