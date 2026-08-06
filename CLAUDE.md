@@ -191,6 +191,8 @@ app/
 - All endpoints require `Authorization: Bearer <token>` except login and the public leader link.
 - The Monthly Pulse import must be **idempotent and transactional** — a double import is a no-op.
 - Sensitive-country redaction (§6.1) and consent (§6.2) are enforced **in services**, on every output path. A frontend-only rule is not a rule.
+- **BE-16 converts the Notion export's `DD/MM/YYYY` dates on import and stores real `date` columns** — never the raw string. The frontend's `toIsoDate` (§4.1) is the reference implementation, and the rule it encodes is that the export is unambiguously day-first. Storing the text as it comes moves a parsing bug into the database.
+- **The ETEN credit is a stored number, not a derived one** (§4.1). BE-11 persists `EtenCreditEntry` (`project_id`, `year`, `credits`, `source`) with `source = 'manual'` while GATE-01 is open; the automated counting, once decided, writes rows with `source = 'calculated'` against the same table.
 
 ---
 
@@ -227,6 +229,27 @@ src/
 - Types grown against fixtures are the input to the data contract (§10, FE-44) — they are not throwaway.
 - `vite.config.ts` carries the `/api` dev proxy from day one, **wired but unused**, so wave 2 changes no config. Its target is `VITE_API_PROXY_TARGET` (default `http://localhost:8000`, where `tripod-api` runs locally); `.env.example` documents it.
 - Auth in wave 1 is a **mocked session** in `AppShell`.
+
+**Built in FE-05 ([OBT-352](https://linear.app/shema-obt/issue/OBT-352)), 30/jul/2026 — Levi Gomes.** The layer exists; these are its rules:
+
+- **One entry point: `src/fixtures` (the index).** It exposes `projectsAPI`, `regionsAPI`, `meetingsAPI`, `prayerAPI`, `intercessorsAPI`, `etenAPI`, `geoAPI` — namespaces that mirror §8's Axios client — and every method is `async`. Screens `await` them exactly as they will `await` the API in wave 2. Deep imports (`fixtures/projects`, `fixtures/data/*.json`) are **blocked by ESLint** for `components/`, `contexts/`, `hooks/`, `stores/` and `services/`.
+- **The data is verbatim.** `src/fixtures/data/projects.json` is the Notion export as it is — empty fields, mixed casing, `Waima’a`, `Ngäbere`. Every read hands out a `structuredClone`, so a screen cannot corrupt the shared record.
+- **Every derivation is a pure function of `(project, now)`** in `src/utils/` — `getProjectStatus`, `getProgress`, `rollUpProgress`, `getOverallHealth`, `healthScore`, `getPriority`, `getStaleStatus`, `getDaysSinceUpdate`, `getDeadlineInfo`, `isRecentlyUpdated`, `matchesPreset`, `getRegion`. No hidden clock: `now` defaults to `new Date()` and is injected in tests. `tripod-api` has to reproduce these exactly, so they are pinned by `src/utils/__tests__/dataJsParity.json` — the output of the prototype's own `data.js` over all 127 records at the reference date `2026-05-14`. **Changing a derivation means regenerating that file, never hand-editing it: `npm run fixtures:parity`** (and `npm run fixtures:import` re-imports `projects.json` / `continents.json` from a fresh design package). Both scripts need `DS-PROJECT/` unzipped at the repo root and read it without writing to it.
+- **The Notion export writes dates as `DD/MM/YYYY`; the fixture converts them at the boundary.** Decided 30/jul/2026 by Levi Gomes. The export's format is provably `DD/MM/YYYY` — of the 70 dates it carries, 60 have a first component above 12 and none have a second one, so the reading is unambiguous. `src/fixtures/normalize.ts` (`toIsoDate`) converts `startDate`, `deadline`, `lastUpdated`, `healthAssessmentDate` and every `progressHistory[].date` before the seeds run; anything that is not an export date passes through untouched. `data/projects.json` stays byte-identical to the export — the conversion happens on load, never on the file.
+  - **This is a deliberate divergence from the prototype**, the only one. Left unconverted, the dates are unparseable: the prototype reads staleness as `em-dia` for all of them and the `recent` preset matches nothing. Converted, 7 projects correctly surface as `critico` at the reference date. `src/utils/__tests__/parity.test.ts` pins both sides — the helpers still reproduce `data.js` exactly over the raw export, and a second test asserts the conversion changes staleness *only* for the 8 records the export dated, leaving status, health, progress and region identical.
+  - **BE-16 must reproduce the same conversion** when it migrates the 127 projects, and store real `date` columns rather than text. `toIsoDate` is the reference implementation. A migration that inserts `13/04/2024` into a text column moves the bug into the database, where the fix costs a migration instead of a function.
+- **The ETEN credit is a typed-in number, never a calculation.** Decided 30/jul/2026 by Levi Gomes: until GATE-01 ([OBT-387](https://linear.app/shema-obt/issue/OBT-387)) closes, the credit of a project in a year is **entered by hand** and stored as an `EtenCreditEntry` (`projectId` · `year` · `credits` · `source`). `etenAPI.report(year)` reads the ledger and returns `credits: null` where nobody informed a value — it derives nothing from `progressHistory`. When the gate closes and the counting is automated, the automation writes entries with `source: "calculated"`; that field is the seam, so no screen changes.
+
+#### 4.1.1 Reads come from the fixture module; wave-1 writes live in a store
+
+FE-05 shipped **reads only** — deliberately, since no screen writes yet. This is the rule for when they do, so the four writing screens (FE-20…28, FE-31, FE-32/33, FE-37) do not each invent their own. Decided 30/jul/2026 by Levi Gomes.
+
+- **The fixture module never mutates.** It hands out a `structuredClone` on every read and holds no edited state. Do not add save/update methods to it in wave 1.
+- **One Zustand store per domain owns the mutated copy** — `projectsStore`, `rhythmStore`, `prayerStore`, as each issue's Scope already names. The store **hydrates once** from the fixture namespace (`projectsAPI.list()`, `meetingsAPI.log()`, …) and from then on it is the single source of truth for that domain. Screens read the store, not the fixture, after hydration.
+- **Never two owners of the same collection.** A screen that edits a project edits it in `projectsStore`; a screen that lists projects lists them from the same store. Re-reading the fixture after a write would silently resurrect the original record.
+- **`persist` where the prototype persists** (§8) — the prototype keeps projects, the meeting log, intercessors and saved views in localStorage. Wave 1 matches that; nothing else is persisted.
+- **Drafts are not writes.** Unconfirmed input — FE-20's partial record — is UI state in the record store, separate from the confirmed collection. Only an explicit save touches the domain data.
+- **In wave 2 the store is the write seam and the fixture module the read seam.** `hydrate()` becomes the API call and each mutation method becomes a `POST`/`PATCH` in `services/api.ts`. That is why the store must expose *operations* (`saveProject`, `logMeeting`, `markPrayerAnswered`) rather than a bare `setState` — an operation maps to an endpoint, a `setState` does not. FE-44 freezes those operations alongside the read contracts.
 
 ### Component rules
 
@@ -449,6 +472,7 @@ Define a single global `*:focus-visible` outline using the telha focus ring. Com
 ### State
 
 - **Zustand** — cross-page state: filters + saved views, regions/team org chart cache, notifications, onboarding dismissals. One store per domain, `persist` middleware where the prototype persists to localStorage.
+- **In wave 1 the store is also where writes live** — it hydrates once from the fixture module and owns the mutated copy from then on. The rules, and why the fixture module stays read-only, are in §4.1.1.
 - **React Context** — `AuthContext` (user, roles, region scope) and `ThemeContext` (light/dark/system).
 - **Local state** — forms, modals, table filters. Do not lift unless shared across routes.
 

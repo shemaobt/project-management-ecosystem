@@ -27,6 +27,35 @@ export default defineConfig([
     },
   },
   {
+    files: [
+      "src/components/**/*.{ts,tsx}",
+      "src/contexts/**/*.{ts,tsx}",
+      "src/hooks/**/*.{ts,tsx}",
+      "src/stores/**/*.{ts,tsx}",
+      "src/services/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/fixtures/*", "**/fixtures/**"],
+              message:
+                "As telas leem a camada de fixtures por um único módulo: importe de src/fixtures (o índice), nunca um arquivo interno.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/components/ui/**/*.tsx", "src/components/common/**/*.tsx"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
+  {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-syntax": [
