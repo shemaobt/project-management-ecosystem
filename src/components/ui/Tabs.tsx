@@ -1,6 +1,7 @@
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import type { ComponentPropsWithoutRef } from "react";
 import { cn } from "../../utils/cn";
+import { divider, transitionColors } from "../../styles";
 
 export const Tabs = TabsPrimitive.Root;
 
@@ -11,7 +12,8 @@ export function TabsList({
   return (
     <TabsPrimitive.List
       className={cn(
-        "flex gap-1 overflow-x-auto border-b border-line",
+        divider,
+        "flex gap-1 overflow-x-auto",
         className,
       )}
       {...props}
@@ -26,7 +28,8 @@ export function TabsTrigger({
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        "-mb-px shrink-0 border-b-2 border-transparent px-4.5 py-3.5 text-small font-bold tracking-[0.02em] whitespace-nowrap text-fg-subtle transition-colors duration-[140ms] ease-out hover:text-verde data-[state=active]:border-telha data-[state=active]:text-telha",
+        transitionColors,
+        "-mb-px shrink-0 border-b-2 border-transparent px-4.5 py-3.5 text-small font-bold tracking-[0.02em] whitespace-nowrap text-fg-subtle hover:text-verde data-[state=active]:border-telha data-[state=active]:text-telha",
         className,
       )}
       {...props}

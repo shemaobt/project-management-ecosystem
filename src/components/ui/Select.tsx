@@ -2,7 +2,7 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown } from "lucide-react";
 import type { ComponentPropsWithoutRef } from "react";
 import { cn } from "../../utils/cn";
-import { fieldBase } from "./fieldStyles";
+import { fieldBase, surfaceOutlined } from "../../styles";
 
 export const Select = SelectPrimitive.Root;
 export const SelectGroup = SelectPrimitive.Group;
@@ -41,7 +41,7 @@ export function SelectContent({
       <SelectPrimitive.Content
         position={position}
         className={cn(
-          "z-50 max-h-72 min-w-(--radix-select-trigger-width) overflow-hidden rounded-sm border border-line bg-elevated shadow-md",
+          `z-50 max-h-72 min-w-(--radix-select-trigger-width) overflow-hidden rounded-sm ${surfaceOutlined} shadow-md`,
           position === "popper" && "mt-1",
           className,
         )}

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { titleText } from "../../styles";
 import { cn } from "../../utils/cn";
 
 export interface EmptyStateProps {
@@ -25,7 +26,7 @@ export function EmptyState({
     >
       {icon ? <span className="text-fg-subtle">{icon}</span> : null}
       {title ? (
-        <p className="text-h4 font-semibold text-fg-strong">{title}</p>
+        <p className={titleText}>{title}</p>
       ) : null}
       <p className="max-w-(--container-narrow) font-serif text-[15px] leading-body italic text-fg-muted">
         {message}

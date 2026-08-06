@@ -122,6 +122,7 @@
   --fs-small: 14px;
   --fs-micro: 12px;
   --fs-eyebrow: 13px;
+  --fs-tag: 11px;
 
   --lh-tight: 1.05;
   --lh-snug: 1.2;
@@ -331,6 +332,7 @@
   --text-small: var(--fs-small);
   --text-micro: var(--fs-micro);
   --text-micro--letter-spacing: 0.02em;
+  --text-tag: var(--fs-tag);
   --text-eyebrow: var(--fs-eyebrow);
   --text-eyebrow--letter-spacing: var(--tracking-eyebrow);
   --text-eyebrow--font-weight: 600;
