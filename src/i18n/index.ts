@@ -9,6 +9,12 @@ export const resources = {
   en: { translation: en },
 } as const;
 
+i18n.on("languageChanged", () => {
+  if (typeof document !== "undefined") {
+    document.documentElement.lang = i18n.t("locale");
+  }
+});
+
 void i18n.use(initReactI18next).init({
   resources,
   lng: usePrefsStore.getState().lang,
@@ -16,12 +22,6 @@ void i18n.use(initReactI18next).init({
   keySeparator: false,
   nsSeparator: false,
   interpolation: { escapeValue: false },
-});
-
-i18n.on("languageChanged", () => {
-  if (typeof document !== "undefined") {
-    document.documentElement.lang = i18n.t("locale");
-  }
 });
 
 usePrefsStore.subscribe((state) => {
