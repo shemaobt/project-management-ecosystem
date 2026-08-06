@@ -4,3 +4,4 @@ export * from "./roles";
 export * from "./meetings";
 export * from "./presets";
 export * from "./bible";
+export * from "./status";

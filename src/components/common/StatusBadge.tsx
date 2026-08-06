@@ -1,39 +1,38 @@
 import { cva } from "class-variance-authority";
 import { AlertTriangle, Check, Circle, Minus, X } from "lucide-react";
 import type { ComponentType } from "react";
-import {
-  HEALTH_SYMBOLS,
-  type HealthState,
-  type PrayerState,
-  type PriorityState,
-  type RhythmState,
-  type StaleState,
-} from "../../constants/status";
+import { HEALTH_SYMBOLS, type PrayerState } from "../../constants/status";
+import type { MeetingState } from "../../types/meeting";
+import type {
+  OverallHealth,
+  ProjectPriority,
+  StaleStatus,
+} from "../../types/project";
 import { cn } from "../../utils/cn";
 
 type IconComponent = ComponentType<{ size?: number; strokeWidth?: number }>;
 
-export const HEALTH_TONES: Record<HealthState, string> = {
+export const HEALTH_TONES: Record<OverallHealth, string> = {
   boa: "bg-status-good-bg text-verde-claro",
   atencao: "bg-status-attention-bg text-status-attention-fg",
   critica: "bg-status-critical-bg text-telha",
   na: "bg-muted text-fg-subtle",
 };
 
-export const HEALTH_DOT_TONES: Record<HealthState, string> = {
+export const HEALTH_DOT_TONES: Record<OverallHealth, string> = {
   boa: "bg-status-good text-branco",
   atencao: "bg-status-attention text-branco",
   critica: "bg-status-critical text-branco",
   na: "bg-status-na text-verde opacity-60",
 };
 
-export const STALE_TONES: Record<StaleState, string> = {
+export const STALE_TONES: Record<StaleStatus, string> = {
   "em-dia": "bg-status-good-bg text-verde-claro",
   atencao: "bg-status-attention-bg text-status-attention-fg",
   critico: "bg-status-critical-bg text-telha",
 };
 
-export const RHYTHM_TONES: Record<RhythmState, string> = {
+export const RHYTHM_TONES: Record<MeetingState, string> = {
   done: "bg-rhythm-done-bg text-rhythm-done-fg",
   pending: "bg-rhythm-pending-bg text-rhythm-pending-fg",
   overdue: "bg-rhythm-overdue-bg text-rhythm-overdue-fg",
@@ -44,7 +43,7 @@ export const PRAYER_TONES: Record<PrayerState, string> = {
   answered: "bg-answered-bg text-answered-fg",
 };
 
-export const PRIORITY_TONES: Record<PriorityState, string> = {
+export const PRIORITY_TONES: Record<ProjectPriority, string> = {
   critical: "bg-status-critical",
   warning: "bg-status-attention",
   completed: "bg-status-good",
@@ -55,20 +54,20 @@ export const PRIORITY_TONES: Record<PriorityState, string> = {
   default: "bg-status-na",
 };
 
-export const HEALTH_ICONS: Record<HealthState, IconComponent> = {
+export const HEALTH_ICONS: Record<OverallHealth, IconComponent> = {
   boa: Check,
   atencao: AlertTriangle,
   critica: X,
   na: Minus,
 };
 
-export const STALE_ICONS: Record<StaleState, IconComponent> = {
+export const STALE_ICONS: Record<StaleStatus, IconComponent> = {
   "em-dia": Check,
   atencao: AlertTriangle,
   critico: X,
 };
 
-export const RHYTHM_ICONS: Record<RhythmState, IconComponent> = {
+export const RHYTHM_ICONS: Record<MeetingState, IconComponent> = {
   done: Check,
   pending: Circle,
   overdue: AlertTriangle,
@@ -105,9 +104,9 @@ export const priorityPinVariants = cva("size-2 rounded-pill", {
 });
 
 type StatusBadgeProps = { label: string; className?: string } & (
-  | { kind: "health"; state: HealthState }
-  | { kind: "stale"; state: StaleState }
-  | { kind: "rhythm"; state: RhythmState }
+  | { kind: "health"; state: OverallHealth }
+  | { kind: "stale"; state: StaleStatus }
+  | { kind: "rhythm"; state: MeetingState }
   | { kind: "prayer"; state: PrayerState }
 );
 
@@ -147,7 +146,7 @@ export function StatusBadge(props: StatusBadgeProps) {
 }
 
 export interface StatusDotProps {
-  state: HealthState;
+  state: OverallHealth;
   label: string;
   className?: string;
 }
@@ -162,7 +161,7 @@ export function StatusDot({ state, label, className }: StatusDotProps) {
 }
 
 export interface PriorityPinProps {
-  priority: PriorityState;
+  priority: ProjectPriority;
   className?: string;
 }
 

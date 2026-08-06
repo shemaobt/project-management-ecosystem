@@ -5,6 +5,8 @@ import type {
   NeedStatus,
   NeedUrgency,
   Objective,
+  OverallHealth,
+  ProjectPriority,
   ProjectStatus,
   StaleStatus,
   TranslationType,
@@ -32,7 +34,20 @@ export const EXPLICIT_PROJECT_STATUSES: readonly ProjectStatus[] = [
 
 export const HEALTH_LEVELS: readonly HealthLevel[] = ["boa", "atencao", "critica"];
 
+export const OVERALL_HEALTH_STATES: readonly OverallHealth[] = [...HEALTH_LEVELS, "na"];
+
 export const STALE_STATUSES: readonly StaleStatus[] = ["em-dia", "atencao", "critico"];
+
+export const PROJECT_PRIORITIES: readonly ProjectPriority[] = [
+  "critical",
+  "warning",
+  "completed",
+  "planned",
+  "paused",
+  "canceled",
+  "unknown",
+  "default",
+];
 
 export const TRANSLATION_TYPES: readonly TranslationType[] = [
   "OBT",

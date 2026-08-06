@@ -1,4 +1,11 @@
-import type { MeetingDefinition } from "../types/meeting";
+import type { MeetingDefinition, MeetingState } from "../types/meeting";
+
+export const MEETING_STATES: readonly MeetingState[] = [
+  "done",
+  "pending",
+  "overdue",
+  "new",
+];
 
 export const RITMO_MEETINGS: readonly MeetingDefinition[] = [
   {

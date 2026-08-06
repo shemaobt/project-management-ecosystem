@@ -10,17 +10,19 @@ import {
   RHYTHM_TONES,
   STALE_TONES,
 } from "../components/common/StatusBadge";
+import { MEETING_STATES } from "./meetings";
+import {
+  OVERALL_HEALTH_STATES,
+  PROJECT_PRIORITIES,
+  STALE_STATUSES,
+} from "./project";
 import {
   HEALTH_LABEL_KEYS,
-  HEALTH_STATES,
   HEALTH_SYMBOLS,
   PRAYER_LABEL_KEYS,
   PRAYER_STATES,
-  PRIORITY_STATES,
   RHYTHM_LABEL_KEYS,
-  RHYTHM_STATES,
   STALE_LABEL_KEYS,
-  STALE_STATES,
 } from "./status";
 
 const PROTOTYPE = resolve(import.meta.dirname, "../../DS-PROJECT");
@@ -33,11 +35,11 @@ const returnedLiterals = (body: string) =>
 
 describe("cada vocabulário tem uma variante cva", () => {
   it.each([
-    ["health", HEALTH_STATES, HEALTH_TONES],
-    ["stale", STALE_STATES, STALE_TONES],
-    ["rhythm", RHYTHM_STATES, RHYTHM_TONES],
+    ["health", OVERALL_HEALTH_STATES, HEALTH_TONES],
+    ["stale", STALE_STATUSES, STALE_TONES],
+    ["rhythm", MEETING_STATES, RHYTHM_TONES],
     ["prayer", PRAYER_STATES, PRAYER_TONES],
-    ["priority", PRIORITY_STATES, PRIORITY_TONES],
+    ["priority", PROJECT_PRIORITIES, PRIORITY_TONES],
   ] as const)("%s", (_kind, states, tones) => {
     expect(Object.keys(tones).sort()).toEqual([...states].sort());
   });
@@ -45,45 +47,45 @@ describe("cada vocabulário tem uma variante cva", () => {
 
 describe("cada estado tem uma chave i18n e um símbolo", () => {
   it.each([
-    ["health", HEALTH_STATES, HEALTH_LABEL_KEYS],
-    ["stale", STALE_STATES, STALE_LABEL_KEYS],
-    ["rhythm", RHYTHM_STATES, RHYTHM_LABEL_KEYS],
+    ["health", OVERALL_HEALTH_STATES, HEALTH_LABEL_KEYS],
+    ["stale", STALE_STATUSES, STALE_LABEL_KEYS],
+    ["rhythm", MEETING_STATES, RHYTHM_LABEL_KEYS],
     ["prayer", PRAYER_STATES, PRAYER_LABEL_KEYS],
   ] as const)("%s", (_kind, states, keys) => {
     expect(Object.keys(keys).sort()).toEqual([...states].sort());
   });
 
   it("health symbols", () => {
-    expect(Object.keys(HEALTH_SYMBOLS).sort()).toEqual([...HEALTH_STATES].sort());
+    expect(Object.keys(HEALTH_SYMBOLS).sort()).toEqual([...OVERALL_HEALTH_STATES].sort());
   });
 });
 
 describe("o status sobrevive sem cor", () => {
   it("cada estado de saúde tem um ícone próprio", () => {
-    expect(new Set(Object.values(HEALTH_ICONS)).size).toBe(HEALTH_STATES.length);
+    expect(new Set(Object.values(HEALTH_ICONS)).size).toBe(OVERALL_HEALTH_STATES.length);
   });
 
   it("cada estado de saúde tem um símbolo próprio", () => {
     expect(new Set(Object.values(HEALTH_SYMBOLS)).size).toBe(
-      HEALTH_STATES.length,
+      OVERALL_HEALTH_STATES.length,
     );
   });
 
   it("cada estado de ritmo tem um ícone próprio", () => {
-    expect(new Set(Object.values(RHYTHM_ICONS)).size).toBe(RHYTHM_STATES.length);
+    expect(new Set(Object.values(RHYTHM_ICONS)).size).toBe(MEETING_STATES.length);
   });
 });
 
 describe.skipIf(!hasPrototype)("os vocabulários batem com DS-PROJECT", () => {
   it("health vem de getOverallHealth", () => {
     expect(returnedLiterals(fnBody(read("data.js"), "getOverallHealth"))).toEqual(
-      new Set(HEALTH_STATES),
+      new Set(OVERALL_HEALTH_STATES),
     );
   });
 
   it("stale vem de getStaleStatus", () => {
     expect(returnedLiterals(fnBody(read("data.js"), "getStaleStatus"))).toEqual(
-      new Set(STALE_STATES),
+      new Set(STALE_STATUSES),
     );
   });
 
@@ -92,12 +94,12 @@ describe.skipIf(!hasPrototype)("os vocabulários batem com DS-PROJECT", () => {
     const returned = [...(stateLbl?.[1] ?? "").matchAll(/(\w+):\s*t\./g)].map(
       (m) => m[1],
     );
-    expect(new Set(returned)).toEqual(new Set(RHYTHM_STATES));
+    expect(new Set(returned)).toEqual(new Set(MEETING_STATES));
   });
 
   it("priority vem de getPriority", () => {
     expect(returnedLiterals(fnBody(read("data.js"), "getPriority"))).toEqual(
-      new Set(PRIORITY_STATES),
+      new Set(PROJECT_PRIORITIES),
     );
   });
 
