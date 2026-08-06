@@ -71,6 +71,20 @@ const noHardcodedCopy = {
   create(context) {
     const hasCopy = (value) =>
       typeof value === "string" && /\p{Ll}/u.test(value);
+    const staticString = (expression) => {
+      if (expression.type === "Literal") return expression.value;
+      if (
+        expression.type === "TemplateLiteral" &&
+        expression.expressions.length === 0
+      ) {
+        return expression.quasis.map((quasi) => quasi.value.cooked).join("");
+      }
+      return null;
+    };
+    const isUserFacingAttr = (node) =>
+      node.type === "JSXAttribute" &&
+      node.name.type === "JSXIdentifier" &&
+      USER_FACING_ATTRS.has(node.name.name);
     return {
       JSXText(node) {
         if (hasCopy(node.value)) {
@@ -79,11 +93,20 @@ const noHardcodedCopy = {
       },
       JSXAttribute(node) {
         if (
-          node.name.type === "JSXIdentifier" &&
-          USER_FACING_ATTRS.has(node.name.name) &&
+          isUserFacingAttr(node) &&
           node.value?.type === "Literal" &&
           hasCopy(node.value.value)
         ) {
+          context.report({ node, messageId: "hardcoded" });
+        }
+      },
+      JSXExpressionContainer(node) {
+        const parent = node.parent;
+        const rendersToUser =
+          parent.type === "JSXElement" ||
+          parent.type === "JSXFragment" ||
+          isUserFacingAttr(parent);
+        if (rendersToUser && hasCopy(staticString(node.expression))) {
           context.report({ node, messageId: "hardcoded" });
         }
       },
