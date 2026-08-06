@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import {
-  MOCK_SESSION_USERS,
+  MOCK_SESSION_PERSONAS,
   SESSION_ROLE_LABELS,
   useAuth,
   type SessionRole,
@@ -9,10 +9,10 @@ import { cn } from "../../utils/cn";
 import { AppHeader } from "./AppHeader";
 import { TopNav } from "./TopNav";
 
-const SESSION_ROLES = Object.keys(MOCK_SESSION_USERS) as SessionRole[];
+const SESSION_ROLES = Object.keys(MOCK_SESSION_PERSONAS) as SessionRole[];
 
 function RoleSwitcher() {
-  const { user, visibleRegions, switchRole } = useAuth();
+  const { status, user, visibleRegions, switchRole } = useAuth();
 
   return (
     <aside className="fixed bottom-6 left-6 z-50 flex max-w-72 flex-col gap-2 rounded-lg bg-elevated p-4 shadow-lg">
@@ -24,9 +24,11 @@ function RoleSwitcher() {
       </span>
       <span className="text-micro text-fg-muted">
         {SESSION_ROLE_LABELS[user.role]} ·{" "}
-        {visibleRegions.length === 1
-          ? "1 região"
-          : `${visibleRegions.length} regiões`}
+        {status === "loading"
+          ? "carregando regiões…"
+          : visibleRegions.length === 1
+            ? "1 região"
+            : `${visibleRegions.length} regiões`}
       </span>
       <div className="flex flex-wrap gap-1.5">
         {SESSION_ROLES.map((role) => (
