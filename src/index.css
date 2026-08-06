@@ -159,6 +159,8 @@
   --duration-fast: 140ms;
   --duration: 220ms;
   --duration-slow: 380ms;
+  --transition-duration-fast: var(--duration-fast);
+  --transition-duration-slow: var(--duration-slow);
 
   --container-max: 1200px;
   --container-narrow: 760px;

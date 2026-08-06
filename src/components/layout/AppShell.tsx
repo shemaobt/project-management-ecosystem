@@ -37,7 +37,7 @@ function RoleSwitcher() {
             type="button"
             onClick={() => switchRole(role)}
             className={cn(
-              "rounded-pill px-2.5 py-1 text-micro font-semibold transition-colors duration-[140ms] ease-out",
+              "rounded-pill px-2.5 py-1 text-micro font-semibold transition-colors duration-fast ease-out",
               role === user.role
                 ? "bg-telha text-branco"
                 : "bg-muted text-fg-muted hover:text-verde",
