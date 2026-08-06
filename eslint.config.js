@@ -167,7 +167,16 @@ export default defineConfig([
   {
     files: ["src/components/**/*.tsx"],
     ignores: [
-      "src/components/pages/**",
+      "src/components/pages/design-system/ControlsSection.tsx",
+      "src/components/pages/design-system/DesignSystemPage.tsx",
+      "src/components/pages/design-system/StatusSection.tsx",
+      "src/components/pages/design-system/SurfacesSection.tsx",
+      "src/components/pages/equipe/EquipePage.tsx",
+      "src/components/pages/formularios/FormulariosPage.tsx",
+      "src/components/pages/intercessores/IntercessoresPage.tsx",
+      "src/components/pages/oracao/OracaoPage.tsx",
+      "src/components/pages/projetos/ProjetosPage.tsx",
+      "src/components/pages/ritmo/RitmoPage.tsx",
       "src/components/layout/AppShell.tsx",
       "src/components/layout/TopNav.tsx",
     ],
