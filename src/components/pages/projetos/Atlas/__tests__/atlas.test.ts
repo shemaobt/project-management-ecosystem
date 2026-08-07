@@ -166,13 +166,13 @@ describe("agrupamento de marcadores sobrepostos", () => {
 });
 
 describe("derivações do globo", () => {
-  it("estatísticas noturnas: total, ativos e regiões distintas", () => {
+  it("estatísticas noturnas: 'regiões' conta as regiões do produto, não países", () => {
     const projects = [
       makeProject({ id: "a", location: "Brazil" }),
       makeProject({ id: "b", location: "Peru", status: "concluido" }),
       makeProject({
         id: "c",
-        location: "Brazil",
+        location: "Colombia",
         status: "final",
         totalUnits: 100,
         translatedUnits: 80,

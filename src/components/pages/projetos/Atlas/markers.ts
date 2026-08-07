@@ -1,6 +1,10 @@
 import type { Project } from "../../../../types/project";
 import { getProjectStatus } from "../../../../utils/progress";
-import { getMapPlacement, type MapPlacement } from "../../../../utils/region";
+import {
+  getMapPlacement,
+  getRegion,
+  type MapPlacement,
+} from "../../../../utils/region";
 
 export interface AtlasMarkerSource {
   project: Project;
@@ -41,10 +45,6 @@ export function buildNightStats(projects: readonly Project[]): NightStats {
     const status = getProjectStatus(project);
     return status === "em-andamento" || status === "final";
   }).length;
-  const regions = new Set(
-    projects
-      .map((project) => project.location.split(",").pop()?.trim())
-      .filter(Boolean),
-  );
+  const regions = new Set(projects.map(getRegion));
   return { total: projects.length, inProgress, regions: regions.size };
 }
