@@ -47,7 +47,11 @@ export function Globe({ projects, onSelect }: GlobeProps) {
   const [autoRotate, setAutoRotate] = useState(true);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [medPos, setMedPos] = useState({ x: 0, y: 0, side: "right" });
+  const [medPos, setMedPos] = useState<{
+    x: number;
+    y: number;
+    side: "left" | "right";
+  }>({ x: 0, y: 0, side: "right" });
   const [outlines, setOutlines] = useState<GeoOutline[]>([]);
   const dragRef = useRef<{
     startX: number;
