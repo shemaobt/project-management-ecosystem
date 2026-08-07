@@ -212,12 +212,12 @@ export function filterProjects(
       counts.health[health] += 1;
     }
     if (countsFor("objective")) {
-      for (const objective of project.objective) {
+      for (const objective of new Set(project.objective)) {
         counts.objective[objective] = (counts.objective[objective] ?? 0) + 1;
       }
     }
     if (countsFor("financial")) {
-      for (const resource of project.financialResources) {
+      for (const resource of new Set(project.financialResources)) {
         counts.financial[resource] = (counts.financial[resource] ?? 0) + 1;
       }
     }
@@ -235,16 +235,18 @@ export function filterProjects(
         (counts.vitality[project.vitalityStatus] ?? 0) + 1;
     }
     if (countsFor("translationType")) {
-      for (const type of project.translationType) {
+      for (const type of new Set(project.translationType)) {
         counts.translationType[type] = (counts.translationType[type] ?? 0) + 1;
       }
     }
     if (countsFor("needCategory")) {
+      const needCategories = new Set<NeedCategory>();
       for (const need of project.needsItems) {
-        if (need.category) {
-          counts.needCategory[need.category] =
-            (counts.needCategory[need.category] ?? 0) + 1;
-        }
+        if (need.category) needCategories.add(need.category);
+      }
+      for (const category of needCategories) {
+        counts.needCategory[category] =
+          (counts.needCategory[category] ?? 0) + 1;
       }
     }
     for (const preset of PRESET_IDS) {

@@ -219,3 +219,39 @@ describe("filterProjects over the fixtures", () => {
     expect(totalByContinent).toBe(projects.length);
   });
 });
+
+describe("filterProjects when a project repeats a facet value", () => {
+  it("still counts what a click returns, one per project", () => {
+    const doubled = makeProject({
+      objective: ["NT", "NT"],
+      financialResources: ["Seed Company", "Seed Company"],
+      translationType: ["OBT", "OBT"],
+      needsItems: [
+        {
+          category: "financial",
+          urgency: "high",
+          status: "open",
+          description: "salary gap",
+        },
+        {
+          category: "financial",
+          urgency: "low",
+          status: "open",
+          description: "travel",
+        },
+      ],
+    });
+    const base = filterProjects([doubled], EMPTY_FILTERS, "", NOW);
+    expect(base.counts.objective.NT).toBe(1);
+    expect(base.counts.financial["Seed Company"]).toBe(1);
+    expect(base.counts.translationType.OBT).toBe(1);
+    expect(base.counts.needCategory.financial).toBe(1);
+    const clicked = filterProjects(
+      [doubled],
+      withFilters({ needCategory: "financial" }),
+      "",
+      NOW,
+    );
+    expect(clicked.projects.length).toBe(base.counts.needCategory.financial);
+  });
+});
