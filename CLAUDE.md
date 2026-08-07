@@ -100,9 +100,16 @@ It is **not versioned in this repo** (`.gitignore`). Get the design package from
 - **Toasts**: sonner
 - **i18n**: i18next, PT/EN toggle, keys ported from `DS-PROJECT/data.js`
 - **Utilities**: `cva`, `clsx`, `tailwind-merge`; use `cn()` from `src/utils/cn.ts`
-- **Maps**: react-leaflet + leaflet (Atlas view)
+- **Maps**: react-leaflet + leaflet — **not used by the Atlas; see the FE-14 decision below.** The dependency stays pinned (FE-01) for possible future geographic needs; removing it is a wave-2 cleanup call.
 
 Do not introduce Redux, MobX, or a second styling system.
+
+**Resolved in FE-14 ([OBT-359](https://linear.app/shema-obt/issue/OBT-359)), 07/aug/2026 — Levi Gomes.** The Atlas map is the prototype's **hand-drawn SVG night globe** (`globe.jsx` + `continents.js`), not a react-leaflet tile map:
+
+- **Rule zero**: the approved Atlas visual is the night globe with medallions; a tile map cannot reproduce it.
+- **Privacy**: tile servers are a third-party request from every user's browser — the user's IP plus the tiles they load reveal which regions they are inspecting. For a product used by teams in sensitive countries, the SVG's zero external requests is the safe position, and it needs no tile licence.
+- The flat `WorldMap` (`worldmap.jsx`) is loaded but never mounted by the composed prototype — only the `Globe` ships. Its overlap-spread logic (grouping markers by screen cell and pushing them apart) was ported into the globe's marker layer as the clustering mechanism.
+- Doc conflict, resolved per §2 (prototype wins on visuals): the prototype's `.card-atlas` list row carries a hairline `--line` border and gains its shadow only on hover, so the ported Atlas card does too. §7.3's "cards have no borders — shadow only" describes the elevated content cards, not the Projetos list rows.
 
 **Resolved in FE-01 ([OBT-348](https://linear.app/shema-obt/issue/OBT-348)), 30/jul/2026 — Levi Gomes.** Two questions this section left open are now closed:
 
@@ -288,6 +295,8 @@ Plus the project record (`modals.jsx`) as FE-20…28 / BE-06 / INT-03, and Iníc
 - **Atlas** additionally renders the rotating night globe with photo medallions above the grid.
 - Pagination: 30 items, *Mostrar mais* +30.
 
+> **Sensitive countries on the map — decided in FE-14 ([OBT-359](https://linear.app/shema-obt/issue/OBT-359)), 07/aug/2026 — Levi Gomes, pending client confirmation (`needs-client-decision`).** A `sensitiveCountry` project is **never plotted at its true coordinates**: the Atlas places it at its **region's centroid** (`REGION_CENTROIDS` in `src/constants/geo.ts`), its marker carries a dashed "approximate" ring, and a visible overlay on the globe counts how many projects are being withheld — a silently incomplete map is its own hazard, so the reduction is always announced. The same rule redacts the *displayed location*: cards, tooltips and the medallion show the region name, never the country or place. The single owner of the rule is `getMapPlacement` / `getLocationDisplay` in `src/utils/region.ts` — any view that renders position or location (FE-15's cards included) must go through it, never reimplement it. Reduced precision was chosen over omission (the map must show exactly what the filters return) and over role-gating (wave 1 has only a mocked session). Tests in `src/components/pages/projetos/Atlas/__tests__/` pin the guarantee.
+>
 > ⚠️ **Two views or three? — client gate, FE-17 ([OBT-362](https://linear.app/shema-obt/issue/OBT-362)).** The prototype implements three metaphors; the PRD v1.1 revision history records a client decision that *"list views reduced to Atlas and Journal."* This is scope dressed as a visual, so §2's "prototype wins on visuals" does not settle it. Do not finish or delete Coral before the answer lands — and record the decision, its date and its author here when it does.
 
 ### 5.2 Cadastro do projeto — the living record
