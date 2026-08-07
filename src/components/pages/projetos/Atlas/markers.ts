@@ -14,17 +14,16 @@ export interface AtlasMarkerSource {
 export function buildMarkerSources(
   projects: readonly Project[],
 ): AtlasMarkerSource[] {
-  return projects.flatMap((project) => {
-    const placement = getMapPlacement(project);
-    return placement ? [{ project, placement }] : [];
-  });
+  return projects.map((project) => ({
+    project,
+    placement: getMapPlacement(project),
+  }));
 }
 
 export function countWithheld(
   sources: readonly AtlasMarkerSource[],
 ): number {
-  return sources.filter((source) => source.placement.precision === "region")
-    .length;
+  return sources.filter((source) => source.project.sensitiveCountry).length;
 }
 
 export function markerRadius(project: Project): number {

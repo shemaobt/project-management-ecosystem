@@ -5,6 +5,7 @@ import {
   EMPTY_FILTERS,
   type ProjectFilters,
 } from "../../../../../stores/filtersStore";
+import type { Project } from "../../../../../types/project";
 import { makeProject } from "../../../../../utils/__tests__/factory";
 import {
   getLocationDisplay,
@@ -131,13 +132,27 @@ describe("país sensível nunca aparece em precisão total", () => {
     }
   });
 
-  it("o aviso conta exatamente os marcadores aproximados do conjunto filtrado", async () => {
+  it("o aviso conta exatamente os projetos sensíveis do conjunto filtrado", async () => {
     const all = await projectsAPI.list();
     const result = filterProjects(all, { ...EMPTY_FILTERS }, "", NOW);
     const sources = buildMarkerSources(result.projects);
     expect(countWithheld(sources)).toBe(
       result.projects.filter((project) => project.sensitiveCountry).length,
     );
+  });
+
+  it("projeto sem coordenadas não some do mapa: plota na região, fora do aviso", () => {
+    const noCoords = {
+      ...makeProject({ location: "Peru" }),
+      coords: undefined,
+    } as unknown as Project;
+    const sources = buildMarkerSources([noCoords]);
+    expect(sources).toHaveLength(1);
+    expect(sources[0].placement).toEqual({
+      coords: REGION_CENTROIDS["south-america"],
+      precision: "region",
+    });
+    expect(countWithheld(sources)).toBe(0);
   });
 });
 

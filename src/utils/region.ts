@@ -25,14 +25,12 @@ export interface MapPlacement {
   precision: MapPrecision;
 }
 
-export function getMapPlacement(project: Project): MapPlacement | null {
-  if (project.sensitiveCountry) {
+export function getMapPlacement(project: Project): MapPlacement {
+  if (project.sensitiveCountry || !project.coords) {
     const [lng, lat] = REGION_CENTROIDS[getRegion(project)];
     return { coords: [lng, lat], precision: "region" };
   }
-  return project.coords
-    ? { coords: project.coords, precision: "exact" }
-    : null;
+  return { coords: project.coords, precision: "exact" };
 }
 
 export type LocationDisplay =
