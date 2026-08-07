@@ -86,7 +86,7 @@ describe("detailed filters", () => {
       expect(options[sectionId].length).toBeGreaterThan(0);
       for (const spec of options[sectionId]) {
         useFiltersStore.setState({ filters: { ...EMPTY_FILTERS }, search: "" });
-        useFiltersStore.getState().setFilter(sectionId, spec.value as never);
+        useFiltersStore.getState().setFilter(sectionId, spec.value);
         const { filters, search } = useFiltersStore.getState();
         const applied = filterProjects(projects, filters, search, NOW);
         expect(

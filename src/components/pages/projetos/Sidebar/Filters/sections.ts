@@ -13,17 +13,27 @@ import {
   PROGRESS_RANGES,
   YES_NO_VALUES,
 } from "../../../../../stores/filtersStore";
-import type { Project, ProjectStatus } from "../../../../../types/project";
+import type {
+  HealthLevel,
+  Project,
+  ProjectStatus,
+  StaleStatus,
+} from "../../../../../types/project";
 import type { FacetCounts, FacetGroup } from "../../../../../utils/search";
 import { filterProjects } from "../../../../../utils/search";
 
 export type FilterSectionId = Exclude<FacetGroup, "continent">;
 
-export interface FilterSectionConfig {
-  id: FilterSectionId;
-  titleKey: string;
-  criticalValues?: readonly string[];
-}
+export type FacetOptionValue<Id extends FilterSectionId> =
+  Id extends FilterSectionId ? Extract<keyof FacetCounts[Id], string> : never;
+
+export type FilterSectionConfig = {
+  [Id in FilterSectionId]: {
+    id: Id;
+    titleKey: string;
+    criticalValues?: readonly FacetOptionValue<Id>[];
+  };
+}[FilterSectionId];
 
 export const PRIMARY_SECTIONS: readonly FilterSectionConfig[] = [
   { id: "status", titleKey: "sb_status", criticalValues: ["cancelado"] },
@@ -45,10 +55,14 @@ export const ADVANCED_SECTIONS: readonly FilterSectionConfig[] = [
   { id: "stale", titleKey: "sb_stale", criticalValues: ["critico"] },
 ];
 
-export interface FilterOptionSpec {
-  value: string;
+export interface FilterOptionSpec<V extends string = string> {
+  value: V;
   labelKey: string | null;
 }
+
+export type FilterOptionsById = {
+  [Id in FilterSectionId]: FilterOptionSpec<FacetOptionValue<Id>>[];
+};
 
 const STATUS_LABEL_KEYS: Record<ProjectStatus, string> = {
   "nao-iniciado": "status_not_started",
@@ -61,13 +75,13 @@ const STATUS_LABEL_KEYS: Record<ProjectStatus, string> = {
   desconhecido: "status_unknown",
 };
 
-const HEALTH_LABEL_KEYS: Record<string, string> = {
+const HEALTH_LABEL_KEYS: Record<HealthLevel, string> = {
   boa: "health_good",
   atencao: "health_attention",
   critica: "health_critical",
 };
 
-const STALE_LABEL_KEYS: Record<string, string> = {
+const STALE_LABEL_KEYS: Record<StaleStatus, string> = {
   "em-dia": "stale_uptodate",
   atencao: "stale_attention",
   critico: "stale_critical",
@@ -89,10 +103,10 @@ export const VITALITY_SCALE: readonly FilterOptionSpec[] = [
   { value: "Extinta", labelKey: "vit_extinct" },
 ];
 
-function fromVocabulary(
-  values: readonly string[],
-  labelKeys?: Record<string, string>,
-): FilterOptionSpec[] {
+function fromVocabulary<V extends string>(
+  values: readonly V[],
+  labelKeys?: Partial<Record<V, string>>,
+): FilterOptionSpec<V>[] {
   return values.map((value) => ({
     value,
     labelKey: labelKeys?.[value] ?? null,
@@ -105,23 +119,24 @@ function fromDataset(counts: Record<string, number>): FilterOptionSpec[] {
     .map((value) => ({ value, labelKey: null }));
 }
 
-function yesNo(yesKey: string, noKey: string): FilterOptionSpec[] {
+function yesNo(
+  yesKey: string,
+  noKey: string,
+): FilterOptionSpec<"yes" | "no">[] {
   return YES_NO_VALUES.map((value) => ({
     value,
     labelKey: value === "yes" ? yesKey : noKey,
   }));
 }
 
-function sortedByCount(
-  specs: FilterOptionSpec[],
-  counts: Partial<Record<string, number>>,
-): FilterOptionSpec[] {
+function sortedByCount<V extends string>(
+  specs: FilterOptionSpec<V>[],
+  counts: Partial<Record<V, number>>,
+): FilterOptionSpec<V>[] {
   return [...specs].sort(
     (a, b) => (counts[b.value] ?? 0) - (counts[a.value] ?? 0),
   );
 }
-
-export type FilterOptionsById = Record<FilterSectionId, FilterOptionSpec[]>;
 
 export function buildFilterOptions(
   projects: readonly Project[],
@@ -167,33 +182,37 @@ export function buildFilterOptions(
   };
 }
 
-export function getOptionCount(
+export function getOptionCount<Id extends FilterSectionId>(
   counts: FacetCounts,
-  section: FilterSectionId,
-  value: string,
+  section: Id,
+  value: FacetOptionValue<Id>,
 ): number {
-  const group = counts[section] as Partial<Record<string, number>>;
+  const group = counts[section] as Partial<
+    Record<FacetOptionValue<Id>, number>
+  >;
   return group[value] ?? 0;
 }
 
-export interface SectionOptionState extends FilterOptionSpec {
-  count: number;
-  critical: boolean;
-  locked: boolean;
-}
+export type SectionOptionState<Id extends FilterSectionId = FilterSectionId> =
+  FilterOptionSpec<FacetOptionValue<Id>> & {
+    count: number;
+    critical: boolean;
+    locked: boolean;
+  };
 
-export function resolveSectionOptions(
-  section: FilterSectionConfig,
+export function resolveSectionOptions<Id extends FilterSectionId>(
+  section: FilterSectionConfig & { id: Id },
   options: FilterOptionsById,
   counts: FacetCounts,
   activeValue: string | null,
-): SectionOptionState[] {
+): SectionOptionState<Id>[] {
+  const criticalValues: readonly string[] = section.criticalValues ?? [];
   return options[section.id].map((spec) => {
     const count = getOptionCount(counts, section.id, spec.value);
     return {
       ...spec,
       count,
-      critical: section.criticalValues?.includes(spec.value) ?? false,
+      critical: criticalValues.includes(spec.value),
       locked: count === 0 && activeValue !== spec.value,
     };
   });

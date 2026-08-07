@@ -59,7 +59,7 @@ export function DetailedFilters({ projects, counts }: DetailedFiltersProps) {
         label: option.labelKey ? t(option.labelKey) : option.value,
       }))}
       activeValue={filters[section.id]}
-      onSelect={(value) => setFilter(section.id, value as never)}
+      onSelect={(value) => setFilter(section.id, value)}
     />
   );
 
