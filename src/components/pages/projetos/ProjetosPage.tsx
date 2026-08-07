@@ -6,6 +6,7 @@ import { surfaceElevated } from "../../../styles";
 import type { Project } from "../../../types/project";
 import { cn } from "../../../utils/cn";
 import { filterProjects } from "../../../utils/search";
+import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button } from "../../ui/Button";
 import { Sidebar } from "./Sidebar";
@@ -45,19 +46,19 @@ export function ProjetosPage() {
       <Sidebar shown={result.projects.length} total={result.total} />
       <div>
         {result.projects.length === 0 ? (
-          <div className="rounded-lg border-2 border-dashed border-line px-8 py-16 text-center text-fg-muted">
-            <h3 className="mb-1.5 font-serif text-h4 font-normal italic text-verde">
-              {t("empty_title")}
-            </h3>
-            <p className="mb-5">
-              {search.trim()
+          <EmptyState
+            title={t("empty_title")}
+            message={
+              search.trim()
                 ? t("empty_search_sub", { term: search.trim() })
-                : t("empty_sub")}
-            </p>
-            <Button variant="secondary" size="sm" onClick={clearAll}>
-              {t("sb_clear_all")}
-            </Button>
-          </div>
+                : t("empty_sub")
+            }
+            action={
+              <Button variant="secondary" size="sm" onClick={clearAll}>
+                {t("sb_clear_all")}
+              </Button>
+            }
+          />
         ) : (
           <ul className="grid list-none gap-3 p-0">
             {result.projects.map((project) => (
