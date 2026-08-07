@@ -8,10 +8,10 @@ import { cn } from "../../../../utils/cn";
 import type { NightStats } from "./markers";
 
 const overlayPill =
-  "absolute z-3 rounded-pill border border-[rgba(246,245,235,0.14)] bg-[rgba(20,14,32,0.6)] backdrop-blur-[8px]";
+  "absolute z-3 rounded-pill border border-branco/14 bg-[rgba(20,14,32,0.6)] backdrop-blur-[8px]";
 
 const controlButton =
-  "inline-flex size-7 items-center justify-center rounded-pill text-tag font-extrabold tracking-button text-areia transition-all duration-fast ease-out hover:bg-[rgba(190,74,1,0.32)] hover:text-branco";
+  "inline-flex size-7 items-center justify-center rounded-pill text-tag font-extrabold tracking-button text-areia transition-all duration-fast ease-out hover:bg-telha/32 hover:text-branco";
 
 export interface GlobeControlsProps {
   autoRotate: boolean;
@@ -29,7 +29,7 @@ export function GlobeControls({
     <div
       className={cn(
         overlayPill,
-        "top-5 left-5 flex gap-[3px] border-[rgba(246,245,235,0.18)] bg-[rgba(20,14,32,0.78)] p-1 backdrop-blur-[10px] max-sm:top-3 max-sm:left-3",
+        "top-5 left-5 flex gap-[3px] border-branco/18 bg-[rgba(20,14,32,0.78)] p-1 backdrop-blur-[10px] max-sm:top-3 max-sm:left-3",
       )}
     >
       <button
@@ -40,7 +40,7 @@ export function GlobeControls({
       >
         {autoRotate ? "❚❚" : "▶"}
       </button>
-      <div className="my-1 w-px bg-[rgba(246,245,235,0.20)]" />
+      <div className="my-1 w-px bg-branco/20" />
       {GLOBE_FOCUS_POINTS.map((point) => (
         <button
           key={point.key}
@@ -105,7 +105,7 @@ export function SensitiveNotice({ count }: { count: number }) {
 export function GlobeHint() {
   const { t } = useTranslation();
   return (
-    <div className="pointer-events-none absolute bottom-[18px] left-1/2 -translate-x-1/2 font-serif text-tag italic tracking-[0.04em] text-[rgba(246,245,235,0.55)]">
+    <div className="pointer-events-none absolute bottom-[18px] left-1/2 -translate-x-1/2 font-serif text-tag italic tracking-[0.04em] text-branco/55">
       <span>↔ {t("atlas_hint")}</span>
     </div>
   );

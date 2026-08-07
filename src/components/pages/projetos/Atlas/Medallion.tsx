@@ -9,9 +9,9 @@ const MEDALLION_TONES: Partial<Record<ProjectPriority, string>> = {
   warning:
     "border-[rgba(140,100,30,0.45)] shadow-[0_12px_32px_rgba(0,0,0,0.55),0_0_36px_rgba(224,162,74,0.30)]",
   critical:
-    "border-[rgba(190,74,1,0.55)] shadow-[0_12px_32px_rgba(0,0,0,0.55),0_0_40px_rgba(190,74,1,0.35)]",
+    "border-telha/55 shadow-[0_12px_32px_rgba(0,0,0,0.55),0_0_40px_rgba(190,74,1,0.35)]",
   completed:
-    "border-[rgba(119,125,69,0.50)] shadow-[0_12px_32px_rgba(0,0,0,0.55),0_0_36px_rgba(119,125,69,0.28)]",
+    "border-verde-claro/50 shadow-[0_12px_32px_rgba(0,0,0,0.55),0_0_36px_rgba(119,125,69,0.28)]",
 };
 
 const TAG_TONES: Partial<Record<ProjectPriority, string>> = {
@@ -42,7 +42,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
   return (
     <div
       className={cn(
-        "relative flex w-full animate-(--animate-slide-up) flex-col items-center rounded-md border border-[rgba(190,74,1,0.30)] bg-linear-[155deg,var(--shema-branco)_0%,var(--medallion-paper)_100%] px-3.5 pt-3.5 pb-4 font-sans",
+        "relative flex w-full animate-(--animate-slide-up) flex-col items-center rounded-md border border-telha/30 bg-linear-[155deg,var(--shema-branco)_0%,var(--medallion-paper)_100%] px-3.5 pt-3.5 pb-4 font-sans",
         "shadow-[0_12px_32px_rgba(0,0,0,0.55),0_0_0_1px_rgba(190,74,1,0.10),0_0_36px_rgba(190,74,1,0.25)]",
         MEDALLION_TONES[priority],
       )}
@@ -51,7 +51,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
         type="button"
         onClick={onClose}
         title={t("btn_close")}
-        className="absolute top-1 right-1 inline-flex size-[22px] items-center justify-center rounded-pill bg-[rgba(63,62,32,0.10)] text-[16px] leading-none text-verde transition-all duration-fast ease-out hover:bg-telha hover:text-branco"
+        className="absolute top-1 right-1 inline-flex size-[22px] items-center justify-center rounded-pill bg-verde/10 text-[16px] leading-none text-verde transition-all duration-fast ease-out hover:bg-telha hover:text-branco"
       >
         ×
       </button>
@@ -98,7 +98,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
         </div>
       )}
 
-      <div className="grid w-full grid-cols-2 border-y border-[rgba(63,62,32,0.18)] pt-1.5 pb-2">
+      <div className="grid w-full grid-cols-2 border-y border-verde/18 pt-1.5 pb-2">
         <div className="flex flex-col items-center leading-[1.1]">
           <span className="text-[17px] font-extrabold tracking-[-0.02em] text-telha tabular-nums">
             {Math.round(progress)}
@@ -108,7 +108,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
             {t("d_p_translated").split(" ")[0]}
           </span>
         </div>
-        <div className="flex flex-col items-center border-l border-[rgba(63,62,32,0.14)] leading-[1.1]">
+        <div className="flex flex-col items-center border-l border-verde/14 leading-[1.1]">
           <span className="text-[17px] font-extrabold tracking-[-0.02em] text-telha tabular-nums">
             {speakers > 1000 ? `${Math.round(speakers / 1000)}k` : speakers || "—"}
           </span>

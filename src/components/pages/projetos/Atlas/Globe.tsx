@@ -224,7 +224,7 @@ export function Globe({ projects, onSelect }: GlobeProps) {
     <div className="mb-6">
       <div
         ref={stageRef}
-        className="relative flex min-h-[560px] items-center justify-center overflow-hidden rounded-lg border border-[rgba(190,74,1,0.25)] p-7 max-lg:min-h-[460px] max-lg:p-4.5 max-sm:min-h-[360px] max-sm:p-3"
+        className="relative flex min-h-[560px] items-center justify-center overflow-hidden rounded-lg border border-telha/25 p-7 max-lg:min-h-[460px] max-lg:p-4.5 max-sm:min-h-[360px] max-sm:p-3"
         style={{ background: STAGE_BACKGROUND }}
       >
         <div
@@ -267,7 +267,7 @@ export function Globe({ projects, onSelect }: GlobeProps) {
                 cy={selectedMarker.y}
                 r={14}
                 fill="none"
-                stroke="rgba(190,74,1,0.5)"
+                className="stroke-telha/50"
                 strokeWidth="1"
               />
               <circle
@@ -275,7 +275,7 @@ export function Globe({ projects, onSelect }: GlobeProps) {
                 cy={selectedMarker.y}
                 r={22}
                 fill="none"
-                stroke="rgba(190,74,1,0.25)"
+                className="stroke-telha/25"
                 strokeWidth="1"
               />
             </g>
@@ -294,7 +294,7 @@ export function Globe({ projects, onSelect }: GlobeProps) {
           <circle
             r={R - 0.5}
             fill="none"
-            stroke="rgba(190,74,1,0.22)"
+            className="stroke-telha/22"
             strokeWidth="0.5"
           />
         </svg>

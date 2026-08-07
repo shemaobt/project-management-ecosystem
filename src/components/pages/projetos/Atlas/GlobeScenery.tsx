@@ -57,7 +57,7 @@ export function GlobeGraticule({ lambda, phi, radius }: GlobeSceneryProps) {
   const line = (points: string[]) =>
     points.length < 2 ? null : points.join(" ");
   return (
-    <g fill="none" stroke="rgba(63,62,32,0.10)" strokeWidth="0.5">
+    <g fill="none" className="stroke-verde/10" strokeWidth="0.5">
       {GRATICULE_LATS.map((lat) => {
         const pts: string[] = [];
         for (let lng = -180; lng <= 180; lng += 5) {
@@ -85,7 +85,7 @@ export function GlobeLand({ segments }: { segments: [number, number][][] }) {
     <>
       <g
         fill="none"
-        stroke="rgba(63, 62, 32, 0.78)"
+        className="stroke-verde/78"
         strokeWidth="0.9"
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -98,11 +98,7 @@ export function GlobeLand({ segments }: { segments: [number, number][][] }) {
           />
         ))}
       </g>
-      <g
-        fill="rgba(119, 125, 69, 0.12)"
-        stroke="rgba(63, 62, 32, 0.18)"
-        strokeWidth="0.4"
-      >
+      <g className="fill-verde-claro/12 stroke-verde/18" strokeWidth="0.4">
         {segments
           .filter((seg) => seg.length > 4)
           .map((seg, i) => (

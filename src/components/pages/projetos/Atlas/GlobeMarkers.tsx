@@ -76,7 +76,7 @@ export function GlobeMarkers({
                 <circle
                   r={r + 4}
                   fill="none"
-                  stroke="rgba(246,245,235,0.9)"
+                  className="stroke-branco/90"
                   strokeWidth="1.2"
                 />
               )}
@@ -111,7 +111,7 @@ export function GlobeMarkers({
                 <circle
                   r={r + 3.5}
                   fill="none"
-                  stroke="rgba(246,245,235,0.75)"
+                  className="stroke-branco/75"
                   strokeWidth="0.9"
                   strokeDasharray="2 2"
                 />

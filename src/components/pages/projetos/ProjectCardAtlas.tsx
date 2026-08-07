@@ -135,7 +135,7 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
           {project.objective.slice(0, 1).map((objective) => (
             <span
               key={objective}
-              className={cn(tagPill, "bg-[rgba(119,125,69,0.18)] text-verde-claro")}
+              className={cn(tagPill, "bg-verde-claro/18 text-verde-claro")}
             >
               {objective}
             </span>
