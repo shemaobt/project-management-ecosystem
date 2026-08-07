@@ -23,9 +23,9 @@ export function ResultCount({ shown, total }: ResultCountProps) {
         className="text-tag tracking-[0.01em] text-fg-muted"
       >
         {t("sb_results_count")}{" "}
-        <strong className="font-bold text-preto">{shown}</strong>{" "}
+        <strong className="font-bold text-fg-strong">{shown}</strong>{" "}
         {t("sb_results_of")}{" "}
-        <strong className="font-bold text-preto">{total}</strong>
+        <strong className="font-bold text-fg-strong">{total}</strong>
       </span>
       {isFiltering && (
         <button

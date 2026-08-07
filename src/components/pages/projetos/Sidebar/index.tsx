@@ -41,8 +41,8 @@ function SidebarSection({ title, open, onToggle }: SidebarSectionProps) {
         className={cn(
           "flex w-full items-center justify-between rounded-[10px] px-2.5 py-2",
           "text-tag font-bold tracking-button uppercase text-fg-muted",
-          "transition-colors duration-fast ease-out hover:bg-muted hover:text-preto",
-          open && "text-preto",
+          "transition-colors duration-fast ease-out hover:bg-muted hover:text-fg-strong",
+          open && "text-fg-strong",
         )}
       >
         <span className="text-left">{title}</span>
@@ -115,7 +115,7 @@ export function Sidebar({ shown, total }: SidebarProps) {
         onClick={() => setShowAdvanced((previous) => !previous)}
         className={cn(
           "mt-3 mb-1 flex w-full items-center justify-center gap-1.5 rounded-pill border border-dashed border-line-strong px-3.5 py-2.5",
-          "text-micro font-semibold tracking-button text-verde",
+          "text-micro font-semibold tracking-button text-fg",
           "transition-all duration-fast ease-out hover:border-telha hover:text-telha",
           !showAdvanced && "hover:bg-accent-soft",
           showAdvanced && "border-solid bg-muted",
