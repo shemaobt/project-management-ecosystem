@@ -90,12 +90,12 @@ export function Chips({ counts }: ChipsProps) {
       {PRESET_CHIPS.map((preset) => {
         const count = counts[preset.id];
         const active = filters[preset.id];
-        const empty = count === 0;
+        const locked = count === 0 && !active;
         return (
           <button
             key={preset.id}
             type="button"
-            disabled={empty}
+            disabled={locked}
             aria-pressed={active}
             title={t(preset.subKey)}
             onClick={() => togglePreset(preset.id)}
@@ -104,7 +104,7 @@ export function Chips({ counts }: ChipsProps) {
               "text-left text-micro font-semibold tracking-[0.01em] text-fg",
               "transition-all duration-fast ease-out",
               active && "border-telha bg-telha text-on-brand shadow-accent",
-              empty
+              locked
                 ? "opacity-70"
                 : "cursor-pointer hover:border-telha hover:bg-accent-soft hover:text-telha",
             )}
@@ -117,7 +117,7 @@ export function Chips({ counts }: ChipsProps) {
               className={cn(
                 "shrink-0 rounded-pill bg-muted px-[7px] py-px text-[10px] font-bold text-fg-subtle",
                 active && "bg-elevated/22 text-on-brand",
-                !empty && "group-hover:bg-elevated group-hover:text-telha",
+                !locked && "group-hover:bg-elevated group-hover:text-telha",
               )}
             >
               {count}
