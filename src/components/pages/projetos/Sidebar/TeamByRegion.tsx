@@ -1,5 +1,4 @@
 import { Globe } from "lucide-react";
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ROLES } from "../../../../constants/roles";
 import { useAuth } from "../../../../contexts/AuthContext";
@@ -19,13 +18,8 @@ export function TeamByRegion({ projects, counts }: TeamByRegionProps) {
   const { t } = useTranslation();
   const { canSeeRegion } = useAuth();
   const regions = useRegionsStore((state) => state.regions);
-  const hydrate = useRegionsStore((state) => state.hydrate);
   const continent = useFiltersStore((state) => state.filters.continent);
   const setFilter = useFiltersStore((state) => state.setFilter);
-
-  useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
 
   const cards = buildRegionPanel(projects, regions, canSeeRegion);
   if (cards.length === 0) return null;

@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { regionsAPI } from "../fixtures";
+import { useRegionsStore } from "../stores/regionsStore";
 import type { Region, RegionKey } from "../types/region";
 import type { RoleKey } from "../types/role";
 
@@ -100,17 +100,13 @@ function loadStoredRole(): SessionRole {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<SessionRole>(loadStoredRole);
-  const [regions, setRegions] = useState<Region[] | null>(null);
+  const regions = useRegionsStore((state) => state.regions);
+  const hydrated = useRegionsStore((state) => state.hydrated);
+  const hydrate = useRegionsStore((state) => state.hydrate);
 
   useEffect(() => {
-    let active = true;
-    regionsAPI.list().then((loaded) => {
-      if (active) setRegions(loaded);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
+    void hydrate();
+  }, [hydrate]);
 
   useEffect(() => {
     localStorage.setItem(SESSION_KEY, role);
@@ -120,17 +116,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const persona = MOCK_SESSION_PERSONAS[role];
     const user: SessionUser = {
       ...persona,
-      name: resolvePersonaName(persona, regions ?? []),
+      name: resolvePersonaName(persona, regions),
     };
-    const visibleRegions = regions ? scopeRegions(regions, persona) : [];
+    const visibleRegions = hydrated ? scopeRegions(regions, persona) : [];
     return {
-      status: regions ? "ready" : "loading",
+      status: hydrated ? "ready" : "loading",
       user,
       visibleRegions,
       canSeeRegion: (key) => visibleRegions.some((region) => region.key === key),
       switchRole: setRole,
     };
-  }, [role, regions]);
+  }, [role, regions, hydrated]);
 
   return (
     <AuthContext.Provider value={session}>{children}</AuthContext.Provider>
