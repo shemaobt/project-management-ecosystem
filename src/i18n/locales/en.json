@@ -580,7 +580,7 @@
   "atlas_stat_regions": "regions",
   "atlas_stat_active": "active",
   "atlas_hint": "drag · click a dot",
-  "atlas_autorotate": "auto-rotate",
+  "atlas_autorotate": "Auto-rotate",
   "atlas_open_project": "Open project →",
   "atlas_sensitive_marker": "Sensitive country · approximate position",
   "atlas_sensitive_notice_one": "{{count}} project in a sensitive country — shown at region level, not the exact location",
