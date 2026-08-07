@@ -1,9 +1,12 @@
 import { ChevronDown, Minus, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { Project } from "../../../../types/project";
 import { cn } from "../../../../utils/cn";
+import type { FacetCounts } from "../../../../utils/search";
 import { ResultCount } from "./ResultCount";
 import { SearchBox } from "./SearchBox";
+import { TeamByRegion } from "./TeamByRegion";
 
 const PRIMARY_SECTIONS = [
   { id: "status", titleKey: "sb_status" },
@@ -64,11 +67,13 @@ function SidebarSection({ title, open, onToggle }: SidebarSectionProps) {
 }
 
 export interface SidebarProps {
+  projects: readonly Project[];
   shown: number;
   total: number;
+  counts: FacetCounts;
 }
 
-export function Sidebar({ shown, total }: SidebarProps) {
+export function Sidebar({ projects, shown, total, counts }: SidebarProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(
     () => new Set(PRIMARY_SECTIONS.map((section) => section.id)),
@@ -93,6 +98,8 @@ export function Sidebar({ shown, total }: SidebarProps) {
         <SearchBox />
         <ResultCount shown={shown} total={total} />
       </div>
+
+      <TeamByRegion projects={projects} counts={counts.continent} />
 
       <div className="mt-2 mb-2 flex items-center justify-between">
         <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-fg-subtle">
