@@ -583,6 +583,7 @@
   "atlas_autorotate": "Rotação automática",
   "atlas_open_project": "Ver projeto →",
   "atlas_sensitive_marker": "País sensível · posição aproximada",
+  "atlas_approx_position": "Posição aproximada",
   "atlas_sensitive_notice_one": "{{count}} projeto em país sensível — exibido na região, sem o local exato",
   "atlas_sensitive_notice_other": "{{count}} projetos em países sensíveis — exibidos na região, sem o local exato",
   "btn_close": "Fechar",

@@ -583,6 +583,7 @@
   "atlas_autorotate": "Auto-rotate",
   "atlas_open_project": "Open project →",
   "atlas_sensitive_marker": "Sensitive country · approximate position",
+  "atlas_approx_position": "Approximate position",
   "atlas_sensitive_notice_one": "{{count}} project in a sensitive country — shown at region level, not the exact location",
   "atlas_sensitive_notice_other": "{{count}} projects in sensitive countries — shown at region level, not the exact locations",
   "btn_close": "Close",

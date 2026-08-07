@@ -61,7 +61,11 @@ export function GlobeMarkers({
                 {[
                   project.languageName,
                   t(HEALTH_LABEL_KEYS[health]),
-                  project.sensitiveCountry ? t("atlas_sensitive_marker") : null,
+                  project.sensitiveCountry
+                    ? t("atlas_sensitive_marker")
+                    : approximate
+                      ? t("atlas_approx_position")
+                      : null,
                 ]
                   .filter(Boolean)
                   .join(" · ")}
