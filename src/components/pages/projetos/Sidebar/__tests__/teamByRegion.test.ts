@@ -131,9 +131,11 @@ describe("the panel holds no role-holder of its own", () => {
     const source = readFileSync(
       join(__dirname, "..", "TeamByRegion.tsx"),
       "utf8",
+    ).replace(/\s+/g, " ");
+    expect(source).toContain("buildRegionPanel(projects, regions, canSeeRegion)");
+    expect(source).toContain(
+      'holderName(team, role.key) ?? t("sb_no_coordinator")',
     );
-    expect(source).toContain("buildRegionPanel(projects, regions,");
-    expect(source).toContain('holderName(team, role.key) ?? t("sb_no_coordinator")');
     expect(source).not.toMatch(/"[A-ZÀ-Ú][a-zà-ÿ]+ [A-ZÀ-Ú][a-zà-ÿ]+"/);
   });
 
