@@ -575,5 +575,16 @@
   "results_count_other": "{{count}} projects",
   "lang_toggle": "Language",
   "notif_bell": "Notifications",
-  "toast_pending": "“{{label}}” is not available yet — it arrives in upcoming deliveries."
+  "toast_pending": "“{{label}}” is not available yet — it arrives in upcoming deliveries.",
+  "atlas_stat_languages": "languages",
+  "atlas_stat_regions": "regions",
+  "atlas_stat_active": "active",
+  "atlas_hint": "drag · click a dot",
+  "atlas_autorotate": "auto-rotate",
+  "atlas_open_project": "Open project →",
+  "atlas_sensitive_marker": "Sensitive country · approximate position",
+  "atlas_sensitive_notice_one": "{{count}} project in a sensitive country — shown at region level, not the exact location",
+  "atlas_sensitive_notice_other": "{{count}} projects in sensitive countries — shown at region level, not the exact locations",
+  "btn_close": "Close",
+  "load_more": "Show more"
 }
