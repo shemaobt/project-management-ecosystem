@@ -8,6 +8,7 @@ export interface ResolvedFilterOption {
   label: string;
   count: number;
   critical: boolean;
+  locked: boolean;
 }
 
 export interface FilterSectionProps {
@@ -42,7 +43,7 @@ export function FilterSection({
         aria-controls={bodyId}
         onClick={onToggle}
         className={cn(
-          "flex w-full items-center justify-between rounded-[10px] px-2.5 py-2",
+          "flex w-full cursor-pointer items-center justify-between rounded-[10px] px-2.5 py-2",
           "text-tag font-bold tracking-button uppercase text-fg-muted",
           "transition-colors duration-fast ease-out hover:bg-muted hover:text-fg-strong",
           open && "text-fg-strong",
@@ -82,7 +83,7 @@ export function FilterSection({
               count={option.count}
               active={activeValue === option.value}
               critical={option.critical}
-              locked={option.count === 0 && activeValue !== option.value}
+              locked={option.locked}
               onClick={() => onSelect(option.value)}
             />
           ))}

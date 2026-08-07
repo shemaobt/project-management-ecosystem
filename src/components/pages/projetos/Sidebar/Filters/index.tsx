@@ -11,7 +11,7 @@ import {
   ADVANCED_SECTIONS,
   PRIMARY_SECTIONS,
   buildFilterOptions,
-  getOptionCount,
+  resolveSectionOptions,
 } from "./sections";
 
 export interface DetailedFiltersProps {
@@ -49,11 +49,14 @@ export function DetailedFilters({ projects, counts }: DetailedFiltersProps) {
       open={expanded.has(section.id)}
       onToggle={() => toggleSection(section.id)}
       allCount={counts.groupAll[section.id]}
-      options={options[section.id].map((spec) => ({
-        value: spec.value,
-        label: spec.labelKey ? t(spec.labelKey) : spec.value,
-        count: getOptionCount(counts, section.id, spec.value),
-        critical: section.criticalValues?.includes(spec.value) ?? false,
+      options={resolveSectionOptions(
+        section,
+        options,
+        counts,
+        filters[section.id],
+      ).map((option) => ({
+        ...option,
+        label: option.labelKey ? t(option.labelKey) : option.value,
       }))}
       activeValue={filters[section.id]}
       onSelect={(value) => setFilter(section.id, value as never)}
@@ -76,7 +79,7 @@ export function DetailedFilters({ projects, counts }: DetailedFiltersProps) {
         aria-controls="sb-advanced-filters"
         onClick={() => setShowAdvanced((previous) => !previous)}
         className={cn(
-          "mt-3 mb-1 flex w-full items-center justify-center gap-1.5 rounded-pill border border-dashed border-line-strong px-3.5 py-2.5",
+          "mt-3 mb-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-pill border border-dashed border-line-strong px-3.5 py-2.5",
           "text-micro font-semibold tracking-button text-fg",
           "transition-all duration-fast ease-out hover:border-telha hover:text-telha",
           !showAdvanced && "hover:bg-accent-soft",

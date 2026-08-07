@@ -31,6 +31,7 @@ const {
   VITALITY_SCALE,
   buildFilterOptions,
   getOptionCount,
+  resolveSectionOptions,
 } = await import("../sections");
 
 const NOW = new Date("2026-05-14T00:00:00");
@@ -148,20 +149,73 @@ describe("detailed filters", () => {
     }
   });
 
-  it("keeps zero-count options listed when another filter empties them", () => {
+  it("keeps zero-count options rendered, locked but visible", () => {
+    const countrySection = ADVANCED_SECTIONS.find(
+      (section) => section.id === "country",
+    );
+    if (!countrySection) throw new Error("country section missing");
     const narrowed = filterProjects(
       projects,
       withFilters({ continent: "asia" }),
       "",
       NOW,
     ).counts;
-    const zeroed = options.country.filter(
+    const rendered = resolveSectionOptions(
+      countrySection,
+      options,
+      narrowed,
+      null,
+    );
+    expect(rendered.map((option) => option.value)).toEqual(
+      options.country.map((spec) => spec.value),
+    );
+    const zeroed = rendered.filter((option) => option.count === 0);
+    expect(zeroed.length).toBeGreaterThan(0);
+    for (const option of zeroed) {
+      expect(option.locked).toBe(true);
+    }
+    for (const option of rendered.filter((option) => option.count > 0)) {
+      expect(option.locked).toBe(false);
+    }
+  });
+
+  it("keeps an active zero-count option clickable", () => {
+    const countrySection = ADVANCED_SECTIONS.find(
+      (section) => section.id === "country",
+    );
+    if (!countrySection) throw new Error("country section missing");
+    const narrowed = filterProjects(
+      projects,
+      withFilters({ continent: "asia" }),
+      "",
+      NOW,
+    ).counts;
+    const zeroValue = options.country.find(
       (spec) => getOptionCount(narrowed, "country", spec.value) === 0,
     );
-    expect(zeroed.length).toBeGreaterThan(0);
-    for (const spec of zeroed) {
-      expect(options.country).toContainEqual(spec);
-    }
+    if (!zeroValue) throw new Error("no zero-count country under asia");
+    const rendered = resolveSectionOptions(
+      countrySection,
+      options,
+      narrowed,
+      zeroValue.value,
+    );
+    const active = rendered.find((option) => option.value === zeroValue.value);
+    expect(active?.locked).toBe(false);
+  });
+
+  it("marks the prototype's three critical options and no others", () => {
+    const counts = filterProjects(projects, EMPTY_FILTERS, "", NOW).counts;
+    const critical = ALL_SECTIONS.flatMap((section) =>
+      resolveSectionOptions(section, options, counts, null)
+        .filter((option) => option.critical)
+        .map((option) => `${section.id}:${option.value}`),
+    );
+    expect(critical.sort()).toEqual([
+      "health:critica",
+      "stale:critico",
+      "status:cancelado",
+    ]);
   });
 
   it("labels the range groups as ordered buckets", () => {

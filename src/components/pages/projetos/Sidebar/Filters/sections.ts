@@ -42,7 +42,7 @@ export const ADVANCED_SECTIONS: readonly FilterSectionConfig[] = [
   { id: "vitality", titleKey: "sb_vitality" },
   { id: "needCategory", titleKey: "sb_needs_section" },
   { id: "hasMedia", titleKey: "sb_media" },
-  { id: "stale", titleKey: "sb_stale" },
+  { id: "stale", titleKey: "sb_stale", criticalValues: ["critico"] },
 ];
 
 export interface FilterOptionSpec {
@@ -174,4 +174,27 @@ export function getOptionCount(
 ): number {
   const group = counts[section] as Partial<Record<string, number>>;
   return group[value] ?? 0;
+}
+
+export interface SectionOptionState extends FilterOptionSpec {
+  count: number;
+  critical: boolean;
+  locked: boolean;
+}
+
+export function resolveSectionOptions(
+  section: FilterSectionConfig,
+  options: FilterOptionsById,
+  counts: FacetCounts,
+  activeValue: string | null,
+): SectionOptionState[] {
+  return options[section.id].map((spec) => {
+    const count = getOptionCount(counts, section.id, spec.value);
+    return {
+      ...spec,
+      count,
+      critical: section.criticalValues?.includes(spec.value) ?? false,
+      locked: count === 0 && activeValue !== spec.value,
+    };
+  });
 }

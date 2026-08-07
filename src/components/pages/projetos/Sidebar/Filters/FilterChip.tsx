@@ -25,13 +25,13 @@ export function FilterChip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "flex w-full items-center justify-between gap-2 rounded-sm px-2.5 py-1.5",
+        "flex w-full cursor-pointer items-center justify-between gap-2 rounded-sm px-2.5 py-1.5",
         "text-left text-micro font-medium text-fg",
         transitionAll,
         "disabled:pointer-events-none disabled:opacity-45",
         active
           ? "bg-inverse font-semibold text-on-dark"
-          : "cursor-pointer hover:bg-telha/6 hover:text-telha",
+          : "hover:bg-telha/6 hover:text-telha",
         critical && !active && "text-telha",
       )}
     >
