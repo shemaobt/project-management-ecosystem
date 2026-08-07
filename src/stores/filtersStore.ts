@@ -61,6 +61,12 @@ export const EMPTY_FILTERS: ProjectFilters = {
 
 const FILTERS_KEY = "shema-filters-v1";
 
+export function hasActiveFilters(filters: ProjectFilters): boolean {
+  return (Object.keys(EMPTY_FILTERS) as (keyof ProjectFilters)[]).some(
+    (key) => filters[key] !== EMPTY_FILTERS[key],
+  );
+}
+
 interface FiltersState {
   filters: ProjectFilters;
   search: string;
@@ -85,7 +91,7 @@ export const useFiltersStore = create<FiltersState>()(
           filters: { ...state.filters, [preset]: !state.filters[preset] },
         })),
       setSearch: (search) => set({ search }),
-      clearAll: () => set({ filters: { ...EMPTY_FILTERS } }),
+      clearAll: () => set({ filters: { ...EMPTY_FILTERS }, search: "" }),
     }),
     {
       name: FILTERS_KEY,
