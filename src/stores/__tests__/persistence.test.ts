@@ -83,10 +83,12 @@ describe("filters store", () => {
     expect(useFiltersStore.getState().search).toBe("Egypt");
   });
 
-  it("clears every filter at once", () => {
+  it("clears every filter and the search at once", () => {
     useFiltersStore.getState().setFilter("health", "critica");
     useFiltersStore.getState().togglePreset("recent");
+    useFiltersStore.getState().setSearch("Waima");
     useFiltersStore.getState().clearAll();
     expect(useFiltersStore.getState().filters).toEqual(EMPTY_FILTERS);
+    expect(useFiltersStore.getState().search).toBe("");
   });
 });
