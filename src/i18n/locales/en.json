@@ -52,6 +52,7 @@
   "sb_current_user": "Global Strategist ·",
   "sb_coordinators": "Regional coordinators",
   "sb_regional_team": "Team by region",
+  "sb_region_name": "Shema {{region}}",
   "sb_no_coordinator": "— to be set",
   "role_coordinator": "Administrator",
   "role_obtlab": "Language Operations",
