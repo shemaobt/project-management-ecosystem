@@ -40,8 +40,8 @@ export function RoleSwitcher() {
             className={cn(
               "rounded-pill px-2.5 py-1 text-micro font-semibold transition-colors duration-fast ease-out",
               role === user.role
-                ? "bg-telha text-branco"
-                : "bg-muted text-fg-muted hover:text-verde",
+                ? "bg-telha text-on-brand"
+                : "bg-muted text-fg-muted hover:text-fg",
             )}
           >
             {t(SESSION_ROLE_LABEL_KEYS[role])}

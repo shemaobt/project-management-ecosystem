@@ -7,7 +7,7 @@ import { cn } from "../../utils/cn";
 
 const TB_BTN = cn(
   "inline-flex items-center gap-1.5 rounded-pill border border-branco/[0.22]",
-  "px-3.5 py-2 text-[13px] font-semibold tracking-button text-branco",
+  "px-3.5 py-2 text-[13px] font-semibold tracking-button text-on-dark",
   "transition-all duration-fast ease-out",
   "hover:border-branco/40 hover:bg-branco/[0.08]",
 );

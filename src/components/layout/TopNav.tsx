@@ -31,7 +31,7 @@ export function TopNav() {
               "-mb-px shrink-0 border-b-2 border-transparent px-4.5 py-3.5",
               "text-small font-bold tracking-[0.02em] text-fg-subtle no-underline",
               "transition-colors duration-fast ease-out",
-              "hover:text-verde hover:no-underline",
+              "hover:text-fg hover:no-underline",
               isActive && "border-telha text-telha hover:text-telha",
             )
           }
