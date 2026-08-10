@@ -100,9 +100,16 @@ It is **not versioned in this repo** (`.gitignore`). Get the design package from
 - **Toasts**: sonner
 - **i18n**: i18next, PT/EN toggle, keys ported from `DS-PROJECT/data.js`
 - **Utilities**: `cva`, `clsx`, `tailwind-merge`; use `cn()` from `src/utils/cn.ts`
-- **Maps**: react-leaflet + leaflet (Atlas view)
+- **Maps**: react-leaflet + leaflet — **not used by the Atlas; see the FE-14 decision below.** The dependency stays pinned (FE-01) for possible future geographic needs; removing it is a wave-2 cleanup call.
 
 Do not introduce Redux, MobX, or a second styling system.
+
+**Resolved in FE-14 ([OBT-359](https://linear.app/shema-obt/issue/OBT-359)), 07/aug/2026 — Levi Gomes.** The Atlas map is the prototype's **hand-drawn SVG night globe** (`globe.jsx` + `continents.js`), not a react-leaflet tile map:
+
+- **Rule zero**: the approved Atlas visual is the night globe with medallions; a tile map cannot reproduce it.
+- **Privacy**: tile servers are a third-party request from every user's browser — the user's IP plus the tiles they load reveal which regions they are inspecting. For a product used by teams in sensitive countries, the SVG's zero external requests is the safe position, and it needs no tile licence.
+- The flat `WorldMap` (`worldmap.jsx`) is loaded but never mounted by the composed prototype — only the `Globe` ships. Its overlap-spread logic (grouping markers by screen cell and pushing them apart) was ported into the globe's marker layer as the clustering mechanism.
+- Doc conflict, resolved per §2 (prototype wins on visuals): the prototype's `.card-atlas` list row carries a hairline `--line` border and gains its shadow only on hover, so the ported Atlas card does too. §7.3's "cards have no borders — shadow only" describes the elevated content cards, not the Projetos list rows.
 
 **Resolved in FE-01 ([OBT-348](https://linear.app/shema-obt/issue/OBT-348)), 30/jul/2026 — Levi Gomes.** Two questions this section left open are now closed:
 
@@ -282,11 +289,21 @@ Plus the project record (`modals.jsx`) as FE-20…28 / BE-06 / INT-03, and Iníc
 
 - **Sidebar** (sticky top block): search → current-user identity → **4 combinable preset chips** (`attention` / `prayer` / `celebrate` / `recent`) → live `Mostrando X de N` + *Limpar tudo*.
 - Then: **Saved views** → **Time por região** (region cards showing the 3 role-holders, clicking filters by continent) → **active filter chips** → **primary filter sections** (Status, Base, Saúde) → **Mais filtros** (País, Objetivo, Tipo de Tradução, ETEN, País sensível, Recursos, % Progresso, Vitalidade, Necessidades, Mídia, Atualização).
-- Every filter option shows its **count**. Options with count 0 are hidden; presets with count 0 are disabled. The counting logic already exists in `Sidebar` as a single pass — port it.
+- Every filter option shows its **count**; presets with count 0 are disabled. The counting logic already exists in `Sidebar` as a single pass — port it.
+  - **Zero-count options stay visible and clearly unavailable (dimmed/disabled) — they are never hidden.** Decided in FE-12 ([OBT-357](https://linear.app/shema-obt/issue/OBT-357), Henok Teixeira, 29/jul/2026; recorded here 07/aug/2026): a count of zero is information, hiding the option makes the panel jump as filters change and hides that a category exists. This deliberately diverges from the prototype's `Section`, which drops zero-count entries — an earlier revision of this bullet repeated the prototype's behaviour and is superseded. An **active** option whose count drops to zero stays clickable.
 - **Toolbar**: result count + **metaphor pill** + sort (deadline, name, progress, team, health).
 - **Card metaphors** (`cards.jsx`): `CardAtlas` (wide horizontal logbook entry), `CardDiario` (field-journal page with washi tape), `CardCoral` (arc/wave shapes).
 - **Atlas** additionally renders the rotating night globe with photo medallions above the grid.
 - Pagination: 30 items, *Mostrar mais* +30.
+
+> **Sensitive countries on the map — decided in FE-14 ([OBT-359](https://linear.app/shema-obt/issue/OBT-359)), 07/aug/2026 — Levi Gomes, pending client confirmation (`needs-client-decision`).** A `sensitiveCountry` project is **never plotted at its true coordinates**: the Atlas places it at its **region's centroid** (`REGION_CENTROIDS` in `src/constants/geo.ts`), its marker carries a dashed "approximate" ring, and a visible overlay on the globe counts how many projects are being withheld — a silently incomplete map is its own hazard, so the reduction is always announced. The same rule redacts the *displayed location*: cards, tooltips and the medallion show the region name, never the country or place. The single owner of the rule is `getMapPlacement` / `getLocationDisplay` in `src/utils/region.ts` — any view that renders position or location (FE-15's cards included) must go through it, never reimplement it. Reduced precision was chosen over omission (the map must show exactly what the filters return) and over role-gating (wave 1 has only a mocked session). Tests in `src/components/pages/projetos/Atlas/__tests__/` pin the guarantee.
+>
+**Resolved in FE-15 ([OBT-360](https://linear.app/shema-obt/issue/OBT-360)), 09/aug/2026 — Levi Gomes.** Three decisions the card views forced:
+
+- **The Diário card carries the three progress counts, which the prototype's `CardDiario` does not.** `cards.jsx` shows only `{percent}%` in the journal footer; FE-15's issue states the product rule — *"translated / community-checked / mentor-approved is a pipeline… never collapse them into a single percentage"* — and its Definition of Done demands the three counts separate. Per §2 the prototype wins on visuals but the issue wins on behaviour, so the footer gained the Atlas card's `translated/total` head and its `N checado · N aprovado` marks line, in the Diário's own type scale. Nothing else was added.
+- **The card list obeys FE-14's sensitive-country display rule, by reference.** Both cards read `getLocationDisplay` from `src/utils/region.ts` — the single owner — so a `sensitiveCountry` project shows its region name where the location goes, never the country or place. **Known gap, not fixed here:** the rule redacts the *location field only*; the team/base name still renders verbatim, and two of the three seed values name a place (`YWAM Egypt`, `YWAM Morelia`). Redacting it is a second rule, which belongs to the open client gate on what *devida cautela* means per output (§6.1) — do not invent it screen by screen.
+- **The Diário's washi tape is telha by default, and that is not decoration.** `app.css` paints `.diario-tape` telha and overrides it only for `priority-warning`, `-completed` and `-default` — so roughly half the board is telha, which §7.1's *"telha only for CTAs and active states"* would forbid. §2 settles it: the tape is a visual, the prototype wins, and the rule keeps describing controls. Same shape as FE-14's border conflict.
+- **Where the prototype's copy is a string operation, FE-15 used real keys.** `cards.jsx` builds the Coral labels by slicing translated strings (`t.d_p_translated.split(' ')[0]`), which reads *"Já"* in PT and turns *"Mentor-approved"* into *"Mentor"* in EN. The short forms are now catalogue keys (`d_p_*_short`), and *Mostrar mais* — hardcoded in the prototype — is `load_more`.
 
 > ⚠️ **Two views or three? — client gate, FE-17 ([OBT-362](https://linear.app/shema-obt/issue/OBT-362)).** The prototype implements three metaphors; the PRD v1.1 revision history records a client decision that *"list views reduced to Atlas and Journal."* This is scope dressed as a visual, so §2's "prototype wins on visuals" does not settle it. Do not finish or delete Coral before the answer lands — and record the decision, its date and its author here when it does.
 
@@ -419,15 +436,25 @@ All visual decisions MUST follow these tokens, taken verbatim from `DS-PROJECT/d
 **Semantic layer (prefer this in code):**
 
 - Backgrounds — `canvas` (= branco), `elevated` (`#FFFFFF`), `muted` (`#ECEADF`), `quiet` (= areia), `inverse` (= verde), `brand`/`accent` (= telha)
-- Foreground — `fg` (= verde), `fg-strong` (= preto), `fg-muted` (`#5A5A3E`), `fg-subtle` (`#8A8970`), `on-dark`/`on-brand` (= branco), `link` (= telha)
+- Foreground — `fg` (= verde), `fg-strong` (= preto), `fg-muted` (`#5A5A3E`), `fg-subtle` (`#8A8970`), `on-dark`/`on-brand` (= branco), `on-light` (= verde), `link` (= telha)
 - Accent states — `accent-hover` `#A23E00`, `accent-press` `#872F00`, `accent-soft` `#F2D8C2`
 - Lines — `line` (verde @16%), `line-strong` (verde @32%), `line-on-dark` (branco @18%)
+- **Ink weights** — a palette colour that has to carry *small text* on a light surface has a darker sibling at the same hue: `azul-ink` `#406560` for azul (the prototype's own value in `.tag.azul`, `.need-status-tag.status-in-progress` and the Coral stat label), `status-attention-fg` `#8B6018` and `deadline-soon` `#A06C12` for the amber. They are the same series, not new colours — surfaces and strokes keep the base token, text takes the ink. `src/styles/__tests__/tokens.test.ts` pins the hue relationship and the contrast that justifies each one; **do not add a sixth value to a family without it.**
 
 Rules:
 - **Telha is exclusive to CTAs, primary actions and active states.** Never decorative.
 - **White is reserved for elevated surfaces** — always via `bg-elevated`, never a hardcoded `bg-white`.
 - **No generic greys.** Use the earthy Shemá palette.
 - No arbitrary hex values in JSX. Extend the theme instead.
+
+**Resolved in FE-19 ([OBT-421](https://linear.app/shema-obt/issue/OBT-421)), 10/aug/2026 — Levi Gomes.** "Prefer the semantic layer" was advice, and the repo had been ignoring it since FE-03: 62 places painted **ink** with a brand token — 22 in the merged base, 23 more arriving with FE-14, 17 with FE-15. It is invisible today — `--fg` *is* `--shema-verde` — and it is the bug §7.4 is built to avoid, since only the semantic names get reassigned when the dark palette lands. It is now a rule with a guard.
+
+- **Ink comes from the semantic tier. `text-verde` · `text-branco` · `text-preto` are blocked** by `no-restricted-syntax` in `eslint.config.js` (the `BRAND_INK` selector), across all of `src/`, **with no exemption list** — the `/design-system` showcase never painted ink with a brand token, so there is nothing to carve out.
+- **The semantic name follows the surface, not the pixel**: `text-fg` (`text-fg-strong` for headings) over canvas, `bg-elevated` and `bg-muted`; `text-on-brand` over a brand fill (telha, verde-claro); `text-on-dark` over `bg-inverse`, the topbar and a saturated status fill; `text-on-light` over `bg-status-na`. Every substitution resolves to the same hex it replaced, and `src/styles/__tests__/semanticInk.test.ts` pins that against `index.css` — a repaint fails the test, not a review.
+- **`text-verde-claro` is not ink in that sense** and stays: it is the brand green and the success foreground, and the semantic tier has no counterpart for it. The rule's negative lookahead exists for exactly this.
+- **`__tests__` is outside the corpus of every styling rule** (`NOT_SHIPPED_STYLING`). A test that proves the guard catches a violation has to be able to write one, and a test asserting `#3F3E20` is the point of the test. The scope is asserted by the test that depends on it.
+- **Where one class paints several fills, the ink is named once and everything inside inherits it.** The toaster is the case: sonner composes `classNames.toast` + `classNames.default` + `classNames[type]`, and `default` applies to *every* toast, so a per-type ink would compete with the base one and Tailwind's emission order — not the source — would pick the winner. `TOAST_CLASSNAMES` therefore carries a single `text-on-dark` on the `toast` slot and `text-current/80` on the description. Making the distinction expressible is [OBT-422](https://linear.app/shema-obt/issue/OBT-422), which fixes the same defect on the fills, where it already renders wrong.
+- **Two gaps stay open, deliberately.** Fills, borders and veils — `bg-verde/8`, `bg-branco/20`, `border-verde/18`, `border-branco/[0.22]` — keep their brand tokens: §7.1 reserves brand for fills, and whether a wash of the ink colour flips with the theme is part of §7.4's undecided palette. And **`text-areia` has no semantic replacement at all**: the muted ink on the dark topbar and in `DialogDescription` would need an `on-dark-muted` token that `design-system/colors_and_type.css` does not define. Inventing it is a brand-owner decision, so it ships with the dark palette or not at all.
 
 ### 7.2 Typography
 
@@ -460,6 +487,8 @@ Per §2 the prototype wins on visuals, so a dark palette is a **design deliverab
 - **No `.dark` overrides exist yet, and no component should ship `dark:` utilities** until the palette lands here.
 
 Unblocking it needs the seven dark values from the brand owner (or an explicit "derive them"). Record the decision, its date and its author here when it lands.
+
+**FE-19 ([OBT-421](https://linear.app/shema-obt/issue/OBT-421)) adds one value to that ask: a muted ink for dark surfaces.** §7.1's sweep moved every brand ink token to the semantic tier except `text-areia` — the topbar tagline and `DialogDescription` — because `on-dark` is solid branco and nothing quieter exists. It travels with the palette, not before it.
 
 ### 7.5 Focus
 
@@ -505,6 +534,14 @@ From wave 2 on, all backend calls target **`tripod-api`** and go through a singl
 - **Live counts everywhere.** Filters, presets and result rows always show how many.
 - **PT/EN parity.** Every string goes through i18n. The prototype ships both — keep them in sync.
 - **The field comes first.** Anything a field leader touches must survive no connectivity, an old phone, and a round trip through WhatsApp.
+
+**Resolved in FE-18 ([OBT-420](https://linear.app/shema-obt/issue/OBT-420)), 09/aug/2026 — Levi Gomes.** PT/EN parity is enforced by two guards that see different things, and both must stay green:
+
+- `shema/no-hardcoded-copy` (`eslint.config.js`) reads JSX. It runs on `src/components/**/*.tsx` **and** `src/contexts/**/*.tsx`, and treats a prop as user-facing when it is named `title` · `placeholder` · `alt` · `aria-label` · `aria-description` · `label` · `message`, or when its name ends in `Label` · `Message` · `Title` · `Text` · `Description` · `Placeholder`. Copy reaching a component through a custom prop is no longer invisible to it.
+- `src/i18n/__tests__/copyLeak.test.ts` reads the source text and the rendered output. It fails when a PT catalogue value whose EN counterpart differs appears as a literal in the **shipped** source under `src/components/**` or `src/contexts/**`, and it renders the nav and the six area placeholders in EN to assert no Portuguese survives. A vocabulary that never reaches JSX — `SESSION_ROLE_LABEL_KEYS`, a plain `Record` — is only caught by this one. Files under `__tests__/` are outside its corpus: a parity test asserting `"Administrador"` is the point of the test, not a leak.
+- **Two exemptions remain, both narrow and named in the config**: the four `design-system/` showcase files (untranslated by design; translating or gating that route is its own issue) and `src/components/layout/RoleSwitcher.tsx`. The dev session overlay was extracted out of `AppShell` precisely so the exemption could name one dev-only file instead of the shell — it renders under `import.meta.env.DEV` only, and its role chips and identity line still go through `t()`. `eslint.config.js` is the single owner of both lists; the test imports them rather than restating them, and deliberately keeps scanning the dev overlay that lint skips.
+- **Two keys do not come from `data.js`** — the prototype has no equivalent: `nav_areas` (the nav landmark's `aria-label`) and `empty_soon` (the placeholder's closing line, worded to match `toast_pending`). §13's "keys ported from `data.js`" is the rule; these two are the recorded exception.
+- **The session's role vocabulary is the org chart's**, per §5.7: `SESSION_ROLE_LABEL_KEYS` reads its label keys from `ROLE_DEFINITIONS` in `src/constants/roles.ts` rather than restating them. When no one holds the role, `resolvePersonaName` returns `null` and the view renders `sb_no_coordinator` — "— a definir" is chrome, not a name, and never sits in the session model.
 
 ---
 
@@ -598,6 +635,8 @@ Reference the Linear issue ID (`OBT-###`) in the branch name and PR body. Never 
 - [ ] `meaning-map-ui` consulted for engineering patterns only, never for appearance.
 - [ ] Stack only: React, TypeScript, Vite, Tailwind v4, Zustand, Context, Axios, Radix/shadcn primitives, lucide-react, sonner, i18next, react-leaflet.
 - [ ] Tokens exactly as in `design-system/colors_and_type.css`; no stray hex; telha reserved for CTAs and active states.
+- [ ] Ink from the semantic tier, named after the surface it sits on — `text-fg` / `text-fg-strong` / `text-on-brand` / `text-on-dark` / `text-on-light`, never `text-verde` / `text-branco` / `text-preto` (§7.1).
+- [ ] **A new token is named after the fact it carries, and the name survives being read out of context.** When the same concept is drawn in two channels (a ring and its label, a badge and its text), both go through tokens whose names say they are the same series — an ink weight (§7.1), not a second colour with a screen's name on it. New value in a family ⇒ hue and reason pinned in `src/styles/__tests__/tokens.test.ts`.
 - [ ] `bg-elevated` for cards/modals/inputs; `bg-canvas` for pages; `bg-muted` for subtle fills. Never `bg-white`.
 - [ ] Cards have **no borders** — shadow only.
 - [ ] Montserrat for UI, Merriweather for long-form/quotes.
@@ -607,6 +646,33 @@ Reference the Linear issue ID (`OBT-###`) in the branch name and PR body. Never 
 - [ ] Screens read the **fixture layer**, not a hand-rolled local copy (wave 1).
 - [ ] PT/EN strings both present, keys ported from `data.js`.
 - [ ] Guided empty states, InfoTooltips, live counts.
+
+#### Before opening the PR — what review keeps catching
+
+Wave 1's reviews (PRs #10–#16) return to the same handful of defects, listed here with the PR that raised each. Run it against the diff before asking for eyes:
+
+**Design system**
+
+- [ ] **No raw colour where a token exists — including alphas.** A hex lint only catches `#BE4A01`; `rgba(190,74,1,.25)` is the same colour spelled by hand. Palette colours take the Tailwind alpha modifier (`border-telha/25`, `stroke-verde/10`); a value that is genuinely new becomes a token in `index.css`, named per §7.1. *(#11, #14)*
+- [ ] **Semantic tier before brand token.** `text-fg-strong` / `text-fg` / `text-on-brand`, not `text-preto` / `text-verde` / `text-branco`. §7.4 built dark mode as `var()` indirections over the semantic names, so a brand token will not follow a `.dark` palette when it lands. Brand tokens stay only where the colour *is* the brand and must not flip — the washi tape, the accent fills. *(#10)*
+- [ ] **Every state combination has an exit.** Active × disabled, filter × selection, empty × required: a control that can enter a state it cannot leave is a bug even when the current data never produces it. Check the hover/variant cascade too — an `active` fill must survive `:hover`. *(#11)*
+- [ ] **Every state is on both channels.** What colour or shape says, text says too — `title`, `aria-label` or an `sr-only` span — and what text says, the visual carries. A dashed "approximate" ring whose tooltip never mentions approximation is half a feature. *(#14)*
+
+**Numbers and data**
+
+- [ ] **A count never promises results a click will not return.** The facet count and the filter predicate answer the same question: if the filter is `.some(...)` over needs, the count is projects, not need items. *(#10)*
+- [ ] **Displayed counts and labels implement the *product's* definition.** "Regiões" counts the 7 regions the org chart uses, not the distinct country strings the reference implementation happened to split on. When the label and the computation disagree, the label wins and the computation changes. *(#14)*
+- [ ] **Buckets and limits are exercised.** Ranges must not overlap at their seams — a project at exactly 25% belongs to one bucket. Test the exact edge, zero, and the empty list. *(#10)*
+- [ ] **No escape hatch that breaks a stated invariant.** A `null`/fallback branch excused by "no fixture has this case today" is a broken invariant with a delivery date. Prefer total functions. *(#14)*
+
+**Structure**
+
+- [ ] **One owner per collection and per fact.** Before loading, look for who already loads it; before adding a list, look for who already exports it. Two guards that must agree by hand (a lint config and a test) are one owner too many. *(#13, #15)*
+- [ ] **Reuse before creating.** A component that already exists in `common/` or `ui/` is consumed, never re-made locally; if it lacks the variant you need, the variant goes into the shared component. *(#10)*
+- [ ] **No `as`, `as never` or `any` at a typed seam**, and no union left inferred as `string`. A cast to a string map throws away every relation the file exists to encode — carry the relation in the type instead. *(#12, #14)*
+- [ ] **Each catalogue speaks its own language, and both are complete.** A PT entry holding the prototype's English string is a defect regardless of provenance. *(#14)*
+- [ ] **Tests pin behaviour, not formatting**, and a guard's own scope is asserted — a walk that also sweeps `__tests__` reports the PT/EN parity tests as leaks. *(#13, #15)*
+- [ ] **A doc line the diff contradicts is reconciled in the same PR.** §2 says which source wins; silence is not a resolution. *(#12)*
 
 ### Backend (`tripod-api`)
 

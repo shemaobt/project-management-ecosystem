@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { ROLE_DEFINITIONS } from "../constants/roles";
 import { useRegionsStore } from "../stores/regionsStore";
 import type { Region, RegionKey } from "../types/region";
 import type { RoleKey } from "../types/role";
@@ -20,7 +21,7 @@ export interface SessionPersona {
 }
 
 export interface SessionUser extends SessionPersona {
-  name: string;
+  name: string | null;
 }
 
 export interface AuthSession {
@@ -34,13 +35,14 @@ export interface AuthSession {
 const SESSION_KEY = "shema-session-v1";
 
 const GLOBAL_STRATEGIST_NAME = "Karina Marinho";
-const UNASSIGNED_HOLDER_NAME = "— a definir";
 
-export const SESSION_ROLE_LABELS: Record<SessionRole, string> = {
-  globalStrategist: "Estrategista Global",
-  coordinator: "Administrador",
-  obtLab: "Operacional de Línguas",
-  resourceCircle: "Intercessor",
+export const UNASSIGNED_HOLDER_KEY = "sb_no_coordinator";
+
+export const SESSION_ROLE_LABEL_KEYS: Record<SessionRole, string> = {
+  globalStrategist: "equipe_global",
+  coordinator: ROLE_DEFINITIONS.coordinator.labelKey,
+  obtLab: ROLE_DEFINITIONS.obtLab.labelKey,
+  resourceCircle: ROLE_DEFINITIONS.resourceCircle.labelKey,
 };
 
 export const MOCK_SESSION_PERSONAS: Record<SessionRole, SessionPersona> = {
@@ -69,7 +71,7 @@ export const MOCK_SESSION_PERSONAS: Record<SessionRole, SessionPersona> = {
 export function resolvePersonaName(
   persona: SessionPersona,
   regions: Region[],
-): string {
+): string | null {
   if (persona.role === "globalStrategist") return GLOBAL_STRATEGIST_NAME;
   for (const key of persona.regionScope ?? []) {
     const holder = regions.find((region) => region.key === key)?.team[
@@ -77,7 +79,7 @@ export function resolvePersonaName(
     ];
     if (holder) return holder;
   }
-  return UNASSIGNED_HOLDER_NAME;
+  return null;
 }
 
 export function scopeRegions(

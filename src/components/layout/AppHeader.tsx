@@ -1,13 +1,14 @@
 import { Bell } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import "../../i18n";
+import { BrandMark } from "../common/BrandMark";
 import { toast } from "../ui";
 import { usePrefsStore } from "../../stores/prefsStore";
 import { cn } from "../../utils/cn";
 
 const TB_BTN = cn(
   "inline-flex items-center gap-1.5 rounded-pill border border-branco/[0.22]",
-  "px-3.5 py-2 text-[13px] font-semibold tracking-button text-branco",
+  "px-3.5 py-2 text-[13px] font-semibold tracking-button text-on-dark",
   "transition-all duration-fast ease-out",
   "hover:border-branco/40 hover:bg-branco/[0.08]",
 );
@@ -24,24 +25,6 @@ const PENDING_ACTIONS = [
   },
   { key: "intake", glyph: "🔗", labelKey: "btn_intake" },
 ] as const;
-
-function BrandMark() {
-  return (
-    <span className="h-[22px] w-[38px] shrink-0">
-      <svg
-        viewBox="280 230 620 270"
-        xmlns="http://www.w3.org/2000/svg"
-        className="block h-full w-full fill-telha"
-        aria-hidden
-      >
-        <path d="M659.67,369.42V248.87H579.45A111.89,111.89,0,0,0,545.83,254c-28.48,8.95-46.6,36.88-46.6,36.88h0s-18.06-27.91-46.6-36.88A112,112,0,0,0,419,248.87H338.78V488.69H419a111.69,111.69,0,0,1,33.63,5.08c28.54,9,46.6,35,46.6,35h0s15.93-22.92,41.38-33.16q-.2-3.45-.2-6.94A119.4,119.4,0,0,1,659.67,369.42Z" />
-        <path d="M630.44,488.69h29.23V459.26A29.36,29.36,0,0,0,630.44,488.69Z" />
-        <path d="M593.31,488.69h21.35a45.16,45.16,0,0,1,45-45.21V422.33A66.44,66.44,0,0,0,593.31,488.69Z" />
-        <path d="M556.19,488.69c0,.8,0,1.59,0,2.39a112.11,112.11,0,0,1,21.31-2.35v0a82.24,82.24,0,0,1,82.14-82.14V385.2A103.6,103.6,0,0,0,556.19,488.69Z" />
-      </svg>
-    </span>
-  );
-}
 
 export function AppHeader() {
   const { t } = useTranslation();
@@ -61,7 +44,7 @@ export function AppHeader() {
       )}
     >
       <div className="flex items-center gap-3.5 text-lg font-black uppercase tracking-[0.02em]">
-        <BrandMark />
+        <BrandMark className="text-telha" />
         <span>SHEMA</span>
         <span className="h-6 w-px bg-branco/30" />
         <span className="hidden font-serif text-small font-normal normal-case italic tracking-normal text-areia sm:inline">

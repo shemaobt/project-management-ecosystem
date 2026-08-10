@@ -11,7 +11,7 @@ const chipVariants = cva(
         filter:
           "w-full justify-between rounded-sm px-2.5 py-1.5 text-micro text-fg hover:bg-telha/6 hover:text-telha data-[active=true]:bg-inverse data-[active=true]:font-semibold data-[active=true]:text-on-dark",
         outline:
-          `rounded-pill ${surfaceOutlined} px-3.5 py-2.25 text-[13px] font-semibold text-fg data-[active=true]:border-telha data-[active=true]:bg-telha data-[active=true]:text-branco`,
+          `rounded-pill ${surfaceOutlined} px-3.5 py-2.25 text-[13px] font-semibold text-fg data-[active=true]:border-telha data-[active=true]:bg-telha data-[active=true]:text-on-brand`,
       },
     },
     defaultVariants: {
@@ -26,9 +26,9 @@ const countVariants = cva(
     variants: {
       variant: {
         filter:
-          "bg-verde/8 px-1.75 py-0.5 text-fg-muted group-data-[active=true]:bg-branco/20 group-data-[active=true]:text-branco",
+          "bg-verde/8 px-1.75 py-0.5 text-fg-muted group-data-[active=true]:bg-branco/20 group-data-[active=true]:text-on-dark",
         outline:
-          "text-[11px] font-bold text-fg-subtle group-data-[active=true]:text-branco/80",
+          "text-[11px] font-bold text-fg-subtle group-data-[active=true]:text-on-brand/80",
       },
     },
     defaultVariants: {

@@ -1,4 +1,9 @@
-import type { ProjectFilters, ProgressRange } from "../stores/filtersStore";
+import type {
+  ProjectFilters,
+  ProgressRange,
+  YesNoFilter,
+} from "../stores/filtersStore";
+import { PROGRESS_RANGES } from "../stores/filtersStore";
 import type {
   FinancialResource,
   NeedCategory,
@@ -40,6 +45,41 @@ export function matchesSearch(project: Project, query: string): boolean {
   return normalizeSearchText(searchHaystack(project)).includes(needle);
 }
 
+export type FacetGroup =
+  | "status"
+  | "team"
+  | "health"
+  | "objective"
+  | "financial"
+  | "stale"
+  | "country"
+  | "continent"
+  | "vitality"
+  | "translationType"
+  | "needCategory"
+  | "eten"
+  | "sensitive"
+  | "progressRange"
+  | "hasMedia";
+
+const FACET_GROUPS: readonly FacetGroup[] = [
+  "status",
+  "team",
+  "health",
+  "objective",
+  "financial",
+  "stale",
+  "country",
+  "continent",
+  "vitality",
+  "translationType",
+  "needCategory",
+  "eten",
+  "sensitive",
+  "progressRange",
+  "hasMedia",
+];
+
 export interface FacetCounts {
   status: Partial<Record<ProjectStatus, number>>;
   team: Record<string, number>;
@@ -52,7 +92,12 @@ export interface FacetCounts {
   vitality: Record<string, number>;
   translationType: Partial<Record<TranslationType, number>>;
   needCategory: Partial<Record<NeedCategory, number>>;
+  eten: Record<YesNoFilter, number>;
+  sensitive: Record<YesNoFilter, number>;
+  progressRange: Record<ProgressRange, number>;
+  hasMedia: Record<YesNoFilter, number>;
   preset: Record<PresetId, number>;
+  groupAll: Record<FacetGroup, number>;
 }
 
 export interface ProjectFilterResult {
@@ -118,7 +163,14 @@ function emptyCounts(): FacetCounts {
     vitality: {},
     translationType: {},
     needCategory: {},
+    eten: { yes: 0, no: 0 },
+    sensitive: { yes: 0, no: 0 },
+    progressRange: { "0-25": 0, "25-50": 0, "50-75": 0, "75-100": 0 },
+    hasMedia: { yes: 0, no: 0 },
     preset: { attention: 0, prayer: 0, celebrate: 0, recent: 0 },
+    groupAll: Object.fromEntries(
+      FACET_GROUPS.map((group) => [group, 0]),
+    ) as Record<FacetGroup, number>,
   };
 }
 
@@ -249,9 +301,30 @@ export function filterProjects(
           (counts.needCategory[category] ?? 0) + 1;
       }
     }
+    if (countsFor("eten")) {
+      counts.eten[project.inETEN ? "yes" : "no"] += 1;
+    }
+    if (countsFor("sensitive")) {
+      counts.sensitive[project.sensitiveCountry ? "yes" : "no"] += 1;
+    }
+    if (countsFor("progressRange")) {
+      for (const range of PROGRESS_RANGES) {
+        if (inProgressRange(project, range)) {
+          counts.progressRange[range] += 1;
+        }
+      }
+    }
+    if (countsFor("hasMedia")) {
+      counts.hasMedia[hasAnyMedia(project) ? "yes" : "no"] += 1;
+    }
     for (const preset of PRESET_IDS) {
       if (countsFor(preset) && presetMatch[preset]) {
         counts.preset[preset] += 1;
+      }
+    }
+    for (const group of FACET_GROUPS) {
+      if (countsFor(group)) {
+        counts.groupAll[group] += 1;
       }
     }
   }
