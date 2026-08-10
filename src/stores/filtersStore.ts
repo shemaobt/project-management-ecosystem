@@ -85,6 +85,7 @@ interface FiltersState {
   ) => void;
   togglePreset: (preset: PresetId) => void;
   setSearch: (search: string) => void;
+  applyState: (filters: ProjectFilters, search: string) => void;
   clearAll: () => void;
 }
 
@@ -100,6 +101,8 @@ export const useFiltersStore = create<FiltersState>()(
           filters: { ...state.filters, [preset]: !state.filters[preset] },
         })),
       setSearch: (search) => set({ search }),
+      applyState: (filters, search) =>
+        set({ filters: { ...EMPTY_FILTERS, ...filters }, search }),
       clearAll: () => set({ filters: { ...EMPTY_FILTERS }, search: "" }),
     }),
     {
