@@ -5,6 +5,13 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
+export const BRAND_INK = "text-(verde|branco|preto)(?![-a-z])";
+
+export const NOT_SHIPPED_STYLING = ["**/__tests__/**"];
+
+const BRAND_INK_MESSAGE =
+  "Tinta sai da camada semântica, não do token de marca: text-fg, text-fg-strong, text-on-brand, text-on-dark, text-on-light. O modo escuro (§7.4) reatribui só os semânticos — um token de marca não segue a paleta quando ela chegar.";
+
 const noRawColour = [
   {
     selector: "Literal[value=/#[0-9a-fA-F]{3,8}/]",
@@ -35,6 +42,14 @@ const noRawColour = [
   {
     selector: "TemplateElement[value.raw=/bg-white/]",
     message: "bg-white não é permitido. Superfícies elevadas usam bg-elevated.",
+  },
+  {
+    selector: `Literal[value=/${BRAND_INK}/]`,
+    message: BRAND_INK_MESSAGE,
+  },
+  {
+    selector: `TemplateElement[value.raw=/${BRAND_INK}/]`,
+    message: BRAND_INK_MESSAGE,
   },
 ];
 
@@ -213,12 +228,14 @@ export default defineConfig([
   },
   {
     files: ["src/**/*.{ts,tsx}"],
+    ignores: NOT_SHIPPED_STYLING,
     rules: {
       "no-restricted-syntax": ["error", ...noRawColour],
     },
   },
   {
     files: ["src/styles/**/*.ts"],
+    ignores: NOT_SHIPPED_STYLING,
     rules: {
       "no-restricted-syntax": ["error", ...noRawColour, ...noRawValue],
     },
