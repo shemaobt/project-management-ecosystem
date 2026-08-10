@@ -242,6 +242,12 @@
   --answered-bg: #eef0e0;
   --answered-line: #c5cda0;
 
+  --deadline-soon: #a06c12;
+  --coral-community: #406560;
+
+  --color-deadline-soon: var(--deadline-soon);
+  --color-coral-community: var(--coral-community);
+
   --paper: #fbfaf1;
   --shadow-paper: 0 1px 0 rgba(63, 62, 32, 0.04),
     0 6px 14px -8px rgba(63, 62, 32, 0.18),
