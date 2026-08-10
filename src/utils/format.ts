@@ -17,6 +17,14 @@ export function formatDate(date: string, locale = getActiveLocale()): string {
   });
 }
 
+export function formatDayMonth(date: string, locale = getActiveLocale()): string {
+  if (!date) return "—";
+  return new Date(`${date}T00:00:00`).toLocaleDateString(locale, {
+    day: "2-digit",
+    month: "short",
+  });
+}
+
 export function formatNumber(
   value: number,
   locale = getActiveLocale(),
