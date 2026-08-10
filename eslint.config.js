@@ -184,7 +184,6 @@ export default defineConfig([
       "src/components/pages/formularios/FormulariosPage.tsx",
       "src/components/pages/intercessores/IntercessoresPage.tsx",
       "src/components/pages/oracao/OracaoPage.tsx",
-      "src/components/pages/projetos/ProjetosPage.tsx",
       "src/components/pages/ritmo/RitmoPage.tsx",
       "src/components/layout/AppShell.tsx",
       "src/components/layout/TopNav.tsx",

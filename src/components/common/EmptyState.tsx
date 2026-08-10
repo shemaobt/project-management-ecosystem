@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { titleText } from "../../styles";
 import { cn } from "../../utils/cn";
 
 export interface EmptyStateProps {
@@ -20,17 +19,19 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center gap-3 px-6 py-12 text-center",
+        "rounded-lg border-2 border-dashed border-line px-8 py-16 text-center text-fg-muted",
         className,
       )}
     >
-      {icon ? <span className="text-fg-subtle">{icon}</span> : null}
-      {title ? (
-        <p className={titleText}>{title}</p>
+      {icon ? (
+        <div className="mb-3 flex justify-center text-fg-subtle">{icon}</div>
       ) : null}
-      <p className="max-w-(--container-narrow) font-serif text-[15px] leading-body italic text-fg-muted">
-        {message}
-      </p>
+      {title ? (
+        <h3 className="mb-1.5 font-serif text-h4 font-normal italic text-fg">
+          {title}
+        </h3>
+      ) : null}
+      <p className={cn(action && "mb-5")}>{message}</p>
       {action}
     </div>
   );
