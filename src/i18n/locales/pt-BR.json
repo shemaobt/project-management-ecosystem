@@ -575,5 +575,13 @@
   "results_count_other": "{{count}} projetos",
   "lang_toggle": "Idioma",
   "notif_bell": "Notificações",
-  "toast_pending": "“{{label}}” ainda não está disponível — chega nas próximas entregas."
+  "toast_pending": "“{{label}}” ainda não está disponível — chega nas próximas entregas.",
+  "load_more": "Mostrar mais",
+  "sort_by": "Ordenar por",
+  "card_open": "Abrir o projeto {{language}}",
+  "d_last_update": "Última atualização",
+  "d_record": "Cadastro do projeto",
+  "d_p_translated_short": "Traduzido",
+  "d_p_community_short": "Checado",
+  "d_p_approved_short": "Aprovado"
 }

@@ -575,5 +575,13 @@
   "results_count_other": "{{count}} projects",
   "lang_toggle": "Language",
   "notif_bell": "Notifications",
-  "toast_pending": "“{{label}}” is not available yet — it arrives in upcoming deliveries."
+  "toast_pending": "“{{label}}” is not available yet — it arrives in upcoming deliveries.",
+  "load_more": "Show more",
+  "sort_by": "Sort by",
+  "card_open": "Open the {{language}} project",
+  "d_last_update": "Last update",
+  "d_record": "Project record",
+  "d_p_translated_short": "Translated",
+  "d_p_community_short": "Checked",
+  "d_p_approved_short": "Approved"
 }
