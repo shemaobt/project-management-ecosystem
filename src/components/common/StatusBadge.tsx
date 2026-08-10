@@ -1,7 +1,12 @@
 import { cva } from "class-variance-authority";
 import { AlertTriangle, Check, Circle, Minus, X } from "lucide-react";
 import type { ComponentType } from "react";
-import { HEALTH_SYMBOLS, type PrayerState } from "../../constants/status";
+import { useTranslation } from "react-i18next";
+import {
+  HEALTH_LABEL_KEYS,
+  HEALTH_SYMBOLS,
+  type PrayerState,
+} from "../../constants/status";
 import {
   HEALTH_DOT_TONES,
   HEALTH_TONES,
@@ -117,10 +122,15 @@ export interface StatusDotProps {
 }
 
 export function StatusDot({ state, label, className }: StatusDotProps) {
+  const { t } = useTranslation();
+  const spoken = `${label}: ${t(HEALTH_LABEL_KEYS[state])}`;
   return (
-    <span className={cn(healthDotVariants({ state }), className)}>
+    <span
+      title={spoken}
+      className={cn(healthDotVariants({ state }), className)}
+    >
       <span aria-hidden>{HEALTH_SYMBOLS[state]}</span>
-      <span className="sr-only">{label}</span>
+      <span className="sr-only">{spoken}</span>
     </span>
   );
 }
