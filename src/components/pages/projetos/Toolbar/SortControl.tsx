@@ -6,24 +6,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../ui/Select";
-import { SORT_KEYS, SORT_LABEL_KEYS, type SortKey } from "../sorting";
+import {
+  SORT_KEYS,
+  SORT_LABEL_KEYS,
+  isSortKey,
+} from "../../../../constants/sorting";
+import { usePrefsStore } from "../../../../stores/prefsStore";
 
-const isSortKey = (value: string): value is SortKey =>
-  SORT_KEYS.some((key) => key === value);
-
-export interface SortControlProps {
-  value: SortKey;
-  onChange: (value: SortKey) => void;
-}
-
-export function SortControl({ value, onChange }: SortControlProps) {
+export function SortControl() {
   const { t } = useTranslation();
+  const value = usePrefsStore((state) => state.sort);
+  const setSort = usePrefsStore((state) => state.setSort);
 
   return (
     <Select
       value={value}
       onValueChange={(next) => {
-        if (isSortKey(next)) onChange(next);
+        if (isSortKey(next)) setSort(next);
       }}
     >
       <SelectTrigger

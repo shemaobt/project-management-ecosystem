@@ -1,26 +1,7 @@
+import type { SortKey } from "../../../constants/sorting";
 import type { Project } from "../../../types/project";
 import { healthScore } from "../../../utils/health";
 import { getProgress } from "../../../utils/progress";
-
-export const SORT_KEYS = [
-  "deadline",
-  "name",
-  "progress",
-  "team",
-  "health",
-] as const;
-
-export type SortKey = (typeof SORT_KEYS)[number];
-
-export const DEFAULT_SORT: SortKey = "deadline";
-
-export const SORT_LABEL_KEYS: Record<SortKey, string> = {
-  deadline: "sort_deadline",
-  name: "sort_name",
-  progress: "sort_progress",
-  team: "sort_team",
-  health: "sort_health",
-};
 
 type Comparator = (a: Project, b: Project) => number;
 
