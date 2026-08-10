@@ -59,6 +59,17 @@ const USER_FACING_ATTRS = new Set([
   "label",
 ]);
 
+export const INTERNAL_SHOWCASE_UNTRANSLATED_BY_DESIGN = [
+  "src/components/pages/design-system/ControlsSection.tsx",
+  "src/components/pages/design-system/DesignSystemPage.tsx",
+  "src/components/pages/design-system/StatusSection.tsx",
+  "src/components/pages/design-system/SurfacesSection.tsx",
+];
+
+export const DEV_ONLY_NEVER_REACHES_A_USER = [
+  "src/components/layout/RoleSwitcher.tsx",
+];
+
 const noHardcodedCopy = {
   meta: {
     type: "problem",
@@ -176,17 +187,8 @@ export default defineConfig([
   {
     files: ["src/components/**/*.tsx"],
     ignores: [
-      "src/components/pages/design-system/ControlsSection.tsx",
-      "src/components/pages/design-system/DesignSystemPage.tsx",
-      "src/components/pages/design-system/StatusSection.tsx",
-      "src/components/pages/design-system/SurfacesSection.tsx",
-      "src/components/pages/equipe/EquipePage.tsx",
-      "src/components/pages/formularios/FormulariosPage.tsx",
-      "src/components/pages/intercessores/IntercessoresPage.tsx",
-      "src/components/pages/oracao/OracaoPage.tsx",
-      "src/components/pages/ritmo/RitmoPage.tsx",
-      "src/components/layout/AppShell.tsx",
-      "src/components/layout/TopNav.tsx",
+      ...INTERNAL_SHOWCASE_UNTRANSLATED_BY_DESIGN,
+      ...DEV_ONLY_NEVER_REACHES_A_USER,
     ],
     plugins: {
       shema: { rules: { "no-hardcoded-copy": noHardcodedCopy } },
