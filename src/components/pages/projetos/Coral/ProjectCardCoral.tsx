@@ -155,7 +155,7 @@ export function ProjectCardCoral({ project, onOpen }: ProjectCardCoralProps) {
           <div className="text-[18px] leading-none font-extrabold text-verde tabular-nums">
             {project.communityCheckedUnits}
           </div>
-          <div className={cn(statLabel, "text-coral-community")}>
+          <div className={cn(statLabel, "text-azul-ink")}>
             ● {t("d_p_community_short")}
           </div>
         </div>
