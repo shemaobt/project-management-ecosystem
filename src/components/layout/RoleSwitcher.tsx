@@ -1,14 +1,18 @@
+import { useTranslation } from "react-i18next";
 import {
   MOCK_SESSION_PERSONAS,
-  SESSION_ROLE_LABELS,
+  SESSION_ROLE_LABEL_KEYS,
+  UNASSIGNED_HOLDER_KEY,
   useAuth,
-  type SessionRole,
 } from "../../contexts/AuthContext";
 import { cn } from "../../utils/cn";
 
-const SESSION_ROLES = Object.keys(MOCK_SESSION_PERSONAS) as SessionRole[];
+const SESSION_ROLES = Object.values(MOCK_SESSION_PERSONAS).map(
+  (persona) => persona.role,
+);
 
 export function RoleSwitcher() {
+  const { t } = useTranslation();
   const { status, user, visibleRegions, switchRole } = useAuth();
 
   return (
@@ -17,10 +21,10 @@ export function RoleSwitcher() {
         Sessão mockada · dev
       </span>
       <span className="text-small font-semibold text-fg-strong">
-        {user.name}
+        {user.name ?? t(UNASSIGNED_HOLDER_KEY)}
       </span>
       <span className="text-micro text-fg-muted">
-        {SESSION_ROLE_LABELS[user.role]} ·{" "}
+        {t(SESSION_ROLE_LABEL_KEYS[user.role])} ·{" "}
         {status === "loading"
           ? "carregando regiões…"
           : visibleRegions.length === 1
@@ -40,7 +44,7 @@ export function RoleSwitcher() {
                 : "bg-muted text-fg-muted hover:text-verde",
             )}
           >
-            {SESSION_ROLE_LABELS[role]}
+            {t(SESSION_ROLE_LABEL_KEYS[role])}
           </button>
         ))}
       </div>
