@@ -1,6 +1,9 @@
 import { useTranslation } from "react-i18next";
-import type { OverallHealth, Project, ProjectPriority } from "../../../../types/project";
-import { PRIORITY_TONES } from "../../../../styles";
+import type {
+  OverallHealth,
+  Project,
+  ProjectPriority,
+} from "../../../../types/project";
 import { cn } from "../../../../utils/cn";
 import { formatDate } from "../../../../utils/format";
 import { getPriority } from "../../../../utils/health";
@@ -18,8 +21,14 @@ import {
 } from "../card";
 
 const TAPE_TONES: Record<ProjectPriority, string> = {
-  ...PRIORITY_TONES,
+  critical: "bg-telha",
+  warning: "bg-status-attention",
+  completed: "bg-verde-claro",
   default: "bg-azul",
+  planned: "bg-telha",
+  paused: "bg-telha",
+  canceled: "bg-telha",
+  unknown: "bg-telha",
 };
 
 const TILT = [
@@ -106,25 +115,25 @@ export function ProjectCardDiario({
         </div>
       </div>
 
-      <div>
-        <div className={line}>
-          <span className={lineLabel}>{t("d_facilitators")}</span>
-          <span className={lineValue}>{project.team || "—"}</span>
-        </div>
-        <div className={line}>
-          <span className={lineLabel}>{t("d_mentor")}</span>
-          <span className={lineValue}>{project.mentor || "—"}</span>
-        </div>
-        <div className={line}>
-          <span className={lineLabel}>{t("d_location")}</span>
-          <span className={lineValue}>
-            {location.withheld ? t(location.regionLabelKey) : location.location || "—"}
-          </span>
-        </div>
-        <div className={line}>
-          <span className={lineLabel}>{t("d_speakers")}</span>
-          <span className={lineValue}>{getSpeakerLabel(project, locale)}</span>
-        </div>
+      <div className={line}>
+        <span className={lineLabel}>{t("d_facilitators")}</span>
+        <span className={lineValue}>{project.team || "—"}</span>
+      </div>
+      <div className={line}>
+        <span className={lineLabel}>{t("d_mentor")}</span>
+        <span className={lineValue}>{project.mentor || "—"}</span>
+      </div>
+      <div className={line}>
+        <span className={lineLabel}>{t("d_location")}</span>
+        <span className={lineValue}>
+          {location.withheld
+            ? t(location.regionLabelKey)
+            : location.location || "—"}
+        </span>
+      </div>
+      <div className={line}>
+        <span className={lineLabel}>{t("d_speakers")}</span>
+        <span className={lineValue}>{getSpeakerLabel(project, locale)}</span>
       </div>
 
       {quote && (
