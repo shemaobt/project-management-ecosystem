@@ -28,11 +28,11 @@ const { filterProjects } = await import("../../../../../../utils/search");
 const {
   ADVANCED_SECTIONS,
   PRIMARY_SECTIONS,
-  VITALITY_SCALE,
   buildFilterOptions,
   getOptionCount,
   resolveSectionOptions,
 } = await import("../sections");
+const { VITALITY_SCALE } = await import("../../../../../../constants");
 
 const NOW = new Date("2026-05-14T00:00:00");
 
