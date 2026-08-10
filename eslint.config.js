@@ -57,7 +57,21 @@ const USER_FACING_ATTRS = new Set([
   "aria-label",
   "aria-description",
   "label",
+  "message",
 ]);
+
+const USER_FACING_ATTR_SUFFIXES = [
+  "Label",
+  "Message",
+  "Title",
+  "Text",
+  "Description",
+  "Placeholder",
+];
+
+const isUserFacingAttrName = (name) =>
+  USER_FACING_ATTRS.has(name) ||
+  USER_FACING_ATTR_SUFFIXES.some((suffix) => name.endsWith(suffix));
 
 export const INTERNAL_SHOWCASE_UNTRANSLATED_BY_DESIGN = [
   "src/components/pages/design-system/ControlsSection.tsx",
@@ -104,7 +118,7 @@ const noHardcodedCopy = {
     const isUserFacingAttr = (node) =>
       node.type === "JSXAttribute" &&
       node.name.type === "JSXIdentifier" &&
-      USER_FACING_ATTRS.has(node.name.name);
+      isUserFacingAttrName(node.name.name);
     return {
       JSXText(node) {
         if (hasCopy(node.value)) {
@@ -185,7 +199,7 @@ export default defineConfig([
     },
   },
   {
-    files: ["src/components/**/*.tsx"],
+    files: ["src/components/**/*.tsx", "src/contexts/**/*.tsx"],
     ignores: [
       ...INTERNAL_SHOWCASE_UNTRANSLATED_BY_DESIGN,
       ...DEV_ONLY_NEVER_REACHES_A_USER,
