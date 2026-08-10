@@ -3,6 +3,7 @@ import type { FacetCounts } from "../../../../utils/search";
 import { Chips } from "./Chips";
 import { DetailedFilters } from "./Filters";
 import { ResultCount } from "./ResultCount";
+import { SavedViews } from "../SavedViews";
 import { SearchBox } from "./SearchBox";
 import { TeamByRegion } from "./TeamByRegion";
 
@@ -21,6 +22,8 @@ export function Sidebar({ projects, shown, total, counts }: SidebarProps) {
         <Chips counts={counts.preset} />
         <ResultCount shown={shown} total={total} />
       </div>
+
+      <SavedViews projects={projects} />
 
       <TeamByRegion projects={projects} counts={counts.continent} />
 
