@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { projectsAPI } from "../../../fixtures";
 import { useFiltersStore } from "../../../stores/filtersStore";
 import { usePrefsStore, type CardMetaphor } from "../../../stores/prefsStore";
 import type { Project } from "../../../types/project";
+import { decodeView, encodeView } from "../../../utils/filterSerialisation";
 import { filterProjects } from "../../../utils/search";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -14,7 +16,7 @@ import { JournalView } from "./Journal";
 import { LoadMore } from "./LoadMore";
 import { Sidebar } from "./Sidebar";
 import { Toolbar } from "./Toolbar";
-import { DEFAULT_SORT, sortProjects, type SortKey } from "./sorting";
+import { sortProjects } from "./sorting";
 
 const PAGE_SIZE = 30;
 
@@ -44,11 +46,16 @@ function ResultsView({
 export function ProjetosPage() {
   const { t } = useTranslation();
   const [projects, setProjects] = useState<Project[] | null>(null);
+  const [params, setParams] = useSearchParams();
   const filters = useFiltersStore((state) => state.filters);
   const search = useFiltersStore((state) => state.search);
   const clearAll = useFiltersStore((state) => state.clearAll);
+  const applyState = useFiltersStore((state) => state.applyState);
   const metaphor = usePrefsStore((state) => state.metaphor);
-  const [sort, setSort] = useState<SortKey>(DEFAULT_SORT);
+  const sort = usePrefsStore((state) => state.sort);
+  const setSort = usePrefsStore((state) => state.setSort);
+  const setMetaphor = usePrefsStore((state) => state.setMetaphor);
+  const readUrl = useRef(false);
   const [paging, setPaging] = useState({
     count: PAGE_SIZE,
     filters,
@@ -67,6 +74,24 @@ export function ProjetosPage() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (readUrl.current) return;
+    readUrl.current = true;
+    if ([...params.keys()].length === 0) return;
+    const shared = decodeView(params);
+    applyState(shared.filters, shared.search);
+    setSort(shared.sort);
+    setMetaphor(shared.metaphor);
+  }, [params, applyState, setSort, setMetaphor]);
+
+  useEffect(() => {
+    if (!readUrl.current) return;
+    const next = encodeView({ filters, search, sort, metaphor });
+    if (next.toString() !== params.toString()) {
+      setParams(next, { replace: true });
+    }
+  }, [filters, search, sort, metaphor, params, setParams]);
 
   const result = useMemo(
     () => filterProjects(projects ?? [], filters, search),
@@ -112,12 +137,7 @@ export function ProjetosPage() {
         counts={result.counts}
       />
       <div>
-        <Toolbar
-          count={sorted.length}
-          total={result.total}
-          sort={sort}
-          onSortChange={setSort}
-        />
+        <Toolbar count={sorted.length} total={result.total} />
         {sorted.length === 0 ? (
           <EmptyState
             title={t("empty_title")}
