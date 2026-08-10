@@ -1,4 +1,5 @@
 import { Globe } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ROLES } from "../../../../constants/roles";
 import { useAuth } from "../../../../contexts/AuthContext";
@@ -21,7 +22,10 @@ export function TeamByRegion({ projects, counts }: TeamByRegionProps) {
   const continent = useFiltersStore((state) => state.filters.continent);
   const setFilter = useFiltersStore((state) => state.setFilter);
 
-  const cards = buildRegionPanel(projects, regions, canSeeRegion);
+  const cards = useMemo(
+    () => buildRegionPanel(projects, regions, canSeeRegion),
+    [projects, regions, canSeeRegion],
+  );
   if (cards.length === 0) return null;
 
   return (
