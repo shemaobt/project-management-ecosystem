@@ -18,7 +18,7 @@ export function Toaster() {
           warning: "bg-status-attention",
           info: "bg-azul",
           loading: "bg-inverse",
-          description: "font-normal text-branco/80",
+          description: "font-normal text-on-dark/80",
           actionButton:
             "rounded-pill bg-branco/15 px-2.5 py-1 text-micro font-bold uppercase",
         },
