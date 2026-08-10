@@ -4,6 +4,7 @@ import { Chips } from "./Chips";
 import { DetailedFilters } from "./Filters";
 import { ResultCount } from "./ResultCount";
 import { SearchBox } from "./SearchBox";
+import { TeamByRegion } from "./TeamByRegion";
 
 export interface SidebarProps {
   projects: readonly Project[];
@@ -20,6 +21,8 @@ export function Sidebar({ projects, shown, total, counts }: SidebarProps) {
         <Chips counts={counts.preset} />
         <ResultCount shown={shown} total={total} />
       </div>
+
+      <TeamByRegion projects={projects} counts={counts.continent} />
 
       <DetailedFilters projects={projects} counts={counts} />
     </aside>
