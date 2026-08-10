@@ -9,13 +9,13 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-telha text-branco hover:bg-accent-hover",
+        primary: "bg-telha text-on-brand hover:bg-accent-hover",
         secondary:
-          "border-line bg-elevated text-verde hover:border-verde hover:text-verde",
-        green: "bg-verde-claro text-branco hover:bg-verde",
+          "border-line bg-elevated text-fg hover:border-verde hover:text-fg",
+        green: "bg-verde-claro text-on-brand hover:bg-verde",
         danger:
           "border-status-critical-line bg-transparent text-telha hover:bg-accent-soft",
-        ghost: "bg-transparent text-fg-muted hover:bg-muted hover:text-verde",
+        ghost: "bg-transparent text-fg-muted hover:bg-muted hover:text-fg",
       },
       size: {
         sm: "px-3.5 py-2 text-micro",

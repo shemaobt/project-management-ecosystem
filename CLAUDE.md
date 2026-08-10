@@ -420,7 +420,7 @@ All visual decisions MUST follow these tokens, taken verbatim from `DS-PROJECT/d
 **Semantic layer (prefer this in code):**
 
 - Backgrounds — `canvas` (= branco), `elevated` (`#FFFFFF`), `muted` (`#ECEADF`), `quiet` (= areia), `inverse` (= verde), `brand`/`accent` (= telha)
-- Foreground — `fg` (= verde), `fg-strong` (= preto), `fg-muted` (`#5A5A3E`), `fg-subtle` (`#8A8970`), `on-dark`/`on-brand` (= branco), `link` (= telha)
+- Foreground — `fg` (= verde), `fg-strong` (= preto), `fg-muted` (`#5A5A3E`), `fg-subtle` (`#8A8970`), `on-dark`/`on-brand` (= branco), `on-light` (= verde), `link` (= telha)
 - Accent states — `accent-hover` `#A23E00`, `accent-press` `#872F00`, `accent-soft` `#F2D8C2`
 - Lines — `line` (verde @16%), `line-strong` (verde @32%), `line-on-dark` (branco @18%)
 
@@ -429,6 +429,15 @@ Rules:
 - **White is reserved for elevated surfaces** — always via `bg-elevated`, never a hardcoded `bg-white`.
 - **No generic greys.** Use the earthy Shemá palette.
 - No arbitrary hex values in JSX. Extend the theme instead.
+
+**Resolved in FE-19 ([OBT-421](https://linear.app/shema-obt/issue/OBT-421)), 10/aug/2026 — Levi Gomes.** "Prefer the semantic layer" was advice, and the repo had been ignoring it since FE-03: 62 places painted **ink** with a brand token — 22 in the merged base, 23 more arriving with FE-14, 17 with FE-15. It is invisible today — `--fg` *is* `--shema-verde` — and it is the bug §7.4 is built to avoid, since only the semantic names get reassigned when the dark palette lands. It is now a rule with a guard.
+
+- **Ink comes from the semantic tier. `text-verde` · `text-branco` · `text-preto` are blocked** by `no-restricted-syntax` in `eslint.config.js` (the `BRAND_INK` selector), across all of `src/`, **with no exemption list** — the `/design-system` showcase never painted ink with a brand token, so there is nothing to carve out.
+- **The semantic name follows the surface, not the pixel**: `text-fg` (`text-fg-strong` for headings) over canvas, `bg-elevated` and `bg-muted`; `text-on-brand` over a brand fill (telha, verde-claro); `text-on-dark` over `bg-inverse`, the topbar and a saturated status fill; `text-on-light` over `bg-status-na`. Every substitution resolves to the same hex it replaced, and `src/styles/__tests__/semanticInk.test.ts` pins that against `index.css` — a repaint fails the test, not a review.
+- **`text-verde-claro` is not ink in that sense** and stays: it is the brand green and the success foreground, and the semantic tier has no counterpart for it. The rule's negative lookahead exists for exactly this.
+- **`__tests__` is outside the corpus of every styling rule** (`NOT_SHIPPED_STYLING`). A test that proves the guard catches a violation has to be able to write one, and a test asserting `#3F3E20` is the point of the test. The scope is asserted by the test that depends on it.
+- **Where one class paints several fills, the ink is named once and everything inside inherits it.** The toaster is the case: sonner composes `classNames.toast` + `classNames.default` + `classNames[type]`, and `default` applies to *every* toast, so a per-type ink would compete with the base one and Tailwind's emission order — not the source — would pick the winner. `TOAST_CLASSNAMES` therefore carries a single `text-on-dark` on the `toast` slot and `text-current/80` on the description. Making the distinction expressible is [OBT-422](https://linear.app/shema-obt/issue/OBT-422), which fixes the same defect on the fills, where it already renders wrong.
+- **Two gaps stay open, deliberately.** Fills, borders and veils — `bg-verde/8`, `bg-branco/20`, `border-verde/18`, `border-branco/[0.22]` — keep their brand tokens: §7.1 reserves brand for fills, and whether a wash of the ink colour flips with the theme is part of §7.4's undecided palette. And **`text-areia` has no semantic replacement at all**: the muted ink on the dark topbar and in `DialogDescription` would need an `on-dark-muted` token that `design-system/colors_and_type.css` does not define. Inventing it is a brand-owner decision, so it ships with the dark palette or not at all.
 
 ### 7.2 Typography
 
@@ -461,6 +470,8 @@ Per §2 the prototype wins on visuals, so a dark palette is a **design deliverab
 - **No `.dark` overrides exist yet, and no component should ship `dark:` utilities** until the palette lands here.
 
 Unblocking it needs the seven dark values from the brand owner (or an explicit "derive them"). Record the decision, its date and its author here when it lands.
+
+**FE-19 ([OBT-421](https://linear.app/shema-obt/issue/OBT-421)) adds one value to that ask: a muted ink for dark surfaces.** §7.1's sweep moved every brand ink token to the semantic tier except `text-areia` — the topbar tagline and `DialogDescription` — because `on-dark` is solid branco and nothing quieter exists. It travels with the palette, not before it.
 
 ### 7.5 Focus
 
@@ -607,6 +618,7 @@ Reference the Linear issue ID (`OBT-###`) in the branch name and PR body. Never 
 - [ ] `meaning-map-ui` consulted for engineering patterns only, never for appearance.
 - [ ] Stack only: React, TypeScript, Vite, Tailwind v4, Zustand, Context, Axios, Radix/shadcn primitives, lucide-react, sonner, i18next, react-leaflet.
 - [ ] Tokens exactly as in `design-system/colors_and_type.css`; no stray hex; telha reserved for CTAs and active states.
+- [ ] Ink from the semantic tier, named after the surface it sits on — `text-fg` / `text-fg-strong` / `text-on-brand` / `text-on-dark` / `text-on-light`, never `text-verde` / `text-branco` / `text-preto` (§7.1).
 - [ ] `bg-elevated` for cards/modals/inputs; `bg-canvas` for pages; `bg-muted` for subtle fills. Never `bg-white`.
 - [ ] Cards have **no borders** — shadow only.
 - [ ] Montserrat for UI, Merriweather for long-form/quotes.

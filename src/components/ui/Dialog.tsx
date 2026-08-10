@@ -70,7 +70,7 @@ export function DialogContent({
             className={cn(
               circleControl,
               transitionColors,
-              "absolute top-5 right-5 size-9.5 bg-branco/10 text-branco hover:bg-branco/20",
+              "absolute top-5 right-5 size-9.5 bg-branco/10 text-on-dark hover:bg-branco/20",
             )}
           >
             <X size={18} strokeWidth={1.75} />

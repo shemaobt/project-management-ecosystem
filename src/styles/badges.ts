@@ -22,10 +22,10 @@ export const HEALTH_TONES: Record<OverallHealth, string> = {
 };
 
 export const HEALTH_DOT_TONES: Record<OverallHealth, string> = {
-  boa: "bg-status-good text-branco",
-  atencao: "bg-status-attention text-branco",
-  critica: "bg-status-critical text-branco",
-  na: "bg-status-na text-verde opacity-60",
+  boa: "bg-status-good text-on-dark",
+  atencao: "bg-status-attention text-on-dark",
+  critica: "bg-status-critical text-on-dark",
+  na: "bg-status-na text-on-light opacity-60",
 };
 
 export const STALE_TONES: Record<StaleStatus, string> = {
