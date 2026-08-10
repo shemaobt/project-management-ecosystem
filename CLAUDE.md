@@ -288,6 +288,12 @@ Plus the project record (`modals.jsx`) as FE-20…28 / BE-06 / INT-03, and Iníc
 - **Atlas** additionally renders the rotating night globe with photo medallions above the grid.
 - Pagination: 30 items, *Mostrar mais* +30.
 
+**Resolved in FE-15 ([OBT-360](https://linear.app/shema-obt/issue/OBT-360)), 09/aug/2026 — Levi Gomes.** Three decisions the card views forced:
+
+- **The Diário card carries the three progress counts, which the prototype's `CardDiario` does not.** `cards.jsx` shows only `{percent}%` in the journal footer; FE-15's issue states the product rule — *"translated / community-checked / mentor-approved is a pipeline… never collapse them into a single percentage"* — and its Definition of Done demands the three counts separate. Per §2 the prototype wins on visuals but the issue wins on behaviour, so the footer gained the Atlas card's `translated/total` head and its `N checado · N aprovado` marks line, in the Diário's own type scale. Nothing else was added.
+- **The card list obeys FE-14's sensitive-country display rule, by reference.** Both cards read `getLocationDisplay` from `src/utils/region.ts` — the single owner — so a `sensitiveCountry` project shows its region name where the location goes, never the country or place. **Known gap, not fixed here:** the rule redacts the *location field only*; the team/base name still renders verbatim, and two of the three seed values name a place (`YWAM Egypt`, `YWAM Morelia`). Redacting it is a second rule, which belongs to the open client gate on what *devida cautela* means per output (§6.1) — do not invent it screen by screen.
+- **Where the prototype's copy is a string operation, FE-15 used real keys.** `cards.jsx` builds the Coral labels by slicing translated strings (`t.d_p_translated.split(' ')[0]`), which reads *"Já"* in PT and turns *"Mentor-approved"* into *"Mentor"* in EN. The short forms are now catalogue keys (`d_p_*_short`), and *Mostrar mais* — hardcoded in the prototype — is `load_more`.
+
 > ⚠️ **Two views or three? — client gate, FE-17 ([OBT-362](https://linear.app/shema-obt/issue/OBT-362)).** The prototype implements three metaphors; the PRD v1.1 revision history records a client decision that *"list views reduced to Atlas and Journal."* This is scope dressed as a visual, so §2's "prototype wins on visuals" does not settle it. Do not finish or delete Coral before the answer lands — and record the decision, its date and its author here when it does.
 
 ### 5.2 Cadastro do projeto — the living record
