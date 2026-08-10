@@ -36,7 +36,7 @@ interface Rotation {
 }
 
 export interface GlobeProps {
-  projects: Project[];
+  projects: readonly Project[];
   onSelect?: (project: Project) => void;
 }
 

@@ -7,7 +7,7 @@ import { Globe } from "./Globe";
 const PAGE_SIZE = 30;
 
 export interface AtlasViewProps {
-  projects: Project[];
+  projects: readonly Project[];
   onSelect?: (project: Project) => void;
 }
 

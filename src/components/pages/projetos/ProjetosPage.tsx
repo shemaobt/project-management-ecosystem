@@ -37,7 +37,7 @@ function ResultsView({
     case "coral":
       return <CoralView projects={visible} onOpen={onOpen} />;
     case "atlas":
-      return <AtlasView projects={[...projects]} onSelect={onOpen} />;
+      return <AtlasView projects={projects} onSelect={onOpen} />;
   }
 }
 
