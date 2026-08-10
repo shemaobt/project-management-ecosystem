@@ -429,6 +429,7 @@ All visual decisions MUST follow these tokens, taken verbatim from `DS-PROJECT/d
 - Foreground — `fg` (= verde), `fg-strong` (= preto), `fg-muted` (`#5A5A3E`), `fg-subtle` (`#8A8970`), `on-dark`/`on-brand` (= branco), `link` (= telha)
 - Accent states — `accent-hover` `#A23E00`, `accent-press` `#872F00`, `accent-soft` `#F2D8C2`
 - Lines — `line` (verde @16%), `line-strong` (verde @32%), `line-on-dark` (branco @18%)
+- **Ink weights** — a palette colour that has to carry *small text* on a light surface has a darker sibling at the same hue: `azul-ink` `#406560` for azul (the prototype's own value in `.tag.azul`, `.need-status-tag.status-in-progress` and the Coral stat label), `status-attention-fg` `#8B6018` and `deadline-soon` `#A06C12` for the amber. They are the same series, not new colours — surfaces and strokes keep the base token, text takes the ink. `src/styles/__tests__/tokens.test.ts` pins the hue relationship and the contrast that justifies each one; **do not add a sixth value to a family without it.**
 
 Rules:
 - **Telha is exclusive to CTAs, primary actions and active states.** Never decorative.
@@ -605,6 +606,7 @@ Reference the Linear issue ID (`OBT-###`) in the branch name and PR body. Never 
 - [ ] `meaning-map-ui` consulted for engineering patterns only, never for appearance.
 - [ ] Stack only: React, TypeScript, Vite, Tailwind v4, Zustand, Context, Axios, Radix/shadcn primitives, lucide-react, sonner, i18next, react-leaflet.
 - [ ] Tokens exactly as in `design-system/colors_and_type.css`; no stray hex; telha reserved for CTAs and active states.
+- [ ] **A new token is named after the fact it carries, and the name survives being read out of context.** When the same concept is drawn in two channels (a ring and its label, a badge and its text), both go through tokens whose names say they are the same series — an ink weight (§7.1), not a second colour with a screen's name on it. New value in a family ⇒ hue and reason pinned in `src/styles/__tests__/tokens.test.ts`.
 - [ ] `bg-elevated` for cards/modals/inputs; `bg-canvas` for pages; `bg-muted` for subtle fills. Never `bg-white`.
 - [ ] Cards have **no borders** — shadow only.
 - [ ] Montserrat for UI, Merriweather for long-form/quotes.
