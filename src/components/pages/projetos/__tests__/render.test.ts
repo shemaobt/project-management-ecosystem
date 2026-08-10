@@ -25,6 +25,10 @@ const { projectsAPI } = await import("../../../../fixtures");
 const { ProjectCardDiario } = await import("../Journal/ProjectCardDiario");
 const { ProjectCardCoral } = await import("../Coral/ProjectCardCoral");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
+const { JournalView } = await import("../Journal");
+const { CoralView } = await import("../Coral");
+const { AtlasView } = await import("../Atlas");
+const { DEFAULT_SORT, sortProjects } = await import("../sorting");
 
 const noop = () => {};
 
@@ -138,5 +142,48 @@ describe("país sensível no cartão", () => {
 
     expect(diario(project)).toContain(project.location);
     expect(coral(project)).toContain(project.location);
+  });
+});
+
+describe("as três metáforas mostram a mesma janela do conjunto", () => {
+  const PAGE_SIZE = 30;
+  const shows = (markup: string, name: string) => markup.includes(`>${name}<`);
+
+  it("a página exibida é a mesma nas três, e nenhuma passa dela", async () => {
+    const all = await projectsAPI.list();
+    const sorted = sortProjects(all, DEFAULT_SORT, "pt");
+    expect(sorted.length).toBeGreaterThan(PAGE_SIZE);
+
+    const page = sorted.slice(0, PAGE_SIZE);
+    const dentro = page[PAGE_SIZE - 1].languageName;
+    const fora = sorted[PAGE_SIZE].languageName;
+    expect(dentro).not.toBe(fora);
+
+    const markups = [
+      renderToStaticMarkup(
+        createElement(JournalView, { projects: page, onOpen: noop }),
+      ),
+      renderToStaticMarkup(
+        createElement(CoralView, { projects: page, onOpen: noop }),
+      ),
+      renderToStaticMarkup(
+        createElement(AtlasView, { projects: sorted, onSelect: noop }),
+      ),
+    ];
+
+    for (const markup of markups) {
+      expect(shows(markup, page[0].languageName)).toBe(true);
+      expect(shows(markup, dentro)).toBe(true);
+      expect(shows(markup, fora)).toBe(false);
+    }
+  });
+
+  it("o Atlas recebe o conjunto inteiro e pagina sozinho, sem encolher o globo", async () => {
+    const all = await projectsAPI.list();
+    const sorted = sortProjects(all, DEFAULT_SORT, "pt");
+    const markup = renderToStaticMarkup(
+      createElement(AtlasView, { projects: sorted, onSelect: noop }),
+    );
+    expect(markup).toContain(`${PAGE_SIZE}/${sorted.length}`);
   });
 });
