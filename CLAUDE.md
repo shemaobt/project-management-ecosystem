@@ -298,6 +298,13 @@ Plus the project record (`modals.jsx`) as FE-20…28 / BE-06 / INT-03, and Iníc
 
 > **Sensitive countries on the map — decided in FE-14 ([OBT-359](https://linear.app/shema-obt/issue/OBT-359)), 07/aug/2026 — Levi Gomes, pending client confirmation (`needs-client-decision`).** A `sensitiveCountry` project is **never plotted at its true coordinates**: the Atlas places it at its **region's centroid** (`REGION_CENTROIDS` in `src/constants/geo.ts`), its marker carries a dashed "approximate" ring, and a visible overlay on the globe counts how many projects are being withheld — a silently incomplete map is its own hazard, so the reduction is always announced. The same rule redacts the *displayed location*: cards, tooltips and the medallion show the region name, never the country or place. The single owner of the rule is `getMapPlacement` / `getLocationDisplay` in `src/utils/region.ts` — any view that renders position or location (FE-15's cards included) must go through it, never reimplement it. Reduced precision was chosen over omission (the map must show exactly what the filters return) and over role-gating (wave 1 has only a mocked session). Tests in `src/components/pages/projetos/Atlas/__tests__/` pin the guarantee.
 >
+**Resolved in FE-15 ([OBT-360](https://linear.app/shema-obt/issue/OBT-360)), 09/aug/2026 — Levi Gomes.** Three decisions the card views forced:
+
+- **The Diário card carries the three progress counts, which the prototype's `CardDiario` does not.** `cards.jsx` shows only `{percent}%` in the journal footer; FE-15's issue states the product rule — *"translated / community-checked / mentor-approved is a pipeline… never collapse them into a single percentage"* — and its Definition of Done demands the three counts separate. Per §2 the prototype wins on visuals but the issue wins on behaviour, so the footer gained the Atlas card's `translated/total` head and its `N checado · N aprovado` marks line, in the Diário's own type scale. Nothing else was added.
+- **The card list obeys FE-14's sensitive-country display rule, by reference.** Both cards read `getLocationDisplay` from `src/utils/region.ts` — the single owner — so a `sensitiveCountry` project shows its region name where the location goes, never the country or place. **Known gap, not fixed here:** the rule redacts the *location field only*; the team/base name still renders verbatim, and two of the three seed values name a place (`YWAM Egypt`, `YWAM Morelia`). Redacting it is a second rule, which belongs to the open client gate on what *devida cautela* means per output (§6.1) — do not invent it screen by screen.
+- **The Diário's washi tape is telha by default, and that is not decoration.** `app.css` paints `.diario-tape` telha and overrides it only for `priority-warning`, `-completed` and `-default` — so roughly half the board is telha, which §7.1's *"telha only for CTAs and active states"* would forbid. §2 settles it: the tape is a visual, the prototype wins, and the rule keeps describing controls. Same shape as FE-14's border conflict.
+- **Where the prototype's copy is a string operation, FE-15 used real keys.** `cards.jsx` builds the Coral labels by slicing translated strings (`t.d_p_translated.split(' ')[0]`), which reads *"Já"* in PT and turns *"Mentor-approved"* into *"Mentor"* in EN. The short forms are now catalogue keys (`d_p_*_short`), and *Mostrar mais* — hardcoded in the prototype — is `load_more`.
+
 > ⚠️ **Two views or three? — client gate, FE-17 ([OBT-362](https://linear.app/shema-obt/issue/OBT-362)).** The prototype implements three metaphors; the PRD v1.1 revision history records a client decision that *"list views reduced to Atlas and Journal."* This is scope dressed as a visual, so §2's "prototype wins on visuals" does not settle it. Do not finish or delete Coral before the answer lands — and record the decision, its date and its author here when it does.
 
 ### 5.2 Cadastro do projeto — the living record
@@ -432,6 +439,7 @@ All visual decisions MUST follow these tokens, taken verbatim from `DS-PROJECT/d
 - Foreground — `fg` (= verde), `fg-strong` (= preto), `fg-muted` (`#5A5A3E`), `fg-subtle` (`#8A8970`), `on-dark`/`on-brand` (= branco), `on-light` (= verde), `link` (= telha)
 - Accent states — `accent-hover` `#A23E00`, `accent-press` `#872F00`, `accent-soft` `#F2D8C2`
 - Lines — `line` (verde @16%), `line-strong` (verde @32%), `line-on-dark` (branco @18%)
+- **Ink weights** — a palette colour that has to carry *small text* on a light surface has a darker sibling at the same hue: `azul-ink` `#406560` for azul (the prototype's own value in `.tag.azul`, `.need-status-tag.status-in-progress` and the Coral stat label), `status-attention-fg` `#8B6018` and `deadline-soon` `#A06C12` for the amber. They are the same series, not new colours — surfaces and strokes keep the base token, text takes the ink. `src/styles/__tests__/tokens.test.ts` pins the hue relationship and the contrast that justifies each one; **do not add a sixth value to a family without it.**
 
 Rules:
 - **Telha is exclusive to CTAs, primary actions and active states.** Never decorative.
@@ -628,6 +636,7 @@ Reference the Linear issue ID (`OBT-###`) in the branch name and PR body. Never 
 - [ ] Stack only: React, TypeScript, Vite, Tailwind v4, Zustand, Context, Axios, Radix/shadcn primitives, lucide-react, sonner, i18next, react-leaflet.
 - [ ] Tokens exactly as in `design-system/colors_and_type.css`; no stray hex; telha reserved for CTAs and active states.
 - [ ] Ink from the semantic tier, named after the surface it sits on — `text-fg` / `text-fg-strong` / `text-on-brand` / `text-on-dark` / `text-on-light`, never `text-verde` / `text-branco` / `text-preto` (§7.1).
+- [ ] **A new token is named after the fact it carries, and the name survives being read out of context.** When the same concept is drawn in two channels (a ring and its label, a badge and its text), both go through tokens whose names say they are the same series — an ink weight (§7.1), not a second colour with a screen's name on it. New value in a family ⇒ hue and reason pinned in `src/styles/__tests__/tokens.test.ts`.
 - [ ] `bg-elevated` for cards/modals/inputs; `bg-canvas` for pages; `bg-muted` for subtle fills. Never `bg-white`.
 - [ ] Cards have **no borders** — shadow only.
 - [ ] Montserrat for UI, Merriweather for long-form/quotes.
@@ -637,6 +646,33 @@ Reference the Linear issue ID (`OBT-###`) in the branch name and PR body. Never 
 - [ ] Screens read the **fixture layer**, not a hand-rolled local copy (wave 1).
 - [ ] PT/EN strings both present, keys ported from `data.js`.
 - [ ] Guided empty states, InfoTooltips, live counts.
+
+#### Before opening the PR — what review keeps catching
+
+Wave 1's reviews (PRs #10–#16) return to the same handful of defects, listed here with the PR that raised each. Run it against the diff before asking for eyes:
+
+**Design system**
+
+- [ ] **No raw colour where a token exists — including alphas.** A hex lint only catches `#BE4A01`; `rgba(190,74,1,.25)` is the same colour spelled by hand. Palette colours take the Tailwind alpha modifier (`border-telha/25`, `stroke-verde/10`); a value that is genuinely new becomes a token in `index.css`, named per §7.1. *(#11, #14)*
+- [ ] **Semantic tier before brand token.** `text-fg-strong` / `text-fg` / `text-on-brand`, not `text-preto` / `text-verde` / `text-branco`. §7.4 built dark mode as `var()` indirections over the semantic names, so a brand token will not follow a `.dark` palette when it lands. Brand tokens stay only where the colour *is* the brand and must not flip — the washi tape, the accent fills. *(#10)*
+- [ ] **Every state combination has an exit.** Active × disabled, filter × selection, empty × required: a control that can enter a state it cannot leave is a bug even when the current data never produces it. Check the hover/variant cascade too — an `active` fill must survive `:hover`. *(#11)*
+- [ ] **Every state is on both channels.** What colour or shape says, text says too — `title`, `aria-label` or an `sr-only` span — and what text says, the visual carries. A dashed "approximate" ring whose tooltip never mentions approximation is half a feature. *(#14)*
+
+**Numbers and data**
+
+- [ ] **A count never promises results a click will not return.** The facet count and the filter predicate answer the same question: if the filter is `.some(...)` over needs, the count is projects, not need items. *(#10)*
+- [ ] **Displayed counts and labels implement the *product's* definition.** "Regiões" counts the 7 regions the org chart uses, not the distinct country strings the reference implementation happened to split on. When the label and the computation disagree, the label wins and the computation changes. *(#14)*
+- [ ] **Buckets and limits are exercised.** Ranges must not overlap at their seams — a project at exactly 25% belongs to one bucket. Test the exact edge, zero, and the empty list. *(#10)*
+- [ ] **No escape hatch that breaks a stated invariant.** A `null`/fallback branch excused by "no fixture has this case today" is a broken invariant with a delivery date. Prefer total functions. *(#14)*
+
+**Structure**
+
+- [ ] **One owner per collection and per fact.** Before loading, look for who already loads it; before adding a list, look for who already exports it. Two guards that must agree by hand (a lint config and a test) are one owner too many. *(#13, #15)*
+- [ ] **Reuse before creating.** A component that already exists in `common/` or `ui/` is consumed, never re-made locally; if it lacks the variant you need, the variant goes into the shared component. *(#10)*
+- [ ] **No `as`, `as never` or `any` at a typed seam**, and no union left inferred as `string`. A cast to a string map throws away every relation the file exists to encode — carry the relation in the type instead. *(#12, #14)*
+- [ ] **Each catalogue speaks its own language, and both are complete.** A PT entry holding the prototype's English string is a defect regardless of provenance. *(#14)*
+- [ ] **Tests pin behaviour, not formatting**, and a guard's own scope is asserted — a walk that also sweeps `__tests__` reports the PT/EN parity tests as leaks. *(#13, #15)*
+- [ ] **A doc line the diff contradicts is reconciled in the same PR.** §2 says which source wins; silence is not a resolution. *(#12)*
 
 ### Backend (`tripod-api`)
 

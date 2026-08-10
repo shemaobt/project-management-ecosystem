@@ -589,5 +589,12 @@
   "atlas_sensitive_notice_one": "{{count}} project in a sensitive country — shown at region level, not the exact location",
   "atlas_sensitive_notice_other": "{{count}} projects in sensitive countries — shown at region level, not the exact locations",
   "btn_close": "Close",
-  "load_more": "Show more"
+  "load_more": "Show more",
+  "sort_by": "Sort by",
+  "card_open": "Open the {{language}} project",
+  "d_last_update": "Last update",
+  "d_record": "Project record",
+  "d_p_translated_short": "Translated",
+  "d_p_community_short": "Checked",
+  "d_p_approved_short": "Approved"
 }
