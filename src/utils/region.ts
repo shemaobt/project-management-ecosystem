@@ -1,5 +1,6 @@
+import { REGION_CENTROIDS } from "../constants/geo";
 import { COUNTRY_REGION, FALLBACK_REGION, REGIONS } from "../constants/regions";
-import type { Project } from "../types/project";
+import type { Coordinates, Project } from "../types/project";
 import type { RegionKey } from "../types/region";
 
 export function getCountry(project: Project): string {
@@ -15,6 +16,21 @@ export function getRegionLabelKey(region: RegionKey): string {
     REGIONS.find((definition) => definition.key === region)?.labelKey ??
     "continent_other"
   );
+}
+
+export type MapPrecision = "exact" | "region";
+
+export interface MapPlacement {
+  coords: Coordinates;
+  precision: MapPrecision;
+}
+
+export function getMapPlacement(project: Project): MapPlacement {
+  if (project.sensitiveCountry || !project.coords) {
+    const [lng, lat] = REGION_CENTROIDS[getRegion(project)];
+    return { coords: [lng, lat], precision: "region" };
+  }
+  return { coords: project.coords, precision: "exact" };
 }
 
 export type LocationDisplay =

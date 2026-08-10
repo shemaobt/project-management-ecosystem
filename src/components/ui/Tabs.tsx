@@ -29,7 +29,7 @@ export function TabsTrigger({
     <TabsPrimitive.Trigger
       className={cn(
         transitionColors,
-        "-mb-px shrink-0 border-b-2 border-transparent px-4.5 py-3.5 text-small font-bold tracking-[0.02em] whitespace-nowrap text-fg-subtle hover:text-verde data-[state=active]:border-telha data-[state=active]:text-telha",
+        "-mb-px shrink-0 border-b-2 border-transparent px-4.5 py-3.5 text-small font-bold tracking-[0.02em] whitespace-nowrap text-fg-subtle hover:text-fg data-[state=active]:border-telha data-[state=active]:text-telha",
         className,
       )}
       {...props}

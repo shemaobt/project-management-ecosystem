@@ -16,7 +16,7 @@ export function Toolbar({ count, total, sort, onSortChange }: ToolbarProps) {
   return (
     <div className="mb-5 flex flex-wrap items-baseline justify-between gap-4 border-b border-line pb-3.5">
       <p className="font-serif text-[15px] italic text-fg-muted">
-        <strong className="font-sans font-bold text-verde not-italic">
+        <strong className="font-sans font-bold text-fg not-italic">
           {count}
         </strong>{" "}
         {count === 1 ? t("results_one") : t("results_many")}

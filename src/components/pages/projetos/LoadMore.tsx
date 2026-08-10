@@ -22,14 +22,14 @@ export function LoadMore({ shown, total, step, onMore }: LoadMoreProps) {
           "group inline-flex items-center gap-3.5 rounded-pill border border-telha bg-elevated px-6 py-3",
           "text-micro font-bold tracking-[0.08em] uppercase text-telha",
           transitionAll,
-          "hover:-translate-y-px hover:bg-telha hover:text-branco hover:shadow-md",
+          "hover:-translate-y-px hover:bg-telha hover:text-on-brand hover:shadow-md",
         )}
       >
         {t("load_more")}
-        <span className="rounded-pill bg-accent-soft px-2 py-0.5 text-tag font-extrabold tracking-button text-telha group-hover:bg-branco/20 group-hover:text-branco">
+        <span className="rounded-pill bg-accent-soft px-2 py-0.5 text-tag font-extrabold tracking-button text-telha group-hover:bg-branco/20 group-hover:text-on-brand">
           +{next}
         </span>
-        <span className="text-tag tracking-button text-fg-muted tabular-nums group-hover:text-branco/70">
+        <span className="text-tag tracking-button text-fg-muted tabular-nums group-hover:text-on-brand/70">
           {shown}/{total}
         </span>
       </button>

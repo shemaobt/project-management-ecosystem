@@ -1,11 +1,14 @@
+import { useTranslation } from "react-i18next";
 import { EmptyState } from "../../common/EmptyState";
 
 export function FormulariosPage() {
+  const { t } = useTranslation();
+
   return (
     <section className="mx-auto max-w-(--container-max) px-(--container-pad) py-16">
       <EmptyState
-        title="Formulários"
-        message="A voz do campo — gerar, enviar e receber o Pulso Mensal offline e a Avaliação de Saúde guiada. Chega nas próximas entregas."
+        title={t("nav_formularios")}
+        message={`${t("forms_lead")} ${t("empty_soon")}`}
       />
     </section>
   );

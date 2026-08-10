@@ -31,7 +31,7 @@ export function MetaphorPill() {
             className={cn(
               "rounded-pill px-3 py-1.5 text-tag font-semibold tracking-[0.08em] uppercase",
               transitionAll,
-              active ? "bg-telha text-branco" : "text-fg-muted hover:text-verde",
+              active ? "bg-telha text-on-brand" : "text-fg-muted hover:text-fg",
             )}
           >
             {t(option.labelKey)}

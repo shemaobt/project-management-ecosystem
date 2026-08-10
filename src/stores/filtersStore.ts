@@ -15,6 +15,15 @@ import type { RegionKey } from "../types/region";
 export type YesNoFilter = "yes" | "no";
 export type ProgressRange = "0-25" | "25-50" | "50-75" | "75-100";
 
+export const YES_NO_VALUES: readonly YesNoFilter[] = ["yes", "no"];
+
+export const PROGRESS_RANGES: readonly ProgressRange[] = [
+  "0-25",
+  "25-50",
+  "50-75",
+  "75-100",
+];
+
 export interface ProjectFilters {
   team: string | null;
   objective: Objective | null;

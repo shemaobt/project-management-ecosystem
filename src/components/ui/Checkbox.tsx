@@ -16,7 +16,7 @@ export function Checkbox({
       )}
       {...props}
     >
-      <CheckboxPrimitive.Indicator className="text-branco">
+      <CheckboxPrimitive.Indicator className="text-on-brand">
         <Check size={11} strokeWidth={3} />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>

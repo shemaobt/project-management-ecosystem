@@ -37,7 +37,7 @@ const TILT = [
   "rotate-[0.7deg]",
 ] as const;
 
-const line = "flex items-baseline justify-between py-[3px] text-[13px] text-verde";
+const line = "flex items-baseline justify-between py-[3px] text-[13px] text-fg";
 const lineLabel = "font-serif text-micro italic text-fg-muted";
 const lineValue = "max-w-[60%] truncate text-right font-semibold";
 
@@ -93,7 +93,7 @@ export function ProjectCardDiario({
 
       <div className="mt-3 flex items-start justify-between gap-2.5 border-b border-dashed border-verde/18 pb-3">
         <div className="min-w-0">
-          <div className="truncate font-serif text-[24px] leading-[1.1] font-bold tracking-[-0.01em] text-verde">
+          <div className="truncate font-serif text-[24px] leading-[1.1] font-bold tracking-[-0.01em] text-fg">
             {project.languageName}
           </div>
           <div className="mt-1 text-[10px] font-bold tracking-[0.16em] uppercase text-telha">
@@ -101,7 +101,7 @@ export function ProjectCardDiario({
           </div>
         </div>
         <div className="flex w-[50px] shrink-0 flex-col items-center">
-          <BrandMark className="text-verde" />
+          <BrandMark className="text-fg" />
           <div
             title={
               lastUpdate
@@ -137,7 +137,7 @@ export function ProjectCardDiario({
       </div>
 
       {quote && (
-        <p className="mt-2 border-t border-dashed border-verde/18 pt-2.5 font-serif text-[13px] leading-[1.5] italic text-verde">
+        <p className="mt-2 border-t border-dashed border-verde/18 pt-2.5 font-serif text-[13px] leading-[1.5] italic text-fg">
           <span aria-hidden className="text-[18px] text-telha">
             “
           </span>
@@ -152,7 +152,7 @@ export function ProjectCardDiario({
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-baseline justify-between gap-2 text-[10px] font-semibold tracking-[0.06em] uppercase text-fg-muted">
             <span className="truncate">{project.objective[0] ?? "—"}</span>
-            <strong className="shrink-0 text-[13px] text-verde tabular-nums">
+            <strong className="shrink-0 text-[13px] text-fg tabular-nums">
               {project.translatedUnits}/{project.totalUnits}
               <span className="ml-1 font-medium text-fg-muted">
                 {Math.round(progress)}%

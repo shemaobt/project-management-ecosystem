@@ -85,7 +85,7 @@ export function ProjectCardCoral({ project, onOpen }: ProjectCardCoralProps) {
 
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="text-[22px] leading-[1.05] font-extrabold tracking-[-0.015em] text-verde">
+          <div className="text-[22px] leading-[1.05] font-extrabold tracking-[-0.015em] text-fg">
             {project.languageName}
           </div>
           <div className="mt-1.5 font-serif text-tag leading-[1.4] italic text-fg-muted">
@@ -130,7 +130,7 @@ export function ProjectCardCoral({ project, onOpen }: ProjectCardCoralProps) {
               );
             })}
           </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-[22px] leading-none font-black tracking-[-0.02em] text-verde">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-[22px] leading-none font-black tracking-[-0.02em] text-fg">
             {Math.round(progress)}%
             <small className="mt-0.5 text-[9px] font-semibold tracking-[0.12em] uppercase text-fg-muted">
               {t("d_p_translated_short")}
@@ -141,7 +141,7 @@ export function ProjectCardCoral({ project, onOpen }: ProjectCardCoralProps) {
 
       <div className="grid grid-cols-3 rounded-md bg-muted px-2 py-3">
         <div className="border-r border-line px-1 text-center">
-          <div className="text-[18px] leading-none font-extrabold text-verde tabular-nums">
+          <div className="text-[18px] leading-none font-extrabold text-fg tabular-nums">
             {project.translatedUnits}
             <small className="text-[10px] font-medium text-fg-muted">
               /{project.totalUnits}
@@ -152,7 +152,7 @@ export function ProjectCardCoral({ project, onOpen }: ProjectCardCoralProps) {
           </div>
         </div>
         <div className="border-r border-line px-1 text-center">
-          <div className="text-[18px] leading-none font-extrabold text-verde tabular-nums">
+          <div className="text-[18px] leading-none font-extrabold text-fg tabular-nums">
             {project.communityCheckedUnits}
           </div>
           <div className={cn(statLabel, "text-azul-ink")}>
@@ -160,7 +160,7 @@ export function ProjectCardCoral({ project, onOpen }: ProjectCardCoralProps) {
           </div>
         </div>
         <div className="px-1 text-center">
-          <div className="text-[18px] leading-none font-extrabold text-verde tabular-nums">
+          <div className="text-[18px] leading-none font-extrabold text-fg tabular-nums">
             {project.approvedUnits}
           </div>
           <div className={cn(statLabel, "text-verde-claro")}>
@@ -183,7 +183,7 @@ export function ProjectCardCoral({ project, onOpen }: ProjectCardCoralProps) {
         {deadline.days !== null && (
           <div
             className={cn(
-              "shrink-0 text-[13px] font-bold text-verde tabular-nums",
+              "shrink-0 text-[13px] font-bold text-fg tabular-nums",
               deadline.cls === "overdue" && "text-telha",
               deadline.cls === "soon" && "text-deadline-soon",
             )}
