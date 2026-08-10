@@ -11,7 +11,7 @@ const overlayPill =
   "absolute z-3 rounded-pill border border-branco/14 bg-[rgba(20,14,32,0.6)] backdrop-blur-[8px]";
 
 const controlButton =
-  "inline-flex size-7 items-center justify-center rounded-pill text-tag font-extrabold tracking-button text-areia transition-all duration-fast ease-out hover:bg-telha/32 hover:text-branco";
+  "inline-flex size-7 items-center justify-center rounded-pill text-tag font-extrabold tracking-button text-areia transition-all duration-fast ease-out hover:bg-telha/32 hover:text-on-dark";
 
 export interface GlobeControlsProps {
   autoRotate: boolean;
@@ -74,7 +74,7 @@ export function NightStatsOverlay({ stats }: { stats: NightStats }) {
           key={item.label}
           className="flex flex-col items-center leading-[1.1]"
         >
-          <span className="font-sans text-lead font-black tracking-[-0.02em] text-branco tabular-nums max-sm:text-body">
+          <span className="font-sans text-lead font-black tracking-[-0.02em] text-on-dark tabular-nums max-sm:text-body">
             {item.value}
           </span>
           <span className="mt-[3px] text-[9px] font-semibold tracking-[0.12em] uppercase text-areia">
@@ -105,7 +105,7 @@ export function SensitiveNotice({ count }: { count: number }) {
 export function GlobeHint() {
   const { t } = useTranslation();
   return (
-    <div className="pointer-events-none absolute bottom-[18px] left-1/2 -translate-x-1/2 font-serif text-tag italic tracking-[0.04em] text-branco/55">
+    <div className="pointer-events-none absolute bottom-[18px] left-1/2 -translate-x-1/2 font-serif text-tag italic tracking-[0.04em] text-on-dark/55">
       <span>↔ {t("atlas_hint")}</span>
     </div>
   );

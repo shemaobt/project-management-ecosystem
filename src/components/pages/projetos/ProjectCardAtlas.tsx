@@ -14,14 +14,14 @@ import { getLocationDisplay } from "../../../utils/region";
 import { StatusDot } from "../../common/StatusBadge";
 
 const STAMP_TONES: Record<ProjectPriority, string> = {
-  default: "bg-verde text-branco",
-  critical: "bg-telha text-branco",
-  warning: "bg-stamp-warning text-branco",
-  completed: "bg-verde-claro text-branco",
-  canceled: "bg-areia text-verde",
-  paused: "bg-fg-subtle text-branco",
-  planned: "bg-azul text-branco",
-  unknown: "bg-tone-unknown text-branco",
+  default: "bg-verde text-on-dark",
+  critical: "bg-telha text-on-brand",
+  warning: "bg-stamp-warning text-on-dark",
+  completed: "bg-verde-claro text-on-brand",
+  canceled: "bg-areia text-on-light",
+  paused: "bg-fg-subtle text-on-dark",
+  planned: "bg-azul text-on-brand",
+  unknown: "bg-tone-unknown text-on-dark",
 };
 
 const CARD_TONES: Partial<Record<ProjectPriority, string>> = {
@@ -99,7 +99,7 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
       </div>
 
       <div className="flex min-w-0 flex-col gap-1">
-        <div className="truncate font-sans text-lead leading-[1.1] font-bold tracking-[-0.01em] text-verde">
+        <div className="truncate font-sans text-lead leading-[1.1] font-bold tracking-[-0.01em] text-fg">
           {project.languageName}
         </div>
         <div className="flex flex-wrap items-center gap-2 text-micro text-fg-muted">
@@ -144,7 +144,7 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
             <span
               className={cn(
                 tagPill,
-                "border border-line bg-muted font-serif font-normal tracking-normal italic text-verde",
+                "border border-line bg-muted font-serif font-normal tracking-normal italic text-fg",
               )}
             >
               📖 {project.portion}
@@ -161,7 +161,7 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
       <div className="flex flex-col gap-[5px] max-lg:col-span-full">
         <div className="flex justify-between text-tag font-semibold tracking-button uppercase text-fg-muted">
           <span>{t("d_p_translated")}</span>
-          <strong className="text-[13px] font-bold text-verde tabular-nums">
+          <strong className="text-[13px] font-bold text-fg tabular-nums">
             {project.translatedUnits || 0}/{project.totalUnits || 0}{" "}
             <span className="text-tag font-medium text-fg-muted">
               · {Math.round(progress)}%
@@ -197,7 +197,7 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
         </div>
         <div
           className={cn(
-            "font-sans text-[13px] font-bold text-verde tabular-nums",
+            "font-sans text-[13px] font-bold text-fg tabular-nums",
             deadline.cls === "overdue" && "text-telha",
             deadline.cls === "soon" && "text-deadline-soon",
           )}

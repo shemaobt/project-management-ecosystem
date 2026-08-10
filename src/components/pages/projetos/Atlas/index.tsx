@@ -38,13 +38,13 @@ export function AtlasView({ projects, onSelect }: AtlasViewProps) {
           <button
             type="button"
             onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
-            className="group inline-flex items-center gap-3.5 rounded-pill border border-telha bg-elevated px-6 py-3 text-micro font-bold tracking-[0.08em] uppercase text-telha transition-all duration-[180ms] ease-out hover:-translate-y-px hover:bg-telha hover:text-branco hover:shadow-md"
+            className="group inline-flex items-center gap-3.5 rounded-pill border border-telha bg-elevated px-6 py-3 text-micro font-bold tracking-[0.08em] uppercase text-telha transition-all duration-[180ms] ease-out hover:-translate-y-px hover:bg-telha hover:text-on-brand hover:shadow-md"
           >
             {t("load_more")}
-            <span className="rounded-pill bg-accent-soft px-2 py-0.5 text-tag font-extrabold tracking-button text-telha group-hover:bg-branco/20 group-hover:text-branco">
+            <span className="rounded-pill bg-accent-soft px-2 py-0.5 text-tag font-extrabold tracking-button text-telha group-hover:bg-branco/20 group-hover:text-on-brand">
               +{Math.min(PAGE_SIZE, projects.length - visibleCount)}
             </span>
-            <span className="text-tag tracking-button text-fg-muted tabular-nums group-hover:text-branco/70">
+            <span className="text-tag tracking-button text-fg-muted tabular-nums group-hover:text-on-brand/70">
               {visibleCount}/{projects.length}
             </span>
           </button>

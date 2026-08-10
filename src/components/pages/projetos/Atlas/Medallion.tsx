@@ -51,7 +51,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
         type="button"
         onClick={onClose}
         title={t("btn_close")}
-        className="absolute top-1 right-1 inline-flex size-[22px] items-center justify-center rounded-pill bg-verde/10 text-[16px] leading-none text-verde transition-all duration-fast ease-out hover:bg-telha hover:text-branco"
+        className="absolute top-1 right-1 inline-flex size-[22px] items-center justify-center rounded-pill bg-verde/10 text-[16px] leading-none text-fg transition-all duration-fast ease-out hover:bg-telha hover:text-on-brand"
       >
         ×
       </button>
@@ -70,7 +70,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
         />
         <div
           className={cn(
-            "absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-pill bg-telha px-2 py-0.5 text-[9px] font-extrabold tracking-[0.16em] whitespace-nowrap text-branco uppercase shadow-[0_2px_6px_rgba(0,0,0,0.5)]",
+            "absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-pill bg-telha px-2 py-0.5 text-[9px] font-extrabold tracking-[0.16em] whitespace-nowrap text-on-brand uppercase shadow-[0_2px_6px_rgba(0,0,0,0.5)]",
             TAG_TONES[priority],
           )}
         >
@@ -78,7 +78,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
         </div>
       </div>
 
-      <div className="mt-1 line-clamp-2 max-w-full text-center text-small leading-[1.15] font-bold tracking-[-0.005em] text-balance text-verde">
+      <div className="mt-1 line-clamp-2 max-w-full text-center text-small leading-[1.15] font-bold tracking-[-0.005em] text-balance text-fg">
         {project.languageName}
       </div>
       <div className="mt-0.5 mb-2 text-center font-serif text-tag leading-[1.3] italic text-fg-muted">
@@ -122,7 +122,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
         <button
           type="button"
           onClick={onOpen}
-          className="mt-2.5 w-full rounded-pill bg-telha p-2 text-[10px] font-bold tracking-[0.08em] uppercase text-branco transition-all duration-fast ease-out hover:-translate-y-px hover:bg-accent-hover"
+          className="mt-2.5 w-full rounded-pill bg-telha p-2 text-[10px] font-bold tracking-[0.08em] uppercase text-on-brand transition-all duration-fast ease-out hover:-translate-y-px hover:bg-accent-hover"
         >
           {t("atlas_open_project")}
         </button>
