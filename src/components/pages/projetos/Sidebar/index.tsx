@@ -1,7 +1,9 @@
 import { ChevronDown, Minus, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { PresetId } from "../../../../types/project";
 import { cn } from "../../../../utils/cn";
+import { Chips } from "./Chips";
 import { ResultCount } from "./ResultCount";
 import { SearchBox } from "./SearchBox";
 
@@ -66,9 +68,10 @@ function SidebarSection({ title, open, onToggle }: SidebarSectionProps) {
 export interface SidebarProps {
   shown: number;
   total: number;
+  presetCounts: Record<PresetId, number>;
 }
 
-export function Sidebar({ shown, total }: SidebarProps) {
+export function Sidebar({ shown, total, presetCounts }: SidebarProps) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(
     () => new Set(PRIMARY_SECTIONS.map((section) => section.id)),
@@ -91,6 +94,7 @@ export function Sidebar({ shown, total }: SidebarProps) {
     <aside className="self-start lg:sticky lg:top-[78px] lg:max-h-[calc(100vh-90px)] lg:overflow-y-auto lg:pr-1.5">
       <div className="sticky top-0 z-5 mb-1 bg-linear-to-b from-canvas from-80% to-transparent pb-3.5">
         <SearchBox />
+        <Chips counts={presetCounts} />
         <ResultCount shown={shown} total={total} />
       </div>
 
