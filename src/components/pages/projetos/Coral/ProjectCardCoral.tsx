@@ -148,7 +148,7 @@ export function ProjectCardCoral({ project, onOpen }: ProjectCardCoralProps) {
             </small>
           </div>
           <div className={cn(statLabel, "text-telha")}>
-            {t("d_p_translated_short")}
+            ● {t("d_p_translated_short")}
           </div>
         </div>
         <div className="border-r border-line px-1 text-center">
@@ -156,7 +156,7 @@ export function ProjectCardCoral({ project, onOpen }: ProjectCardCoralProps) {
             {project.communityCheckedUnits}
           </div>
           <div className={cn(statLabel, "text-coral-community")}>
-            {t("d_p_community_short")}
+            ● {t("d_p_community_short")}
           </div>
         </div>
         <div className="px-1 text-center">
@@ -164,7 +164,7 @@ export function ProjectCardCoral({ project, onOpen }: ProjectCardCoralProps) {
             {project.approvedUnits}
           </div>
           <div className={cn(statLabel, "text-verde-claro")}>
-            {t("d_p_approved_short")}
+            ● {t("d_p_approved_short")}
           </div>
         </div>
       </div>
