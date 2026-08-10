@@ -5,17 +5,17 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import * as ts from "typescript";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  DEV_ONLY_NEVER_REACHES_A_USER,
+  INTERNAL_SHOWCASE_UNTRANSLATED_BY_DESIGN,
+} from "../../../eslint.config.js";
 import en from "../locales/en.json";
 import ptBR from "../locales/pt-BR.json";
 
 const SCANNED_DIRS = ["src/components", "src/contexts"];
 
-const INTERNAL_SHOWCASE_UNTRANSLATED_BY_DESIGN = [
-  "src/components/pages/design-system/ControlsSection.tsx",
-  "src/components/pages/design-system/DesignSystemPage.tsx",
-  "src/components/pages/design-system/StatusSection.tsx",
-  "src/components/pages/design-system/SurfacesSection.tsx",
-];
+const SHIPPED_SOURCE = /\.tsx?$/u;
+const TEST_FILE = /(?:^|\/)__tests__\//u;
 
 const PHRASE_LENGTH = 20;
 
@@ -53,7 +53,12 @@ function scannedFiles(): string[] {
   const exempt = new Set(INTERNAL_SHOWCASE_UNTRANSLATED_BY_DESIGN);
   return SCANNED_DIRS.flatMap((dir) => walk(join(process.cwd(), dir)))
     .map((path) => relative(process.cwd(), path).split("\\").join("/"))
-    .filter((path) => /\.tsx?$/.test(path) && !exempt.has(path));
+    .filter(
+      (path) =>
+        SHIPPED_SOURCE.test(path) &&
+        !TEST_FILE.test(path) &&
+        !exempt.has(path),
+    );
 }
 
 function isModuleSpecifier(node: ts.StringLiteral): boolean {
@@ -202,13 +207,21 @@ function renderSession(): string {
 }
 
 describe("Portuguese catalogue values written as literals", () => {
-  it("scans every component and context that is not exempt", () => {
+  it("scans the source that ships, and nothing else", () => {
     const files = scannedFiles();
     expect(files.length).toBeGreaterThan(30);
     expect(files).toContain("src/components/layout/TopNav.tsx");
     expect(files).toContain("src/components/layout/AppShell.tsx");
     expect(files).toContain("src/contexts/AuthContext.tsx");
+    expect(files.filter((path) => TEST_FILE.test(path))).toEqual([]);
+    expect(files).not.toContain(INTERNAL_SHOWCASE_UNTRANSLATED_BY_DESIGN[0]);
     expect(divergingEntries.length).toBeGreaterThan(500);
+  });
+
+  it("still reads the dev overlay the lint rule is allowed to skip", () => {
+    expect(scannedFiles()).toEqual(
+      expect.arrayContaining(DEV_ONLY_NEVER_REACHES_A_USER),
+    );
   });
 
   it("finds none in src/components and src/contexts", () => {
@@ -247,8 +260,13 @@ describe("Portuguese catalogue values written as literals", () => {
     expect(leakedKeys(literalsIn(path, fieldData))).toEqual([]);
   });
 
-  it("keeps every exempt path pointing at a file that still exists", () => {
-    for (const path of INTERNAL_SHOWCASE_UNTRANSLATED_BY_DESIGN) {
+  it("keeps every lint exemption pointing at a file that still exists", () => {
+    const exemptions = [
+      ...INTERNAL_SHOWCASE_UNTRANSLATED_BY_DESIGN,
+      ...DEV_ONLY_NEVER_REACHES_A_USER,
+    ];
+    expect(exemptions.length).toBe(5);
+    for (const path of exemptions) {
       expect(existsSync(join(process.cwd(), path)), path).toBe(true);
     }
   });
