@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { ESLint } from "eslint";
 import { describe, expect, it } from "vitest";
 import { BRAND_INK, NOT_SHIPPED_STYLING } from "../../../eslint.config.js";
+import { TOAST_CLASSNAMES } from "../../components/ui/Toaster";
 
 const eslint = new ESLint();
 
@@ -133,5 +134,22 @@ describe("the ink substitutions", () => {
     expect(resolve("fg-muted")).not.toBe(resolve("verde"));
     expect(resolve("fg-subtle")).not.toBe(resolve("preto"));
     expect(resolve("areia")).not.toBe(resolve("branco"));
+  });
+});
+
+const SURFACE_INK =
+  /text-(fg|fg-strong|fg-muted|fg-subtle|on-brand|on-dark|on-light)(?:\/\d+)?(?![-a-z])/gu;
+
+describe("the toast, which is five fills under one class", () => {
+  it("names its ink once — sonner stacks toast + default + type", () => {
+    expect(TOAST_CLASSNAMES.toast.match(SURFACE_INK)).toEqual(["text-on-dark"]);
+    for (const [slot, classes] of Object.entries(TOAST_CLASSNAMES)) {
+      if (slot === "toast") continue;
+      expect(classes.match(SURFACE_INK), slot).toBeNull();
+    }
+  });
+
+  it("lets the description inherit that ink instead of restating a surface", () => {
+    expect(TOAST_CLASSNAMES.description).toContain("text-current/80");
   });
 });
