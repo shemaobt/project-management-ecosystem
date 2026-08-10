@@ -1,11 +1,14 @@
+import { useTranslation } from "react-i18next";
 import { EmptyState } from "../../common/EmptyState";
 
 export function RitmoPage() {
+  const { t } = useTranslation();
+
   return (
     <section className="mx-auto max-w-(--container-max) px-(--container-pad) py-16">
       <EmptyState
-        title="Ritmo"
-        message="A cascata de escuta do ecossistema — as reuniões que mantêm as respostas do campo em dia, da regional mensal à celebração anual. Chega nas próximas entregas."
+        title={t("nav_ritmo")}
+        message={`${t("ritmo_lead")} ${t("empty_soon")}`}
       />
     </section>
   );

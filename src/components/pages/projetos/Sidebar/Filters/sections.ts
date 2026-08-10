@@ -6,6 +6,7 @@ import {
   PROJECT_STATUSES,
   STALE_STATUSES,
   TRANSLATION_TYPES,
+  VITALITY_SCALE,
 } from "../../../../../constants";
 import type { ProgressRange } from "../../../../../stores/filtersStore";
 import {
@@ -93,15 +94,6 @@ const RANGE_LABEL_KEYS: Record<ProgressRange, string> = {
   "50-75": "range_50_75",
   "75-100": "range_75_100",
 };
-
-export const VITALITY_SCALE: readonly FilterOptionSpec[] = [
-  { value: "Vital", labelKey: "vit_vital" },
-  { value: "Vulnerável", labelKey: "vit_vulnerable" },
-  { value: "Ameaçada", labelKey: "vit_threatened" },
-  { value: "Seriamente ameaçada", labelKey: "vit_severely" },
-  { value: "Em situação crítica", labelKey: "vit_critical" },
-  { value: "Extinta", labelKey: "vit_extinct" },
-];
 
 function fromVocabulary<V extends string>(
   values: readonly V[],

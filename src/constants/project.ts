@@ -61,6 +61,18 @@ export const TRANSLATION_TYPES: readonly TranslationType[] = [
   "Taste&See",
 ];
 
+export const VITALITY_SCALE: readonly {
+  value: string;
+  labelKey: string;
+}[] = [
+  { value: "Vital", labelKey: "vit_vital" },
+  { value: "Vulnerável", labelKey: "vit_vulnerable" },
+  { value: "Ameaçada", labelKey: "vit_threatened" },
+  { value: "Seriamente ameaçada", labelKey: "vit_severely" },
+  { value: "Em situação crítica", labelKey: "vit_critical" },
+  { value: "Extinta", labelKey: "vit_extinct" },
+];
+
 export const FINANCIAL_RESOURCES: readonly FinancialResource[] = [
   "Seed Company",
   "Global Partnerships",

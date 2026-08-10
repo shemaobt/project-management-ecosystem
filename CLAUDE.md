@@ -507,6 +507,14 @@ From wave 2 on, all backend calls target **`tripod-api`** and go through a singl
 - **PT/EN parity.** Every string goes through i18n. The prototype ships both — keep them in sync.
 - **The field comes first.** Anything a field leader touches must survive no connectivity, an old phone, and a round trip through WhatsApp.
 
+**Resolved in FE-18 ([OBT-420](https://linear.app/shema-obt/issue/OBT-420)), 09/aug/2026 — Levi Gomes.** PT/EN parity is enforced by two guards that see different things, and both must stay green:
+
+- `shema/no-hardcoded-copy` (`eslint.config.js`) reads JSX. It runs on `src/components/**/*.tsx` **and** `src/contexts/**/*.tsx`, and treats a prop as user-facing when it is named `title` · `placeholder` · `alt` · `aria-label` · `aria-description` · `label` · `message`, or when its name ends in `Label` · `Message` · `Title` · `Text` · `Description` · `Placeholder`. Copy reaching a component through a custom prop is no longer invisible to it.
+- `src/i18n/__tests__/copyLeak.test.ts` reads the source text and the rendered output. It fails when a PT catalogue value whose EN counterpart differs appears as a literal in the **shipped** source under `src/components/**` or `src/contexts/**`, and it renders the nav and the six area placeholders in EN to assert no Portuguese survives. A vocabulary that never reaches JSX — `SESSION_ROLE_LABEL_KEYS`, a plain `Record` — is only caught by this one. Files under `__tests__/` are outside its corpus: a parity test asserting `"Administrador"` is the point of the test, not a leak.
+- **Two exemptions remain, both narrow and named in the config**: the four `design-system/` showcase files (untranslated by design; translating or gating that route is its own issue) and `src/components/layout/RoleSwitcher.tsx`. The dev session overlay was extracted out of `AppShell` precisely so the exemption could name one dev-only file instead of the shell — it renders under `import.meta.env.DEV` only, and its role chips and identity line still go through `t()`. `eslint.config.js` is the single owner of both lists; the test imports them rather than restating them, and deliberately keeps scanning the dev overlay that lint skips.
+- **Two keys do not come from `data.js`** — the prototype has no equivalent: `nav_areas` (the nav landmark's `aria-label`) and `empty_soon` (the placeholder's closing line, worded to match `toast_pending`). §13's "keys ported from `data.js`" is the rule; these two are the recorded exception.
+- **The session's role vocabulary is the org chart's**, per §5.7: `SESSION_ROLE_LABEL_KEYS` reads its label keys from `ROLE_DEFINITIONS` in `src/constants/roles.ts` rather than restating them. When no one holds the role, `resolvePersonaName` returns `null` and the view renders `sb_no_coordinator` — "— a definir" is chrome, not a name, and never sits in the session model.
+
 ---
 
 ## 10. Delivery plan (Linear)
