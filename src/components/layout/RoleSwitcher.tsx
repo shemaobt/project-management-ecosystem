@@ -28,8 +28,8 @@ export function RoleSwitcher() {
         {status === "loading"
           ? "carregando regiões…"
           : visibleRegions.length === 1
-            ? "1 região"
-            : `${visibleRegions.length} regiões`}
+            ? "1 região visível"
+            : `${visibleRegions.length} regiões visíveis`}
       </span>
       <div className="flex flex-wrap gap-1.5">
         {SESSION_ROLES.map((role) => (

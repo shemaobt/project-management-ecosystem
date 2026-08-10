@@ -2,13 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { projectsAPI } from "../../../fixtures";
 import { useFiltersStore } from "../../../stores/filtersStore";
-import { surfaceElevated } from "../../../styles";
 import type { Project } from "../../../types/project";
-import { cn } from "../../../utils/cn";
 import { filterProjects } from "../../../utils/search";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button } from "../../ui/Button";
+import { AtlasView } from "./Atlas";
 import { Sidebar } from "./Sidebar";
 
 export function ProjetosPage() {
@@ -65,21 +64,7 @@ export function ProjetosPage() {
             }
           />
         ) : (
-          <ul className="grid list-none gap-3 p-0">
-            {result.projects.map((project) => (
-              <li
-                key={project.id}
-                className={cn(surfaceElevated, "rounded-md px-5 py-4")}
-              >
-                <p className="font-semibold text-fg-strong">
-                  {project.languageName}
-                </p>
-                <p className="text-small text-fg-muted">
-                  {[project.team, project.location].filter(Boolean).join(" · ")}
-                </p>
-              </li>
-            ))}
-          </ul>
+          <AtlasView projects={result.projects} />
         )}
       </div>
     </div>

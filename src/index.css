@@ -243,6 +243,35 @@
   --answered-bg: #eef0e0;
   --answered-line: #c5cda0;
 
+  --night-sky-1: #060814;
+  --night-sky-2: #0c0a1e;
+  --night-sky-3: #110718;
+  --night-good: #a8b270;
+  --night-warning: #e0a24a;
+  --night-critical: #ff6620;
+  --night-canceled: #5a5a3e;
+  --night-paused: var(--fg-subtle);
+  --night-planned: var(--shema-azul);
+  --night-shine: #ffe3cc;
+  --night-rim: #a8a484;
+  --night-cool: #5a8bc8;
+  --tone-unknown: #6a7050;
+  --stamp-warning: #8c6b1f;
+  --deadline-soon: #a06c12;
+  --medallion-paper: #e8e5d2;
+
+  --color-night-good: var(--night-good);
+  --color-night-warning: var(--night-warning);
+  --color-night-critical: var(--night-critical);
+  --color-night-canceled: var(--night-canceled);
+  --color-night-paused: var(--night-paused);
+  --color-night-planned: var(--night-planned);
+  --color-night-shine: var(--night-shine);
+  --color-tone-unknown: var(--tone-unknown);
+  --color-stamp-warning: var(--stamp-warning);
+  --color-deadline-soon: var(--deadline-soon);
+  --color-medallion-paper: var(--medallion-paper);
+
   --paper: #fbfaf1;
   --shadow-paper: 0 1px 0 rgba(63, 62, 32, 0.04),
     0 6px 14px -8px rgba(63, 62, 32, 0.18),
