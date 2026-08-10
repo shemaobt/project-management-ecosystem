@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { cn } from "../../../utils/cn";
-import { transitionAll } from "../../../styles";
 
 export interface LoadMoreProps {
   shown: number;
@@ -21,7 +20,7 @@ export function LoadMore({ shown, total, step, onMore }: LoadMoreProps) {
         className={cn(
           "group inline-flex items-center gap-3.5 rounded-pill border border-telha bg-elevated px-6 py-3",
           "text-micro font-bold tracking-[0.08em] uppercase text-telha",
-          transitionAll,
+          "transition-all duration-[180ms] ease-out",
           "hover:-translate-y-px hover:bg-telha hover:text-on-brand hover:shadow-md",
         )}
       >
