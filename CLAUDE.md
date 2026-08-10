@@ -282,7 +282,8 @@ Plus the project record (`modals.jsx`) as FE-20…28 / BE-06 / INT-03, and Iníc
 
 - **Sidebar** (sticky top block): search → current-user identity → **4 combinable preset chips** (`attention` / `prayer` / `celebrate` / `recent`) → live `Mostrando X de N` + *Limpar tudo*.
 - Then: **Saved views** → **Time por região** (region cards showing the 3 role-holders, clicking filters by continent) → **active filter chips** → **primary filter sections** (Status, Base, Saúde) → **Mais filtros** (País, Objetivo, Tipo de Tradução, ETEN, País sensível, Recursos, % Progresso, Vitalidade, Necessidades, Mídia, Atualização).
-- Every filter option shows its **count**. Options with count 0 are hidden; presets with count 0 are disabled. The counting logic already exists in `Sidebar` as a single pass — port it.
+- Every filter option shows its **count**; presets with count 0 are disabled. The counting logic already exists in `Sidebar` as a single pass — port it.
+  - **Zero-count options stay visible and clearly unavailable (dimmed/disabled) — they are never hidden.** Decided in FE-12 ([OBT-357](https://linear.app/shema-obt/issue/OBT-357), Henok Teixeira, 29/jul/2026; recorded here 07/aug/2026): a count of zero is information, hiding the option makes the panel jump as filters change and hides that a category exists. This deliberately diverges from the prototype's `Section`, which drops zero-count entries — an earlier revision of this bullet repeated the prototype's behaviour and is superseded. An **active** option whose count drops to zero stays clickable.
 - **Toolbar**: result count + **metaphor pill** + sort (deadline, name, progress, team, health).
 - **Card metaphors** (`cards.jsx`): `CardAtlas` (wide horizontal logbook entry), `CardDiario` (field-journal page with washi tape), `CardCoral` (arc/wave shapes).
 - **Atlas** additionally renders the rotating night globe with photo medallions above the grid.

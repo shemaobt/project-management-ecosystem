@@ -44,9 +44,10 @@ export function ProjetosPage() {
   return (
     <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-8 px-8 pt-6 pb-20 lg:grid-cols-[260px_minmax(0,1fr)]">
       <Sidebar
+        projects={projects}
         shown={result.projects.length}
         total={result.total}
-        presetCounts={result.counts.preset}
+        counts={result.counts}
       />
       <div>
         {result.projects.length === 0 ? (
