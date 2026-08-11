@@ -23,10 +23,8 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { projectsAPI } = await import("../../../../fixtures");
 const { ProjectCardDiario } = await import("../Journal/ProjectCardDiario");
-const { ProjectCardCoral } = await import("../Coral/ProjectCardCoral");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
 const { JournalView } = await import("../Journal");
-const { CoralView } = await import("../Coral");
 const { AtlasView } = await import("../Atlas");
 const { DEFAULT_SORT } = await import("../../../../constants/sorting");
 const { sortProjects } = await import("../sorting");
@@ -42,11 +40,6 @@ const fixture = async (id: string) => {
 const diario = (project: Parameters<typeof ProjectCardDiario>[0]["project"]) =>
   renderToStaticMarkup(
     createElement(ProjectCardDiario, { project, index: 0, onOpen: noop }),
-  );
-
-const coral = (project: Parameters<typeof ProjectCardCoral>[0]["project"]) =>
-  renderToStaticMarkup(
-    createElement(ProjectCardCoral, { project, onOpen: noop }),
   );
 
 beforeEach(async () => {
@@ -106,35 +99,43 @@ describe("o cartão do Diário renderizado", () => {
   });
 });
 
-describe("o cartão Coral renderizado", () => {
+describe("o gráfico que veio do Coral", () => {
+  it("desenha os três anéis da esteira no cartão do Diário", async () => {
+    const markup = diario(await fixture("sa-di-of-high-egypt"));
+
+    expect(markup).toContain("stroke-telha");
+    expect(markup).toContain("stroke-azul");
+    expect(markup).toContain("stroke-verde-claro");
+    expect(markup).toContain("stroke-dasharray");
+  });
+
   it("nomeia as três fases do funil com o vocabulário do produto", async () => {
-    const markup = coral(await fixture("sa-di-of-high-egypt"));
+    const markup = diario(await fixture("sa-di-of-high-egypt"));
 
     expect(markup).toContain("Traduzido");
-    expect(markup).toContain("Checado");
-    expect(markup).toContain("Aprovado");
-    expect(markup).not.toContain(">Já<");
-    expect(markup).not.toContain(">Mentor<");
+    expect(markup).toMatch(/\d+ checado/);
+    expect(markup).toMatch(/\d+ aprovado/);
+    expect(markup).not.toMatch(/\d+ Já/);
   });
 
   it("em inglês, o rótulo de aprovado é a fase, não o papel", async () => {
     await i18n.changeLanguage("en");
-    const markup = coral(await fixture("sa-di-of-high-egypt"));
+    const markup = diario(await fixture("sa-di-of-high-egypt"));
 
-    expect(markup).toContain("Approved");
-    expect(markup).not.toContain(">Mentor<");
+    expect(markup).toContain("Translated");
+    expect(markup).toMatch(/\d+ approved/);
+    expect(markup).not.toMatch(/\d+ Mentor/i);
   });
 });
 
 describe("país sensível no cartão", () => {
-  it("põe a região no lugar da localização, nos dois cartões", async () => {
+  it("põe a região no lugar da localização", async () => {
     const project = await fixture("zapoteco-de-santiago-lachirigi");
     expect(project.location).toBe("Mexico");
 
-    for (const markup of [diario(project), coral(project)]) {
-      expect(markup).toContain("América do Norte");
-      expect(markup).not.toContain("Mexico");
-    }
+    const markup = diario(project);
+    expect(markup).toContain("América do Norte");
+    expect(markup).not.toContain("Mexico");
   });
 
   it("a ficha comum continua mostrando a localização", async () => {
@@ -142,15 +143,14 @@ describe("país sensível no cartão", () => {
     expect(project.sensitiveCountry).toBe(false);
 
     expect(diario(project)).toContain(project.location);
-    expect(coral(project)).toContain(project.location);
   });
 });
 
-describe("as três metáforas mostram a mesma janela do conjunto", () => {
+describe("as duas metáforas mostram a mesma janela do conjunto", () => {
   const PAGE_SIZE = 30;
   const shows = (markup: string, name: string) => markup.includes(`>${name}<`);
 
-  it("a página exibida é a mesma nas três, e nenhuma passa dela", async () => {
+  it("a página exibida é a mesma nas duas, e nenhuma passa dela", async () => {
     const all = await projectsAPI.list();
     const sorted = sortProjects(all, DEFAULT_SORT, "pt");
     expect(sorted.length).toBeGreaterThan(PAGE_SIZE);
@@ -163,9 +163,6 @@ describe("as três metáforas mostram a mesma janela do conjunto", () => {
     const markups = [
       renderToStaticMarkup(
         createElement(JournalView, { projects: page, onOpen: noop }),
-      ),
-      renderToStaticMarkup(
-        createElement(CoralView, { projects: page, onOpen: noop }),
       ),
       renderToStaticMarkup(
         createElement(AtlasView, { projects: sorted, onSelect: noop }),

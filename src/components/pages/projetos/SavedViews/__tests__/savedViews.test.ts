@@ -92,6 +92,15 @@ describe("a URL carrega a visão inteira", () => {
     expect(restored.filters.continent).toBe("africa");
   });
 
+  it("um link antigo para o Coral abre o Diário sem perder os filtros", () => {
+    const params = new URLSearchParams(encodeView(COMPLEX));
+    params.set("view", "coral");
+    const restored = decodeView(params);
+
+    expect(restored.metaphor).toBe("diario");
+    expect(resultIds(restored)).toEqual(resultIds(COMPLEX));
+  });
+
   it("não escreve parâmetro para o estado vazio", () => {
     const empty: ViewState = {
       filters: { ...EMPTY_FILTERS },
@@ -167,6 +176,14 @@ describe("uma visão com valor que sumiu degrada com aviso", () => {
     expect(missing.map(({ key }) => key)).toEqual(["attention", "celebrate"]);
     expect(state.filters.attention).toBe(false);
     expect(state.filters.celebrate).toBe(false);
+  });
+
+  it("uma visão salva no Coral abre no Diário, que herdou o gráfico", () => {
+    const legacy = { ...COMPLEX, metaphor: "coral" } as unknown as ViewState;
+    const { state } = applicableState(legacy, counts);
+
+    expect(state.metaphor).toBe("diario");
+    expect(resultIds(state)).toEqual(resultIds(COMPLEX));
   });
 });
 

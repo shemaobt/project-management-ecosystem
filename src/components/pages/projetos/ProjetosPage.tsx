@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
+import type { CardMetaphor } from "../../../constants/metaphors";
 import { projectsAPI } from "../../../fixtures";
 import { useFiltersStore } from "../../../stores/filtersStore";
-import { usePrefsStore, type CardMetaphor } from "../../../stores/prefsStore";
+import { usePrefsStore } from "../../../stores/prefsStore";
 import type { Project } from "../../../types/project";
 import { decodeView, encodeView } from "../../../utils/filterSerialisation";
 import { filterProjects } from "../../../utils/search";
@@ -11,7 +12,6 @@ import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button, toast } from "../../ui";
 import { AtlasView } from "./Atlas";
-import { CoralView } from "./Coral";
 import { JournalView } from "./Journal";
 import { LoadMore } from "./LoadMore";
 import { Sidebar } from "./Sidebar";
@@ -36,8 +36,6 @@ function ResultsView({
   switch (metaphor) {
     case "diario":
       return <JournalView projects={visible} onOpen={onOpen} />;
-    case "coral":
-      return <CoralView projects={visible} onOpen={onOpen} />;
     case "atlas":
       return <AtlasView projects={projects} onSelect={onOpen} />;
   }

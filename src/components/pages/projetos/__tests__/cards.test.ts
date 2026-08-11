@@ -139,7 +139,7 @@ describe("a citação do diário", () => {
   });
 });
 
-describe("os anéis do coral", () => {
+describe("os anéis de progresso", () => {
   it("nunca passam da volta completa, mesmo com dado inconsistente", async () => {
     const broken = await findFixture("jaminawa-yaminahua-brazilian-side");
     expect(broken.translatedUnits).toBeGreaterThan(broken.totalUnits);

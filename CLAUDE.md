@@ -79,7 +79,7 @@ It is **not versioned in this repo** (`.gitignore`). Get the design package from
 - **Port the logic too, where it exists.** `Sidebar` already computes every facet count in a single pass; `modals.jsx` already holds the approved option lists; `data.js` already implements the domain derivations. Port them rather than rewriting from the PRD.
 - **CSS variables map 1:1 to Tailwind tokens.** Do not reintroduce raw CSS variables in JSX where a Tailwind token exists. Do not introduce hex values not present in the prototype.
 - **Copy is part of the design.** Labels, eyebrows, empty-state text, tooltips and toast messages come from `data.js` (`I18N.pt` / `I18N.en`). Reuse them verbatim as i18n keys.
-- **If the prototype and this document disagree, the prototype wins** on visuals; the PRD and Linear issues win on behaviour and scope. Where a question is scope dressed as visuals, it is a gate — see §5.1 (Coral).
+- **If the prototype and this document disagree, the prototype wins** on visuals; the PRD and Linear issues win on behaviour and scope. Where a question is scope dressed as visuals, it is a gate — the worked example is Coral, raised and answered in §5.1.
 - **Do not modify `DS-PROJECT/`** as part of implementation work. It is a read-only reference, and every issue's Scope section repeats it.
 
 ---
@@ -292,7 +292,7 @@ Plus the project record (`modals.jsx`) as FE-20…28 / BE-06 / INT-03, and Iníc
 - Every filter option shows its **count**; presets with count 0 are disabled. The counting logic already exists in `Sidebar` as a single pass — port it.
   - **Zero-count options stay visible and clearly unavailable (dimmed/disabled) — they are never hidden.** Decided in FE-12 ([OBT-357](https://linear.app/shema-obt/issue/OBT-357), Henok Teixeira, 29/jul/2026; recorded here 07/aug/2026): a count of zero is information, hiding the option makes the panel jump as filters change and hides that a category exists. This deliberately diverges from the prototype's `Section`, which drops zero-count entries — an earlier revision of this bullet repeated the prototype's behaviour and is superseded. An **active** option whose count drops to zero stays clickable.
 - **Toolbar**: result count + **metaphor pill** + sort (deadline, name, progress, team, health).
-- **Card metaphors** (`cards.jsx`): `CardAtlas` (wide horizontal logbook entry), `CardDiario` (field-journal page with washi tape), `CardCoral` (arc/wave shapes).
+- **Card metaphors** (`cards.jsx`): `CardAtlas` (wide horizontal logbook entry) and `CardDiario` (field-journal page with washi tape). The prototype's third card, `CardCoral`, does not ship — its concentric progress rings were absorbed into the Diário's footer as `ProgressRings`. See the FE-17 decision below.
 - **Atlas** additionally renders the rotating night globe with photo medallions above the grid.
 - Pagination: 30 items, *Mostrar mais* +30.
 
@@ -303,9 +303,14 @@ Plus the project record (`modals.jsx`) as FE-20…28 / BE-06 / INT-03, and Iníc
 - **The Diário card carries the three progress counts, which the prototype's `CardDiario` does not.** `cards.jsx` shows only `{percent}%` in the journal footer; FE-15's issue states the product rule — *"translated / community-checked / mentor-approved is a pipeline… never collapse them into a single percentage"* — and its Definition of Done demands the three counts separate. Per §2 the prototype wins on visuals but the issue wins on behaviour, so the footer gained the Atlas card's `translated/total` head and its `N checado · N aprovado` marks line, in the Diário's own type scale. Nothing else was added.
 - **The card list obeys FE-14's sensitive-country display rule, by reference.** Both cards read `getLocationDisplay` from `src/utils/region.ts` — the single owner — so a `sensitiveCountry` project shows its region name where the location goes, never the country or place. **Known gap, not fixed here:** the rule redacts the *location field only*; the team/base name still renders verbatim, and two of the three seed values name a place (`YWAM Egypt`, `YWAM Morelia`). Redacting it is a second rule, which belongs to the open client gate on what *devida cautela* means per output (§6.1) — do not invent it screen by screen.
 - **The Diário's washi tape is telha by default, and that is not decoration.** `app.css` paints `.diario-tape` telha and overrides it only for `priority-warning`, `-completed` and `-default` — so roughly half the board is telha, which §7.1's *"telha only for CTAs and active states"* would forbid. §2 settles it: the tape is a visual, the prototype wins, and the rule keeps describing controls. Same shape as FE-14's border conflict.
-- **Where the prototype's copy is a string operation, FE-15 used real keys.** `cards.jsx` builds the Coral labels by slicing translated strings (`t.d_p_translated.split(' ')[0]`), which reads *"Já"* in PT and turns *"Mentor-approved"* into *"Mentor"* in EN. The short forms are now catalogue keys (`d_p_*_short`), and *Mostrar mais* — hardcoded in the prototype — is `load_more`.
+- **Where the prototype's copy is a string operation, FE-15 used real keys.** `cards.jsx` builds the Coral labels by slicing translated strings (`t.d_p_translated.split(' ')[0]`), which reads *"Já"* in PT and turns *"Mentor-approved"* into *"Mentor"* in EN. The short forms are now catalogue keys (`d_p_*_short`) — they survived Coral's retirement and serve the Diário's footer and ring caption — and *Mostrar mais*, hardcoded in the prototype, is `load_more`.
 
-> ⚠️ **Two views or three? — client gate, FE-17 ([OBT-362](https://linear.app/shema-obt/issue/OBT-362)).** The prototype implements three metaphors; the PRD v1.1 revision history records a client decision that *"list views reduced to Atlas and Journal."* This is scope dressed as a visual, so §2's "prototype wins on visuals" does not settle it. Do not finish or delete Coral before the answer lands — and record the decision, its date and its author here when it does.
+**Two views, and the Coral graphic lives inside one of them — decided in FE-17 ([OBT-362](https://linear.app/shema-obt/issue/OBT-362)), 11/aug/2026 — Karina Marinho.** The gate is closed. The product ships **Atlas and Diário**, matching PRD v1.1 (`RF-PRJ-06`, *"Atlas (mapa) e Diário"*, Essencial; the word "Coral" appears nowhere in the 32-page document). But the client asked to keep the Coral card's **concentric progress rings** — translated / community-checked / mentor-approved drawn as three arcs over the total — because reading the pipeline proportionally is easier than reading it as numbers. So Coral was retired as a *tab* and its graphic moved into the Diário's footer.
+
+- **The rings are `src/components/pages/projetos/ProgressRings.tsx`** — one owner, fed by `getUnitShare` in `card.ts`. The Diário's linear progress bar was replaced by it; the three counts stay as text beside it, per the never-collapse-the-pipeline rule.
+- **The counts carry their arc's colour as a marker**, the way the Coral's stat block did — outer telha, middle `azul-ink`, inner verde-claro. Without it the reader sees three arcs and cannot tell which is *checado* and which is *aprovado*. The colour is a convenience, never the only channel: every number is also written out beside its label, so nothing here is colour-only.
+- **This hybrid does not exist in `DS-PROJECT/`.** §2 cannot settle its layout because the prototype has no such card — the authority here is the client, who is also the prototype's author. Do not "correct" the Diário back to `cards.jsx`.
+- **`normaliseMetaphor` in `src/constants/metaphors.ts` is the single owner of the retirement.** Three surfaces persisted `"coral"` — the `prefsStore` (`shema-prefs-v1`), each saved view's `state.metaphor` (FE-16), and shared URLs carrying `?view=coral`. All three route through it and land on the Diário, which is where the graphic went. Without it the metaphor `switch` in `ProjetosPage` falls through and the results area renders blank; `prefsStore` carries `version: 1` and a `migrate` for exactly this.
 
 ### 5.2 Cadastro do projeto — the living record
 
@@ -439,7 +444,8 @@ All visual decisions MUST follow these tokens, taken verbatim from `DS-PROJECT/d
 - Foreground — `fg` (= verde), `fg-strong` (= preto), `fg-muted` (`#5A5A3E`), `fg-subtle` (`#8A8970`), `on-dark`/`on-brand` (= branco), `on-light` (= verde), `link` (= telha)
 - Accent states — `accent-hover` `#A23E00`, `accent-press` `#872F00`, `accent-soft` `#F2D8C2`
 - Lines — `line` (verde @16%), `line-strong` (verde @32%), `line-on-dark` (branco @18%)
-- **Ink weights** — a palette colour that has to carry *small text* on a light surface has a darker sibling at the same hue: `azul-ink` `#406560` for azul (the prototype's own value in `.tag.azul`, `.need-status-tag.status-in-progress` and the Coral stat label), `status-attention-fg` `#8B6018` and `deadline-soon` `#A06C12` for the amber. They are the same series, not new colours — surfaces and strokes keep the base token, text takes the ink. `src/styles/__tests__/tokens.test.ts` pins the hue relationship and the contrast that justifies each one; **do not add a sixth value to a family without it.**
+- **Ink weights** — a palette colour that has to carry *small text* on a light surface has a darker sibling at the same hue: `azul-ink` `#406560` for azul (the prototype's own value in `.tag.azul` and `.need-status-tag.status-in-progress`), `status-attention-fg` `#8B6018` and `deadline-soon` `#A06C12` for the amber. They are the same series, not new colours — surfaces and *decorative* strokes keep the base token, text takes the ink. `src/styles/__tests__/tokens.test.ts` pins the hue relationship and the contrast that justifies each one; **do not add a sixth value to a family without it.**
+  - **A stroke that carries data is not a decorative stroke.** The middle arc of `ProgressRings` is `stroke-azul-ink`, not `stroke-azul`, because the base fails WCAG 1.4.11's 3:1 for meaningful graphical objects on every surface we have — 2.52 on `elevated`, 2.40 on `paper`. It was `stroke-azul` in the prototype's Coral card and stayed wrong through FE-15; FE-17 fixed it when the graphic moved into the Diário. The other two arcs keep their base tokens, which pass. The test pins all three against `paper`, the surface the rings actually live on.
 
 Rules:
 - **Telha is exclusive to CTAs, primary actions and active states.** Never decorative.
@@ -558,7 +564,7 @@ Team `OBT`. Every issue follows: **Goal / Read these first / Context & specs / S
 | Milestone | Issues | What it is |
 |---|---|---|
 | **F1 · Base do front** | FE-01…07 | Scaffold, tokens + fonts, UI primitives, style constants, **fixture layer**, AppShell + 6 routes + mocked session, i18n from `data.js` |
-| **F2 · Projetos** | FE-10…17 | Sidebar (search, chips, detailed filters), Time por região, Atlas, Diário/Coral, saved views |
+| **F2 · Projetos** | FE-10…17 | Sidebar (search, chips, detailed filters), Time por região, Atlas, Diário, saved views |
 | **F3 · Ficha do projeto** | FE-20…28 | Record shell (modal, 10 tabs, draft) then one issue per tab |
 | **F4 · Demais áreas** | FE-30…39 | Início, Ritmo, Oração, Intercessores, ETEN, Formulários, Equipe, Health wizard, notifications, header modals |
 | **F5 · Deploy no Cloud Run** | FE-40…44 | CI (lint + `tsc -b`), Dockerfile + nginx + entrypoint, Cloud Run via Artifact Registry, a11y/responsive pass, **freeze the data contracts** |
@@ -585,7 +591,6 @@ Do not freeze the corresponding contracts before these are answered. They cost a
 | ETEN credit counting method (Youngshin) | GATE-01 · [OBT-387](https://linear.app/shema-obt/issue/OBT-387) | BE-11, INT-08 |
 | Final meeting set — Prayer Pulse vs. Governance | GATE-02 · [OBT-388](https://linear.app/shema-obt/issue/OBT-388) | BE-10, FE-31 |
 | Monthly Pulse file format (`.html` / `.json`) | GATE-03 · [OBT-389](https://linear.app/shema-obt/issue/OBT-389) | the Pulse epic — the riskiest work |
-| Coral: two list views or three? | FE-17 · [OBT-362](https://linear.app/shema-obt/issue/OBT-362) | FE-15, and §5.1 of this file |
 | What "devida cautela" means per output | — | BE-04 and every output surface |
 
 ### Stale references you will encounter
@@ -598,6 +603,7 @@ The Linear project description body, the B1 milestone description and the *"Work
 | repo `shema-backend`, "FastAPI scaffold", "build the backend" | the **existing** `shemaobt/tripod-api`; Shemá is a module inside it, already scaffolded |
 | epics `SHM-01…13`, issues `OBT-266`…`OBT-346` | `FE-*` / `BE-*` / `INT-*` / `GATE-*`, issues `OBT-348`…`OBT-417` |
 | milestones "1 Fundação … 5 Prestação de contas" | F1…F5 (wave 1), B1…B2 (wave 2) |
+| `cards.jsx` implements `CardCoral`, and `app.jsx` switches `metaphor` across three values | the product ships **two** views; Coral's rings live in the Diário's footer (§5.1, FE-17). The prototype was not updated — it is the client's file, and FE-15's scope forbids touching `DS-PROJECT/` |
 
 ---
 

@@ -1,8 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import {
+  DEFAULT_METAPHOR,
+  normaliseMetaphor,
+  type CardMetaphor,
+} from "../constants/metaphors";
 import { DEFAULT_SORT, type SortKey } from "../constants/sorting";
 
-export type CardMetaphor = "atlas" | "diario" | "coral";
 export type AppLang = "pt" | "en";
 
 const PREFS_KEY = "shema-prefs-v1";
@@ -17,10 +21,12 @@ interface PrefsState {
   toggleLang: () => void;
 }
 
+type PersistedPrefs = Pick<PrefsState, "metaphor" | "sort" | "lang">;
+
 export const usePrefsStore = create<PrefsState>()(
-  persist(
+  persist<PrefsState, [], [], PersistedPrefs>(
     (set) => ({
-      metaphor: "atlas",
+      metaphor: DEFAULT_METAPHOR,
       sort: DEFAULT_SORT,
       lang: "pt",
       setMetaphor: (metaphor) => set({ metaphor }),
@@ -31,6 +37,15 @@ export const usePrefsStore = create<PrefsState>()(
     }),
     {
       name: PREFS_KEY,
+      version: 1,
+      migrate: (persisted) => {
+        const stored = persisted as Partial<PersistedPrefs>;
+        return {
+          metaphor: normaliseMetaphor(stored.metaphor ?? null),
+          sort: stored.sort ?? DEFAULT_SORT,
+          lang: stored.lang ?? "pt",
+        };
+      },
       partialize: (state) => ({
         metaphor: state.metaphor,
         sort: state.sort,
