@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { RecordTabId } from "../constants/recordTabs";
 import type { Project } from "../types/project";
 
 export const NEW_RECORD = "novo";
@@ -24,7 +25,7 @@ export const REQUIRED_LABEL_KEYS: Record<RequiredField, string> = {
   objective: "sec_objective",
 };
 
-export const REQUIRED_FIELD_TAB: Record<RequiredField, string> = {
+export const REQUIRED_FIELD_TAB: Record<RequiredField, RecordTabId> = {
   languageName: "identidade",
   bridgeLanguage: "identidade",
   team: "equipe",

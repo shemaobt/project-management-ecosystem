@@ -1,5 +1,9 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import {
+  RECORD_TABS,
+  TAB_MARKER_TONES,
+} from "../../constants/recordTabs";
 
 const css = readFileSync(new URL("../../index.css", import.meta.url), "utf8");
 
@@ -57,6 +61,7 @@ function contrast(foreground: string, background: string): number {
 describe("um segundo valor de uma cor da paleta é peso de tinta, não cor nova", () => {
   const inkPairs: { ink: string; base: string }[] = [
     { ink: "azul-ink", base: "shema-azul" },
+    { ink: "verde-claro-ink", base: "shema-verde-claro" },
     { ink: "accent-hover", base: "shema-telha" },
     { ink: "accent-press", base: "shema-telha" },
     { ink: "status-attention-fg", base: "status-attention" },
@@ -84,6 +89,43 @@ describe("o azul da paleta precisa da tinta para carregar significado", () => {
     expect(contrast("shema-azul", "paper")).toBeLessThan(AA_NON_TEXT);
     expect(contrast("azul-ink", "paper")).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });
+});
+
+describe("o número da aba se lê sobre o marcador dela", () => {
+  const RAW_TOKEN: Record<string, string> = {
+    verde: "shema-verde",
+    "verde-claro": "shema-verde-claro",
+    "verde-claro-ink": "verde-claro-ink",
+    azul: "shema-azul",
+    "azul-ink": "azul-ink",
+    telha: "shema-telha",
+    "status-attention": "status-attention",
+    "status-attention-fg": "status-attention-fg",
+    "record-health": "record-health",
+    areia: "shema-areia",
+    preto: "shema-preto",
+    "on-dark": "shema-branco",
+    "on-brand": "shema-branco",
+    "on-light": "shema-verde",
+  };
+
+  const read = (tone: string, prefix: string): string => {
+    const found = tone
+      .split(" ")
+      .find((entry) => entry.startsWith(`${prefix}-`))
+      ?.slice(prefix.length + 1);
+    if (!found || !RAW_TOKEN[found]) throw new Error(`${prefix}: ${tone}`);
+    return RAW_TOKEN[found];
+  };
+
+  for (const tab of RECORD_TABS) {
+    it(`${tab} carrega o numeral de 10px`, () => {
+      const tone = TAB_MARKER_TONES[tab];
+      expect(contrast(read(tone, "text"), read(tone, "bg"))).toBeGreaterThanOrEqual(
+        AA_SMALL_TEXT,
+      );
+    });
+  }
 });
 
 describe("os três anéis se distinguem sobre o papel do Diário", () => {

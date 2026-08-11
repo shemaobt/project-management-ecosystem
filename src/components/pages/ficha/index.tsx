@@ -63,7 +63,7 @@ export function FichaPage() {
     navigate("/projetos");
   };
 
-  const goToTab = (next: string) => {
+  const goToTab = (next: RecordTabId) => {
     const search = params.toString();
     navigate(`/ficha/${recordId}/${next}${search ? `?${search}` : ""}`);
   };
@@ -102,7 +102,10 @@ export function FichaPage() {
     <Dialog open onOpenChange={(next) => !next && close()}>
       <DialogContent closeLabel={t("btn_close")}>
         <RecordHero mode={mode} draft={draft} />
-        <Tabs value={active} onValueChange={goToTab}>
+        <Tabs
+          value={active}
+          onValueChange={(next) => isRecordTab(next) && goToTab(next)}
+        >
           <TabNav pending={mode === "editar" ? pending : []} />
           <DialogBody className="max-h-[calc(100vh-330px)] pt-6">
             {RECORD_TABS.map((option) => (

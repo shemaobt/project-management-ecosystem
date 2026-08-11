@@ -27,7 +27,7 @@ const {
   REQUIRED_FIELD_TAB,
   hasDraft,
 } = await import("../../../../stores/recordStore");
-const { useProjectsStore, selectProject } = await import(
+const { useProjectsStore, selectProject, PROJECTS_VERSION } = await import(
   "../../../../stores/projectsStore"
 );
 const { RECORD_TABS, DEFAULT_TAB, isRecordTab, tabNumber, TAB_LABEL_KEYS } =
@@ -150,9 +150,10 @@ describe("os quatro obrigatórios são cobrados num lugar só", () => {
   });
 
   it("cada obrigatório aponta a aba onde ele mora", () => {
-    for (const field of REQUIRED_FIELDS) {
-      expect(isRecordTab(REQUIRED_FIELD_TAB[field])).toBe(true);
-    }
+    expect(REQUIRED_FIELD_TAB.languageName).toBe("identidade");
+    expect(REQUIRED_FIELD_TAB.bridgeLanguage).toBe("identidade");
+    expect(REQUIRED_FIELD_TAB.team).toBe("equipe");
+    expect(REQUIRED_FIELD_TAB.objective).toBe("objetivo");
   });
 });
 
@@ -173,5 +174,33 @@ describe("salvar é o único momento em que a coleção muda", () => {
   it("mexer no rascunho não toca na coleção", () => {
     useRecordStore.getState().updateDraft("p1", { languageName: "Outro nome" });
     expect(useProjectsStore.getState().projects).toHaveLength(0);
+  });
+
+  it("a cópia guardada não fica presa: outra versão manda reler o fixture", async () => {
+    storage.setItem(
+      "shema-projects-v1",
+      JSON.stringify({
+        state: { projects: [{ id: "antigo" }], hydrated: true },
+        version: PROJECTS_VERSION - 1,
+      }),
+    );
+    await useProjectsStore.persist.rehydrate();
+
+    expect(useProjectsStore.getState().hydrated).toBe(false);
+    expect(useProjectsStore.getState().projects).toHaveLength(0);
+  });
+
+  it("na mesma versão a cópia guardada é respeitada, e as edições sobrevivem", async () => {
+    storage.setItem(
+      "shema-projects-v1",
+      JSON.stringify({
+        state: { projects: [{ id: "salvo" }], hydrated: true },
+        version: PROJECTS_VERSION,
+      }),
+    );
+    await useProjectsStore.persist.rehydrate();
+
+    expect(useProjectsStore.getState().hydrated).toBe(true);
+    expect(useProjectsStore.getState().projects[0].id).toBe("salvo");
   });
 });

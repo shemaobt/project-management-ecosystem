@@ -5,6 +5,8 @@ import type { Project } from "../types/project";
 
 const PROJECTS_KEY = "shema-projects-v1";
 
+export const PROJECTS_VERSION = 1;
+
 interface ProjectsState {
   projects: Project[];
   hydrated: boolean;
@@ -37,6 +39,8 @@ export const useProjectsStore = create<ProjectsState>()(
     }),
     {
       name: PROJECTS_KEY,
+      version: PROJECTS_VERSION,
+      migrate: () => ({ projects: [], hydrated: false }),
       partialize: (state) => ({
         projects: state.projects,
         hydrated: state.hydrated,
