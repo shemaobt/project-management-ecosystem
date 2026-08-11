@@ -156,6 +156,37 @@ describe("coordenada ausente não vira ilha no golfo da Guiné", () => {
   });
 });
 
+describe("o texto do campo de coordenada segue o rascunho", () => {
+  const sync = (
+    atual: [string, string],
+    guardado: readonly [number, number],
+  ): [string, string] =>
+    (parseCoordinate(atual[0]) ?? 0) === guardado[0] &&
+    (parseCoordinate(atual[1]) ?? 0) === guardado[1]
+      ? atual
+      : hasPlottableCoords(guardado)
+        ? [String(guardado[0]), String(guardado[1])]
+        : ["", ""];
+
+  it("carga fria: as caixas vazias recebem o valor quando a hidratação chega", () => {
+    expect(sync(["", ""], [-60.1, -3.2])).toEqual(["-60.1", "-3.2"]);
+  });
+
+  it("descartar o rascunho devolve o valor guardado, não o texto descartado", () => {
+    expect(sync(["99", "99"], [-60.1, -3.2])).toEqual(["-60.1", "-3.2"]);
+  });
+
+  it("não atropela quem está digitando", () => {
+    expect(sync(["-60,", ""], [-60, 0])).toEqual(["-60,", ""]);
+    expect(sync(["", ""], [0, 0])).toEqual(["", ""]);
+    expect(sync(["0", "-14.2"], [0, -14.2])).toEqual(["0", "-14.2"]);
+  });
+
+  it("projeto sem coordenada mantém as caixas em branco", () => {
+    expect(sync(["7", "8"], [0, 0])).toEqual(["", ""]);
+  });
+});
+
 describe("a vitalidade é escala ordenada, não texto livre", () => {
   it("traz os degraus do protótipo, do vital ao extinto", () => {
     expect(VITALITY_SCALE.map((step) => step.value)).toEqual([

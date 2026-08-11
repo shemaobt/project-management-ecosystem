@@ -21,6 +21,11 @@ import { SensitiveFlag } from "./SensitiveFlag";
 
 const NOT_ASSESSED = "na";
 
+const asText = (coords: Coordinates): [string, string] =>
+  hasPlottableCoords(coords)
+    ? [String(coords[0]), String(coords[1])]
+    : ["", ""];
+
 export interface IdentidadeFormProps {
   draft: DraftHandle;
 }
@@ -31,11 +36,19 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
   const values = draft.values;
   const stored: Coordinates = values.coords ?? [0, 0];
 
-  const [typed, setTyped] = useState<[string, string]>(() =>
-    hasPlottableCoords(stored)
-      ? [String(stored[0]), String(stored[1])]
-      : ["", ""],
-  );
+  const [typed, setTyped] = useState<[string, string]>(() => asText(stored));
+  const [seen, setSeen] = useState<Coordinates>(stored);
+  const [lng, lat] = stored;
+
+  if (seen[0] !== lng || seen[1] !== lat) {
+    setSeen([lng, lat]);
+    if (
+      (parseCoordinate(typed[0]) ?? 0) !== lng ||
+      (parseCoordinate(typed[1]) ?? 0) !== lat
+    ) {
+      setTyped(asText([lng, lat]));
+    }
+  }
 
   const requiredError = (field: "languageName" | "bridgeLanguage") =>
     touched[field] && !values[field]?.trim() ? t("f_required") : undefined;
