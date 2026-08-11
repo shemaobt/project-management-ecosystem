@@ -1,3 +1,4 @@
+import { normaliseMetaphor } from "../../../../constants/metaphors";
 import { EMPTY_FILTERS, type ProjectFilters } from "../../../../stores/filtersStore";
 import type { PresetId, Project } from "../../../../types/project";
 import type { ViewState } from "../../../../utils/filterSerialisation";
@@ -102,7 +103,11 @@ export function applicableState(
 ): { state: ViewState; missing: UnavailableFilter[] } {
   const missing = findUnavailable(state.filters, counts);
   return {
-    state: { ...state, filters: withoutUnavailable(state.filters, missing) },
+    state: {
+      ...state,
+      filters: withoutUnavailable(state.filters, missing),
+      metaphor: normaliseMetaphor(state.metaphor),
+    },
     missing,
   };
 }

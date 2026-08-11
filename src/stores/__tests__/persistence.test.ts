@@ -47,11 +47,29 @@ describe("prefs store", () => {
   it("rehydrates the persisted view after a reload", async () => {
     storage.setItem(
       "shema-prefs-v1",
-      JSON.stringify({ state: { metaphor: "coral", lang: "en" }, version: 0 }),
+      JSON.stringify({ state: { metaphor: "diario", lang: "en" }, version: 1 }),
     );
     await usePrefsStore.persist.rehydrate();
-    expect(usePrefsStore.getState().metaphor).toBe("coral");
+    expect(usePrefsStore.getState().metaphor).toBe("diario");
     expect(usePrefsStore.getState().lang).toBe("en");
+  });
+
+  it("quem tinha o Coral salvo abre no Diário, que herdou o gráfico", async () => {
+    storage.setItem(
+      "shema-prefs-v1",
+      JSON.stringify({ state: { metaphor: "coral", lang: "pt" }, version: 0 }),
+    );
+    await usePrefsStore.persist.rehydrate();
+    expect(usePrefsStore.getState().metaphor).toBe("diario");
+  });
+
+  it("metáfora desconhecida cai no Atlas em vez de deixar a área vazia", async () => {
+    storage.setItem(
+      "shema-prefs-v1",
+      JSON.stringify({ state: { metaphor: "inventada" }, version: 0 }),
+    );
+    await usePrefsStore.persist.rehydrate();
+    expect(usePrefsStore.getState().metaphor).toBe("atlas");
   });
 });
 

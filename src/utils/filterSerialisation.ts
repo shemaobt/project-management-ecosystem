@@ -1,3 +1,8 @@
+import {
+  DEFAULT_METAPHOR,
+  normaliseMetaphor,
+  type CardMetaphor,
+} from "../constants/metaphors";
 import { DEFAULT_SORT, isSortKey, type SortKey } from "../constants/sorting";
 import {
   EMPTY_FILTERS,
@@ -5,7 +10,6 @@ import {
   YES_NO_VALUES,
   type ProjectFilters,
 } from "../stores/filtersStore";
-import type { CardMetaphor } from "../stores/prefsStore";
 import {
   FINANCIAL_RESOURCES,
   NEED_CATEGORIES,
@@ -23,8 +27,6 @@ export interface ViewState {
   sort: SortKey;
   metaphor: CardMetaphor;
 }
-
-const METAPHORS: readonly CardMetaphor[] = ["atlas", "diario", "coral"];
 
 const PRESET_KEYS = [
   "attention",
@@ -105,7 +107,8 @@ export function encodeView(state: ViewState): URLSearchParams {
   const search = state.search.trim();
   if (search) params.set(SEARCH_PARAM, search);
   if (state.sort !== DEFAULT_SORT) params.set(SORT_PARAM, state.sort);
-  if (state.metaphor !== "atlas") params.set(VIEW_PARAM, state.metaphor);
+  if (state.metaphor !== DEFAULT_METAPHOR)
+    params.set(VIEW_PARAM, state.metaphor);
 
   return params;
 }
@@ -133,13 +136,12 @@ export function decodeView(params: URLSearchParams): ViewState {
   }
 
   const sort = params.get(SORT_PARAM);
-  const metaphor = params.get(VIEW_PARAM);
 
   return {
     filters,
     search: params.get(SEARCH_PARAM)?.trim() ?? "",
     sort: sort && isSortKey(sort) ? sort : DEFAULT_SORT,
-    metaphor: METAPHORS.find((option) => option === metaphor) ?? "atlas",
+    metaphor: normaliseMetaphor(params.get(VIEW_PARAM)),
   };
 }
 
