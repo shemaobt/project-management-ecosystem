@@ -5,6 +5,7 @@ const css = readFileSync(new URL("../../index.css", import.meta.url), "utf8");
 
 const HUE_TOLERANCE = 6;
 const AA_SMALL_TEXT = 4.5;
+const AA_NON_TEXT = 3;
 
 function token(name: string): string {
   const prefix = `--${name}:`;
@@ -71,11 +72,26 @@ describe("um segundo valor de uma cor da paleta é peso de tinta, não cor nova"
   }
 });
 
-describe("o rótulo azul dos anéis de progresso", () => {
-  it("usa a tinta porque o azul da paleta não passa em texto sobre bg-muted", () => {
+describe("o azul da paleta precisa da tinta para carregar significado", () => {
+  it("não passa em texto pequeno sobre bg-muted, a tinta passa", () => {
     expect(contrast("shema-azul", "bg-muted")).toBeLessThan(AA_SMALL_TEXT);
     expect(contrast("azul-ink", "bg-muted")).toBeGreaterThanOrEqual(
       AA_SMALL_TEXT,
     );
   });
+
+  it("nem como traço sobre o papel do Diário, onde o anel do meio vive", () => {
+    expect(contrast("shema-azul", "paper")).toBeLessThan(AA_NON_TEXT);
+    expect(contrast("azul-ink", "paper")).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+});
+
+describe("os três anéis se distinguem sobre o papel do Diário", () => {
+  const RING_COLOURS = ["shema-telha", "azul-ink", "shema-verde-claro"];
+
+  for (const colour of RING_COLOURS) {
+    it(`${colour} passa como objeto gráfico`, () => {
+      expect(contrast(colour, "paper")).toBeGreaterThanOrEqual(AA_NON_TEXT);
+    });
+  }
 });

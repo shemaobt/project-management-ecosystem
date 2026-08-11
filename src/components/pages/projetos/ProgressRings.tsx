@@ -6,7 +6,7 @@ import { getUnitShare } from "./card";
 
 const RINGS = [
   { radius: 38, stroke: "stroke-telha" },
-  { radius: 30, stroke: "stroke-azul" },
+  { radius: 30, stroke: "stroke-azul-ink" },
   { radius: 22, stroke: "stroke-verde-claro" },
 ] as const;
 

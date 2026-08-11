@@ -153,15 +153,28 @@ export function ProjectCardDiario({
             {project.objective[0] ?? "—"}
           </span>
           <div className="text-[13px] font-semibold text-fg tabular-nums">
+            <span aria-hidden className="mr-1 text-telha">
+              ●
+            </span>
             {project.translatedUnits}/{project.totalUnits}{" "}
             <span className="font-medium text-fg-muted">
               {t("d_p_translated_short").toLowerCase()}
             </span>
           </div>
-          <div className="text-[10px] text-fg-subtle tabular-nums">
-            {project.communityCheckedUnits}{" "}
-            {t("d_p_community_short").toLowerCase()} · {project.approvedUnits}{" "}
-            {t("d_p_approved_short").toLowerCase()}
+          <div className="flex flex-wrap gap-x-2 text-[10px] text-fg-subtle tabular-nums">
+            <span>
+              <span aria-hidden className="mr-1 text-azul-ink">
+                ●
+              </span>
+              {project.communityCheckedUnits}{" "}
+              {t("d_p_community_short").toLowerCase()}
+            </span>
+            <span>
+              <span aria-hidden className="mr-1 text-verde-claro">
+                ●
+              </span>
+              {project.approvedUnits} {t("d_p_approved_short").toLowerCase()}
+            </span>
           </div>
           <div className="mt-0.5 flex gap-[3px]">
             {healthDots.map((dot) => (
