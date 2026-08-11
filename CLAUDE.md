@@ -318,7 +318,7 @@ Plus the project record (`modals.jsx`) as FE-20…28 / BE-06 / INT-03, and Iníc
 
 Ten numbered sections, in this order, in both the detail modal and the edit form (`modals.jsx`):
 
-1. **Identidade** — language name/code, bridge language, vitality, location, speakers, coords, **sensitive-country flag**
+1. **Identidade** — language name/code, bridge language, vitality, location, speakers, coords, **sensitive-country flag**. Built in FE-21. Three rules the field data forces: a **language name is never normalised** — not trimmed, not title-cased, not transliterated (the fixtures carry `Embera Dobida` with a non-breaking space and names that legitimately start lowercase, like `purépecha de capacuaro`); the **ISO code is checked, never refused** — `isIsoShape` only raises a hint, because the real export carries `?`, `N/A`, `jaa-b` and `not iso language`, and refusing them would make an existing record uneditable; and **`[0, 0]` means "no coordinate", not a place in the Gulf of Guinea** — `hasPlottableCoords` in `src/utils/identity.ts` is the single owner of that reading and `getMapPlacement` consults it.
 2. **Equipe** — base, leader, mentor, translators, technical reviewers, partner org, contact
 3. **Objetivo** — objective(s), translation type, scope details
 4. **Recursos Financeiros**
@@ -422,6 +422,11 @@ Ported from `DS-PROJECT/data.js` — these are the canonical enums and derivatio
 Treat it as a cross-cutting invariant: any new output surface must go through the same redaction rule. It is scheduled deliberately **early in the backend wave** (BE-04, [OBT-393](https://linear.app/shema-obt/issue/OBT-393)), before anything that emits data, and enforced in `tripod-api`'s service layer so it holds for every consumer, not only the console.
 
 > ⚠️ What "devida cautela" means per output is a **client gate**.
+
+**The flag is entered in FE-21 ([OBT-364](https://linear.app/shema-obt/issue/OBT-364)), 11/aug/2026 — Daniel Oliveira**, in the record's Identity tab (`ficha/tabs/identidade/SensitiveFlag.tsx`). Two rules that hold wherever it is shown:
+
+- **Ticking it states its own consequence, in plain words.** The panel lists what changes *today* (the Atlas plots at the region centroid and announces the withholding; cards and tooltips show the region in place of country and place) and, explicitly, **what does not yet** — exports, prayer wall, ETEN report and notifications land in wave 2 (BE-04). A checkbox that silently promises protection it does not deliver is worse than no checkbox: it invites someone to publish believing the system is guarding them.
+- **The record itself shows the truth.** Redaction belongs to output paths, not to the editing surface — the coordinator filling the record is the person who needs the real country. The Identity tab therefore renders `location` verbatim with a *"país sensível"* badge beside it, exactly as the prototype's `DetailModal` does. Do not route the record through `getLocationDisplay`.
 
 ### 6.2 Consent
 
