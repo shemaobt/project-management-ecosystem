@@ -27,6 +27,8 @@ const { isIsoShape, parseCoordinate, hasPlottableCoords } = await import(
 );
 const { getMapPlacement } = await import("../../../../utils/region");
 const { VITALITY_SCALE } = await import("../../../../constants/project");
+const { makeProject } = await import("../../../../utils/__tests__/factory");
+const { default: i18n } = await import("../../../../i18n");
 
 const projects = await projectsAPI.list();
 
@@ -138,6 +140,20 @@ describe("coordenada ausente não vira ilha no golfo da Guiné", () => {
     expect(parseCoordinate("")).toBeNull();
     expect(parseCoordinate("norte")).toBeNull();
   });
+
+  it("um componente zero é coordenada legítima — equador e meridiano de Greenwich", () => {
+    expect(parseCoordinate("0")).toBe(0);
+    for (const pair of [
+      [0, -14.2],
+      [-60.1, 0],
+      [0, 0.1],
+    ] as const) {
+      expect(hasPlottableCoords(pair)).toBe(true);
+      expect(
+        getMapPlacement(makeProject({ coords: [pair[0], pair[1]] })).precision,
+      ).toBe("exact");
+    }
+  });
 });
 
 describe("a vitalidade é escala ordenada, não texto livre", () => {
@@ -150,6 +166,21 @@ describe("a vitalidade é escala ordenada, não texto livre", () => {
       "Em situação crítica",
       "Extinta",
     ]);
+  });
+
+  it("o valor guardado é português, mas cada degrau tem tradução nas duas línguas", async () => {
+    for (const lang of ["pt", "en"]) {
+      await i18n.changeLanguage(lang);
+      const rotulos = VITALITY_SCALE.map((step) => i18n.t(step.labelKey));
+      expect(rotulos).toHaveLength(new Set(rotulos).size);
+      for (const [index, rotulo] of rotulos.entries()) {
+        expect(rotulo).not.toBe(VITALITY_SCALE[index].labelKey);
+      }
+      if (lang === "en") {
+        expect(rotulos).not.toContain("Vulnerável");
+      }
+    }
+    await i18n.changeLanguage("pt");
   });
 });
 

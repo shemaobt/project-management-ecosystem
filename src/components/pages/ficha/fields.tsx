@@ -12,6 +12,11 @@ export function FieldGrid({ children }: { children: ReactNode }) {
   );
 }
 
+export interface FieldControlProps {
+  id: string;
+  "aria-describedby": string | undefined;
+}
+
 export interface FieldProps {
   id: string;
   label: string;
@@ -19,7 +24,7 @@ export interface FieldProps {
   hint?: string;
   error?: string;
   full?: boolean;
-  children: ReactNode;
+  children: (control: FieldControlProps) => ReactNode;
 }
 
 export function Field({
@@ -31,6 +36,12 @@ export function Field({
   full,
   children,
 }: FieldProps) {
+  const describedBy = error
+    ? `${id}-erro`
+    : hint
+      ? `${id}-dica`
+      : undefined;
+
   return (
     <div className={cn("flex flex-col gap-1.5", full && "sm:col-span-2")}>
       <Label htmlFor={id} className={LABEL}>
@@ -41,7 +52,7 @@ export function Field({
           </span>
         )}
       </Label>
-      {children}
+      {children({ id, "aria-describedby": describedBy })}
       {error ? (
         <span
           id={`${id}-erro`}

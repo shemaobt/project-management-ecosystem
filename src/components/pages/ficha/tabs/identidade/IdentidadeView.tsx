@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { VITALITY_SCALE } from "../../../../../constants/project";
 import { formatNumber } from "../../../../../utils/format";
 import { hasPlottableCoords } from "../../../../../utils/identity";
 import { Badge } from "../../../../ui";
@@ -15,6 +16,12 @@ export function IdentidadeView({ draft }: IdentidadeViewProps) {
   const values = draft.values;
   const speakers = Number(values.speakerCount);
   const coords = values.coords;
+  const step = VITALITY_SCALE.find(
+    (entry) => entry.value === values.vitalityStatus,
+  );
+  const vitality = step
+    ? t(step.labelKey)
+    : values.vitalityStatus || t("vit_na");
 
   return (
     <FieldGrid>
@@ -31,9 +38,7 @@ export function IdentidadeView({ draft }: IdentidadeViewProps) {
         {values.bridgeLanguage || "—"}
       </DetailItem>
 
-      <DetailItem label={t("d_vitality")}>
-        {values.vitalityStatus || "—"}
-      </DetailItem>
+      <DetailItem label={t("d_vitality")}>{vitality}</DetailItem>
 
       <DetailItem label={t("d_speakers")}>
         {values.speakerCount && Number.isFinite(speakers)
