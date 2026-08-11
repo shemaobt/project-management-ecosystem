@@ -256,6 +256,7 @@ FE-05 shipped **reads only** — deliberately, since no screen writes yet. This 
 - **Never two owners of the same collection.** A screen that edits a project edits it in `projectsStore`; a screen that lists projects lists them from the same store. Re-reading the fixture after a write would silently resurrect the original record.
 - **`persist` where the prototype persists** (§8) — the prototype keeps projects, the meeting log, intercessors and saved views in localStorage. Wave 1 matches that; nothing else is persisted.
 - **Drafts are not writes.** Unconfirmed input — FE-20's partial record — is UI state in the record store, separate from the confirmed collection. Only an explicit save touches the domain data.
+- **`projectsStore` exists since FE-20** (`shema-projects-v1`). It hydrates once from `projectsAPI.list()` and from then on owns the collection: `ProjetosPage` lists from it and the record saves into it, so a project created in the record shows up in the list without re-reading the fixture. `saveProject` upserts by id — it is the only operation that touches confirmed data.
 - **In wave 2 the store is the write seam and the fixture module the read seam.** `hydrate()` becomes the API call and each mutation method becomes a `POST`/`PATCH` in `services/api.ts`. That is why the store must expose *operations* (`saveProject`, `logMeeting`, `markPrayerAnswered`) rather than a bare `setState` — an operation maps to an endpoint, a `setState` does not. FE-44 freezes those operations alongside the read contracts.
 
 ### Component rules
@@ -328,6 +329,13 @@ Ten numbered sections, in this order, in both the detail modal and the edit form
 10. **Materiais Traduzidos**
 
 The tab shell must support **partial save (draft)** — a coordinator must never lose work mid-form.
+
+**Built in FE-20 ([OBT-363](https://linear.app/shema-obt/issue/OBT-363)), 11/aug/2026 — Daniel Oliveira.** The shell is `src/components/pages/ficha/`. Four decisions the eight tab issues inherit; do not re-litigate them per tab.
+
+- **Detail and edit are one component with a `mode` flag**, not the prototype's two. `modals.jsx` writes the same ten sections twice — `DetailModal` (550 lines) and `EditModal` (420) — which is exactly where drift lives: a field added to one and forgotten in the other. One file per tab receives `{ mode, draft }` and decides how to render each field. Ten files instead of twenty, and no way for the two modes to disagree about which fields exist. Mode rides the URL as `?modo=ver|editar`; a new record is always `editar`.
+- **Tabs are a route segment, not component state:** `/ficha/:recordId/:tab`. The id in the URL (`identidade`, `equipe`, `objetivo`, `recursos`, `progresso`, `saude`, `necessidades`, `midia`, `notas`, `materiais`) is **not translatable** — the label is, via `TAB_LABEL_KEYS`. `src/constants/recordTabs.ts` owns the order, the numbering and the marker colours. An unknown tab redirects to Identidade rather than rendering nothing.
+- **The draft autosaves; loss is impossible rather than warned.** Every keystroke lands in `recordStore` (`shema-record-drafts-v1`), keyed by record id, so switching tabs, closing the modal or reloading all keep the input. That is the stronger half of the issue's "impossible or explicitly warned". Discarding is explicit and confirmed by a toast. **`useDraft(recordId)` is the seam every tab uses** — `values`, `set(field, value)`, `missing`, `hasChanges`, `discard`.
+- **The four required fields are enforced in one function, at one moment.** `missingRequired` in `recordStore` is the only validator, and it runs only when the draft is promoted — never on keystroke, never per tab. They are `languageName`, `bridgeLanguage`, `team` and `objective` (the prototype's own four: `EditModal.handleSave` checks exactly these). `REQUIRED_FIELD_TAB` maps each to the tab that owns it, so a blocked save navigates to the field instead of describing it.
 
 ### 5.3 Formulários — the field's voice
 
