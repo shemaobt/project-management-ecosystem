@@ -57,6 +57,7 @@
   "sb_view_delete": "Excluir {{name}}",
   "sb_view_copy_link": "Copiar link desta visão",
   "sb_view_link_copied": "Link copiado.",
+  "sb_view_link_failed": "Não foi possível copiar o link.",
   "sb_view_saved": "Visão “{{name}}” salva.",
   "sb_view_removed": "Visão “{{name}}” excluída.",
   "sb_view_limit": "Você já tem {{count}} visões salvas. Exclua uma antes de salvar outra.",

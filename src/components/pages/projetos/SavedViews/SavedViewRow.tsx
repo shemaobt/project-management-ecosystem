@@ -5,7 +5,7 @@ import type { SavedView } from "../../../../stores/savedViewsStore";
 import { MAX_VIEW_NAME } from "../../../../stores/savedViewsStore";
 import { transitionColors } from "../../../../styles";
 import { cn } from "../../../../utils/cn";
-import { Input } from "../../../ui";
+import { Button, Input } from "../../../ui";
 import type { UnavailableFilter } from "./availability";
 import { FILTER_LABEL_KEYS } from "./availability";
 
@@ -28,10 +28,15 @@ export function SavedViewRow({
   const [renaming, setRenaming] = useState(false);
   const [draft, setDraft] = useState(view.name);
 
+  const cancelRename = () => {
+    setDraft(view.name);
+    setRenaming(false);
+  };
+
   if (renaming) {
     return (
       <form
-        className="flex items-center gap-1.5"
+        className="flex flex-col gap-1.5"
         onSubmit={(event) => {
           event.preventDefault();
           if (draft.trim()) onRename(draft);
@@ -44,15 +49,19 @@ export function SavedViewRow({
           maxLength={MAX_VIEW_NAME}
           aria-label={t("sb_view_rename", { name: view.name })}
           onChange={(event) => setDraft(event.target.value)}
-          onBlur={() => setRenaming(false)}
           onKeyDown={(event) => {
-            if (event.key === "Escape") {
-              setDraft(view.name);
-              setRenaming(false);
-            }
+            if (event.key === "Escape") cancelRename();
           }}
           className="py-1.5 text-micro"
         />
+        <div className="flex gap-1.5">
+          <Button type="submit" size="sm" disabled={!draft.trim()}>
+            {t("sb_save_view_confirm")}
+          </Button>
+          <Button type="button" size="sm" variant="ghost" onClick={cancelRename}>
+            {t("sb_save_view_cancel")}
+          </Button>
+        </div>
       </form>
     );
   }

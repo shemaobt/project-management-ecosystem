@@ -57,6 +57,7 @@
   "sb_view_delete": "Delete {{name}}",
   "sb_view_copy_link": "Copy a link to this view",
   "sb_view_link_copied": "Link copied.",
+  "sb_view_link_failed": "Could not copy the link.",
   "sb_view_saved": "View “{{name}}” saved.",
   "sb_view_removed": "View “{{name}}” deleted.",
   "sb_view_limit": "You already have {{count}} saved views. Delete one before saving another.",

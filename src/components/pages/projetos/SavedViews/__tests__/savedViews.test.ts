@@ -148,6 +148,26 @@ describe("uma visão com valor que sumiu degrada com aviso", () => {
   it("não reclama de uma visão inteiramente válida", () => {
     expect(findUnavailable(COMPLEX.filters, counts)).toEqual([]);
   });
+
+  it("aponta preset que não pega mais nenhum projeto", () => {
+    const presets = { ...EMPTY_FILTERS, attention: true, celebrate: true };
+    expect(findUnavailable(presets, counts)).toEqual([]);
+    expect(findUnavailable(presets, datasetCounts([]))).toEqual([
+      { key: "attention", value: "attention" },
+      { key: "celebrate", value: "celebrate" },
+    ]);
+  });
+
+  it("abre a visão sem o preset que ficou vazio", () => {
+    const view: ViewState = {
+      ...COMPLEX,
+      filters: { ...EMPTY_FILTERS, attention: true, celebrate: true },
+    };
+    const { state, missing } = applicableState(view, datasetCounts([]));
+    expect(missing.map(({ key }) => key)).toEqual(["attention", "celebrate"]);
+    expect(state.filters.attention).toBe(false);
+    expect(state.filters.celebrate).toBe(false);
+  });
 });
 
 describe("as visões são de cada usuário", () => {

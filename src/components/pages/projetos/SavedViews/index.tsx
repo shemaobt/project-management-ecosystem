@@ -78,12 +78,17 @@ export function SavedViews({ projects }: SavedViewsProps) {
     );
   };
 
-  const copyLink = () => {
+  const copyLink = async () => {
     const url = encodeViewToUrl(
       current,
       `${window.location.origin}${window.location.pathname}`,
     );
-    void navigator.clipboard?.writeText(url);
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      toast.error(t("sb_view_link_failed"));
+      return;
+    }
     toast.success(t("sb_view_link_copied"));
   };
 
@@ -100,7 +105,7 @@ export function SavedViews({ projects }: SavedViewsProps) {
           <div className="flex items-center gap-1">
             <button
               type="button"
-              onClick={copyLink}
+              onClick={() => void copyLink()}
               aria-label={t("sb_view_copy_link")}
               className={cn(
                 "inline-flex items-center px-1 py-0.5 text-telha",

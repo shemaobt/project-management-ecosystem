@@ -39,7 +39,26 @@ const FREE_TEXT_KEYS = [
   "vitality",
 ] as const satisfies readonly (keyof ProjectFilters)[];
 
-const ENUM_VALUES: Partial<Record<keyof ProjectFilters, readonly string[]>> = {
+const ENUM_KEYS = [
+  "objective",
+  "status",
+  "health",
+  "financial",
+  "stale",
+  "continent",
+  "translationType",
+  "eten",
+  "sensitive",
+  "progressRange",
+  "needCategory",
+  "hasMedia",
+] as const satisfies readonly (keyof ProjectFilters)[];
+
+type EnumKey = (typeof ENUM_KEYS)[number];
+
+const ENUM_VALUES: {
+  [K in EnumKey]: readonly NonNullable<ProjectFilters[K]>[];
+} = {
   objective: OBJECTIVES,
   status: PROJECT_STATUSES,
   health: OVERALL_HEALTH_STATES,
@@ -54,6 +73,15 @@ const ENUM_VALUES: Partial<Record<keyof ProjectFilters, readonly string[]>> = {
   hasMedia: YES_NO_VALUES,
 };
 
+function applyEnum<K extends EnumKey>(
+  filters: ProjectFilters,
+  key: K,
+  raw: string | null,
+): void {
+  const match = ENUM_VALUES[key].find((option) => option === raw);
+  if (match) filters[key] = match;
+}
+
 export const SEARCH_PARAM = "q";
 export const SORT_PARAM = "sort";
 export const VIEW_PARAM = "view";
@@ -66,9 +94,9 @@ export function encodeView(state: ViewState): URLSearchParams {
     if (value) params.set(key, value);
   }
 
-  for (const key of Object.keys(ENUM_VALUES) as (keyof ProjectFilters)[]) {
+  for (const key of ENUM_KEYS) {
     const value = state.filters[key];
-    if (typeof value === "string" && value) params.set(key, value);
+    if (value) params.set(key, value);
   }
 
   const presets = PRESET_KEYS.filter((key) => state.filters[key]);
@@ -95,14 +123,8 @@ export function decodeView(params: URLSearchParams): ViewState {
     if (value) filters[key] = value;
   }
 
-  for (const [key, allowed] of Object.entries(ENUM_VALUES) as [
-    keyof ProjectFilters,
-    readonly string[],
-  ][]) {
-    const value = params.get(key);
-    if (value && allowed.some((option) => option === value)) {
-      Object.assign(filters, { [key]: value });
-    }
+  for (const key of ENUM_KEYS) {
+    applyEnum(filters, key, params.get(key));
   }
 
   const presets = (params.get("presets") ?? "").split(",");

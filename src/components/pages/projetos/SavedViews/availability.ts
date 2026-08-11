@@ -1,5 +1,5 @@
 import { EMPTY_FILTERS, type ProjectFilters } from "../../../../stores/filtersStore";
-import type { Project } from "../../../../types/project";
+import type { PresetId, Project } from "../../../../types/project";
 import type { ViewState } from "../../../../utils/filterSerialisation";
 import { filterProjects, type FacetCounts, type FacetGroup } from "../../../../utils/search";
 
@@ -21,27 +21,39 @@ const FACET_FILTERS = [
   "hasMedia",
 ] as const satisfies readonly FacetGroup[];
 
-export const FILTER_LABEL_KEYS: Record<(typeof FACET_FILTERS)[number], string> =
-  {
-    status: "sb_status",
-    team: "sb_team",
-    health: "sb_health",
-    objective: "sb_objective",
-    financial: "sb_financial",
-    stale: "sb_stale",
-    country: "sb_country",
-    continent: "sb_continent",
-    vitality: "sb_vitality",
-    translationType: "sb_translation_type",
-    needCategory: "sb_needs_section",
-    eten: "sb_eten",
-    sensitive: "sb_sensitive",
-    progressRange: "sb_progress_range",
-    hasMedia: "sb_media",
-  };
+const PRESET_FILTERS = [
+  "attention",
+  "prayer",
+  "celebrate",
+  "recent",
+] as const satisfies readonly PresetId[];
+
+type FilterKey = (typeof FACET_FILTERS)[number] | PresetId;
+
+export const FILTER_LABEL_KEYS: Record<FilterKey, string> = {
+  status: "sb_status",
+  team: "sb_team",
+  health: "sb_health",
+  objective: "sb_objective",
+  financial: "sb_financial",
+  stale: "sb_stale",
+  country: "sb_country",
+  continent: "sb_continent",
+  vitality: "sb_vitality",
+  translationType: "sb_translation_type",
+  needCategory: "sb_needs_section",
+  eten: "sb_eten",
+  sensitive: "sb_sensitive",
+  progressRange: "sb_progress_range",
+  hasMedia: "sb_media",
+  attention: "preset_urgent",
+  prayer: "preset_prayer",
+  celebrate: "preset_celebrate",
+  recent: "preset_recent",
+};
 
 export interface UnavailableFilter {
-  key: (typeof FACET_FILTERS)[number];
+  key: FilterKey;
   value: string;
 }
 
@@ -57,10 +69,20 @@ export function findUnavailable(
   for (const key of FACET_FILTERS) {
     const value = filters[key];
     if (typeof value !== "string" || !value) continue;
-    const group = counts[key] as Record<string, number | undefined>;
+    const group: Record<string, number | undefined> = counts[key];
     if (!group[value]) missing.push({ key, value });
   }
+  for (const key of PRESET_FILTERS) {
+    if (filters[key] && !counts.preset[key]) missing.push({ key, value: key });
+  }
   return missing;
+}
+
+function clearFilter<K extends keyof ProjectFilters>(
+  filters: ProjectFilters,
+  key: K,
+): void {
+  filters[key] = EMPTY_FILTERS[key];
 }
 
 export function withoutUnavailable(
@@ -69,7 +91,7 @@ export function withoutUnavailable(
 ): ProjectFilters {
   const applied = { ...filters };
   for (const { key } of missing) {
-    Object.assign(applied, { [key]: EMPTY_FILTERS[key] });
+    clearFilter(applied, key);
   }
   return applied;
 }
