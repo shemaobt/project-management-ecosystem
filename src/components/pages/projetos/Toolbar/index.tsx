@@ -1,16 +1,13 @@
 import { useTranslation } from "react-i18next";
-import type { SortKey } from "../sorting";
 import { MetaphorPill } from "./MetaphorPill";
 import { SortControl } from "./SortControl";
 
 export interface ToolbarProps {
   count: number;
   total: number;
-  sort: SortKey;
-  onSortChange: (value: SortKey) => void;
 }
 
-export function Toolbar({ count, total, sort, onSortChange }: ToolbarProps) {
+export function Toolbar({ count, total }: ToolbarProps) {
   const { t } = useTranslation();
 
   return (
@@ -29,7 +26,7 @@ export function Toolbar({ count, total, sort, onSortChange }: ToolbarProps) {
       </p>
       <div className="flex items-center gap-3.5">
         <MetaphorPill />
-        <SortControl value={sort} onChange={onSortChange} />
+        <SortControl />
       </div>
     </div>
   );

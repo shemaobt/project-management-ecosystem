@@ -3,7 +3,8 @@ import { projectsAPI } from "../../../../fixtures";
 import { EMPTY_FILTERS } from "../../../../stores/filtersStore";
 import { makeProject } from "../../../../utils/__tests__/factory";
 import { filterProjects } from "../../../../utils/search";
-import { SORT_KEYS, sortProjects } from "../sorting";
+import { SORT_KEYS } from "../../../../constants/sorting";
+import { sortProjects } from "../sorting";
 
 const PT = "pt-BR";
 const NOW = new Date("2026-05-14T12:00:00");

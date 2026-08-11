@@ -28,7 +28,8 @@ const { makeProject } = await import("../../../../utils/__tests__/factory");
 const { JournalView } = await import("../Journal");
 const { CoralView } = await import("../Coral");
 const { AtlasView } = await import("../Atlas");
-const { DEFAULT_SORT, sortProjects } = await import("../sorting");
+const { DEFAULT_SORT } = await import("../../../../constants/sorting");
+const { sortProjects } = await import("../sorting");
 
 const noop = () => {};
 
