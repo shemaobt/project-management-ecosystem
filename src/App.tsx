@@ -3,6 +3,7 @@ import { AppShell } from "./components/layout/AppShell";
 import { DesignSystemPage } from "./components/pages/design-system/DesignSystemPage";
 import { EquipePage } from "./components/pages/equipe/EquipePage";
 import { EtenPage } from "./components/pages/eten/EtenPage";
+import { FichaPage } from "./components/pages/ficha";
 import { FormulariosPage } from "./components/pages/formularios/FormulariosPage";
 import { IntercessoresPage } from "./components/pages/intercessores/IntercessoresPage";
 import { OracaoPage } from "./components/pages/oracao/OracaoPage";
@@ -21,6 +22,8 @@ export default function App() {
             <Route element={<AppShell />}>
               <Route index element={<Navigate to="/projetos" replace />} />
               <Route path="projetos" element={<ProjetosPage />} />
+              <Route path="ficha/:recordId" element={<FichaPage />} />
+              <Route path="ficha/:recordId/:tab" element={<FichaPage />} />
               <Route path="ritmo" element={<RitmoPage />} />
               <Route path="oracao" element={<OracaoPage />} />
               <Route

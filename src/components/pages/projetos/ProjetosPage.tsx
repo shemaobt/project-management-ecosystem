@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { CardMetaphor } from "../../../constants/metaphors";
-import { projectsAPI } from "../../../fixtures";
+import { DEFAULT_TAB } from "../../../constants/recordTabs";
 import { useFiltersStore } from "../../../stores/filtersStore";
 import { usePrefsStore } from "../../../stores/prefsStore";
+import { useProjectsStore } from "../../../stores/projectsStore";
 import type { Project } from "../../../types/project";
 import { decodeView, encodeView } from "../../../utils/filterSerialisation";
 import { filterProjects } from "../../../utils/search";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
-import { Button, toast } from "../../ui";
+import { Button } from "../../ui";
 import { AtlasView } from "./Atlas";
 import { JournalView } from "./Journal";
 import { LoadMore } from "./LoadMore";
@@ -43,7 +44,10 @@ function ResultsView({
 
 export function ProjetosPage() {
   const { t } = useTranslation();
-  const [projects, setProjects] = useState<Project[] | null>(null);
+  const navigate = useNavigate();
+  const projects = useProjectsStore((state) => state.projects);
+  const hydrated = useProjectsStore((state) => state.hydrated);
+  const hydrate = useProjectsStore((state) => state.hydrate);
   const [params, setParams] = useSearchParams();
   const filters = useFiltersStore((state) => state.filters);
   const search = useFiltersStore((state) => state.search);
@@ -64,14 +68,8 @@ export function ProjetosPage() {
   const locale = t("locale");
 
   useEffect(() => {
-    let active = true;
-    void projectsAPI.list().then((list) => {
-      if (active) setProjects(list);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
+    void hydrate();
+  }, [hydrate]);
 
   useEffect(() => {
     if (readUrl.current) return;
@@ -113,7 +111,7 @@ export function ProjetosPage() {
 
   const visibleCount = pagingIsStale ? PAGE_SIZE : paging.count;
 
-  if (projects === null) {
+  if (!hydrated) {
     return (
       <section className="flex justify-center px-8 py-24">
         <LoadingSpinner size="lg" label={t("loading")} />
@@ -122,8 +120,8 @@ export function ProjetosPage() {
   }
 
   const visible = sorted.slice(0, visibleCount);
-  const openRecord = () => {
-    toast(t("toast_pending", { label: t("d_record") }));
+  const openRecord = (project: Project) => {
+    navigate(`/ficha/${project.id}/${DEFAULT_TAB}`);
   };
 
   return (

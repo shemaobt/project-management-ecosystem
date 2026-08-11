@@ -1,6 +1,9 @@
 import { Bell } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import "../../i18n";
+import { DEFAULT_TAB } from "../../constants/recordTabs";
+import { NEW_RECORD } from "../../stores/recordStore";
 import { BrandMark } from "../common/BrandMark";
 import { toast } from "../ui";
 import { usePrefsStore } from "../../stores/prefsStore";
@@ -28,6 +31,7 @@ const PENDING_ACTIONS = [
 
 export function AppHeader() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const lang = usePrefsStore((state) => state.lang);
   const toggleLang = usePrefsStore((state) => state.toggleLang);
 
@@ -86,7 +90,7 @@ export function AppHeader() {
             TB_BTN,
             "border-telha bg-telha hover:border-accent-hover hover:bg-accent-hover",
           )}
-          onClick={() => notifyPending(t("btn_new"))}
+          onClick={() => navigate(`/ficha/${NEW_RECORD}/${DEFAULT_TAB}`)}
         >
           + {t("btn_new")}
         </button>
