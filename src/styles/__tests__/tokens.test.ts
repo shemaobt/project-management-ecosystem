@@ -71,7 +71,7 @@ describe("um segundo valor de uma cor da paleta é peso de tinta, não cor nova"
   }
 });
 
-describe("o rótulo azul do Coral", () => {
+describe("o rótulo azul dos anéis de progresso", () => {
   it("usa a tinta porque o azul da paleta não passa em texto sobre bg-muted", () => {
     expect(contrast("shema-azul", "bg-muted")).toBeLessThan(AA_SMALL_TEXT);
     expect(contrast("azul-ink", "bg-muted")).toBeGreaterThanOrEqual(

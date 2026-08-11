@@ -7,11 +7,11 @@ import type {
 import { cn } from "../../../../utils/cn";
 import { formatDate } from "../../../../utils/format";
 import { getPriority } from "../../../../utils/health";
-import { getProgress } from "../../../../utils/progress";
 import { getLastProgressUpdate } from "../../../../utils/recency";
 import { getLocationDisplay } from "../../../../utils/region";
 import { BrandMark } from "../../../common/BrandMark";
 import { PriorityPin, StatusDot } from "../../../common/StatusBadge";
+import { ProgressRings } from "../ProgressRings";
 import {
   getCardDateLabel,
   getCardQuote,
@@ -55,7 +55,6 @@ export function ProjectCardDiario({
   const { t } = useTranslation();
   const locale = t("locale");
   const priority = getPriority(project);
-  const progress = getProgress(project);
   const quote = getCardQuote(project);
   const dateLabel = getCardDateLabel(project, locale);
   const lastUpdate = getLastProgressUpdate(project);
@@ -148,38 +147,29 @@ export function ProjectCardDiario({
         </p>
       )}
 
-      <div className="mt-auto flex items-center justify-between border-t border-verde/12 pt-3">
-        <div className="flex flex-1 flex-col gap-1">
-          <div className="flex items-baseline justify-between gap-2 text-[10px] font-semibold tracking-[0.06em] uppercase text-fg-muted">
-            <span className="truncate">{project.objective[0] ?? "—"}</span>
-            <strong className="shrink-0 text-[13px] text-fg tabular-nums">
-              {project.translatedUnits}/{project.totalUnits}
-              <span className="ml-1 font-medium text-fg-muted">
-                {Math.round(progress)}%
-              </span>
-            </strong>
-          </div>
-          <div className="relative h-1 overflow-hidden rounded-pill bg-verde/8">
-            <div
-              className="h-full rounded-pill bg-telha"
-              style={{ width: `${Math.min(100, progress)}%` }}
-            />
-          </div>
-          <div className="flex justify-between gap-2 text-[10px] text-fg-subtle tabular-nums">
-            <span>
-              {project.communityCheckedUnits}{" "}
-              {t("d_p_community_short").toLowerCase()}
-            </span>
-            <span>
-              {project.approvedUnits} {t("d_p_approved_short").toLowerCase()}
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-verde/12 pt-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="truncate text-[10px] font-semibold tracking-[0.06em] uppercase text-fg-muted">
+            {project.objective[0] ?? "—"}
+          </span>
+          <div className="text-[13px] font-semibold text-fg tabular-nums">
+            {project.translatedUnits}/{project.totalUnits}{" "}
+            <span className="font-medium text-fg-muted">
+              {t("d_p_translated_short").toLowerCase()}
             </span>
           </div>
+          <div className="text-[10px] text-fg-subtle tabular-nums">
+            {project.communityCheckedUnits}{" "}
+            {t("d_p_community_short").toLowerCase()} · {project.approvedUnits}{" "}
+            {t("d_p_approved_short").toLowerCase()}
+          </div>
+          <div className="mt-0.5 flex gap-[3px]">
+            {healthDots.map((dot) => (
+              <StatusDot key={dot.label} state={dot.state} label={dot.label} />
+            ))}
+          </div>
         </div>
-        <div className="ml-3.5 flex gap-[3px]">
-          {healthDots.map((dot) => (
-            <StatusDot key={dot.label} state={dot.state} label={dot.label} />
-          ))}
-        </div>
+        <ProgressRings project={project} />
       </div>
     </article>
   );
