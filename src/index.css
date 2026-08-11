@@ -260,6 +260,7 @@
   --deadline-soon: #a06c12;
   --medallion-paper: #e8e5d2;
   --azul-ink: #406560;
+  --record-health: #a85972;
 
   --color-night-good: var(--night-good);
   --color-night-warning: var(--night-warning);
@@ -273,6 +274,7 @@
   --color-deadline-soon: var(--deadline-soon);
   --color-medallion-paper: var(--medallion-paper);
   --color-azul-ink: var(--azul-ink);
+  --color-record-health: var(--record-health);
 
   --paper: #fbfaf1;
   --shadow-paper: 0 1px 0 rgba(63, 62, 32, 0.04),
