@@ -7,24 +7,19 @@ import type { DraftHandle } from "../../useDraft";
 import { BookTable } from "./BookTable";
 import { OtherTable, StoryTable } from "./FreeTable";
 import { StatusRadio } from "./StatusRadio";
-import {
-  COUNT_LABEL_KEYS,
-  showsAnyTable,
-  showsBookTable,
-  showsOtherTable,
-  showsStoryTable,
-  type ScopeFields,
-} from "./sections";
+import { COUNT_LABEL_KEYS, visibleSections } from "./sections";
 
 export interface ProgressoFormProps {
   draft: DraftHandle;
 }
 
 function TableSection({
+  icon,
   title,
   hint,
   children,
 }: {
+  icon: string;
   title: string;
   hint?: string;
   children: ReactNode;
@@ -33,6 +28,7 @@ function TableSection({
     <section>
       <div className="mb-2.5 flex flex-wrap items-baseline gap-3.5">
         <strong className="text-small font-bold tracking-[0.02em] text-fg">
+          <span aria-hidden>{icon} </span>
           {title}
         </strong>
         {hint && (
@@ -47,17 +43,15 @@ function TableSection({
 export function ProgressoForm({ draft }: ProgressoFormProps) {
   const { t } = useTranslation();
   const values = draft.values;
-  const scope: ScopeFields = {
-    objective: values.objective ?? [],
-    translationType: values.translationType ?? [],
-  };
-  const drops = decreasedCounts(materializeDraft(values));
+  const project = materializeDraft(values);
+  const sections = visibleSections(project);
+  const drops = decreasedCounts(project);
 
   return (
     <div className="flex flex-col gap-6">
       <FieldGroup id="ficha-status" label={t("f_project_status")}>
         <StatusRadio
-          value={values.status ?? "em-andamento"}
+          value={project.status}
           onChange={(next) => draft.set("status", next)}
         />
       </FieldGroup>
@@ -73,40 +67,42 @@ export function ProgressoForm({ draft }: ProgressoFormProps) {
         </p>
       )}
 
-      {showsBookTable(scope) && (
+      {sections.books && (
         <TableSection
-          title={`📖 ${t("progress_books_title")}`}
+          icon="📖"
+          title={t("progress_books_title")}
           hint={t("progress_books_hint")}
         >
           <BookTable
-            rows={values.bookProgress ?? []}
+            rows={project.bookProgress}
             onChange={(rows) => draft.set("bookProgress", rows)}
           />
         </TableSection>
       )}
 
-      {showsStoryTable(scope) && (
+      {sections.stories && (
         <TableSection
-          title={`📚 ${t("progress_stories_title")}`}
+          icon="📚"
+          title={t("progress_stories_title")}
           hint={t("progress_stories_hint")}
         >
           <StoryTable
-            rows={values.storyProgress ?? []}
+            rows={project.storyProgress}
             onChange={(rows) => draft.set("storyProgress", rows)}
           />
         </TableSection>
       )}
 
-      {showsOtherTable(scope) && (
-        <TableSection title={`🎬 ${t("progress_other_title")}`}>
+      {sections.other && (
+        <TableSection icon="🎬" title={t("progress_other_title")}>
           <OtherTable
-            rows={values.otherProgress ?? []}
+            rows={project.otherProgress ?? []}
             onChange={(rows) => draft.set("otherProgress", rows)}
           />
         </TableSection>
       )}
 
-      {!showsAnyTable(scope) && (
+      {!sections.books && !sections.stories && !sections.other && (
         <p className="rounded-md bg-muted px-4 py-3.5 font-serif text-small italic text-fg-muted">
           {t("progress_no_scope_hint")}
         </p>

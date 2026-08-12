@@ -35,11 +35,11 @@ const {
   addBookRow,
   clampChapters,
   clampCount,
-  showsAnyTable,
   showsBookTable,
   showsOtherTable,
   showsStoryTable,
   toBreakdownRow,
+  visibleSections,
 } = await import("../tabs/progresso/sections");
 const { getUnitShare } = await import("../../projetos/card");
 const { default: i18n } = await import("../../../../i18n");
@@ -102,6 +102,23 @@ describe("o histórico responde qual era a contagem em 31 de dezembro", () => {
   it("antes do primeiro registro não há resposta, não zero inventado", () => {
     const grown = seedTwoYears();
     expect(progressAsOf(grown, "2024-12-31")).toBeNull();
+  });
+
+  it("registro antigo sem snapshot responde com null explícito, não quebra", () => {
+    const legacy = makeProject({
+      progressHistory: [
+        {
+          date: "2025-06-01",
+          translatedUnits: 4,
+          communityCheckedUnits: 2,
+          approvedUnits: 1,
+        },
+      ],
+    });
+    const snapshot = progressAsOf(legacy, "2025-12-31");
+    expect(snapshot?.translatedUnits).toBe(4);
+    expect(snapshot?.totalUnits).toBeNull();
+    expect(snapshot?.bookProgress).toBeNull();
   });
 
   it("dois registros no mesmo dia: o mais recente vale", () => {
@@ -225,8 +242,9 @@ describe("o status do projeto persiste pela ficha", () => {
 });
 
 describe("as tabelas seguem o escopo do objetivo", () => {
-  it("cada seção responde ao seu gatilho, e nada aparece sem escopo", () => {
-    expect(showsAnyTable({ objective: [], translationType: [] })).toBe(false);
+  it("cada seção responde ao seu gatilho, e nada aparece sem escopo nem dado", () => {
+    const blank = visibleSections(makeProject());
+    expect(blank).toEqual({ books: false, stories: false, other: false });
 
     expect(
       showsBookTable({ objective: ["NT"], translationType: [] }),
@@ -246,6 +264,20 @@ describe("as tabelas seguem o escopo do objetivo", () => {
     expect(
       showsOtherTable({ objective: [], translationType: ["OBT"] }),
     ).toBe(false);
+  });
+
+  it("linha gravada continua visível mesmo com o escopo desmarcado", () => {
+    const withRows = visibleSections(
+      makeProject({
+        objective: ["Histórias"],
+        bookProgress: [
+          genesisRow({ translated: 3, communityChecked: 0, mentorApproved: 0 }),
+        ],
+      }),
+    );
+    expect(withRows.books).toBe(true);
+    expect(withRows.stories).toBe(true);
+    expect(withRows.other).toBe(false);
   });
 
   it("adicionar um livro já presente não duplica a linha", () => {

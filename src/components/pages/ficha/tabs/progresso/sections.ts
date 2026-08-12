@@ -36,8 +36,22 @@ export function showsOtherTable({
   );
 }
 
-export function showsAnyTable(scope: ScopeFields): boolean {
-  return showsBookTable(scope) || showsStoryTable(scope) || showsOtherTable(scope);
+export type ProgressFields = ScopeFields &
+  Pick<Project, "bookProgress" | "storyProgress" | "otherProgress">;
+
+export interface VisibleSections {
+  books: boolean;
+  stories: boolean;
+  other: boolean;
+}
+
+export function visibleSections(project: ProgressFields): VisibleSections {
+  return {
+    books: showsBookTable(project) || project.bookProgress.length > 0,
+    stories: showsStoryTable(project) || project.storyProgress.length > 0,
+    other:
+      showsOtherTable(project) || (project.otherProgress ?? []).length > 0,
+  };
 }
 
 export function addBookRow(

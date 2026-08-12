@@ -1,18 +1,14 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DEFAULT_UNIT_TYPE } from "../../../../../constants/project";
 import { materializeDraft } from "../../../../../stores/recordStore";
-import type {
-  ProgressHistoryEntry,
-  StaleStatus,
-} from "../../../../../types/project";
+import type { StaleStatus } from "../../../../../types/project";
 import { cn } from "../../../../../utils/cn";
-import { formatDate } from "../../../../../utils/format";
-import { getProgress, historyDeltas } from "../../../../../utils/progress";
+import { getProgress } from "../../../../../utils/progress";
 import { getDaysSinceUpdate, getStaleStatus } from "../../../../../utils/recency";
 import { Progress } from "../../../../ui";
 import { getUnitShare } from "../../../projetos/card";
 import type { DraftHandle } from "../../useDraft";
+import { ProgressoHistory } from "./ProgressoHistory";
 import {
   STATUS_BANNER_DOTS,
   STATUS_BANNER_LABEL_KEYS,
@@ -94,7 +90,15 @@ function StaleBanner({
   );
 }
 
-function BreakdownTable({ title, rows }: { title: string; rows: BreakdownRow[] }) {
+function BreakdownTable({
+  icon,
+  title,
+  rows,
+}: {
+  icon: string;
+  title: string;
+  rows: BreakdownRow[];
+}) {
   const { t } = useTranslation();
   const grid =
     "grid grid-cols-[minmax(0,1.6fr)_1fr_1fr_1fr] items-center gap-2.5 px-3.5 py-2";
@@ -107,7 +111,10 @@ function BreakdownTable({ title, rows }: { title: string; rows: BreakdownRow[] }
           "border-b border-line bg-muted text-[10px] font-bold tracking-[0.1em] uppercase text-fg-muted",
         )}
       >
-        <span>{title}</span>
+        <span>
+          <span aria-hidden>{icon} </span>
+          {title}
+        </span>
         <span className="text-center">{t("col_translated")}</span>
         <span className="text-center">{t("col_checked")}</span>
         <span className="text-center">{t("col_approved")}</span>
@@ -156,53 +163,9 @@ function BreakdownTable({ title, rows }: { title: string; rows: BreakdownRow[] }
   );
 }
 
-function Delta({ value }: { value: number }) {
-  if (value === 0) return null;
-  return (
-    <span
-      className={cn("font-bold", value < 0 ? "text-telha" : "text-verde-claro")}
-    >
-      {" "}
-      ({value > 0 ? "+" : ""}
-      {value})
-    </span>
-  );
-}
-
-function HistoryItem({ entry }: { entry: ProgressHistoryEntry }) {
-  const { t } = useTranslation();
-  const locale = t("locale");
-  const deltas = historyDeltas(entry);
-
-  return (
-    <div className="relative pl-4.5">
-      <span
-        aria-hidden
-        className="absolute top-1.5 -left-0.5 size-2.5 rounded-pill bg-telha ring-3 ring-muted"
-      />
-      <div className="mb-1 text-[11px] font-bold tracking-[0.1em] uppercase text-telha">
-        {formatDate(entry.date, locale)}
-        {entry.initial && ` ${t("d_history_initial")}`}
-      </div>
-      <div className="text-small leading-[1.6] text-fg">
-        {t("d_history_translated")} <strong>{entry.translatedUnits}</strong>
-        <Delta value={deltas.translated} />
-        <br />
-        {t("d_history_community")} <strong>{entry.communityCheckedUnits}</strong>
-        <Delta value={deltas.community} />
-        <br />
-        {t("d_history_approved")} <strong>{entry.approvedUnits}</strong>
-        <Delta value={deltas.approved} />
-      </div>
-    </div>
-  );
-}
-
 export function ProgressoView({ draft }: ProgressoViewProps) {
   const { t } = useTranslation();
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const values = draft.values;
-  const project = materializeDraft(values);
+  const project = materializeDraft(draft.values);
 
   const status = project.status;
   const stale = getStaleStatus(project);
@@ -218,13 +181,11 @@ export function ProgressoView({ draft }: ProgressoViewProps) {
 
   const breakdowns = (
     [
-      [`📖 ${t("d_bp_books")}`, project.bookProgress],
-      [`📚 ${t("d_bp_stories")}`, project.storyProgress],
-      [`🎬 ${t("progress_other_title")}`, project.otherProgress ?? []],
+      ["📖", t("d_bp_books"), project.bookProgress],
+      ["📚", t("d_bp_stories"), project.storyProgress],
+      ["🎬", t("progress_other_title"), project.otherProgress ?? []],
     ] as const
-  ).filter(([, rows]) => rows.length > 0);
-
-  const history = project.progressHistory;
+  ).filter(([, , rows]) => rows.length > 0);
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -266,9 +227,10 @@ export function ProgressoView({ draft }: ProgressoViewProps) {
 
       {breakdowns.length > 0 && (
         <div className="flex flex-col gap-2.5">
-          {breakdowns.map(([title, rows]) => (
+          {breakdowns.map(([icon, title, rows]) => (
             <BreakdownTable
               key={title}
+              icon={icon}
               title={title}
               rows={rows.map(toBreakdownRow)}
             />
@@ -276,32 +238,7 @@ export function ProgressoView({ draft }: ProgressoViewProps) {
         </div>
       )}
 
-      {history.length > 0 && (
-        <>
-          <button
-            type="button"
-            aria-expanded={historyOpen}
-            onClick={() => setHistoryOpen((open) => !open)}
-            className="mt-1 flex w-full items-center justify-between rounded-md border border-line bg-elevated px-3.5 py-2.5 text-micro font-semibold tracking-[0.06em] uppercase text-fg transition-colors duration-fast ease-out hover:border-telha"
-          >
-            <span>
-              {t("d_history_toggle")} ({history.length}{" "}
-              {history.length === 1
-                ? t("d_history_record")
-                : t("d_history_records")}
-              )
-            </span>
-            <span aria-hidden>{historyOpen ? "▼" : "▶"}</span>
-          </button>
-          {historyOpen && (
-            <div className="flex flex-col gap-3.5 rounded-md border-l-[3px] border-verde-claro bg-muted py-4.5 pr-4.5 pl-8">
-              {[...history].reverse().map((entry, index) => (
-                <HistoryItem key={index} entry={entry} />
-              ))}
-            </div>
-          )}
-        </>
-      )}
+      <ProgressoHistory history={project.progressHistory} />
     </div>
   );
 }
