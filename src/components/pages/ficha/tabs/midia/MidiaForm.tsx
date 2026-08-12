@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../../../contexts/AuthContext";
 import type {
@@ -37,11 +36,6 @@ export function MidiaForm({ draft }: MidiaFormProps) {
   const photos = photoSlots(values.mediaPhotos);
   const videos = values.mediaVideos ?? [];
 
-  const photosRef = useRef(photos);
-  useEffect(() => {
-    photosRef.current = photos;
-  }, [photos]);
-
   const decide = (granted: boolean) =>
     makeMediaAuthorization(granted, user.name, toLocalIsoDate());
 
@@ -49,16 +43,19 @@ export function MidiaForm({ draft }: MidiaFormProps) {
     index: number,
     transform: (photo: MediaPhoto) => MediaPhoto,
   ) =>
-    draft.set(
-      "mediaPhotos",
-      photosRef.current.map((photo, i) =>
+    draft.update("mediaPhotos", (current) =>
+      photoSlots(current).map((photo, i) =>
         i === index ? prunePhotoAuthorization(transform(photo)) : photo,
       ),
     );
 
-  const setVideos = (next: ProjectVideo[]) => draft.set("mediaVideos", next);
+  const updateVideos = (
+    transform: (current: ProjectVideo[]) => ProjectVideo[],
+  ) => draft.update("mediaVideos", (current) => transform(current ?? []));
   const patchVideo = (index: number, next: ProjectVideo) =>
-    setVideos(videos.map((video, i) => (i === index ? next : video)));
+    updateVideos((current) =>
+      current.map((video, i) => (i === index ? next : video)),
+    );
 
   return (
     <div className="flex flex-col gap-4">
@@ -135,7 +132,11 @@ export function MidiaForm({ draft }: MidiaFormProps) {
               />
               <RemoveRowButton
                 label={`${t("row_remove")} · ${t("f_media_videos_title")} ${index + 1}`}
-                onClick={() => setVideos(videos.filter((_, i) => i !== index))}
+                onClick={() =>
+                  updateVideos((current) =>
+                    current.filter((_, i) => i !== index),
+                  )
+                }
               />
             </div>
             <AuthToggle
@@ -151,7 +152,9 @@ export function MidiaForm({ draft }: MidiaFormProps) {
         <Button
           variant="secondary"
           block
-          onClick={() => setVideos([...videos, makeEmptyVideo()])}
+          onClick={() =>
+            updateVideos((current) => [...current, makeEmptyVideo()])
+          }
         >
           {t("f_media_add_video")}
         </Button>

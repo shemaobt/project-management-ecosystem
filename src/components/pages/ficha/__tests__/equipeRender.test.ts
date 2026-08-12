@@ -45,6 +45,7 @@ const handle = (values: Values = {}) => ({
   hasChanges: false,
   missing: [],
   set: noop,
+  update: noop,
   discard: noop,
 });
 

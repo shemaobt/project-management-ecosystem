@@ -38,6 +38,7 @@ const handle = (values: Values = {}) => ({
   hasChanges: false,
   missing: [],
   set: noop,
+  update: noop,
   discard: noop,
 });
 
@@ -145,5 +146,32 @@ describe("MidiaForm", () => {
   it("announces the sensitive-country composition where the decision is made", () => {
     const html = form({ sensitiveCountry: true });
     expect(html).toContain("a regra mais restritiva vence");
+  });
+});
+
+describe("draft media updates", () => {
+  it("two images resolving in the same batch both land in the draft", async () => {
+    const { useRecordStore } = await import("../../../../stores/recordStore");
+    const { photoSlots, withPhotoImage } = utils;
+    const recordId = "race-teste";
+    const first = { src: "data:image/webp;base64,um", fileName: "um.webp" };
+    const second = { src: "data:image/webp;base64,dois", fileName: "dois.webp" };
+
+    const drop = (index: number, image: typeof first) =>
+      useRecordStore
+        .getState()
+        .updateDraftValue(recordId, "mediaPhotos", (current) =>
+          photoSlots(current).map((photo, i) =>
+            i === index ? withPhotoImage(photo, image) : photo,
+          ),
+        );
+
+    drop(0, first);
+    drop(1, second);
+
+    const photos = useRecordStore.getState().drafts[recordId]?.mediaPhotos;
+    expect(photos?.[0]?.image).toEqual(first);
+    expect(photos?.[1]?.image).toEqual(second);
+    useRecordStore.getState().discardDraft(recordId);
   });
 });
