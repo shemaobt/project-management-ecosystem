@@ -6,6 +6,7 @@ import { AuthStatus, MediaCaption } from "./controls";
 export function VideoCard({ video }: { video: ProjectVideo }) {
   const { t } = useTranslation();
   const embed = videoEmbedUrl(video.url);
+  const caption = video.caption?.trim();
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -13,7 +14,7 @@ export function VideoCard({ video }: { video: ProjectVideo }) {
         <div className="relative aspect-video w-full overflow-hidden rounded-[8px] bg-preto">
           <iframe
             src={embed}
-            title={video.caption || t("f_media_video_label")}
+            title={caption || t("f_media_video_label")}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             className="absolute inset-0 h-full w-full border-0"
@@ -21,22 +22,22 @@ export function VideoCard({ video }: { video: ProjectVideo }) {
         </div>
       ) : (
         <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-[8px] bg-preto p-3 text-center font-serif text-micro italic text-on-dark">
-          {video.url ? (
+          {hasVideoContent(video) ? (
             <a
-              href={video.url}
+              href={video.url.trim()}
               target="_blank"
               rel="noopener noreferrer"
               className="wrap-anywhere text-areia underline"
             >
               <span aria-hidden>▶ </span>
-              {video.url}
+              {video.url.trim()}
             </a>
           ) : (
             "—"
           )}
         </div>
       )}
-      {video.caption && <MediaCaption>{video.caption}</MediaCaption>}
+      {caption && <MediaCaption>{caption}</MediaCaption>}
       {hasVideoContent(video) && <AuthStatus authorization={video.authorization} />}
     </div>
   );

@@ -1,4 +1,9 @@
-import { useState, type ChangeEvent, type DragEvent } from "react";
+import {
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+  type ReactNode,
+} from "react";
 import { X } from "lucide-react";
 import {
   IMAGE_FILE_ACCEPT,
@@ -8,6 +13,14 @@ import {
 import { circleControl, photoSlotSurface, transitionColors } from "../../styles";
 import type { StoredImage } from "../../types/project";
 import { cn } from "../../utils/cn";
+
+export function PhotoSlotHint({ children }: { children: ReactNode }) {
+  return (
+    <span className="m-auto px-2 text-center font-serif text-[11px] italic text-on-dark [text-shadow:0_1px_2px_color-mix(in_srgb,var(--color-preto)_20%,transparent)]">
+      {children}
+    </span>
+  );
+}
 
 export interface ImageUploadProps {
   id: string;
@@ -34,7 +47,11 @@ export function ImageUpload({
       onRejected();
       return;
     }
-    onChange(await storeImageFile(file));
+    try {
+      onChange(await storeImageFile(file));
+    } catch {
+      onRejected();
+    }
   };
 
   const onInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -75,9 +92,7 @@ export function ImageUpload({
             className="h-full w-full object-cover"
           />
         ) : (
-          <span className="m-auto px-2 text-center font-serif text-[11px] italic text-on-dark [text-shadow:0_1px_2px_color-mix(in_srgb,var(--color-preto)_20%,transparent)]">
-            {placeholder}
-          </span>
+          <PhotoSlotHint>{placeholder}</PhotoSlotHint>
         )}
         <input
           id={id}
