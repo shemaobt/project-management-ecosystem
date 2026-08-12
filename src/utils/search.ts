@@ -17,6 +17,7 @@ import type {
 } from "../types/project";
 import type { RegionKey } from "../types/region";
 import { getOverallHealth } from "./health";
+import { hasPhotoContent, hasVideoContent } from "./media";
 import { matchesPreset } from "./presets";
 import { getProgress, getProjectStatus } from "./progress";
 import { getStaleStatus } from "./recency";
@@ -145,8 +146,8 @@ function inProgressRange(project: Project, range: ProgressRange): boolean {
 }
 
 function hasAnyMedia(project: Project): boolean {
-  const hasPhotos = (project.mediaPhotoCaptions ?? []).some(Boolean);
-  const hasVideos = (project.mediaVideos ?? []).length > 0;
+  const hasPhotos = (project.mediaPhotos ?? []).some(hasPhotoContent);
+  const hasVideos = (project.mediaVideos ?? []).some(hasVideoContent);
   return hasPhotos || hasVideos;
 }
 
