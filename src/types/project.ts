@@ -123,14 +123,37 @@ export interface ProgressHistoryEntry {
   translatedUnits: number;
   communityCheckedUnits: number;
   approvedUnits: number;
+  totalUnits?: number;
+  bookProgress?: BookProgressItem[];
+  storyProgress?: StoryProgressItem[];
+  otherProgress?: OtherProgressItem[];
   previousTranslated?: number;
   previousCommunity?: number;
   previousApproved?: number;
   initial?: boolean;
   synthetic?: boolean;
-  fromField?: boolean;
+  fromField?: string;
   formType?: string;
 }
+
+export interface ProgressSnapshot {
+  date: string;
+  translatedUnits: number;
+  communityCheckedUnits: number;
+  approvedUnits: number;
+  totalUnits: number | null;
+  bookProgress: BookProgressItem[] | null;
+  storyProgress: StoryProgressItem[] | null;
+  otherProgress: OtherProgressItem[] | null;
+}
+
+export interface ProgressDeltas {
+  translated: number;
+  community: number;
+  approved: number;
+}
+
+export type ProgressCountKey = keyof ProgressDeltas;
 
 export interface ProgressRollup {
   translated: number;

@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it } from "vitest";
+import { toLocalIsoDate } from "../format";
 import {
   getDaysSinceUpdate,
   getDeadlineInfo,
@@ -37,5 +38,10 @@ describe("date-only strings under a non-UTC timezone", () => {
     const lateEvening = new Date("2026-05-14T22:00:00");
 
     expect(getDeadlineInfo("2026-05-14", lateEvening).cls).toBe("soon");
+  });
+
+  it("stamps the save with the local day, not the UTC day", () => {
+    expect(toLocalIsoDate(new Date("2026-12-31T23:30:00"))).toBe("2026-12-31");
+    expect(toLocalIsoDate(new Date("2026-01-05T00:10:00"))).toBe("2026-01-05");
   });
 });

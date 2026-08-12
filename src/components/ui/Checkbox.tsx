@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import type { ComponentPropsWithoutRef } from "react";
 import { cn } from "../../utils/cn";
 import { transitionColors } from "../../styles";
+import { optionLabel } from "./option";
 
 export function Checkbox({
   className,
@@ -35,13 +36,7 @@ export function CheckboxField({
   ...props
 }: CheckboxFieldProps) {
   return (
-    <label
-      className={cn(
-        `inline-flex cursor-pointer items-center gap-1.5 rounded-xs px-2 py-1 text-[13px] ${transitionColors} select-none hover:bg-muted has-[[data-state=checked]]:font-bold has-[[data-state=checked]]:text-telha`,
-        className,
-      )}
-      htmlFor={id}
-    >
+    <label className={cn(optionLabel, className)} htmlFor={id}>
       <Checkbox id={id} {...props} />
       <span>{label}</span>
     </label>

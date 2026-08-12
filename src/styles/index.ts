@@ -11,7 +11,7 @@ export {
   pillBase,
 } from "./badges";
 export { surfaceElevated, surfaceOutlined } from "./cards";
-export { fieldBase, fieldInvalid } from "./forms";
+export { fieldBase, fieldInvalid, optionsBox } from "./forms";
 export {
   circleControl,
   divider,
