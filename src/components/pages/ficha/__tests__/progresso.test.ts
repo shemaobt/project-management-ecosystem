@@ -170,6 +170,31 @@ describe("salvar sem mudança não inventa registro", () => {
     expect(manual.progressHistory).toHaveLength(1);
     expect(manual.progressHistory[0]?.initial).toBe(true);
   });
+
+  it("só linhas de histórias não zeram os agregados que a tabela não expressa", () => {
+    const stored = makeProject({
+      id: "p-hist",
+      objective: ["Histórias"],
+      translatedUnits: 14,
+      communityCheckedUnits: 9,
+      approvedUnits: 4,
+      totalUnits: 30,
+    });
+    const withStory = applyProgressUpdate(
+      stored,
+      {
+        ...stored,
+        storyProgress: [{ name: "A criação", audioHours: 2 }],
+      },
+      "2026-06-01",
+    );
+    expect(withStory.translatedUnits).toBe(14);
+    expect(withStory.communityCheckedUnits).toBe(9);
+    expect(withStory.approvedUnits).toBe(4);
+    expect(withStory.totalUnits).toBe(30);
+    expect(withStory.progressHistory).toHaveLength(0);
+    expect(decreasedCounts(withStory)).toEqual([]);
+  });
 });
 
 describe("uma queda é visível, nunca silenciosa", () => {

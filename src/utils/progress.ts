@@ -9,10 +9,9 @@ import type {
   ProgressSnapshot,
   Project,
   ProjectStatus,
-  StoryProgressItem,
 } from "../types/project";
 
-type ProgressUnit = BookProgressItem | StoryProgressItem | OtherProgressItem;
+type CountedProgressItem = BookProgressItem | OtherProgressItem;
 
 const toNumber = (value: unknown): number => Number(value) || 0;
 
@@ -35,24 +34,18 @@ export function getProjectStatus(project: Project): ProjectStatus {
 }
 
 export function rollUpProgress(project: Project): ProgressRollup | null {
-  const items: ProgressUnit[] = [
+  const items: CountedProgressItem[] = [
     ...project.bookProgress,
-    ...project.storyProgress,
     ...(project.otherProgress ?? []),
   ];
   if (items.length === 0) return null;
 
   return items.reduce<ProgressRollup>(
     (acc, item) => ({
-      total: acc.total + ("chapters" in item ? toNumber(item.chapters) : 0),
-      translated:
-        acc.translated + ("translated" in item ? toNumber(item.translated) : 0),
-      community:
-        acc.community +
-        ("communityChecked" in item ? toNumber(item.communityChecked) : 0),
-      approved:
-        acc.approved +
-        ("mentorApproved" in item ? toNumber(item.mentorApproved) : 0),
+      total: acc.total + toNumber(item.chapters),
+      translated: acc.translated + toNumber(item.translated),
+      community: acc.community + toNumber(item.communityChecked),
+      approved: acc.approved + toNumber(item.mentorApproved),
     }),
     { translated: 0, community: 0, approved: 0, total: 0 },
   );
