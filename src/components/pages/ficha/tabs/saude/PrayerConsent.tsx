@@ -7,6 +7,7 @@ import {
 } from "../../../../../constants/prayer";
 import type { PrayerVisibility } from "../../../../../types/project";
 import { cn } from "../../../../../utils/cn";
+import { RadioButton, RadioGroup } from "../../../../ui";
 
 const ICON = { coordenacao: Lock, rede: Send };
 
@@ -24,28 +25,26 @@ export function PrayerConsent({ value, onChange }: PrayerConsentProps) {
         {t("prayer_vis_label")}
       </legend>
 
-      <div className="mt-1 flex flex-col gap-2">
+      <RadioGroup
+        name="prayer-visibility"
+        value={value}
+        onValueChange={(next) => onChange(next as PrayerVisibility)}
+        className="mt-1 flex-col gap-2"
+      >
         {PRAYER_VISIBILITIES.map((option) => {
           const on = value === option;
           const Icon = ICON[option];
           return (
-            <label
+            <RadioButton
               key={option}
+              value={option}
               className={cn(
-                "flex cursor-pointer items-start gap-2.5 rounded-[10px] border p-3 transition-colors duration-fast ease-out",
+                "flex items-start gap-2.5 rounded-[10px] border p-3 text-left",
                 on
                   ? "border-telha bg-accent-soft"
                   : "border-line bg-elevated hover:border-fg-muted",
               )}
             >
-              <input
-                type="radio"
-                name="prayer-visibility"
-                value={option}
-                checked={on}
-                onChange={() => onChange(option)}
-                className="sr-only"
-              />
               <Icon
                 size={16}
                 strokeWidth={1.75}
@@ -65,10 +64,10 @@ export function PrayerConsent({ value, onChange }: PrayerConsentProps) {
                   {t(PRAYER_VISIBILITY_HINT_KEYS[option])}
                 </span>
               </span>
-            </label>
+            </RadioButton>
           );
         })}
-      </div>
+      </RadioGroup>
 
       <p className="mt-2.5 text-micro leading-[1.45] text-fg-subtle">
         {t("prayer_vis_default_note")}
