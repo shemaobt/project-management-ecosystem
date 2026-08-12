@@ -515,7 +515,6 @@
   "health_never_assessed": "Esta equipe ainda não passou por uma conversa de saúde. Enquanto isso, o projeto não é dado como bem — é dado como não escutado.",
   "d_health_history": "Conversas anteriores",
   "d_health_history_empty": "Esta é a primeira conversa registrada.",
-  "d_health_since": "Registrada em {{date}}",
   "prayer_vis_coordination": "Só a coordenação",
   "prayer_vis_network": "Rede de oração",
   "prayer_vis_coordination_hint": "Fica com a coordenação, que acompanha e apoia. Não vai para o mural de oração.",

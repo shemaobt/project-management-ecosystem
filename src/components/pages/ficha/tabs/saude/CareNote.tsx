@@ -1,10 +1,11 @@
 import { HeartHandshake } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { AssessedProject } from "../../../../../constants/health";
+import type { OverallHealth } from "../../../../../types/project";
 import { getOverallHealth, isAssessed } from "../../../../../utils/health";
 import { cn } from "../../../../../utils/cn";
 
-const COPY_KEY: Record<string, string> = {
+const COPY_KEY: Partial<Record<OverallHealth, string>> = {
   critica: "health_care_critical",
   atencao: "health_care_attention",
 };

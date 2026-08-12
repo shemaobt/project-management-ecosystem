@@ -1,5 +1,4 @@
 import {
-  ASSESSMENT_FIELDS,
   HEALTH_DIMENSIONS,
   type AssessedProject,
   type HealthDimension,
@@ -7,7 +6,6 @@ import {
 import { HEALTH_SCORES } from "../constants/project";
 import type {
   HealthAssessment,
-  HealthDimensionKey,
   HealthRating,
   OverallHealth,
   Project,
@@ -32,13 +30,6 @@ export function dimensionRating(
   return project[dimension.field] ?? "";
 }
 
-export function assessmentRating(
-  assessment: HealthAssessment,
-  key: HealthDimensionKey,
-): HealthRating {
-  return assessment[key];
-}
-
 export function isAssessed(project: AssessedProject): boolean {
   return HEALTH_DIMENSIONS.some(
     (dimension) => dimensionRating(project, dimension) !== "",
@@ -58,7 +49,7 @@ export function currentAssessment(
 ): HealthAssessment | null {
   const history = assessmentHistory(project);
   if (history.length > 0) return history[history.length - 1];
-  if (!isAssessed(project) && !project.healthAssessmentDate) return null;
+  if (!isAssessed(project)) return null;
 
   return {
     date: project.healthAssessmentDate ?? "",
@@ -93,13 +84,6 @@ export function recordAssessment(
     healthAssessor: newest.assessor,
     healthNotes: newest.notes,
   };
-}
-
-export function assessmentFrom(
-  project: AssessedProject,
-  key: HealthDimensionKey,
-): HealthRating {
-  return project[ASSESSMENT_FIELDS[key]] ?? "";
 }
 
 export function getOverallHealth(project: AssessedProject): OverallHealth {

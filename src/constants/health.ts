@@ -58,11 +58,6 @@ export const HEALTH_DIMENSIONS: readonly HealthDimension[] = [
 export const HEALTH_DIMENSION_KEYS: readonly HealthDimensionKey[] =
   HEALTH_DIMENSIONS.map((dimension) => dimension.key);
 
-export const ASSESSMENT_FIELDS: Record<HealthDimensionKey, HealthDimensionField> =
-  Object.fromEntries(
-    HEALTH_DIMENSIONS.map((dimension) => [dimension.key, dimension.field]),
-  ) as Record<HealthDimensionKey, HealthDimensionField>;
-
 export type AssessedProject = Partial<
   Pick<
     Project,

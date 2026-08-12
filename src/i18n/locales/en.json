@@ -515,7 +515,6 @@
   "health_never_assessed": "This team has not been through a health conversation yet. Until then the project is not counted as well — it is counted as not yet heard.",
   "d_health_history": "Earlier conversations",
   "d_health_history_empty": "This is the first conversation on record.",
-  "d_health_since": "Recorded on {{date}}",
   "prayer_vis_coordination": "Coordination only",
   "prayer_vis_network": "Prayer network",
   "prayer_vis_coordination_hint": "Stays with coordination, who follow up and support. It does not reach the prayer wall.",

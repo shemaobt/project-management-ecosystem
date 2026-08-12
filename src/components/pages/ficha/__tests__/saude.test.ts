@@ -20,6 +20,7 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
 const { projectsAPI, prayerAPI } = await import("../../../../fixtures");
+const { buildPrayerRequests } = await import("../../../../fixtures/prayer");
 const { HEALTH_DIMENSIONS, HEALTH_DIMENSION_KEYS } = await import(
   "../../../../constants/health"
 );
@@ -197,6 +198,39 @@ describe("uma avaliação nova nunca apaga a anterior", () => {
     expect(history[0].emotional).toBe("atencao");
   });
 
+  it("uma data sozinha não é avaliação e não vira linha do histórico", () => {
+    const seeded = projects.find((project) => project.id === "ashaninka");
+    if (!seeded) throw new Error("ashaninka saiu das fixtures");
+
+    expect(seeded.healthAssessmentDate).toBe("2026-05-14");
+    expect(isAssessed(seeded)).toBe(false);
+    expect(currentAssessment(seeded)).toBeNull();
+
+    const first = recordAssessment(seeded, assessment({ date: "2026-08-01" }));
+    expect(assessmentHistory(first)).toHaveLength(1);
+    expect(assessmentHistory(first)[0].date).toBe("2026-08-01");
+  });
+
+  it("a data semeada não sobrescreve a primeira conversa retroativa", () => {
+    const seeded = projects.find((project) => project.id === "ashaninka");
+    if (!seeded) throw new Error("ashaninka saiu das fixtures");
+
+    const backdated = recordAssessment(
+      seeded,
+      assessment({ date: "2026-01-01", emotional: "boa" }),
+    );
+
+    expect(backdated.healthEmotional).toBe("boa");
+    expect(backdated.healthAssessmentDate).toBe("2026-01-01");
+    expect(assessmentHistory(backdated)).toHaveLength(1);
+  });
+
+  it("nenhuma das 127 fixtures gera avaliação a partir da data", () => {
+    for (const project of projects) {
+      expect(currentAssessment(project)).toBeNull();
+    }
+  });
+
   it("uma avaliação retroativa entra no lugar certo sem virar a atual", () => {
     const current = recordAssessment(
       makeProject(),
@@ -285,6 +319,36 @@ describe("o pedido de oração só sai com autorização", () => {
     expect(
       reachesPrayerWall({ ...shared, prayerVisibility: "coordenacao" }),
     ).toBe(false);
+  });
+
+  it("o mural é derivado, não guardado: retirar some sem faxina", async () => {
+    const shared = projects.filter((project) => reachesPrayerWall(project));
+    expect(shared.length).toBeGreaterThan(0);
+
+    const target = shared[0];
+    const withdrawn = projects.map((project) =>
+      project.id === target.id
+        ? { ...project, prayerVisibility: "coordenacao" as const }
+        : project,
+    );
+
+    const before = buildPrayerRequests(projects);
+    const after = buildPrayerRequests(withdrawn);
+
+    expect(before.map((request) => request.projectId)).toContain(target.id);
+    expect(after.map((request) => request.projectId)).not.toContain(target.id);
+    expect(after).toHaveLength(before.length - 1);
+  });
+
+  it("retirar a autorização não apaga o texto do registro", () => {
+    const shared = makeProject({
+      prayerRequests: "Orem pela equipe.",
+      prayerVisibility: "rede",
+    });
+    const withdrawn = { ...shared, prayerVisibility: "coordenacao" as const };
+
+    expect(reachesPrayerWall(withdrawn)).toBe(false);
+    expect(withdrawn.prayerRequests).toBe("Orem pela equipe.");
   });
 
   it("o rascunho guarda a visibilidade escolhida", () => {
