@@ -183,6 +183,28 @@ export const STATUS_OPTIONS: readonly StatusOption[] = [
   },
 ];
 
+export function statusOptionsFor(
+  ...present: readonly (ProjectStatus | undefined)[]
+): readonly StatusOption[] {
+  const extras = present.filter(
+    (status, index): status is ProjectStatus =>
+      status !== undefined &&
+      present.indexOf(status) === index &&
+      !STATUS_OPTIONS.some((option) => option.value === status),
+  );
+  if (extras.length === 0) return STATUS_OPTIONS;
+
+  return [
+    ...STATUS_OPTIONS,
+    ...extras.map((value) => ({
+      value,
+      labelKey: STATUS_BANNER_LABEL_KEYS[value],
+      card: "hover:border-line-strong",
+      activeCard: "border-line-strong bg-muted",
+    })),
+  ];
+}
+
 export const COUNT_LABEL_KEYS: Record<ProgressCountKey, string> = {
   translated: "d_p_translated",
   community: "d_p_community",

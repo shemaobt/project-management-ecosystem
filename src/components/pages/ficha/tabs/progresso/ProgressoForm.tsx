@@ -52,6 +52,7 @@ export function ProgressoForm({ draft }: ProgressoFormProps) {
       <FieldGroup id="ficha-status" label={t("f_project_status")}>
         <StatusRadio
           value={project.status}
+          anchor={draft.saved?.status}
           onChange={(next) => draft.set("status", next)}
         />
       </FieldGroup>

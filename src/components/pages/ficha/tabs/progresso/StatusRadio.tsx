@@ -3,26 +3,28 @@ import type { ProjectStatus } from "../../../../../types/project";
 import { cn } from "../../../../../utils/cn";
 import { transitionColors } from "../../../../../styles";
 import { Radio, RadioGroup } from "../../../../ui";
-import { STATUS_OPTIONS } from "./sections";
+import { statusOptionsFor } from "./sections";
 
 export interface StatusRadioProps {
   value: ProjectStatus;
+  anchor?: ProjectStatus;
   onChange: (value: ProjectStatus) => void;
 }
 
-export function StatusRadio({ value, onChange }: StatusRadioProps) {
+export function StatusRadio({ value, anchor, onChange }: StatusRadioProps) {
   const { t } = useTranslation();
+  const options = statusOptionsFor(value, anchor);
 
   return (
     <RadioGroup
       value={value}
       onValueChange={(next) => {
-        const option = STATUS_OPTIONS.find((entry) => entry.value === next);
+        const option = options.find((entry) => entry.value === next);
         if (option) onChange(option.value);
       }}
       className="grid grid-cols-1 gap-2.5 sm:grid-cols-3"
     >
-      {STATUS_OPTIONS.map((option) => (
+      {options.map((option) => (
         <label
           key={option.value}
           htmlFor={`ficha-status-${option.value}`}
