@@ -1,12 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { DEFAULT_UNIT_TYPE } from "../constants/project";
+import { createDeferredJsonStorage } from "./draftStorage";
 import type { RecordTabId } from "../constants/recordTabs";
 import type { Project } from "../types/project";
 
 export const NEW_RECORD = "novo";
 
 const DRAFTS_KEY = "shema-record-drafts-v1";
+
+const draftStorage = createDeferredJsonStorage<PersistedRecords>();
 
 export type ProjectDraft = Partial<Project>;
 
@@ -148,10 +151,13 @@ export const useRecordStore = create<RecordState>()(
     }),
     {
       name: DRAFTS_KEY,
+      storage: draftStorage,
       partialize: (state) => ({ drafts: state.drafts }),
     },
   ),
 );
+
+export const flushDraftWrites = (): void => draftStorage.flush();
 
 export const selectDraft = (
   drafts: Record<string, ProjectDraft>,

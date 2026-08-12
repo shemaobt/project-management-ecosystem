@@ -19,7 +19,7 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
 const { projectsAPI } = await import("../../../../fixtures");
-const { useRecordStore, NEW_RECORD, makeEmptyProject } = await import(
+const { useRecordStore, NEW_RECORD, makeEmptyProject, flushDraftWrites } = await import(
   "../../../../stores/recordStore"
 );
 const { isIsoShape, parseCoordinate, hasPlottableCoords } = await import(
@@ -64,8 +64,10 @@ describe("o nome da língua é dado de campo, não texto a corrigir", () => {
       languageName: "नेपाली",
       bridgeLanguage: "Español",
     });
+    flushDraftWrites();
     const onDisk = storage.getItem("shema-record-drafts-v1")!;
     useRecordStore.setState({ drafts: {} });
+    flushDraftWrites();
     storage.setItem("shema-record-drafts-v1", onDisk);
     await useRecordStore.persist.rehydrate();
 

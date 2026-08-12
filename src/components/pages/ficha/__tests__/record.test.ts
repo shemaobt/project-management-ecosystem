@@ -26,6 +26,7 @@ const {
   REQUIRED_FIELDS,
   REQUIRED_FIELD_TAB,
   hasDraft,
+  flushDraftWrites,
 } = await import("../../../../stores/recordStore");
 const { useProjectsStore, selectProject, PROJECTS_VERSION } = await import(
   "../../../../stores/projectsStore"
@@ -89,6 +90,7 @@ describe("o rascunho não some", () => {
     useRecordStore.getState().updateDraft(NEW_RECORD, {
       bridgeLanguage: "Português",
     });
+    flushDraftWrites();
 
     const onDisk = storage.getItem("shema-record-drafts-v1")!;
     expect(JSON.parse(onDisk).state.drafts[NEW_RECORD].languageName).toBe(
@@ -96,6 +98,7 @@ describe("o rascunho não some", () => {
     );
 
     useRecordStore.setState({ drafts: {} });
+    flushDraftWrites();
     storage.setItem("shema-record-drafts-v1", onDisk);
     await useRecordStore.persist.rehydrate();
 

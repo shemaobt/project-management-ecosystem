@@ -145,6 +145,7 @@
   "record_tab_pending": "Esta aba chega na {{issue}}.",
   "record_draft_kept": "Rascunho guardado neste navegador.",
   "record_draft_discarded": "Rascunho descartado.",
+  "record_draft_persist_failed": "O rascunho passou do limite do armazenamento local e pode não sobreviver a um reload — salve o registro ou remova fotos.",
   "record_discard_draft": "Descartar rascunho",
   "record_missing_required": "Falta preencher: {{fields}}",
   "record_required_here": "Há campo obrigatório nesta aba",
