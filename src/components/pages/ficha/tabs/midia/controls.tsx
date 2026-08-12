@@ -19,7 +19,7 @@ export function MediaHeading({
   return (
     <h4
       className={cn(
-        "text-micro font-bold tracking-[0.1em] uppercase text-fg-muted",
+        "-mb-1.5 text-micro font-bold tracking-[0.1em] uppercase text-fg-muted",
         className,
       )}
     >
@@ -52,7 +52,7 @@ export function SensitiveMediaNote() {
   );
 }
 
-export function AuthEvidence({
+function AuthEvidence({
   authorization,
   className,
 }: {
@@ -110,7 +110,10 @@ export function AuthToggle({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col gap-0.5">
+    <div
+      className="flex flex-col gap-0.5"
+      title={disabled ? t("media_auth_disabled_hint") : undefined}
+    >
       <CheckboxField
         id={id}
         label={t("media_auth_label")}

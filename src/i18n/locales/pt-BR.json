@@ -192,6 +192,7 @@
   "f_media_photos_title": "Fotos",
   "f_media_drop_hint": "Arraste uma foto aqui",
   "media_auth_pending": "Sem decisão registrada — tratado como uso restrito",
+  "media_auth_disabled_hint": "Adicione uma foto ou legenda para decidir o compartilhamento",
   "media_auth_sensitive": "País sensível: mesmo um item autorizado fica fora de qualquer saída pública — a regra mais restritiva vence. O que a marcação protege hoje está descrito na aba Identidade.",
   "media_invalid_type": "Formato não suportado — use PNG, JPG, WebP ou AVIF",
   "f_leader_contact": "Contato do Líder (email/WhatsApp)",

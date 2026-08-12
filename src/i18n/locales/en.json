@@ -192,6 +192,7 @@
   "f_media_photos_title": "Photos",
   "f_media_drop_hint": "Drop a photo here",
   "media_auth_pending": "No decision recorded — treated as restricted use",
+  "media_auth_disabled_hint": "Add a photo or caption to decide sharing",
   "media_auth_sensitive": "Sensitive country: even an authorized item stays out of any public-facing output — the most restrictive rule wins. What the flag protects today is described in the Identity tab.",
   "media_invalid_type": "Unsupported format — use PNG, JPG, WebP or AVIF",
   "f_leader_contact": "Leader contact (email/WhatsApp)",
