@@ -8,6 +8,12 @@ const HTML_ESCAPES: Record<string, string> = {
   "'": "&#39;",
 };
 
+export function toLocalIsoDate(now: Date = new Date()): string {
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
 export function formatDate(date: string, locale = getActiveLocale()): string {
   if (!date) return "—";
   return new Date(`${date}T00:00:00`).toLocaleDateString(locale, {

@@ -1,5 +1,11 @@
-import { PendingTab } from "../PendingTab";
+import type { RecordTabProps } from "../types";
+import { ProgressoForm } from "./progresso/ProgressoForm";
+import { ProgressoView } from "./progresso/ProgressoView";
 
-export function ProgressoTab() {
-  return <PendingTab issue="FE-24" />;
+export function ProgressoTab({ mode, draft }: RecordTabProps) {
+  return mode === "editar" ? (
+    <ProgressoForm draft={draft} />
+  ) : (
+    <ProgressoView draft={draft} />
+  );
 }

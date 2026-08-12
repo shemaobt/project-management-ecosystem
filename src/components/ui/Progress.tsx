@@ -49,10 +49,12 @@ export function Progress({
   className,
 }: ProgressProps) {
   const pct = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0;
+  const rootMax = max > 0 ? max : 100;
+  const rootValue = Math.min(rootMax, Math.max(0, value));
   return (
     <ProgressPrimitive.Root
-      value={value}
-      max={max}
+      value={rootValue}
+      max={rootMax}
       aria-label={label}
       className={cn(trackVariants({ size }), className)}
     >

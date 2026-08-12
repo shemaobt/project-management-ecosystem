@@ -162,6 +162,25 @@ export const UNIT_TYPES: readonly string[] = [
   "Outro",
 ];
 
+export const DEFAULT_UNIT_TYPE: string = "Livros";
+
+export const BOOK_PROGRESS_OBJECTIVES: readonly Objective[] = [
+  "NT",
+  "AT",
+  "Bíblia Completa",
+  "Livros Específicos",
+  "Capítulos",
+];
+
+export const STORY_PROGRESS_OBJECTIVE: Objective = "Histórias";
+
+export const OTHER_PROGRESS_OBJECTIVE: Objective = "Outro";
+
+export const OTHER_PROGRESS_TRANSLATION_TYPES: readonly TranslationType[] = [
+  "Filme Jesus",
+  "Tradução escrita",
+];
+
 export const STALE_ATTENTION_DAYS = 60;
 
 export const STALE_CRITICAL_DAYS = 120;
