@@ -132,7 +132,7 @@ export interface ProgressHistoryEntry {
   previousApproved?: number;
   initial?: boolean;
   synthetic?: boolean;
-  fromField?: boolean;
+  fromField?: string;
   formType?: string;
 }
 

@@ -121,6 +121,28 @@ describe("o histórico responde qual era a contagem em 31 de dezembro", () => {
     expect(snapshot?.bookProgress).toBeNull();
   });
 
+  it("a entrada carrega a origem quando o chamador a informa", () => {
+    const grown = seedTwoYears();
+    const fromPulse = applyProgressUpdate(
+      grown,
+      {
+        ...grown,
+        bookProgress: [
+          genesisRow({ translated: 25, communityChecked: 12, mentorApproved: 8 }),
+        ],
+      },
+      "2026-07-01",
+      { fromField: "Maria K.", formType: "full" },
+    );
+    const tagged = fromPulse.progressHistory.at(-1);
+    expect(tagged?.fromField).toBe("Maria K.");
+    expect(tagged?.formType).toBe("full");
+
+    const inApp = grown.progressHistory.at(-1);
+    expect(inApp?.fromField).toBeUndefined();
+    expect(inApp?.formType).toBeUndefined();
+  });
+
   it("dois registros no mesmo dia: o mais recente vale", () => {
     const grown = seedTwoYears();
     const corrected = applyProgressUpdate(

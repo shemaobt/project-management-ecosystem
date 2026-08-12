@@ -64,10 +64,16 @@ function snapshotEntry(project: Project, date: string): ProgressHistoryEntry {
   };
 }
 
+export type ProgressEntrySource = Pick<
+  ProgressHistoryEntry,
+  "fromField" | "formType"
+>;
+
 export function applyProgressUpdate(
   previous: Project | null,
   next: Project,
   date: string,
+  source?: ProgressEntrySource,
 ): Project {
   const roll = rollUpProgress(next);
   const updated: Project = roll
@@ -94,6 +100,7 @@ export function applyProgressUpdate(
         previousTranslated: previous.translatedUnits,
         previousCommunity: previous.communityCheckedUnits,
         previousApproved: previous.approvedUnits,
+        ...source,
       });
     }
   } else if (
@@ -101,7 +108,7 @@ export function applyProgressUpdate(
     updated.communityCheckedUnits > 0 ||
     updated.approvedUnits > 0
   ) {
-    history.push({ ...snapshotEntry(updated, date), initial: true });
+    history.push({ ...snapshotEntry(updated, date), initial: true, ...source });
   }
 
   return { ...updated, progressHistory: history };
