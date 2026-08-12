@@ -4,11 +4,12 @@ import { HEALTH_LEVELS } from "../../../../../constants/project";
 import { HEALTH_LABEL_KEYS, HEALTH_SYMBOLS } from "../../../../../constants/status";
 import type { HealthRating } from "../../../../../types/project";
 import { cn } from "../../../../../utils/cn";
+import { RadioButton, RadioGroup } from "../../../../ui";
 
-const NOT_ASSESSED: HealthRating = "";
+const NOT_ASSESSED = "na";
 
 const OPTION =
-  "inline-flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-sm border px-2.5 py-2 text-micro font-semibold transition-colors duration-fast ease-out";
+  "inline-flex flex-1 items-center justify-center gap-1.5 rounded-sm border border-line bg-elevated px-2.5 py-2 text-micro font-semibold text-fg hover:border-fg-muted";
 
 export interface RatingChoiceProps {
   name: string;
@@ -24,42 +25,31 @@ export function RatingChoice({
   describedBy,
 }: RatingChoiceProps) {
   const { t } = useTranslation();
-  const choices: HealthRating[] = [...HEALTH_LEVELS, NOT_ASSESSED];
+  const choices: HealthRating[] = [...HEALTH_LEVELS, ""];
 
   return (
-    <div
-      role="radiogroup"
+    <RadioGroup
+      value={value || NOT_ASSESSED}
+      onValueChange={(next) => onChange(next === NOT_ASSESSED ? "" : (next as HealthRating))}
       aria-label={name}
       aria-describedby={describedBy}
-      className="flex flex-wrap gap-1.5"
+      className="gap-1.5"
     >
       {choices.map((choice) => {
-        const on = value === choice;
-        const label =
-          choice === ""
-            ? t("health_not_assessed")
-            : t(HEALTH_LABEL_KEYS[choice]);
+        const option = choice || NOT_ASSESSED;
         return (
-          <button
-            key={choice || "na"}
-            type="button"
-            role="radio"
-            aria-checked={on}
-            data-on={on}
-            onClick={() => onChange(choice)}
-            className={cn(
-              OPTION,
-              "border-line bg-elevated text-fg hover:border-fg-muted",
-              RATING_TONES[choice],
-            )}
+          <RadioButton
+            key={option}
+            value={option}
+            className={cn(OPTION, RATING_TONES[choice])}
           >
             <span aria-hidden className="font-black">
               {HEALTH_SYMBOLS[choice === "" ? "na" : choice]}
             </span>
-            {label}
-          </button>
+            {choice === "" ? t("health_not_assessed") : t(HEALTH_LABEL_KEYS[choice])}
+          </RadioButton>
         );
       })}
-    </div>
+    </RadioGroup>
   );
 }

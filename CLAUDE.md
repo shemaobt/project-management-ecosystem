@@ -94,6 +94,8 @@ It is **not versioned in this repo** (`.gitignore`). Get the design package from
 - **Routing**: react-router-dom v7 (`BrowserRouter`, routes declared in `App.tsx`)
 - **Styling**: **Tailwind CSS v4 only** — no CSS-in-JS, no styled-components, no SASS
 - **UI primitives**: Radix UI via shadcn-style components in `src/components/ui/`
+  - **An ARIA role is a contract, and only the primitive keeps it. Never write `role="radio"` · `role="radiogroup"` · `role="checkbox"` · `role="switch"` · `role="tablist"` · `aria-checked` by hand on a screen** — those roles promise a keyboard contract (single tab stop, arrow keys moving the selection) that a `<button>` with `aria-checked` does not deliver, and a screen reader announces the promise either way. Single choice goes through `ui/RadioGroup` — `RadioField` for a labelled dot, `Radio` inside your own card, `RadioButton` for a segmented control that carries its own fill. Fixed in FE-46 ([OBT-423](https://linear.app/shema-obt/issue/OBT-423)), 12/aug/2026 — Daniel Oliveira, after FE-25 shipped a hand-rolled group where Tab walked 16 stops and the arrow keys did nothing. `src/components/ui/__tests__/primitives.test.ts` fails the build if it comes back.
+  - **Radix reads `value=""` as "nothing selected"**, so a vocabulary with an empty member needs a sentinel at the boundary: `"na"` in, `""` out. `IdentidadeForm` does it for vitality and `RatingChoice` for the health ratings — reuse that, do not invent a second convention.
 - **State**: **Zustand** for cross-page state; **React Context** for auth, theme and UI state
 - **HTTP**: Axios — a single client in `src/services/api.ts` with JWT auth interceptors
 - **Icons**: lucide-react, outline only (the prototype's inline SVGs are lucide-style at `strokeWidth 1.75`)

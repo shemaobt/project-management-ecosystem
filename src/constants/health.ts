@@ -4,15 +4,15 @@ import type {
   Project,
 } from "../types/project";
 
-export const RATING_ON = "data-[on=true]:";
+export const RATING_ON = "data-[state=checked]:";
 
 export const RATING_TONES: Record<HealthRating, string> = {
-  boa: "data-[on=true]:border-verde-claro-ink data-[on=true]:bg-verde-claro-ink data-[on=true]:text-on-brand",
+  boa: "data-[state=checked]:border-verde-claro-ink data-[state=checked]:bg-verde-claro-ink data-[state=checked]:text-on-brand",
   atencao:
-    "data-[on=true]:border-status-attention-fg data-[on=true]:bg-status-attention-fg data-[on=true]:text-on-brand",
+    "data-[state=checked]:border-status-attention-fg data-[state=checked]:bg-status-attention-fg data-[state=checked]:text-on-brand",
   critica:
-    "data-[on=true]:border-telha data-[on=true]:bg-telha data-[on=true]:text-on-brand",
-  "": "data-[on=true]:border-preto data-[on=true]:bg-preto data-[on=true]:text-on-dark",
+    "data-[state=checked]:border-telha data-[state=checked]:bg-telha data-[state=checked]:text-on-brand",
+  "": "data-[state=checked]:border-preto data-[state=checked]:bg-preto data-[state=checked]:text-on-dark",
 };
 
 export type HealthDimensionField =

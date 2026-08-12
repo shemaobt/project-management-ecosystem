@@ -26,7 +26,7 @@ export {
 export { Input } from "./Input";
 export { Label } from "./Label";
 export { Progress } from "./Progress";
-export { Radio, RadioField, RadioGroup } from "./RadioGroup";
+export { Radio, RadioButton, RadioField, RadioGroup } from "./RadioGroup";
 export {
   Select,
   SelectContent,
