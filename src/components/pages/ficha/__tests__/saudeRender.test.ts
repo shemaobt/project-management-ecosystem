@@ -141,7 +141,9 @@ describe("o consentimento é escolha explícita no formulário", () => {
 
   it("sem escolha, a opção marcada é só a coordenação", () => {
     const form = tab("editar", { prayerRequests: "Orem pela equipe." });
-    const radios = form.match(/<input[^>]*type="radio"[^>]*>/gu) ?? [];
+    const radios = (form.match(/<input[^>]*type="radio"[^>]*>/gu) ?? []).filter(
+      (radio) => radio.includes('name="prayer-visibility"'),
+    );
     const marked = radios.filter((radio) => radio.includes("checked"));
 
     expect(radios).toHaveLength(2);

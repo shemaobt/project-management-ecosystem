@@ -33,6 +33,21 @@ export function Radio({
   );
 }
 
+export function RadioButton({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>) {
+  return (
+    <RadioGroupPrimitive.Item
+      className={cn(
+        `cursor-pointer ${transitionColors} disabled:cursor-not-allowed disabled:opacity-50`,
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
 export interface RadioFieldProps
   extends ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item> {
   label: string;

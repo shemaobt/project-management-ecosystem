@@ -3,6 +3,12 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { RATING_ON, RATING_TONES } from "../../constants/health";
 import {
+  NEED_STATUSES,
+  NEED_STATUS_TONES,
+  NEED_URGENCIES,
+  NEED_URGENCY_TONES,
+} from "../../constants/project";
+import {
   RECORD_TABS,
   TAB_MARKER_TONES,
 } from "../../constants/recordTabs";
@@ -109,6 +115,8 @@ describe("o número da aba se lê sobre o marcador dela", () => {
     "on-dark": "shema-branco",
     "on-brand": "shema-branco",
     "on-light": "shema-verde",
+    muted: "bg-muted",
+    "fg-muted": "fg-muted",
   };
 
   const read = (tone: string, prefix: string): string => {
@@ -141,6 +149,22 @@ describe("o número da aba se lê sobre o marcador dela", () => {
         ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
       });
     }
+
+    it("cada urgência e cada estado do pedido se leem no próprio selo", () => {
+      const tones = [
+        ...Object.entries(NEED_URGENCY_TONES),
+        ...Object.entries(NEED_STATUS_TONES),
+      ];
+      expect(tones).toHaveLength(
+        NEED_URGENCIES.length + NEED_STATUSES.length,
+      );
+      for (const [name, tone] of tones) {
+        expect(
+          contrast(read(tone, "text"), read(tone, "bg")),
+          name,
+        ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+      }
+    });
 
     it("a borda do botão marcado acompanha o preenchimento", () => {
       for (const tone of Object.values(RATING_TONES)) {
