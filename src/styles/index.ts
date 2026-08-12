@@ -10,7 +10,7 @@ export {
   goodTone,
   pillBase,
 } from "./badges";
-export { surfaceElevated, surfaceOutlined } from "./cards";
+export { photoSlotSurface, surfaceElevated, surfaceOutlined } from "./cards";
 export { fieldBase, fieldInvalid, optionsBox } from "./forms";
 export {
   circleControl,
