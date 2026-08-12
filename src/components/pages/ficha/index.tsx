@@ -7,14 +7,16 @@ import {
   RECORD_TABS,
   type RecordTabId,
 } from "../../../constants/recordTabs";
-import { useProjectsStore } from "../../../stores/projectsStore";
+import { selectProject, useProjectsStore } from "../../../stores/projectsStore";
 import {
-  makeEmptyProject,
+  materializeDraft,
   NEW_RECORD,
   REQUIRED_FIELD_TAB,
   type ProjectDraft,
 } from "../../../stores/recordStore";
 import type { Project } from "../../../types/project";
+import { toLocalIsoDate } from "../../../utils/format";
+import { applyProgressUpdate } from "../../../utils/progress";
 import {
   Dialog,
   DialogBody,
@@ -87,7 +89,11 @@ export function FichaPage() {
       goToTab(REQUIRED_FIELD_TAB[first]);
       return;
     }
-    saveProject(promote(draft.values, recordId));
+    const stored = draft.isNew
+      ? null
+      : (selectProject(useProjectsStore.getState().projects, recordId) ?? null);
+    const today = toLocalIsoDate();
+    saveProject(applyProgressUpdate(stored, promote(draft.values, recordId), today));
     draft.discard();
     toast.success(t("record_saved", { name: draft.values.languageName }));
     close();
@@ -134,5 +140,5 @@ export function FichaPage() {
 
 function promote(values: ProjectDraft, recordId: string): Project {
   const id = recordId === NEW_RECORD ? crypto.randomUUID() : recordId;
-  return { ...makeEmptyProject(), ...values, id };
+  return materializeDraft(values, id);
 }
