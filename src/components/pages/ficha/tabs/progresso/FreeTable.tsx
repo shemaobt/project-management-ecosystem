@@ -15,10 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../ui";
+import { RemoveRowButton } from "../../../../common/RemoveRowButton";
 import {
   COUNT_GRID,
   CountInput,
-  RemoveRowButton,
   TABLE_FRAME,
   TABLE_HEAD_CELL,
 } from "./controls";

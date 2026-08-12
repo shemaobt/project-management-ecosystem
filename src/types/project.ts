@@ -196,10 +196,30 @@ export interface ProjectMaterial {
   link?: string;
 }
 
+export interface StoredImage {
+  src: string;
+  fileName: string;
+}
+
+export interface MediaAuthorization {
+  granted: boolean;
+  by: string;
+  at: string;
+}
+
+export interface MediaPhoto {
+  image: StoredImage | null;
+  caption: string;
+  authorization: MediaAuthorization | null;
+}
+
 export interface ProjectVideo {
   url: string;
   caption?: string;
+  authorization?: MediaAuthorization | null;
 }
+
+export type MediaAudience = "coordenacao" | "publico";
 
 export interface BibleBook {
   id: string;
@@ -285,7 +305,6 @@ export interface Project {
   otherProgress?: OtherProgressItem[];
   storiesTranslated?: string;
   readyVesselsAudioHours?: string;
-  mediaPhotoCaptions?: string[];
-  mediaPhotoAuth?: boolean[];
+  mediaPhotos?: MediaPhoto[];
   mediaVideos?: ProjectVideo[];
 }

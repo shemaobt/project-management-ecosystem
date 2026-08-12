@@ -181,6 +181,8 @@ export const OTHER_PROGRESS_TRANSLATION_TYPES: readonly TranslationType[] = [
   "Tradução escrita",
 ];
 
+export const MEDIA_PHOTO_SLOTS = 6;
+
 export const STALE_ATTENTION_DAYS = 60;
 
 export const STALE_CRITICAL_DAYS = 120;

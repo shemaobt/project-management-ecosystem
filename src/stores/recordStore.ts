@@ -1,12 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { DEFAULT_UNIT_TYPE } from "../constants/project";
+import { createDeferredJsonStorage } from "./draftStorage";
 import type { RecordTabId } from "../constants/recordTabs";
 import type { Project } from "../types/project";
 
 export const NEW_RECORD = "novo";
 
 const DRAFTS_KEY = "shema-record-drafts-v1";
+
+const draftStorage = createDeferredJsonStorage<PersistedRecords>();
 
 export type ProjectDraft = Partial<Project>;
 
@@ -107,6 +110,11 @@ export function materializeDraft(draft: ProjectDraft, id = ""): Project {
 interface RecordState {
   drafts: Record<string, ProjectDraft>;
   updateDraft: (recordId: string, patch: ProjectDraft) => void;
+  updateDraftValue: <K extends keyof Project>(
+    recordId: string,
+    field: K,
+    updater: (current: Project[K] | undefined) => Project[K],
+  ) => void;
   discardDraft: (recordId: string) => void;
 }
 
@@ -123,6 +131,17 @@ export const useRecordStore = create<RecordState>()(
             [recordId]: { ...state.drafts[recordId], ...patch },
           },
         })),
+      updateDraftValue: (recordId, field, updater) =>
+        set((state) => {
+          const draft = state.drafts[recordId];
+          const current = draft && field in draft ? draft[field] : undefined;
+          return {
+            drafts: {
+              ...state.drafts,
+              [recordId]: { ...draft, [field]: updater(current) },
+            },
+          };
+        }),
       discardDraft: (recordId) =>
         set((state) => {
           const drafts = { ...state.drafts };
@@ -132,10 +151,13 @@ export const useRecordStore = create<RecordState>()(
     }),
     {
       name: DRAFTS_KEY,
+      storage: draftStorage,
       partialize: (state) => ({ drafts: state.drafts }),
     },
   ),
 );
+
+export const flushDraftWrites = (): void => draftStorage.flush();
 
 export const selectDraft = (
   drafts: Record<string, ProjectDraft>,

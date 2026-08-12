@@ -17,12 +17,17 @@ export interface DraftHandle {
   hasChanges: boolean;
   missing: RequiredField[];
   set: <K extends keyof Project>(field: K, value: Project[K]) => void;
+  update: <K extends keyof Project>(
+    field: K,
+    updater: (current: Project[K] | undefined) => Project[K],
+  ) => void;
   discard: () => void;
 }
 
 export function useDraft(recordId: string): DraftHandle {
   const draft = useRecordStore((state) => state.drafts[recordId]);
   const updateDraft = useRecordStore((state) => state.updateDraft);
+  const updateDraftValue = useRecordStore((state) => state.updateDraftValue);
   const discardDraft = useRecordStore((state) => state.discardDraft);
   const projects = useProjectsStore((state) => state.projects);
 
@@ -41,6 +46,18 @@ export function useDraft(recordId: string): DraftHandle {
     [recordId, updateDraft],
   );
 
+  const update = useCallback(
+    <K extends keyof Project>(
+      field: K,
+      updater: (current: Project[K] | undefined) => Project[K],
+    ) => {
+      updateDraftValue(recordId, field, (current) =>
+        updater(current !== undefined ? current : stored?.[field]),
+      );
+    },
+    [recordId, stored, updateDraftValue],
+  );
+
   const discard = useCallback(
     () => discardDraft(recordId),
     [recordId, discardDraft],
@@ -53,6 +70,7 @@ export function useDraft(recordId: string): DraftHandle {
     hasChanges: Object.keys(draft ?? {}).length > 0,
     missing: missingRequired(values),
     set,
+    update,
     discard,
   };
 }
