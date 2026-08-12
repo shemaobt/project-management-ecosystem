@@ -107,6 +107,7 @@ export interface NeedItem {
   prayerAnswered?: boolean;
   fulfilledBy?: string;
   fulfilledDate?: string;
+  droppedDate?: string;
   submittedBy?: string;
   submittedAt?: string;
 }

@@ -13,20 +13,20 @@ export function isOpenNeed(need: NeedItem): boolean {
   return OPEN_NEED_STATUSES.includes(need.status);
 }
 
-export function openNeeds(project: Pick<Project, "needsItems">): NeedItem[] {
-  return project.needsItems.filter(isOpenNeed);
+export function openNeeds(needs: readonly NeedItem[]): NeedItem[] {
+  return needs.filter(isOpenNeed);
 }
 
-export function hasOpenNeeds(project: Pick<Project, "needsItems">): boolean {
-  return project.needsItems.some(isOpenNeed);
+export function closedNeeds(needs: readonly NeedItem[]): NeedItem[] {
+  return needs.filter((need) => !isOpenNeed(need));
 }
 
-export function hasUrgentOpenNeed(
-  project: Pick<Project, "needsItems">,
-): boolean {
-  return project.needsItems.some(
-    (need) => need.urgency === "high" && isOpenNeed(need),
-  );
+export function hasOpenNeeds(needs: readonly NeedItem[]): boolean {
+  return needs.some(isOpenNeed);
+}
+
+export function hasUrgentOpenNeed(needs: readonly NeedItem[]): boolean {
+  return needs.some((need) => need.urgency === "high" && isOpenNeed(need));
 }
 
 export function makeNeed(): NeedItem {
@@ -38,28 +38,54 @@ export function makeNeed(): NeedItem {
   };
 }
 
-export function setNeed(
-  project: Project,
+export function addNeed(
+  needs: readonly NeedItem[],
+  need: NeedItem = makeNeed(),
+): NeedItem[] {
+  return [...needs, need];
+}
+
+export function removeNeedAt(
+  needs: readonly NeedItem[],
+  index: number,
+): NeedItem[] {
+  return needs.filter((_, position) => position !== index);
+}
+
+export function setNeedAt(
+  needs: readonly NeedItem[],
   index: number,
   patch: Partial<NeedItem>,
-): Project {
-  return {
-    ...project,
-    needsItems: project.needsItems.map((need, position) =>
-      position === index ? { ...need, ...patch } : need,
-    ),
-  };
+): NeedItem[] {
+  return needs.map((need, position) =>
+    position === index ? { ...need, ...patch } : need,
+  );
 }
 
-export function addNeed(project: Project, need: NeedItem = makeNeed()): Project {
-  return { ...project, needsItems: [...project.needsItems, need] };
+export function setNeedStatus(
+  needs: readonly NeedItem[],
+  index: number,
+  status: NeedStatus,
+): NeedItem[] {
+  return needs.map((need, position) => {
+    if (position !== index) return need;
+
+    const next: NeedItem = { ...need, status };
+    if (status !== "fulfilled") {
+      delete next.fulfilledBy;
+      delete next.fulfilledDate;
+    }
+    if (status !== "dropped") {
+      delete next.droppedDate;
+    }
+    return next;
+  });
 }
 
-export function removeNeed(project: Project, index: number): Project {
-  return {
-    ...project,
-    needsItems: project.needsItems.filter((_, position) => position !== index),
-  };
+export function closedOn(need: NeedItem): string | undefined {
+  if (need.status === "fulfilled") return need.fulfilledDate;
+  if (need.status === "dropped") return need.droppedDate;
+  return undefined;
 }
 
 export interface NeedsQuery {

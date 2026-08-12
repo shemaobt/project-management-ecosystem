@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { NEED_CATEGORIES } from "../../../../../constants/project";
 import type { NeedItem } from "../../../../../types/project";
 import { formatDate } from "../../../../../utils/format";
-import { isOpenNeed } from "../../../../../utils/needs";
+import { closedNeeds, openNeeds } from "../../../../../utils/needs";
 import { DetailItem } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { StatusBadge, UrgencyBadge } from "./NeedBadges";
@@ -43,9 +43,9 @@ function NeedCard({ need }: { need: NeedItem }) {
         </p>
       )}
 
-      {need.status === "dropped" && need.fulfilledDate && (
+      {need.status === "dropped" && need.droppedDate && (
         <p className="mt-2 text-micro text-fg-subtle">
-          {t("need_dropped_date")} {formatDate(need.fulfilledDate, locale)}
+          {t("need_dropped_date")} {formatDate(need.droppedDate, locale)}
         </p>
       )}
     </li>
@@ -59,8 +59,8 @@ export interface NecessidadesViewProps {
 export function NecessidadesView({ draft }: NecessidadesViewProps) {
   const { t } = useTranslation();
   const needs = draft.values.needsItems ?? [];
-  const open = needs.filter(isOpenNeed);
-  const closed = needs.filter((need) => !isOpenNeed(need));
+  const open = openNeeds(needs);
+  const closed = closedNeeds(needs);
 
   if (needs.length === 0) {
     return (

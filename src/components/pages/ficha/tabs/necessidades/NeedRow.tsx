@@ -29,10 +29,17 @@ export interface NeedRowProps {
   need: NeedItem;
   index: number;
   onChange: (patch: Partial<NeedItem>) => void;
+  onStatus: (status: NeedStatus) => void;
   onRemove: () => void;
 }
 
-export function NeedRow({ need, index, onChange, onRemove }: NeedRowProps) {
+export function NeedRow({
+  need,
+  index,
+  onChange,
+  onStatus,
+  onRemove,
+}: NeedRowProps) {
   const { t } = useTranslation();
   const id = `need-${index}`;
 
@@ -97,7 +104,7 @@ export function NeedRow({ need, index, onChange, onRemove }: NeedRowProps) {
           {(control) => (
             <Select
               value={need.status}
-              onValueChange={(next) => onChange({ status: next as NeedStatus })}
+              onValueChange={(next) => onStatus(next as NeedStatus)}
             >
               <SelectTrigger {...control}>
                 <SelectValue />
@@ -197,9 +204,9 @@ export function NeedRow({ need, index, onChange, onRemove }: NeedRowProps) {
                 <Input
                   {...control}
                   type="date"
-                  value={need.fulfilledDate ?? ""}
+                  value={need.droppedDate ?? ""}
                   onChange={(event) =>
-                    onChange({ fulfilledDate: event.target.value })
+                    onChange({ droppedDate: event.target.value })
                   }
                 />
               )}

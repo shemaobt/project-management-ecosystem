@@ -72,7 +72,7 @@ const NEEDS = [
     urgency: "low" as const,
     status: "dropped" as const,
     description: "Aluguel de van para a viagem que foi cancelada.",
-    fulfilledDate: "2026-05-02",
+    droppedDate: "2026-05-02",
   },
 ];
 
@@ -129,6 +129,17 @@ describe("o ciclo de vida aparece na tela", () => {
   it("descartar mostra a data em que deixou de ser necessário", () => {
     const markup = tab("ver", { needsItems: [NEEDS[2]] });
     expect(markup).toContain(i18n.t("need_dropped_date"));
+    expect(markup).not.toContain(i18n.t("need_fulfilled_by"));
+  });
+
+  it("o plural de encerrados concorda em português", () => {
+    const two = tab("ver", { needsItems: [NEEDS[1], NEEDS[2]] });
+    expect(two).toContain(i18n.t("needs_closed_count", { count: 2 }));
+    expect(two).toContain("2 encerrados");
+
+    const one = tab("ver", { needsItems: [NEEDS[1]] });
+    expect(one).toContain("1 encerrado");
+    expect(one).not.toContain("1 encerrados");
   });
 });
 

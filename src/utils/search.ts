@@ -240,7 +240,7 @@ export function filterProjects(
         (filters.hasMedia === "yes") === hasAnyMedia(project),
       hasOpenNeeds:
         !filters.hasOpenNeeds ||
-        (filters.hasOpenNeeds === "yes") === hasOpenNeeds(project),
+        (filters.hasOpenNeeds === "yes") === hasOpenNeeds(project.needsItems),
       attention: !filters.attention || presetMatch.attention,
       prayer: !filters.prayer || presetMatch.prayer,
       celebrate: !filters.celebrate || presetMatch.celebrate,
@@ -327,7 +327,7 @@ export function filterProjects(
       counts.hasMedia[hasAnyMedia(project) ? "yes" : "no"] += 1;
     }
     if (countsFor("hasOpenNeeds")) {
-      counts.hasOpenNeeds[hasOpenNeeds(project) ? "yes" : "no"] += 1;
+      counts.hasOpenNeeds[hasOpenNeeds(project.needsItems) ? "yes" : "no"] += 1;
     }
     for (const preset of PRESET_IDS) {
       if (countsFor(preset) && presetMatch[preset]) {

@@ -16,7 +16,7 @@ export function matchesPreset(
       return (
         getOverallHealth(project) === "critica" ||
         getStaleStatus(project, now) === "critico" ||
-        hasUrgentOpenNeed(project)
+        hasUrgentOpenNeed(project.needsItems)
       );
     case "prayer":
       return project.needsItems.some((need) => Boolean(need.prayerShared));

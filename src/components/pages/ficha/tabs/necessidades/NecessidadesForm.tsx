@@ -1,7 +1,13 @@
 import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { NeedItem } from "../../../../../types/project";
-import { isOpenNeed, makeNeed } from "../../../../../utils/needs";
+import type { NeedItem, NeedStatus } from "../../../../../types/project";
+import {
+  addNeed,
+  openNeeds,
+  removeNeedAt,
+  setNeedAt,
+  setNeedStatus,
+} from "../../../../../utils/needs";
 import { Button, Textarea } from "../../../../ui";
 import { Field } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
@@ -14,7 +20,7 @@ export interface NecessidadesFormProps {
 export function NecessidadesForm({ draft }: NecessidadesFormProps) {
   const { t } = useTranslation();
   const needs = draft.values.needsItems ?? [];
-  const open = needs.filter(isOpenNeed).length;
+  const open = openNeeds(needs).length;
 
   const write = (next: NeedItem[]) => draft.set("needsItems", next);
 
@@ -39,16 +45,11 @@ export function NecessidadesForm({ draft }: NecessidadesFormProps) {
                 key={index}
                 need={need}
                 index={index}
-                onChange={(patch) =>
-                  write(
-                    needs.map((entry, position) =>
-                      position === index ? { ...entry, ...patch } : entry,
-                    ),
-                  )
+                onChange={(patch) => write(setNeedAt(needs, index, patch))}
+                onStatus={(status: NeedStatus) =>
+                  write(setNeedStatus(needs, index, status))
                 }
-                onRemove={() =>
-                  write(needs.filter((_, position) => position !== index))
-                }
+                onRemove={() => write(removeNeedAt(needs, index))}
               />
             ))}
           </ul>
@@ -60,7 +61,7 @@ export function NecessidadesForm({ draft }: NecessidadesFormProps) {
           type="button"
           variant="secondary"
           size="sm"
-          onClick={() => write([...needs, makeNeed()])}
+          onClick={() => write(addNeed(needs))}
         >
           <Plus size={14} strokeWidth={2.25} />
           {t("need_add_item")}

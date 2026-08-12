@@ -31,13 +31,15 @@ const {
 const {
   addNeed,
   aggregateNeeds,
+  closedOn,
   hasOpenNeeds,
   hasUrgentOpenNeed,
   isOpenNeed,
   makeNeed,
   openNeeds,
-  removeNeed,
-  setNeed,
+  removeNeedAt,
+  setNeedAt,
+  setNeedStatus,
 } = await import("../../../../utils/needs");
 const { getOverallHealth } = await import("../../../../utils/health");
 const { matchesPreset } = await import("../../../../utils/presets");
@@ -97,30 +99,59 @@ describe("o pedido tem ciclo de vida, e é esse o ponto", () => {
   });
 
   it("atender tira da lista aberta sem apagar o pedido", () => {
-    const project = withNeeds([
+    const list = [
       need({ description: "Gravador", status: "open" }),
       need({ description: "Curso", status: "open" }),
-    ]);
+    ];
 
-    const after = setNeed(project, 0, {
-      status: "fulfilled",
+    const after = setNeedAt(setNeedStatus(list, 0, "fulfilled"), 0, {
       fulfilledBy: "Base regional",
       fulfilledDate: "2026-06-01",
     });
 
-    expect(after.needsItems).toHaveLength(2);
+    expect(after).toHaveLength(2);
     expect(openNeeds(after).map((entry) => entry.description)).toEqual(["Curso"]);
-    expect(after.needsItems[0].description).toBe("Gravador");
-    expect(after.needsItems[0].fulfilledBy).toBe("Base regional");
+    expect(after[0].description).toBe("Gravador");
+    expect(after[0].fulfilledBy).toBe("Base regional");
+    expect(list[0].status).toBe("open");
   });
 
   it("deixar de ser necessário também encerra sem apagar", () => {
-    const project = withNeeds([need({ description: "Van", status: "open" })]);
-    const after = setNeed(project, 0, { status: "dropped" });
+    const list = [need({ description: "Van", status: "open" })];
+    const after = setNeedStatus(list, 0, "dropped");
 
-    expect(after.needsItems).toHaveLength(1);
+    expect(after).toHaveLength(1);
     expect(openNeeds(after)).toHaveLength(0);
     expect(hasOpenNeeds(after)).toBe(false);
+  });
+
+  it("sair de atendido não deixa quem atendeu para trás", () => {
+    const fulfilled = setNeedAt(
+      setNeedStatus([need()], 0, "fulfilled"),
+      0,
+      { fulfilledBy: "Base regional", fulfilledDate: "2026-06-01" },
+    );
+    expect(fulfilled[0].fulfilledBy).toBe("Base regional");
+
+    const dropped = setNeedStatus(fulfilled, 0, "dropped");
+    expect(dropped[0].fulfilledBy).toBeUndefined();
+    expect(dropped[0].fulfilledDate).toBeUndefined();
+
+    const reopened = setNeedStatus(fulfilled, 0, "open");
+    expect(reopened[0].fulfilledBy).toBeUndefined();
+  });
+
+  it("a data de descarte tem campo próprio e não vira data de atendimento", () => {
+    const dropped = setNeedAt(setNeedStatus([need()], 0, "dropped"), 0, {
+      droppedDate: "2026-05-02",
+    });
+    expect(dropped[0].droppedDate).toBe("2026-05-02");
+    expect(dropped[0].fulfilledDate).toBeUndefined();
+    expect(closedOn(dropped[0])).toBe("2026-05-02");
+
+    const back = setNeedStatus(dropped, 0, "in-progress");
+    expect(back[0].droppedDate).toBeUndefined();
+    expect(closedOn(back[0])).toBeUndefined();
   });
 
   it("um pedido descartado não segura o projeto em Pedem atenção", () => {
@@ -128,22 +159,25 @@ describe("o pedido tem ciclo de vida, e é esse o ponto", () => {
     expect(matchesPreset(urgent, "attention")).toBe(true);
 
     for (const status of ["fulfilled", "dropped"] as const) {
-      const closed = setNeed(urgent, 0, { status });
+      const closed = setNeedStatus(urgent.needsItems, 0, status);
       expect(hasUrgentOpenNeed(closed), status).toBe(false);
-      expect(matchesPreset(closed, "attention"), status).toBe(false);
+      expect(
+        matchesPreset({ ...urgent, needsItems: closed }, "attention"),
+        status,
+      ).toBe(false);
     }
   });
 
   it("acrescentar e remover mexem só na lista, e a nova nasce aberta", () => {
-    const empty = withNeeds([]);
+    const empty: ReturnType<typeof makeNeed>[] = [];
     const one = addNeed(empty);
 
-    expect(one.needsItems).toHaveLength(1);
-    expect(one.needsItems[0].status).toBe("open");
-    expect(one.needsItems[0].description).toBe("");
-    expect(empty.needsItems).toHaveLength(0);
+    expect(one).toHaveLength(1);
+    expect(one[0].status).toBe("open");
+    expect(one[0].description).toBe("");
+    expect(empty).toHaveLength(0);
 
-    expect(removeNeed(one, 0).needsItems).toHaveLength(0);
+    expect(removeNeedAt(one, 0)).toHaveLength(0);
   });
 });
 
@@ -157,7 +191,7 @@ describe("urgência não é saúde", () => {
     });
 
     expect(getOverallHealth(project)).toBe("boa");
-    expect(hasUrgentOpenNeed(project)).toBe(true);
+    expect(hasUrgentOpenNeed(project.needsItems)).toBe(true);
   });
 
   it("mudar a urgência não move a saúde geral", () => {
@@ -172,7 +206,10 @@ describe("urgência não é saúde", () => {
       withNeeds([need({ urgency: "low" })], { healthEmotional: "boa" }),
       withNeeds([need({ urgency: "low" })], { healthEmotional: "critica" }),
     ];
-    const escalated = base.map((project) => setNeed(project, 0, { urgency: "high" }));
+    const escalated = base.map((project) => ({
+      ...project,
+      needsItems: setNeedAt(project.needsItems, 0, { urgency: "high" }),
+    }));
 
     const countsFor = (list: typeof base) =>
       filterProjects(list, EMPTY_FILTERS, "").counts.health;
@@ -262,7 +299,9 @@ describe("os pedidos somam por região e por período", () => {
     const rollup = aggregateNeeds(projects);
     expect(rollup.total).toBe(0);
     expect(rollup.projects).toBe(0);
-    expect(projects.every((project) => !hasOpenNeeds(project))).toBe(true);
+    expect(projects.every((project) => !hasOpenNeeds(project.needsItems))).toBe(
+      true,
+    );
   });
 });
 
@@ -286,9 +325,9 @@ describe("a sidebar ganha a faceta de pedido em aberto", () => {
   });
 
   it("atender o pedido tira o projeto da faceta", () => {
-    const project = withNeeds([need({ status: "open" })]);
-    expect(hasOpenNeeds(project)).toBe(true);
-    expect(hasOpenNeeds(setNeed(project, 0, { status: "fulfilled" }))).toBe(false);
+    const list = [need({ status: "open" })];
+    expect(hasOpenNeeds(list)).toBe(true);
+    expect(hasOpenNeeds(setNeedStatus(list, 0, "fulfilled"))).toBe(false);
   });
 });
 
