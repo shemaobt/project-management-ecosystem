@@ -16,6 +16,24 @@ export type OverallHealth = HealthLevel | "na";
 
 export type StaleStatus = "em-dia" | "atencao" | "critico";
 
+export type HealthDimensionKey =
+  | "emotional"
+  | "relational"
+  | "spiritual"
+  | "physical";
+
+export type PrayerVisibility = "coordenacao" | "rede";
+
+export interface HealthAssessment {
+  date: string;
+  assessor: string;
+  emotional: HealthRating;
+  relational: HealthRating;
+  spiritual: HealthRating;
+  physical: HealthRating;
+  notes: string;
+}
+
 export type ProjectPriority =
   | "critical"
   | "warning"
@@ -252,6 +270,8 @@ export interface Project {
   resourceCirclePerson: string;
   lastUpdated: string;
   healthPhysical?: HealthRating;
+  healthHistory?: HealthAssessment[];
+  prayerVisibility?: PrayerVisibility;
   pastoralInterventionWhen?: string;
   location2?: string;
   portion?: string;

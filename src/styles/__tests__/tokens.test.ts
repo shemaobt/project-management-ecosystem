@@ -1,5 +1,7 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { RATING_ON, RATING_TONES } from "../../constants/health";
 import {
   RECORD_TABS,
   TAB_MARKER_TONES,
@@ -126,6 +128,73 @@ describe("o número da aba se lê sobre o marcador dela", () => {
       );
     });
   }
+
+  describe("a nota escolhida se lê sobre o próprio botão", () => {
+    const bare = (tone: string): string =>
+      tone.split(" ").join(" ").replaceAll(RATING_ON, "");
+
+    for (const [rating, tone] of Object.entries(RATING_TONES)) {
+      it(`${rating || "não avaliado"} carrega o rótulo de 11px`, () => {
+        const plain = bare(tone);
+        expect(
+          contrast(read(plain, "text"), read(plain, "bg")),
+        ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+      });
+    }
+
+    it("a borda do botão marcado acompanha o preenchimento", () => {
+      for (const tone of Object.values(RATING_TONES)) {
+        const plain = bare(tone);
+        expect(read(plain, "border")).toBe(read(plain, "bg"));
+      }
+    });
+  });
+});
+
+describe("a interface tem duas famílias, e só as que o tema declara", () => {
+  const SHIPPED = /\.tsx?$/u;
+  const TEST_FILE = /(?:^|\/)__tests__\//u;
+  const FONT_UTILITY = /(?:^|[\s"'`])font-([a-z]+)\b/gu;
+
+  const WEIGHTS = new Set([
+    "thin",
+    "extralight",
+    "light",
+    "normal",
+    "medium",
+    "semibold",
+    "bold",
+    "extrabold",
+    "black",
+  ]);
+
+  const walk = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const path = join(dir, entry.name);
+      return entry.isDirectory() ? walk(path) : [path];
+    });
+
+  const declared = new Set(
+    [...css.matchAll(/^\s*--font-([a-z]+):/gmu)].map((match) => match[1]),
+  );
+
+  const used = new Map<string, string[]>();
+  for (const path of walk(join(process.cwd(), "src"))) {
+    if (!SHIPPED.test(path) || TEST_FILE.test(path)) continue;
+    for (const match of readFileSync(path, "utf8").matchAll(FONT_UTILITY)) {
+      if (WEIGHTS.has(match[1])) continue;
+      used.set(match[1], [...(used.get(match[1]) ?? []), path]);
+    }
+  }
+
+  it("o tema declara sans, serif e display, e nada mais", () => {
+    expect([...declared].sort()).toEqual(["display", "sans", "serif"]);
+  });
+
+  it("nenhum arquivo que ships pede uma família fora do tema", () => {
+    const undeclared = [...used].filter(([family]) => !declared.has(family));
+    expect(undeclared).toEqual([]);
+  });
 });
 
 describe("os três anéis se distinguem sobre o papel do Diário", () => {
