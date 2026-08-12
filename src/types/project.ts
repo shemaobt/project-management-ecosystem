@@ -86,7 +86,7 @@ export type NeedCategory =
 
 export type NeedUrgency = "low" | "medium" | "high";
 
-export type NeedStatus = "open" | "in-progress" | "fulfilled";
+export type NeedStatus = "open" | "in-progress" | "fulfilled" | "dropped";
 
 export type YesNo = "sim" | "nao";
 
@@ -107,6 +107,7 @@ export interface NeedItem {
   prayerAnswered?: boolean;
   fulfilledBy?: string;
   fulfilledDate?: string;
+  droppedDate?: string;
   submittedBy?: string;
   submittedAt?: string;
 }

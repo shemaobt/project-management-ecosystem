@@ -54,6 +54,7 @@ const ENUM_KEYS = [
   "progressRange",
   "needCategory",
   "hasMedia",
+  "hasOpenNeeds",
 ] as const satisfies readonly (keyof ProjectFilters)[];
 
 type EnumKey = (typeof ENUM_KEYS)[number];
@@ -73,6 +74,7 @@ const ENUM_VALUES: {
   progressRange: PROGRESS_RANGES,
   needCategory: NEED_CATEGORIES.map((category) => category.id),
   hasMedia: YES_NO_VALUES,
+  hasOpenNeeds: YES_NO_VALUES,
 };
 
 function applyEnum<K extends EnumKey>(

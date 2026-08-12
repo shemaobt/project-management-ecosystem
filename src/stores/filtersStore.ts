@@ -40,6 +40,7 @@ export interface ProjectFilters {
   progressRange: ProgressRange | null;
   needCategory: NeedCategory | null;
   hasMedia: YesNoFilter | null;
+  hasOpenNeeds: YesNoFilter | null;
   attention: boolean;
   prayer: boolean;
   celebrate: boolean;
@@ -62,6 +63,7 @@ export const EMPTY_FILTERS: ProjectFilters = {
   progressRange: null,
   needCategory: null,
   hasMedia: null,
+  hasOpenNeeds: null,
   attention: false,
   prayer: false,
   celebrate: false,

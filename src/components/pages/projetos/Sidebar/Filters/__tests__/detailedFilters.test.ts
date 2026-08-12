@@ -74,6 +74,7 @@ describe("detailed filters", () => {
       "progressRange",
       "vitality",
       "needCategory",
+      "hasOpenNeeds",
       "hasMedia",
       "stale",
     ]);
