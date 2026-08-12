@@ -10,6 +10,7 @@ export interface RecursosViewProps {
 export function RecursosView({ draft }: RecursosViewProps) {
   const { t } = useTranslation();
   const values = draft.values;
+  const financialResources = values.financialResources ?? [];
 
   return (
     <FieldGrid>
@@ -24,10 +25,10 @@ export function RecursosView({ draft }: RecursosViewProps) {
       </DetailItem>
 
       <DetailItem label={t("d_financial")} full>
-        <TagRow values={values.financialResources ?? []} tone="green" />
+        <TagRow values={financialResources} tone="green" />
       </DetailItem>
 
-      {values.financialOtherDetails && (
+      {financialResources.includes("Outros") && values.financialOtherDetails && (
         <DetailItem label={t("d_financial_other")} full>
           {values.financialOtherDetails}
         </DetailItem>

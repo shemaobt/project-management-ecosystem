@@ -138,13 +138,13 @@ describe("as etapas podem não existir", () => {
   });
 
   it("as operações do editor funcionam a partir do vazio", () => {
-    const first = appendPhase([], "Etapa");
-    expect(first).toEqual([{ label: "Etapa 1", scope: "", date: "" }]);
-    const second = appendPhase(first, "Etapa");
-    expect(second[1].label).toBe("Etapa 2");
-    const renamed = patchPhase(second, 0, { scope: "Evangelho de João" });
+    const first = appendPhase([]);
+    expect(first).toEqual([{ label: "", scope: "", date: "" }]);
+    const renamed = patchPhase(appendPhase(first), 0, {
+      scope: "Evangelho de João",
+    });
     expect(renamed[0].scope).toBe("Evangelho de João");
-    expect(renamed[1]).toEqual(second[1]);
+    expect(renamed[1].scope).toBe("");
     expect(removePhase(renamed, 0)).toHaveLength(1);
     expect(removePhase([], 0)).toEqual([]);
   });
@@ -156,6 +156,22 @@ describe("as etapas podem não existir", () => {
     expect(
       phaseTitle({ label: "Fase piloto", scope: "", date: "" }, 2, "Etapa"),
     ).toBe("Fase piloto");
+  });
+
+  it("remover uma etapa do meio e adicionar outra não repete nome", () => {
+    const three = appendPhase(appendPhase(appendPhase([])));
+    const afterSwap = appendPhase(removePhase(three, 1));
+    const names = afterSwap.map((phase, index) =>
+      phaseTitle(phase, index, "Etapa"),
+    );
+    expect(names).toEqual(["Etapa 1", "Etapa 2", "Etapa 3"]);
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it("o nome da etapa acompanha o idioma da tela, não o do momento da criação", () => {
+    const stored = appendPhase([])[0];
+    expect(phaseTitle(stored, 1, "Etapa")).toBe("Etapa 2");
+    expect(phaseTitle(stored, 1, "Phase")).toBe("Phase 2");
   });
 });
 

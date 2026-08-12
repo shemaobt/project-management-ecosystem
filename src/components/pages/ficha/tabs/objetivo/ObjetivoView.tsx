@@ -62,7 +62,7 @@ export function ObjetivoView({ draft }: ObjetivoViewProps) {
                 <span className="flex-none text-[13px] font-bold text-telha">
                   {phaseTitle(phase, index, t("f_phase_n"))}
                 </span>
-                <span className="flex-1 font-serif text-sm font-normal not-italic">
+                <span className="flex-1 font-serif text-small font-normal not-italic">
                   {phase.scope || "—"}
                 </span>
                 <span className="flex-none text-[13px] font-normal text-fg-muted">

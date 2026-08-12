@@ -4,7 +4,7 @@ import { circleControl, transitionColors } from "../../../../../styles";
 import type { ProjectPhase } from "../../../../../types/project";
 import { cn } from "../../../../../utils/cn";
 import { Button, Input } from "../../../../ui";
-import { appendPhase, patchPhase, removePhase } from "./phases";
+import { appendPhase, patchPhase, phaseTitle, removePhase } from "./phases";
 
 export interface PhasesEditorProps {
   phases: readonly ProjectPhase[];
@@ -21,7 +21,7 @@ export function PhasesEditor({ phases, onChange }: PhasesEditorProps) {
           <Input
             className="w-14 flex-none"
             aria-label={t("f_phase_n")}
-            placeholder={t("f_phase_n")}
+            placeholder={phaseTitle(phase, index, t("f_phase_n"))}
             value={phase.label}
             onChange={(event) =>
               onChange(patchPhase(phases, index, { label: event.target.value }))
@@ -64,7 +64,7 @@ export function PhasesEditor({ phases, onChange }: PhasesEditorProps) {
         variant="secondary"
         size="sm"
         className="mt-1 self-start"
-        onClick={() => onChange(appendPhase(phases, t("f_phase_n")))}
+        onClick={() => onChange(appendPhase(phases))}
       >
         <span aria-hidden>+</span> {t("f_phase_add")}
       </Button>

@@ -8,14 +8,8 @@ export function phaseTitle(
   return phase.label || `${phaseWord} ${index + 1}`;
 }
 
-export function appendPhase(
-  phases: readonly ProjectPhase[],
-  phaseWord: string,
-): ProjectPhase[] {
-  return [
-    ...phases,
-    { label: `${phaseWord} ${phases.length + 1}`, scope: "", date: "" },
-  ];
+export function appendPhase(phases: readonly ProjectPhase[]): ProjectPhase[] {
+  return [...phases, { label: "", scope: "", date: "" }];
 }
 
 export function patchPhase(
