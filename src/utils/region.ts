@@ -5,6 +5,7 @@ import {
   FALLBACK_REGION,
   REGIONS,
 } from "../constants/regions";
+import { ROLES } from "../constants/roles";
 import type { Coordinates, Project } from "../types/project";
 import { hasPlottableCoords } from "./identity";
 import type {
@@ -15,11 +16,13 @@ import type {
 } from "../types/region";
 import type { RoleKey } from "../types/role";
 
-export function getCountry(project: Project): string {
+export type Located = Pick<Project, "location">;
+
+export function getCountry(project: Located): string {
   return project.location.split(",")[0].trim();
 }
 
-export function getRegion(project: Project): RegionKey {
+export function getRegion(project: Located): RegionKey {
   return COUNTRY_REGION[getCountry(project)] ?? FALLBACK_REGION;
 }
 
@@ -96,4 +99,34 @@ export function buildRegionPanel(
 
 export function holderName(team: RegionTeam, role: RoleKey): string | null {
   return team[role] || null;
+}
+
+export function getRegionTeam(
+  project: Located,
+  regions: readonly Region[],
+): RegionTeam {
+  const key = getRegion(project);
+  return (
+    regions.find((region) => region.key === key)?.team ?? {
+      ...EMPTY_REGION_TEAM,
+    }
+  );
+}
+
+export interface ProjectRole {
+  key: RoleKey;
+  labelKey: string;
+  holder: string | null;
+}
+
+export function resolveProjectRoles(
+  project: Located,
+  regions: readonly Region[],
+): ProjectRole[] {
+  const team = getRegionTeam(project, regions);
+  return ROLES.map((role) => ({
+    key: role.key,
+    labelKey: role.labelKey,
+    holder: holderName(team, role.key),
+  }));
 }
