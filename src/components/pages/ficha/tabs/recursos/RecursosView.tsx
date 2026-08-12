@@ -15,7 +15,9 @@ export function RecursosView({ draft }: RecursosViewProps) {
     <FieldGrid>
       <DetailItem label={t("f_in_eten")}>
         {values.inETEN ? (
-          <Badge tone="accent">✓ {t("sim")}</Badge>
+          <Badge tone="accent">
+            <span aria-hidden>✓</span> {t("sim")}
+          </Badge>
         ) : (
           <span className="text-fg-muted">{t("nao")}</span>
         )}

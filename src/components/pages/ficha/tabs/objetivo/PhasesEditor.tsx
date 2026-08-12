@@ -66,7 +66,7 @@ export function PhasesEditor({ phases, onChange }: PhasesEditorProps) {
         className="mt-1 self-start"
         onClick={() => onChange(appendPhase(phases, t("f_phase_n")))}
       >
-        + {t("f_phase_add")}
+        <span aria-hidden>+</span> {t("f_phase_add")}
       </Button>
     </div>
   );
