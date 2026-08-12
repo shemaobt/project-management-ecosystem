@@ -14,7 +14,7 @@ function PeopleList({ value }: { value: string | undefined }) {
       {people.map((person, index) => (
         <li
           key={`${person}-${index}`}
-          className="rounded-pill border border-line bg-elevated px-3 py-1 text-[13px] font-medium not-italic"
+          className="rounded-pill border border-line bg-elevated px-3 py-1 text-[13px] font-medium"
         >
           {person}
         </li>
@@ -41,7 +41,7 @@ export function EquipeView({ draft }: EquipeViewProps) {
         <DetailItem label={t("d_leader")}>{values.teamLeader || "—"}</DetailItem>
 
         <DetailItem label={t("f_leader_contact")}>
-          <span className="font-mono text-[13px]">
+          <span className="wrap-anywhere">
             {values.teamLeaderContact || "—"}
           </span>
         </DetailItem>
@@ -49,9 +49,7 @@ export function EquipeView({ draft }: EquipeViewProps) {
         <DetailItem label={t("d_mentor")}>{values.mentor || "—"}</DetailItem>
 
         <DetailItem label={t("f_mentor_contact")}>
-          <span className="font-mono text-[13px]">
-            {values.mentorContact || "—"}
-          </span>
+          <span className="wrap-anywhere">{values.mentorContact || "—"}</span>
         </DetailItem>
 
         <DetailItem label={t("d_team_contact")}>
@@ -60,11 +58,11 @@ export function EquipeView({ draft }: EquipeViewProps) {
 
         <DetailItem label={t("d_partner")}>{values.partnerOrg || "—"}</DetailItem>
 
-        <DetailItem label={t("d_translators")} full serif>
+        <DetailItem label={t("d_translators")} full>
           <PeopleList value={values.translators} />
         </DetailItem>
 
-        <DetailItem label={t("d_reviewers")} full serif>
+        <DetailItem label={t("d_reviewers")} full>
           <PeopleList value={values.technicalReviewers} />
         </DetailItem>
       </FieldGrid>

@@ -140,7 +140,12 @@ export function EquipeForm({ draft }: EquipeFormProps) {
           )}
         </Field>
 
-        <Field id="ficha-reviewers" label={t("f_reviewers")} full>
+        <Field
+          id="ficha-reviewers"
+          label={t("f_reviewers")}
+          full
+          hint={t("f_people_hint")}
+        >
           {(control) => (
             <PeopleField
               control={control}
