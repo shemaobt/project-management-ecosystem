@@ -323,7 +323,7 @@ Ten numbered sections, in this order, in both the detail modal and the edit form
 3. **Objetivo** — objective(s), translation type, scope details
 4. **Recursos Financeiros**
 5. **Progresso** — per book / story / other, rolled up into translated / community-checked / approved / total units, with `progressHistory`
-6. **Saúde da Equipe** — the 4 dimensions + notes + prayer requests + pastoral-intervention flag
+6. **Saúde da Equipe** — the 4 dimensions + notes + prayer requests + pastoral-intervention flag. Built in FE-25. Three rules: **the flat `health*` fields are the projection of the newest entry in `healthHistory`, never a second truth** — `recordAssessment` in `src/utils/health.ts` is the only writer, it appends and re-projects in one step, and it carries a pre-history record into the history before appending so a first new assessment cannot erase what the flat fields already held. FE-37's wizard writes through it rather than opening its own store. **An unassessed dimension is `""`, and `""` is not `boa`** — all 127 fixtures arrive with every dimension empty, so "not assessed" is the dominant state, not an edge case; `getOverallHealth` returns `na` and the copy says the team has not been heard yet rather than that it is well. **Critical is a call for care** — the tab carries pastoral copy for `critica` and `atencao`, and the rating is legible without colour through `HEALTH_SYMBOLS` (`✓ ! × –`) plus the label, never the fill alone.
 7. **Necessidades** — `needsItems[]` with category, urgency, status, `prayerShared`, `prayerAnswered`
 8. **Fotos / Vídeos** — signed upload, per-item authorization
 9. **Notas**
@@ -435,6 +435,12 @@ Treat it as a cross-cutting invariant: any new output surface must go through th
 Prayer requests and needs are shared **only** with the field leader's explicit authorization. When consent is withdrawn, previously shared text is cleared, not merely hidden. Media items carry per-item authorization.
 
 The guarantee to test: **an unauthorized prayer request is absent from all four output paths.**
+
+**Consent is entered in FE-25 ([OBT-368](https://linear.app/shema-obt/issue/OBT-368)), 12/aug/2026 — Daniel Oliveira.** Until then `buildPrayerRequests` pushed `project.prayerRequests` onto the wall with no gate at all, while the needs beside it were already gated by `prayerShared`. Three rules now hold:
+
+- **It is a visibility level, not a published boolean.** `PrayerVisibility` is `coordenacao` · `rede` (`src/constants/prayer.ts`). `coordenacao` is a real destination — the request reaches the people who follow up and support — not a queue for something unpublished. A team in trouble that has not consented to being shared still gets help.
+- **Absence of consent is not consent.** `prayerVisibility` is optional on `Project`, and `getPrayerVisibility` reads a missing value as `coordenacao`. Nothing has to be written for a request to stay private; something has to be written for it to travel. `prayerSeed.json` leaves two entries without the field on purpose, so the fixture exercises the default.
+- **The gate is `reachesPrayerWall`, and it has one owner.** Any new surface that emits prayer text must call it. Of the four output paths only the wall exists in wave 1; exports, ETEN report and notifications land in wave 2 (BE-04) and must consult the same predicate. The **project card and the record are not output paths** — they are coordination surfaces, and `coordenacao` means coordination sees it, exactly as §6.1 keeps `location` readable on the record it is entered on.
 
 ---
 
