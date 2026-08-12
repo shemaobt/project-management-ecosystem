@@ -69,22 +69,25 @@ export type ProgressEntrySource = Pick<
   "fromField" | "formType"
 >;
 
+export function withRolledAggregates(project: Project): Project {
+  const roll = rollUpProgress(project);
+  if (!roll) return { ...project };
+  return {
+    ...project,
+    translatedUnits: roll.translated,
+    communityCheckedUnits: roll.community,
+    approvedUnits: roll.approved,
+    totalUnits: roll.total > 0 ? roll.total : project.totalUnits,
+  };
+}
+
 export function applyProgressUpdate(
   previous: Project | null,
   next: Project,
   date: string,
   source?: ProgressEntrySource,
 ): Project {
-  const roll = rollUpProgress(next);
-  const updated: Project = roll
-    ? {
-        ...next,
-        translatedUnits: roll.translated,
-        communityCheckedUnits: roll.community,
-        approvedUnits: roll.approved,
-        totalUnits: roll.total > 0 ? roll.total : next.totalUnits,
-      }
-    : { ...next };
+  const updated = withRolledAggregates(next);
 
   const history = [...(previous ?? updated).progressHistory];
 

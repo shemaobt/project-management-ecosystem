@@ -3,7 +3,10 @@ import { DEFAULT_UNIT_TYPE } from "../../../../../constants/project";
 import { materializeDraft } from "../../../../../stores/recordStore";
 import type { StaleStatus } from "../../../../../types/project";
 import { cn } from "../../../../../utils/cn";
-import { getProgress } from "../../../../../utils/progress";
+import {
+  getProgress,
+  withRolledAggregates,
+} from "../../../../../utils/progress";
 import { getDaysSinceUpdate, getStaleStatus } from "../../../../../utils/recency";
 import { Progress } from "../../../../ui";
 import { getUnitShare } from "../../../projetos/card";
@@ -165,7 +168,7 @@ function BreakdownTable({
 
 export function ProgressoView({ draft }: ProgressoViewProps) {
   const { t } = useTranslation();
-  const project = materializeDraft(draft.values);
+  const project = withRolledAggregates(materializeDraft(draft.values));
 
   const status = project.status;
   const stale = getStaleStatus(project);
