@@ -15,6 +15,7 @@ import {
   type ProjectDraft,
 } from "../../../stores/recordStore";
 import type { Project } from "../../../types/project";
+import { toLocalIsoDate } from "../../../utils/format";
 import { applyProgressUpdate } from "../../../utils/progress";
 import {
   Dialog,
@@ -91,7 +92,7 @@ export function FichaPage() {
     const stored = draft.isNew
       ? null
       : (selectProject(useProjectsStore.getState().projects, recordId) ?? null);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = toLocalIsoDate();
     saveProject(applyProgressUpdate(stored, promote(draft.values, recordId), today));
     draft.discard();
     toast.success(t("record_saved", { name: draft.values.languageName }));

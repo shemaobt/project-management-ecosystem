@@ -26,6 +26,7 @@ const {
   historyDeltas,
   progressAsOf,
 } = await import("../../../../utils/progress");
+const { toLocalIsoDate } = await import("../../../../utils/format");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
 const { useRecordStore, NEW_RECORD, materializeDraft } = await import(
   "../../../../stores/recordStore"
@@ -119,6 +120,11 @@ describe("o histórico responde qual era a contagem em 31 de dezembro", () => {
     expect(snapshot?.translatedUnits).toBe(4);
     expect(snapshot?.totalUnits).toBeNull();
     expect(snapshot?.bookProgress).toBeNull();
+  });
+
+  it("o carimbo do save é o dia local, não o dia UTC", () => {
+    expect(toLocalIsoDate(new Date(2026, 11, 31, 23, 30))).toBe("2026-12-31");
+    expect(toLocalIsoDate(new Date(2026, 0, 5))).toBe("2026-01-05");
   });
 
   it("a entrada carrega a origem quando o chamador a informa", () => {
