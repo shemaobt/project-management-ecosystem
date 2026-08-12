@@ -113,7 +113,10 @@ export function videoEmbedUrl(url: string | undefined): string | null {
   if (match) return `https://www.youtube.com/embed/${match[1]}`;
   match = trimmed.match(/vimeo\.com\/(\d+)/);
   if (match) return `https://player.vimeo.com/video/${match[1]}`;
-  if (trimmed.includes("/embed/") || trimmed.includes("player.vimeo.com")) {
+  if (
+    trimmed.startsWith("https://www.youtube.com/embed/") ||
+    trimmed.startsWith("https://player.vimeo.com/video/")
+  ) {
     return trimmed;
   }
   return null;

@@ -84,6 +84,21 @@ describe("getShareableMedia — every sharing path", () => {
     }
   });
 
+  it("filters item by item — a granted sibling never carries an undecided one along", () => {
+    const granted = photo(GRANTED);
+    const undecided = { ...photo(null), caption: "Sem decisão" };
+    const refused = { ...photo(REFUSED), caption: "Recusada" };
+    const project = makeProject({
+      mediaPhotos: [granted, undecided, refused],
+      mediaVideos: [video(GRANTED), { ...video(null), caption: "Pendente" }],
+    });
+    for (const audience of AUDIENCES) {
+      const shareable = getShareableMedia(project, audience);
+      expect(shareable.photos).toEqual([granted]);
+      expect(shareable.videos).toEqual([video(GRANTED)]);
+    }
+  });
+
   it("includes an explicitly authorized item for every audience when the project is not sensitive", () => {
     const project = makeProject({
       sensitiveCountry: false,
@@ -258,5 +273,10 @@ describe("videoEmbedUrl", () => {
     expect(videoEmbedUrl(undefined)).toBeNull();
     expect(videoEmbedUrl("")).toBeNull();
     expect(videoEmbedUrl("https://example.org/filme.mp4")).toBeNull();
+  });
+
+  it("never turns an unknown host into an iframe src", () => {
+    expect(videoEmbedUrl("https://example.org/embed/x")).toBeNull();
+    expect(videoEmbedUrl("http://player.vimeo.com/video/1")).toBeNull();
   });
 });

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../../../contexts/AuthContext";
 import type {
@@ -36,14 +37,22 @@ export function MidiaForm({ draft }: MidiaFormProps) {
   const photos = photoSlots(values.mediaPhotos);
   const videos = values.mediaVideos ?? [];
 
+  const photosRef = useRef(photos);
+  useEffect(() => {
+    photosRef.current = photos;
+  }, [photos]);
+
   const decide = (granted: boolean) =>
     makeMediaAuthorization(granted, user.name, toLocalIsoDate());
 
-  const patchPhoto = (index: number, next: MediaPhoto) =>
+  const patchPhoto = (
+    index: number,
+    transform: (photo: MediaPhoto) => MediaPhoto,
+  ) =>
     draft.set(
       "mediaPhotos",
-      photos.map((photo, i) =>
-        i === index ? prunePhotoAuthorization(next) : photo,
+      photosRef.current.map((photo, i) =>
+        i === index ? prunePhotoAuthorization(transform(photo)) : photo,
       ),
     );
 
@@ -62,13 +71,15 @@ export function MidiaForm({ draft }: MidiaFormProps) {
       {values.sensitiveCountry && <SensitiveMediaNote />}
 
       <MediaHeading emoji="📸">{t("f_media_photos_title")}</MediaHeading>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {photos.map((photo, index) => (
           <div key={index} className="flex flex-col gap-1.5">
             <ImageUpload
               id={`midia-foto-${index}`}
               value={photo.image}
-              onChange={(image) => patchPhoto(index, withPhotoImage(photo, image))}
+              onChange={(image) =>
+                patchPhoto(index, (current) => withPhotoImage(current, image))
+              }
               onRejected={() => toast.error(t("media_invalid_type"))}
               placeholder={t("f_media_drop_hint")}
               removeLabel={`${t("row_remove")} · ${t("f_media_photo_label")} ${index + 1}`}
@@ -79,7 +90,10 @@ export function MidiaForm({ draft }: MidiaFormProps) {
               value={photo.caption}
               placeholder={t("f_media_caption")}
               onChange={(event) =>
-                patchPhoto(index, { ...photo, caption: event.target.value })
+                patchPhoto(index, (current) => ({
+                  ...current,
+                  caption: event.target.value,
+                }))
               }
             />
             <AuthToggle
@@ -87,7 +101,10 @@ export function MidiaForm({ draft }: MidiaFormProps) {
               authorization={photo.authorization}
               disabled={!hasPhotoContent(photo)}
               onDecide={(granted) =>
-                patchPhoto(index, { ...photo, authorization: decide(granted) })
+                patchPhoto(index, (current) => ({
+                  ...current,
+                  authorization: decide(granted),
+                }))
               }
             />
           </div>
@@ -98,7 +115,7 @@ export function MidiaForm({ draft }: MidiaFormProps) {
       <div className="flex flex-col gap-3">
         {videos.map((video, index) => (
           <div key={index} className="flex flex-col gap-1.5">
-            <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)_28px] items-center gap-2">
+            <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)_28px]">
               <Input
                 aria-label={`${t("f_media_video_label")} ${index + 1}`}
                 value={video.url}
