@@ -1,8 +1,13 @@
-import type { Project } from "../types/project";
+import type { PrayerVisibility, Project } from "../types/project";
+
+export interface PrayerSeedEntry {
+  text: string;
+  visibility?: PrayerVisibility;
+}
 
 export interface PrayerSeed {
   assessmentDate: string;
-  requests: Record<string, string>;
+  requests: Record<string, PrayerSeedEntry>;
 }
 
 export function applyPrayerSeed(projects: Project[], seed: PrayerSeed): Project[] {
@@ -11,7 +16,8 @@ export function applyPrayerSeed(projects: Project[], seed: PrayerSeed): Project[
     if (project.prayerRequests || !request) return project;
     return {
       ...project,
-      prayerRequests: request,
+      prayerRequests: request.text,
+      prayerVisibility: request.visibility,
       healthAssessmentDate: project.healthAssessmentDate || seed.assessmentDate,
     };
   });

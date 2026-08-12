@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { RATING_ON, RATING_TONES } from "../../constants/health";
 import {
   RECORD_TABS,
   TAB_MARKER_TONES,
@@ -127,6 +128,27 @@ describe("o número da aba se lê sobre o marcador dela", () => {
       );
     });
   }
+
+  describe("a nota escolhida se lê sobre o próprio botão", () => {
+    const bare = (tone: string): string =>
+      tone.split(" ").join(" ").replaceAll(RATING_ON, "");
+
+    for (const [rating, tone] of Object.entries(RATING_TONES)) {
+      it(`${rating || "não avaliado"} carrega o rótulo de 11px`, () => {
+        const plain = bare(tone);
+        expect(
+          contrast(read(plain, "text"), read(plain, "bg")),
+        ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+      });
+    }
+
+    it("a borda do botão marcado acompanha o preenchimento", () => {
+      for (const tone of Object.values(RATING_TONES)) {
+        const plain = bare(tone);
+        expect(read(plain, "border")).toBe(read(plain, "bg"));
+      }
+    });
+  });
 });
 
 describe("a interface tem duas famílias, e só as que o tema declara", () => {

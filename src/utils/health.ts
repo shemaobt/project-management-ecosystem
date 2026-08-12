@@ -1,5 +1,11 @@
+import {
+  HEALTH_DIMENSIONS,
+  type AssessedProject,
+  type HealthDimension,
+} from "../constants/health";
 import { HEALTH_SCORES } from "../constants/project";
 import type {
+  HealthAssessment,
   HealthRating,
   OverallHealth,
   Project,
@@ -8,7 +14,7 @@ import type {
 import { getProjectStatus } from "./progress";
 import { getStaleStatus } from "./recency";
 
-function healthDimensions(project: Project): HealthRating[] {
+function healthDimensions(project: AssessedProject): HealthRating[] {
   return [
     project.healthEmotional,
     project.healthRelational,
@@ -17,7 +23,70 @@ function healthDimensions(project: Project): HealthRating[] {
   ].filter((value): value is HealthRating => Boolean(value));
 }
 
-export function getOverallHealth(project: Project): OverallHealth {
+export function dimensionRating(
+  project: AssessedProject,
+  dimension: HealthDimension,
+): HealthRating {
+  return project[dimension.field] ?? "";
+}
+
+export function isAssessed(project: AssessedProject): boolean {
+  return HEALTH_DIMENSIONS.some(
+    (dimension) => dimensionRating(project, dimension) !== "",
+  );
+}
+
+export function assessmentHistory(
+  project: AssessedProject,
+): HealthAssessment[] {
+  return [...(project.healthHistory ?? [])].sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
+}
+
+export function currentAssessment(
+  project: AssessedProject,
+): HealthAssessment | null {
+  const history = assessmentHistory(project);
+  if (history.length > 0) return history[history.length - 1];
+  if (!isAssessed(project)) return null;
+
+  return {
+    date: project.healthAssessmentDate ?? "",
+    assessor: project.healthAssessor ?? "",
+    emotional: project.healthEmotional ?? "",
+    relational: project.healthRelational ?? "",
+    spiritual: project.healthSpiritual ?? "",
+    physical: project.healthPhysical ?? "",
+    notes: project.healthNotes ?? "",
+  };
+}
+
+export function recordAssessment(
+  project: Project,
+  next: HealthAssessment,
+): Project {
+  const stored = project.healthHistory ?? [];
+  const previous = currentAssessment(project);
+  const kept = stored.length === 0 && previous ? [previous] : stored;
+
+  const history = [...kept, next].sort((a, b) => a.date.localeCompare(b.date));
+  const newest = history[history.length - 1];
+
+  return {
+    ...project,
+    healthHistory: history,
+    healthEmotional: newest.emotional,
+    healthRelational: newest.relational,
+    healthSpiritual: newest.spiritual,
+    healthPhysical: newest.physical,
+    healthAssessmentDate: newest.date,
+    healthAssessor: newest.assessor,
+    healthNotes: newest.notes,
+  };
+}
+
+export function getOverallHealth(project: AssessedProject): OverallHealth {
   const values = healthDimensions(project);
   if (values.length === 0) return "na";
   if (values.some((value) => value === "critica")) return "critica";

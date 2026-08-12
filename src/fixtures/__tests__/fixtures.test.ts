@@ -3,6 +3,7 @@ import { PROJECT_STATUSES } from "../../constants/project";
 import { REGIONS } from "../../constants/regions";
 import type { ProjectStatus } from "../../types/project";
 import type { RegionKey } from "../../types/region";
+import { reachesPrayerWall } from "../../utils/prayer";
 import { createEmptyProject } from "../blank";
 import { buildEtenReport } from "../eten";
 import { toIsoDate } from "../normalize";
@@ -212,13 +213,31 @@ describe("meetings fixture", () => {
 describe("prayer fixture", () => {
   it("compiles the wall from the projects that shared a request", async () => {
     const requests = await prayerAPI.list();
-    expect(requests).toHaveLength(8);
+    expect(requests).toHaveLength(6);
     for (const request of requests) {
       expect(request.text.length).toBeGreaterThan(0);
       expect(request.source).toBe("Formulário");
       expect(request.answered).toBe(false);
     }
     expect(requests.map((request) => request.projectId)).toContain("korowai");
+  });
+
+  it("deixa de fora o pedido que ninguém autorizou a compartilhar", async () => {
+    const projects = await projectsAPI.list();
+    const withheld = projects.filter(
+      (project) => project.prayerRequests.trim() && !reachesPrayerWall(project),
+    );
+    expect(withheld.length).toBeGreaterThan(0);
+
+    const requests = await prayerAPI.list();
+    for (const project of withheld) {
+      expect(requests.map((request) => request.projectId)).not.toContain(
+        project.id,
+      );
+      expect(requests.map((request) => request.text)).not.toContain(
+        project.prayerRequests.trim(),
+      );
+    }
   });
 
   it("sorts the wall newest first", async () => {

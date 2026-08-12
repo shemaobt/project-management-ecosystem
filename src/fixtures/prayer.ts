@@ -1,5 +1,6 @@
 import type { PrayerRequest } from "../types/prayer";
 import type { Project } from "../types/project";
+import { reachesPrayerWall } from "../utils/prayer";
 import { getCountry, getRegion } from "../utils/region";
 
 export function buildPrayerRequests(projects: Project[]): PrayerRequest[] {
@@ -12,7 +13,7 @@ export function buildPrayerRequests(projects: Project[]): PrayerRequest[] {
     const language = project.languageName || "—";
     const date = project.healthAssessmentDate || project.lastUpdated;
 
-    if (project.prayerRequests.trim()) {
+    if (project.prayerRequests.trim() && reachesPrayerWall(project)) {
       requests.push({
         id: `${project.id}-pr`,
         projectId: project.id,

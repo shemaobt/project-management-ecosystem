@@ -1,13 +1,35 @@
 {
   "assessmentDate": "2026-05-14",
   "requests": {
-    "ashaninka": "Pelos anciãos da aldeia que recebem o Evangelho de João nesta semana. Por força física dos tradutores na estiagem.",
-    "awa-cuaiquer": "Por sabedoria na checagem comunitária e por proteção nas viagens entre as comunidades.",
-    "baikeno": "Agradecemos pela conclusão de Marcos. Orem pela gravação em áudio que começa este mês.",
-    "banawa": "Por recursos para o gravador de áudio e por saúde da líder Lidia.",
-    "korowai": "Por unidade na equipe e por abertura dos anciãos para o material traduzido.",
-    "gavak": "Pela nova facilitadora assumindo as revisões, e por descanso da equipe.",
-    "welaun": "Orem pela comunidade que ouviu as primeiras histórias e por mais contadores locais.",
-    "mosimo": "Por chuvas na região e por provisão para a próxima visita de campo."
+    "ashaninka": {
+      "text": "Pelos anciãos da aldeia que recebem o Evangelho de João nesta semana. Por força física dos tradutores na estiagem.",
+      "visibility": "rede"
+    },
+    "awa-cuaiquer": {
+      "text": "Por sabedoria na checagem comunitária e por proteção nas viagens entre as comunidades.",
+      "visibility": "rede"
+    },
+    "baikeno": {
+      "text": "Agradecemos pela conclusão de Marcos. Orem pela gravação em áudio que começa este mês.",
+      "visibility": "rede"
+    },
+    "banawa": {
+      "text": "Por recursos para o gravador de áudio e por saúde da líder Lidia."
+    },
+    "korowai": {
+      "text": "Por unidade na equipe e por abertura dos anciãos para o material traduzido.",
+      "visibility": "rede"
+    },
+    "gavak": {
+      "text": "Pela nova facilitadora assumindo as revisões, e por descanso da equipe.",
+      "visibility": "rede"
+    },
+    "welaun": {
+      "text": "Orem pela comunidade que ouviu as primeiras histórias e por mais contadores locais.",
+      "visibility": "rede"
+    },
+    "mosimo": {
+      "text": "Por chuvas na região e por provisão para a próxima visita de campo."
+    }
   }
 }
