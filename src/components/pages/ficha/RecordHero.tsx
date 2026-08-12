@@ -31,30 +31,9 @@ export function RecordHero({ mode, draft }: RecordHeroProps) {
           <div className="mb-2 text-[10px] font-semibold tracking-[0.18em] uppercase text-areia">
             {eyebrow}
           </div>
-          {mode === "editar" ? (
-            <>
-              <DialogTitle className="sr-only">
-                {name || t("modal_new")}
-              </DialogTitle>
-              <input
-                value={name}
-                onChange={(event) =>
-                  draft.set("languageName", event.target.value)
-                }
-                placeholder={t("placeholder_lang")}
-                aria-label={t("f_lang_name")}
-                className={cn(
-                  TITLE_TEXT,
-                  "w-full border-b border-branco/25 bg-transparent pb-1 text-on-dark",
-                  "placeholder:text-on-dark/40 focus:border-branco/60",
-                )}
-              />
-            </>
-          ) : (
-            <DialogTitle className={cn(TITLE_TEXT, "truncate text-on-dark")}>
-              {name || "—"}
-            </DialogTitle>
-          )}
+          <DialogTitle className={cn(TITLE_TEXT, "truncate text-on-dark")}>
+            {name || (draft.isNew ? t("modal_new") : "—")}
+          </DialogTitle>
         </div>
       </div>
     </div>

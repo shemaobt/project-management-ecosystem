@@ -6,6 +6,7 @@ import {
   REGIONS,
 } from "../constants/regions";
 import type { Coordinates, Project } from "../types/project";
+import { hasPlottableCoords } from "./identity";
 import type {
   Region,
   RegionDefinition,
@@ -37,7 +38,7 @@ export interface MapPlacement {
 }
 
 export function getMapPlacement(project: Project): MapPlacement {
-  if (project.sensitiveCountry || !project.coords) {
+  if (project.sensitiveCountry || !hasPlottableCoords(project.coords)) {
     const [lng, lat] = REGION_CENTROIDS[getRegion(project)];
     return { coords: [lng, lat], precision: "region" };
   }

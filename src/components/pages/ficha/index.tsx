@@ -110,7 +110,9 @@ export function FichaPage() {
           <DialogBody className="max-h-[calc(100vh-330px)] pt-6">
             {RECORD_TABS.map((option) => (
               <TabsContent key={option} value={option} className="pt-0">
-                {option === active && <Tab mode={mode} draft={draft} />}
+                {option === active && (
+                  <Tab key={recordId} mode={mode} draft={draft} />
+                )}
               </TabsContent>
             ))}
           </DialogBody>

@@ -7,6 +7,7 @@ import {
 } from "../../../../../stores/filtersStore";
 import type { Project } from "../../../../../types/project";
 import { makeProject } from "../../../../../utils/__tests__/factory";
+import { hasPlottableCoords } from "../../../../../utils/identity";
 import {
   getLocationDisplay,
   getMapPlacement,
@@ -81,17 +82,30 @@ describe("país sensível nunca aparece em precisão total", () => {
     }
   });
 
-  it("varredura completa: todo marcador sensível é aproximado, todo aberto é exato", async () => {
+  it("varredura completa: sensível é aproximado, aberto com coordenada é exato", async () => {
     const all = await projectsAPI.list();
     const sources = buildMarkerSources(all);
     for (const source of sources) {
       if (source.project.sensitiveCountry) {
         expect(source.placement.precision).toBe("region");
         expect(source.placement.coords).not.toEqual(source.project.coords);
+      } else if (!hasPlottableCoords(source.project.coords)) {
+        expect(source.placement.precision).toBe("region");
       } else {
         expect(source.placement.precision).toBe("exact");
         expect(source.placement.coords).toEqual(source.project.coords);
       }
+    }
+  });
+
+  it("nenhum marcador aterrissa no golfo da Guiné", async () => {
+    const all = await projectsAPI.list();
+    const semCoordenada = all.filter(
+      (project) => !hasPlottableCoords(project.coords),
+    );
+    expect(semCoordenada.length).toBeGreaterThan(0);
+    for (const source of buildMarkerSources(all)) {
+      expect(source.placement.coords).not.toEqual([0, 0]);
     }
   });
 
