@@ -25,6 +25,7 @@ const {
   getProjectStatus,
   historyDeltas,
   progressAsOf,
+  withRolledAggregates,
 } = await import("../../../../utils/progress");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
 const { useRecordStore, NEW_RECORD, materializeDraft } = await import(
@@ -38,9 +39,12 @@ const {
   showsBookTable,
   showsOtherTable,
   showsStoryTable,
+  statusOptionsFor,
+  STATUS_OPTIONS,
   toBreakdownRow,
   visibleSections,
 } = await import("../tabs/progresso/sections");
+const { PROJECT_STATUSES } = await import("../../../../constants/project");
 const { getUnitShare } = await import("../../projetos/card");
 const { default: i18n } = await import("../../../../i18n");
 
@@ -383,5 +387,76 @@ describe("as chaves novas traduzem nas duas línguas", () => {
       }
     }
     await i18n.changeLanguage("pt");
+  });
+});
+
+describe("a leitura mostra o que o save gravaria, não o que o último save deixou", () => {
+  it("linhas editadas no rascunho rolam para os agregados da leitura", () => {
+    const draft = makeProject({
+      translatedUnits: 40,
+      communityCheckedUnits: 20,
+      approvedUnits: 10,
+      totalUnits: 100,
+      bookProgress: [
+        genesisRow({ translated: 45, communityChecked: 20, mentorApproved: 10 }),
+        { id: "exo", name: "Êxodo", chapters: 50, translated: 0, communityChecked: 0, mentorApproved: 0 },
+      ],
+    });
+    const shown = withRolledAggregates(draft);
+    const saved = applyProgressUpdate(draft, draft, "2026-08-12");
+    expect(shown.translatedUnits).toBe(45);
+    expect(shown.totalUnits).toBe(100);
+    expect(shown.translatedUnits).toBe(saved.translatedUnits);
+    expect(shown.communityCheckedUnits).toBe(saved.communityCheckedUnits);
+    expect(shown.approvedUnits).toBe(saved.approvedUnits);
+    expect(shown.totalUnits).toBe(saved.totalUnits);
+  });
+
+  it("sem tabelas que expressem contagens, a leitura mantém os agregados gravados", () => {
+    const manual = makeProject({
+      translatedUnits: 14,
+      communityCheckedUnits: 9,
+      approvedUnits: 4,
+      totalUnits: 30,
+      storyProgress: [{ name: "A criação", audioHours: 2 }],
+    });
+    const shown = withRolledAggregates(manual);
+    expect(shown.translatedUnits).toBe(14);
+    expect(shown.communityCheckedUnits).toBe(9);
+    expect(shown.approvedUnits).toBe(4);
+    expect(shown.totalUnits).toBe(30);
+  });
+});
+
+describe("um status fora dos três cards continua expressável", () => {
+  it("os três do protótipo ficam como estão quando o status é um deles", () => {
+    expect(statusOptionsFor("em-andamento")).toBe(STATUS_OPTIONS);
+    expect(statusOptionsFor("pausado", "planejado")).toBe(STATUS_OPTIONS);
+  });
+
+  it("um projeto concluído abre com o próprio status selecionável", () => {
+    const options = statusOptionsFor("concluido");
+    expect(options).toHaveLength(4);
+    expect(options[3]).toMatchObject({
+      value: "concluido",
+      labelKey: "status_completed",
+    });
+  });
+
+  it("a âncora no status salvo preserva o caminho de volta após tocar outro card", () => {
+    const options = statusOptionsFor("pausado", "concluido");
+    expect(options.map((option) => option.value)).toContain("concluido");
+  });
+
+  it("âncora e valor iguais não duplicam o card", () => {
+    const options = statusOptionsFor("desconhecido", "desconhecido");
+    expect(options).toHaveLength(4);
+  });
+
+  it("todo status do domínio tem um card que o expressa", () => {
+    for (const status of PROJECT_STATUSES) {
+      const values = statusOptionsFor(status).map((option) => option.value);
+      expect(values).toContain(status);
+    }
   });
 });
