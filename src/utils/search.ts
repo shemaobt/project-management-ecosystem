@@ -17,6 +17,7 @@ import type {
 } from "../types/project";
 import type { RegionKey } from "../types/region";
 import { getOverallHealth } from "./health";
+import { hasOpenNeeds } from "./needs";
 import { matchesPreset } from "./presets";
 import { getProgress, getProjectStatus } from "./progress";
 import { getStaleStatus } from "./recency";
@@ -60,7 +61,8 @@ export type FacetGroup =
   | "eten"
   | "sensitive"
   | "progressRange"
-  | "hasMedia";
+  | "hasMedia"
+  | "hasOpenNeeds";
 
 const FACET_GROUPS: readonly FacetGroup[] = [
   "status",
@@ -78,6 +80,7 @@ const FACET_GROUPS: readonly FacetGroup[] = [
   "sensitive",
   "progressRange",
   "hasMedia",
+  "hasOpenNeeds",
 ];
 
 export interface FacetCounts {
@@ -96,6 +99,7 @@ export interface FacetCounts {
   sensitive: Record<YesNoFilter, number>;
   progressRange: Record<ProgressRange, number>;
   hasMedia: Record<YesNoFilter, number>;
+  hasOpenNeeds: Record<YesNoFilter, number>;
   preset: Record<PresetId, number>;
   groupAll: Record<FacetGroup, number>;
 }
@@ -125,6 +129,7 @@ const FILTER_GROUPS: readonly FilterGroup[] = [
   "progressRange",
   "needCategory",
   "hasMedia",
+  "hasOpenNeeds",
   "attention",
   "prayer",
   "celebrate",
@@ -167,6 +172,7 @@ function emptyCounts(): FacetCounts {
     sensitive: { yes: 0, no: 0 },
     progressRange: { "0-25": 0, "25-50": 0, "50-75": 0, "75-100": 0 },
     hasMedia: { yes: 0, no: 0 },
+    hasOpenNeeds: { yes: 0, no: 0 },
     preset: { attention: 0, prayer: 0, celebrate: 0, recent: 0 },
     groupAll: Object.fromEntries(
       FACET_GROUPS.map((group) => [group, 0]),
@@ -232,6 +238,9 @@ export function filterProjects(
       hasMedia:
         !filters.hasMedia ||
         (filters.hasMedia === "yes") === hasAnyMedia(project),
+      hasOpenNeeds:
+        !filters.hasOpenNeeds ||
+        (filters.hasOpenNeeds === "yes") === hasOpenNeeds(project),
       attention: !filters.attention || presetMatch.attention,
       prayer: !filters.prayer || presetMatch.prayer,
       celebrate: !filters.celebrate || presetMatch.celebrate,
@@ -316,6 +325,9 @@ export function filterProjects(
     }
     if (countsFor("hasMedia")) {
       counts.hasMedia[hasAnyMedia(project) ? "yes" : "no"] += 1;
+    }
+    if (countsFor("hasOpenNeeds")) {
+      counts.hasOpenNeeds[hasOpenNeeds(project) ? "yes" : "no"] += 1;
     }
     for (const preset of PRESET_IDS) {
       if (countsFor(preset) && presetMatch[preset]) {

@@ -52,6 +52,7 @@ export const ADVANCED_SECTIONS: readonly FilterSectionConfig[] = [
   { id: "progressRange", titleKey: "sb_progress_range" },
   { id: "vitality", titleKey: "sb_vitality" },
   { id: "needCategory", titleKey: "sb_needs_section" },
+  { id: "hasOpenNeeds", titleKey: "sb_open_needs" },
   { id: "hasMedia", titleKey: "sb_media" },
   { id: "stale", titleKey: "sb_stale", criticalValues: ["critico"] },
 ];
@@ -167,6 +168,7 @@ export function buildFilterOptions(
       baseline.needCategory,
     ),
     hasMedia: yesNo("media_has", "media_none"),
+    hasOpenNeeds: yesNo("needs_open_yes", "needs_open_no"),
     stale: sortedByCount(
       fromVocabulary(STALE_STATUSES, STALE_LABEL_KEYS),
       baseline.stale,

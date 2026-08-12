@@ -105,7 +105,53 @@ export const NEED_CATEGORIES: readonly { id: NeedCategory; labelKey: string }[] 
 
 export const NEED_URGENCIES: readonly NeedUrgency[] = ["low", "medium", "high"];
 
-export const NEED_STATUSES: readonly NeedStatus[] = ["open", "in-progress", "fulfilled"];
+export const NEED_STATUSES: readonly NeedStatus[] = [
+  "open",
+  "in-progress",
+  "fulfilled",
+  "dropped",
+];
+
+export const OPEN_NEED_STATUSES: readonly NeedStatus[] = ["open", "in-progress"];
+
+export const NEED_URGENCY_LABEL_KEYS: Record<NeedUrgency, string> = {
+  low: "need_urgency_low",
+  medium: "need_urgency_medium",
+  high: "need_urgency_high",
+};
+
+export const NEED_STATUS_LABEL_KEYS: Record<NeedStatus, string> = {
+  open: "need_status_open",
+  "in-progress": "need_status_inprogress",
+  fulfilled: "need_status_fulfilled",
+  dropped: "need_status_dropped",
+};
+
+export const NEED_STATUS_SYMBOLS: Record<NeedStatus, string> = {
+  open: "○",
+  "in-progress": "◐",
+  fulfilled: "●",
+  dropped: "–",
+};
+
+export const NEED_URGENCY_SYMBOLS: Record<NeedUrgency, string> = {
+  low: "·",
+  medium: "!",
+  high: "!!",
+};
+
+export const NEED_URGENCY_TONES: Record<NeedUrgency, string> = {
+  low: "bg-muted text-fg-muted",
+  medium: "bg-status-attention-fg text-on-brand",
+  high: "bg-telha text-on-brand",
+};
+
+export const NEED_STATUS_TONES: Record<NeedStatus, string> = {
+  open: "bg-azul-ink text-on-brand",
+  "in-progress": "bg-status-attention-fg text-on-brand",
+  fulfilled: "bg-verde-claro-ink text-on-brand",
+  dropped: "bg-muted text-fg-muted",
+};
 
 export const UNIT_TYPES: readonly string[] = [
   "Livros",

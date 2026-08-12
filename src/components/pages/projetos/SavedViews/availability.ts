@@ -20,6 +20,7 @@ const FACET_FILTERS = [
   "sensitive",
   "progressRange",
   "hasMedia",
+  "hasOpenNeeds",
 ] as const satisfies readonly FacetGroup[];
 
 const PRESET_FILTERS = [
@@ -47,6 +48,7 @@ export const FILTER_LABEL_KEYS: Record<FilterKey, string> = {
   sensitive: "sb_sensitive",
   progressRange: "sb_progress_range",
   hasMedia: "sb_media",
+  hasOpenNeeds: "sb_open_needs",
   attention: "preset_urgent",
   prayer: "preset_prayer",
   celebrate: "preset_celebrate",
