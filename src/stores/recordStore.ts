@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { DEFAULT_UNIT_TYPE } from "../constants/project";
 import type { RecordTabId } from "../constants/recordTabs";
 import type { Project } from "../types/project";
 
@@ -62,7 +63,7 @@ export function makeEmptyProject(): Omit<Project, "id"> {
     objective: [],
     scopeDetails: "",
     totalUnits: 0,
-    totalUnitsType: "Livros",
+    totalUnitsType: DEFAULT_UNIT_TYPE,
     translatedUnits: 0,
     communityCheckedUnits: 0,
     approvedUnits: 0,
@@ -97,6 +98,10 @@ export function makeEmptyProject(): Omit<Project, "id"> {
     resourceCirclePerson: "",
     lastUpdated: "",
   };
+}
+
+export function materializeDraft(draft: ProjectDraft, id = ""): Project {
+  return { ...makeEmptyProject(), ...draft, id };
 }
 
 interface RecordState {

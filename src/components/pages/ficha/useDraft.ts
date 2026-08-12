@@ -12,6 +12,7 @@ import type { Project } from "../../../types/project";
 
 export interface DraftHandle {
   values: ProjectDraft;
+  saved?: Project;
   isNew: boolean;
   hasChanges: boolean;
   missing: RequiredField[];
@@ -47,6 +48,7 @@ export function useDraft(recordId: string): DraftHandle {
 
   return {
     values,
+    saved: stored,
     isNew,
     hasChanges: Object.keys(draft ?? {}).length > 0,
     missing: missingRequired(values),
