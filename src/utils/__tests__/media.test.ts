@@ -5,20 +5,26 @@ import type {
   MediaAudience,
   MediaAuthorization,
   MediaPhoto,
+  ProjectMaterial,
   ProjectVideo,
 } from "../../types/project";
 import {
   canShareMedia,
   getShareableMedia,
+  hasMaterialContent,
   hasPhotoContent,
   hasVideoContent,
   isMediaAuthorized,
+  makeEmptyMaterial,
   makeEmptyMediaPhoto,
   makeEmptyVideo,
   makeMediaAuthorization,
+  materialRowMatcher,
   photoSlots,
   prunePhotoAuthorization,
   videoEmbedUrl,
+  withMaterialFile,
+  withMaterialLink,
   withPhotoImage,
   withVideoUrl,
 } from "../media";
@@ -121,6 +127,7 @@ describe("getShareableMedia — every sharing path", () => {
     expect(getShareableMedia(project, "publico")).toEqual({
       photos: [],
       videos: [],
+      materials: [],
     });
     const coordination = getShareableMedia(project, "coordenacao");
     expect(coordination.photos).toHaveLength(1);
@@ -136,8 +143,49 @@ describe("getShareableMedia — every sharing path", () => {
       expect(getShareableMedia(project, audience)).toEqual({
         photos: [],
         videos: [],
+        materials: [],
       });
     }
+  });
+
+  it("never shares a translated material — no material carries a recorded decision yet", () => {
+    const material = {
+      ...makeEmptyMaterial(),
+      kind: "audio" as const,
+      scope: "Evangelho de João",
+      fileName: "joao.mp3",
+      fileSize: 2048,
+      dataUrl: "data:audio/mpeg;base64,abc",
+      link: "https://drive.example/joao",
+      format: "MP3",
+      durationSeconds: 272,
+    };
+    for (const sensitiveCountry of [false, true]) {
+      const project = makeProject({ sensitiveCountry, materials: [material] });
+      for (const audience of AUDIENCES) {
+        expect(getShareableMedia(project, audience).materials).toEqual([]);
+        expect(canShareMedia(project, material, audience)).toBe(false);
+      }
+    }
+  });
+
+  it("a future explicit grant flows through the same owner, most restrictive rule still winning", () => {
+    const granted = {
+      ...makeEmptyMaterial(),
+      dataUrl: "data:text/plain;base64,abc",
+      fileName: "rute.txt",
+      authorization: GRANTED,
+    };
+    const open = makeProject({ sensitiveCountry: false, materials: [granted] });
+    const sensitive = makeProject({
+      sensitiveCountry: true,
+      materials: [granted],
+    });
+    expect(getShareableMedia(open, "publico").materials).toEqual([granted]);
+    expect(getShareableMedia(sensitive, "publico").materials).toEqual([]);
+    expect(getShareableMedia(sensitive, "coordenacao").materials).toEqual([
+      granted,
+    ]);
   });
 });
 
@@ -185,6 +233,83 @@ describe("authorization evidence", () => {
     expect(next.authorization).toBeNull();
     expect(next.caption).toBe(decided.caption);
   });
+
+  it("replacing a material's file resets the decision and the probed duration", () => {
+    const decided = {
+      ...makeEmptyMaterial(),
+      kind: "audio" as const,
+      scope: "Evangelho de João",
+      fileName: "antigo.mp3",
+      fileSize: 100,
+      dataUrl: "data:audio/mpeg;base64,old",
+      format: "MP3",
+      durationSeconds: 272,
+      authorization: GRANTED,
+    };
+    const replaced = withMaterialFile(decided, {
+      fileName: "novo.wav",
+      fileSize: 200,
+      dataUrl: "data:audio/wav;base64,new",
+      format: "WAV",
+    });
+    expect(replaced.authorization).toBeNull();
+    expect(replaced.durationSeconds).toBeUndefined();
+    expect(replaced.format).toBe("WAV");
+    expect(replaced.scope).toBe(decided.scope);
+  });
+
+  it("changing a material's link resets the decision and keeps the file", () => {
+    const decided = {
+      ...makeEmptyMaterial(),
+      fileName: "rute.txt",
+      dataUrl: "data:text/plain;base64,abc",
+      authorization: GRANTED,
+    };
+    const next = withMaterialLink(decided, "https://drive.example/rute");
+    expect(next.authorization).toBeNull();
+    expect(next.link).toBe("https://drive.example/rute");
+    expect(next.fileName).toBe("rute.txt");
+  });
+});
+
+describe("materialRowMatcher", () => {
+  const stored = {
+    fileName: "joao.mp3",
+    fileSize: 2048,
+    dataUrl: "data:audio/mpeg;base64,abc",
+    format: "MP3",
+  };
+
+  it("an in-flight import still lands on its row after the row above is removed", () => {
+    const first = { ...makeEmptyMaterial(), scope: "Rute" };
+    const second = { ...makeEmptyMaterial(), kind: "audio" as const, scope: "João" };
+    const matches = materialRowMatcher(second, 1);
+    const afterRemoval = [second];
+    const patched = afterRemoval.map((material, i) =>
+      matches(material, i) ? withMaterialFile(material, stored) : material,
+    );
+    expect(patched[0].fileName).toBe("joao.mp3");
+    expect(patched[0].scope).toBe("João");
+    expect(first.fileName).toBeUndefined();
+  });
+
+  it("never patches a different row that inherited the stale position", () => {
+    const removed = { ...makeEmptyMaterial(), kind: "audio" as const, scope: "João" };
+    const survivor = { ...makeEmptyMaterial(), scope: "Rute" };
+    const matches = materialRowMatcher(removed, 0);
+    const patched = [survivor].map((material, i) =>
+      matches(material, i) ? withMaterialFile(material, stored) : material,
+    );
+    expect(patched[0]).toBe(survivor);
+  });
+
+  it("falls back to the position only for a row without id", () => {
+    const legacy: ProjectMaterial = { kind: "text", scope: "Jonas" };
+    const other = { ...makeEmptyMaterial(), scope: "Rute" };
+    const matches = materialRowMatcher(legacy, 1);
+    expect(matches(other, 0)).toBe(false);
+    expect(matches(legacy, 1)).toBe(true);
+  });
 });
 
 describe("content predicates and slots", () => {
@@ -205,6 +330,36 @@ describe("content predicates and slots", () => {
     expect(hasVideoContent(makeEmptyVideo())).toBe(false);
     expect(hasVideoContent({ ...makeEmptyVideo(), url: "  " })).toBe(false);
     expect(hasVideoContent(video(null))).toBe(true);
+  });
+
+  it("a material carries an artifact when it has a file or a link — scope alone is a description", () => {
+    const empty = makeEmptyMaterial();
+    expect(empty).toMatchObject({
+      kind: "text",
+      scope: "",
+      authorization: null,
+    });
+    expect(empty.id).toBeTruthy();
+    expect(makeEmptyMaterial().id).not.toBe(empty.id);
+    expect(hasMaterialContent(makeEmptyMaterial())).toBe(false);
+    expect(
+      hasMaterialContent({ ...makeEmptyMaterial(), scope: "Evangelho de João" }),
+    ).toBe(false);
+    expect(hasMaterialContent({ ...makeEmptyMaterial(), link: "  " })).toBe(
+      false,
+    );
+    expect(
+      hasMaterialContent({
+        ...makeEmptyMaterial(),
+        dataUrl: "data:text/plain;base64,abc",
+      }),
+    ).toBe(true);
+    expect(
+      hasMaterialContent({
+        ...makeEmptyMaterial(),
+        link: "https://drive.example/rute",
+      }),
+    ).toBe(true);
   });
 
   it("pads the photo grid to the six prototype slots without mutating the source", () => {

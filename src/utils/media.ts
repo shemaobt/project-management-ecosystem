@@ -4,8 +4,10 @@ import type {
   MediaAuthorization,
   MediaPhoto,
   Project,
+  ProjectMaterial,
   ProjectVideo,
   StoredImage,
+  StoredMaterialFile,
 } from "../types/project";
 
 export interface MediaAuthorizable {
@@ -18,6 +20,23 @@ export function makeEmptyMediaPhoto(): MediaPhoto {
 
 export function makeEmptyVideo(): ProjectVideo {
   return { url: "", caption: "", authorization: null };
+}
+
+export function makeEmptyMaterial(): ProjectMaterial {
+  return {
+    id: crypto.randomUUID(),
+    kind: "text",
+    scope: "",
+    authorization: null,
+  };
+}
+
+export function materialRowMatcher(
+  target: Pick<ProjectMaterial, "id">,
+  index: number,
+): (material: ProjectMaterial, i: number) => boolean {
+  return (material, i) =>
+    target.id !== undefined ? material.id === target.id : i === index;
 }
 
 export function photoSlots(
@@ -36,6 +55,10 @@ export function hasPhotoContent(photo: MediaPhoto): boolean {
 
 export function hasVideoContent(video: ProjectVideo): boolean {
   return video.url.trim() !== "";
+}
+
+export function hasMaterialContent(material: ProjectMaterial): boolean {
+  return Boolean(material.dataUrl) || Boolean(material.link?.trim());
 }
 
 export function makeMediaAuthorization(
@@ -62,13 +85,32 @@ export function withVideoUrl(video: ProjectVideo, url: string): ProjectVideo {
   return { ...video, url, authorization: null };
 }
 
+export function withMaterialFile(
+  material: ProjectMaterial,
+  file: StoredMaterialFile,
+): ProjectMaterial {
+  return {
+    ...material,
+    ...file,
+    durationSeconds: undefined,
+    authorization: null,
+  };
+}
+
+export function withMaterialLink(
+  material: ProjectMaterial,
+  link: string,
+): ProjectMaterial {
+  return { ...material, link, authorization: null };
+}
+
 export function isMediaAuthorized(item: MediaAuthorizable): boolean {
   return item.authorization?.granted === true;
 }
 
 export type MediaScope = Pick<
   Project,
-  "sensitiveCountry" | "mediaPhotos" | "mediaVideos"
+  "sensitiveCountry" | "mediaPhotos" | "mediaVideos" | "materials"
 >;
 
 export function canShareMedia(
@@ -84,6 +126,7 @@ export function canShareMedia(
 export interface ShareableMedia {
   photos: MediaPhoto[];
   videos: ProjectVideo[];
+  materials: ProjectMaterial[];
 }
 
 export function getShareableMedia(
@@ -96,6 +139,11 @@ export function getShareableMedia(
     ),
     videos: (project.mediaVideos ?? []).filter(
       (video) => hasVideoContent(video) && canShareMedia(project, video, audience),
+    ),
+    materials: project.materials.filter(
+      (material) =>
+        hasMaterialContent(material) &&
+        canShareMedia(project, material, audience),
     ),
   };
 }

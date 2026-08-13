@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { materializeDraft } from "../../../../../stores/recordStore";
 import { decreasedCounts } from "../../../../../utils/progress";
-import { FieldGroup } from "../../fields";
+import { EmptyHint, FieldGroup } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { BookTable } from "./BookTable";
 import { OtherTable, StoryTable } from "./FreeTable";
@@ -104,9 +104,7 @@ export function ProgressoForm({ draft }: ProgressoFormProps) {
       )}
 
       {!sections.books && !sections.stories && !sections.other && (
-        <p className="rounded-md bg-muted px-4 py-3.5 font-serif text-small italic text-fg-muted">
-          {t("progress_no_scope_hint")}
-        </p>
+        <EmptyHint>{t("progress_no_scope_hint")}</EmptyHint>
       )}
     </div>
   );

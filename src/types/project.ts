@@ -188,17 +188,28 @@ export interface ProjectPhase {
 }
 
 export interface ProjectMaterial {
+  id?: string;
   kind: MaterialKind;
   scope: string;
   fileName?: string;
   fileSize?: number;
   dataUrl?: string;
   link?: string;
+  format?: string;
+  durationSeconds?: number;
+  authorization?: MediaAuthorization | null;
 }
 
 export interface StoredImage {
   src: string;
   fileName: string;
+}
+
+export interface StoredMaterialFile {
+  fileName: string;
+  fileSize: number;
+  dataUrl: string;
+  format: string;
 }
 
 export interface MediaAuthorization {

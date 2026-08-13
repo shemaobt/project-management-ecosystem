@@ -1,6 +1,7 @@
 import type {
   FinancialResource,
   HealthLevel,
+  MaterialKind,
   NeedCategory,
   NeedStatus,
   NeedUrgency,
@@ -182,6 +183,18 @@ export const OTHER_PROGRESS_TRANSLATION_TYPES: readonly TranslationType[] = [
 ];
 
 export const MEDIA_PHOTO_SLOTS = 6;
+
+export const MATERIAL_KINDS: readonly MaterialKind[] = [
+  "text",
+  "audio",
+  "video",
+];
+
+export const MATERIAL_KIND_LABEL_KEYS: Record<MaterialKind, string> = {
+  text: "mat_kind_text",
+  audio: "mat_kind_audio",
+  video: "mat_kind_video",
+};
 
 export const STALE_ATTENTION_DAYS = 60;
 

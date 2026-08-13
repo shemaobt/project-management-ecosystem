@@ -5,7 +5,7 @@ import type { Project } from "../types/project";
 
 const PROJECTS_KEY = "shema-projects-v1";
 
-export const PROJECTS_VERSION = 2;
+export const PROJECTS_VERSION = 3;
 
 interface ProjectsState {
   projects: Project[];

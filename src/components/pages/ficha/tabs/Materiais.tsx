@@ -1,5 +1,11 @@
-import { PendingTab } from "../PendingTab";
+import type { RecordTabProps } from "../types";
+import { MateriaisForm } from "./materiais/MateriaisForm";
+import { MateriaisView } from "./materiais/MateriaisView";
 
-export function MateriaisTab() {
-  return <PendingTab issue="FE-28" />;
+export function MateriaisTab({ mode, draft }: RecordTabProps) {
+  return mode === "editar" ? (
+    <MateriaisForm draft={draft} />
+  ) : (
+    <MateriaisView draft={draft} />
+  );
 }
