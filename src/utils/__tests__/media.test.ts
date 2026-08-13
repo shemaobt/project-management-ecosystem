@@ -10,9 +10,11 @@ import type {
 import {
   canShareMedia,
   getShareableMedia,
+  hasMaterialContent,
   hasPhotoContent,
   hasVideoContent,
   isMediaAuthorized,
+  makeEmptyMaterial,
   makeEmptyMediaPhoto,
   makeEmptyVideo,
   makeMediaAuthorization,
@@ -121,6 +123,7 @@ describe("getShareableMedia — every sharing path", () => {
     expect(getShareableMedia(project, "publico")).toEqual({
       photos: [],
       videos: [],
+      materials: [],
     });
     const coordination = getShareableMedia(project, "coordenacao");
     expect(coordination.photos).toHaveLength(1);
@@ -136,8 +139,49 @@ describe("getShareableMedia — every sharing path", () => {
       expect(getShareableMedia(project, audience)).toEqual({
         photos: [],
         videos: [],
+        materials: [],
       });
     }
+  });
+
+  it("never shares a translated material — no material carries a recorded decision yet", () => {
+    const material = {
+      ...makeEmptyMaterial(),
+      kind: "audio" as const,
+      scope: "Evangelho de João",
+      fileName: "joao.mp3",
+      fileSize: 2048,
+      dataUrl: "data:audio/mpeg;base64,abc",
+      link: "https://drive.example/joao",
+      format: "MP3",
+      durationSeconds: 272,
+    };
+    for (const sensitiveCountry of [false, true]) {
+      const project = makeProject({ sensitiveCountry, materials: [material] });
+      for (const audience of AUDIENCES) {
+        expect(getShareableMedia(project, audience).materials).toEqual([]);
+        expect(canShareMedia(project, material, audience)).toBe(false);
+      }
+    }
+  });
+
+  it("a future explicit grant flows through the same owner, most restrictive rule still winning", () => {
+    const granted = {
+      ...makeEmptyMaterial(),
+      dataUrl: "data:text/plain;base64,abc",
+      fileName: "rute.txt",
+      authorization: GRANTED,
+    };
+    const open = makeProject({ sensitiveCountry: false, materials: [granted] });
+    const sensitive = makeProject({
+      sensitiveCountry: true,
+      materials: [granted],
+    });
+    expect(getShareableMedia(open, "publico").materials).toEqual([granted]);
+    expect(getShareableMedia(sensitive, "publico").materials).toEqual([]);
+    expect(getShareableMedia(sensitive, "coordenacao").materials).toEqual([
+      granted,
+    ]);
   });
 });
 
@@ -205,6 +249,33 @@ describe("content predicates and slots", () => {
     expect(hasVideoContent(makeEmptyVideo())).toBe(false);
     expect(hasVideoContent({ ...makeEmptyVideo(), url: "  " })).toBe(false);
     expect(hasVideoContent(video(null))).toBe(true);
+  });
+
+  it("a material carries an artifact when it has a file or a link — scope alone is a description", () => {
+    expect(makeEmptyMaterial()).toEqual({
+      kind: "text",
+      scope: "",
+      authorization: null,
+    });
+    expect(hasMaterialContent(makeEmptyMaterial())).toBe(false);
+    expect(
+      hasMaterialContent({ ...makeEmptyMaterial(), scope: "Evangelho de João" }),
+    ).toBe(false);
+    expect(hasMaterialContent({ ...makeEmptyMaterial(), link: "  " })).toBe(
+      false,
+    );
+    expect(
+      hasMaterialContent({
+        ...makeEmptyMaterial(),
+        dataUrl: "data:text/plain;base64,abc",
+      }),
+    ).toBe(true);
+    expect(
+      hasMaterialContent({
+        ...makeEmptyMaterial(),
+        link: "https://drive.example/rute",
+      }),
+    ).toBe(true);
   });
 
   it("pads the photo grid to the six prototype slots without mutating the source", () => {
