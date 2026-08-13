@@ -1,5 +1,11 @@
-import { PendingTab } from "../PendingTab";
+import type { RecordTabProps } from "../types";
+import { NotasForm } from "./notas/NotasForm";
+import { NotasView } from "./notas/NotasView";
 
-export function NotasTab() {
-  return <PendingTab issue="FE-28" />;
+export function NotasTab({ mode, draft }: RecordTabProps) {
+  return mode === "editar" ? (
+    <NotasForm draft={draft} />
+  ) : (
+    <NotasView draft={draft} />
+  );
 }
