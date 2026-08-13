@@ -4,6 +4,7 @@ import type {
   MediaAuthorization,
   MediaPhoto,
   Project,
+  ProjectMaterial,
   ProjectVideo,
   StoredImage,
 } from "../types/project";
@@ -18,6 +19,10 @@ export function makeEmptyMediaPhoto(): MediaPhoto {
 
 export function makeEmptyVideo(): ProjectVideo {
   return { url: "", caption: "", authorization: null };
+}
+
+export function makeEmptyMaterial(): ProjectMaterial {
+  return { kind: "text", scope: "", authorization: null };
 }
 
 export function photoSlots(
@@ -36,6 +41,10 @@ export function hasPhotoContent(photo: MediaPhoto): boolean {
 
 export function hasVideoContent(video: ProjectVideo): boolean {
   return video.url.trim() !== "";
+}
+
+export function hasMaterialContent(material: ProjectMaterial): boolean {
+  return Boolean(material.dataUrl) || Boolean(material.link?.trim());
 }
 
 export function makeMediaAuthorization(
@@ -68,7 +77,7 @@ export function isMediaAuthorized(item: MediaAuthorizable): boolean {
 
 export type MediaScope = Pick<
   Project,
-  "sensitiveCountry" | "mediaPhotos" | "mediaVideos"
+  "sensitiveCountry" | "mediaPhotos" | "mediaVideos" | "materials"
 >;
 
 export function canShareMedia(
@@ -84,6 +93,7 @@ export function canShareMedia(
 export interface ShareableMedia {
   photos: MediaPhoto[];
   videos: ProjectVideo[];
+  materials: ProjectMaterial[];
 }
 
 export function getShareableMedia(
@@ -96,6 +106,11 @@ export function getShareableMedia(
     ),
     videos: (project.mediaVideos ?? []).filter(
       (video) => hasVideoContent(video) && canShareMedia(project, video, audience),
+    ),
+    materials: project.materials.filter(
+      (material) =>
+        hasMaterialContent(material) &&
+        canShareMedia(project, material, audience),
     ),
   };
 }
