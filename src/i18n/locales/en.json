@@ -181,7 +181,7 @@
   "mat_invalid_type": "The file does not match the material type — check the selected type",
   "materials_empty": "No translated material recorded yet — the already-translated audio and text land here, each with its type and scope.",
   "notes_empty": "No notes yet — this is the free space for what the numbers do not capture, in any language.",
-  "notes_internal_hint": "Notes are internal by default — they stay with coordination, out of any export or sharing.",
+  "notes_internal_hint": "Notes are internal by default — they stay with coordination. Nothing exports or shares notes today; when outputs arrive, in wave 2, the rule holds server-side.",
   "sec_financial": "Financial Resources",
   "sec_media": "Photos / Videos",
   "f_media_intro": "Share field-work moments — team photos, the translated material, dedication events, trainings.",
