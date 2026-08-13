@@ -7,6 +7,7 @@ import type {
   ProjectMaterial,
   ProjectVideo,
   StoredImage,
+  StoredMaterialFile,
 } from "../types/project";
 
 export interface MediaAuthorizable {
@@ -69,6 +70,25 @@ export function prunePhotoAuthorization(photo: MediaPhoto): MediaPhoto {
 
 export function withVideoUrl(video: ProjectVideo, url: string): ProjectVideo {
   return { ...video, url, authorization: null };
+}
+
+export function withMaterialFile(
+  material: ProjectMaterial,
+  file: StoredMaterialFile,
+): ProjectMaterial {
+  return {
+    ...material,
+    ...file,
+    durationSeconds: undefined,
+    authorization: null,
+  };
+}
+
+export function withMaterialLink(
+  material: ProjectMaterial,
+  link: string,
+): ProjectMaterial {
+  return { ...material, link, authorization: null };
 }
 
 export function isMediaAuthorized(item: MediaAuthorizable): boolean {

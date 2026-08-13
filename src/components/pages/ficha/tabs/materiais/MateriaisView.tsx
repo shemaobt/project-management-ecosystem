@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { MATERIAL_KIND_LABEL_KEYS } from "../../../../../constants/project";
 import { Badge } from "../../../../ui";
+import { EmptyHint } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { MaterialStatus } from "./MaterialStatus";
 
@@ -13,11 +14,7 @@ export function MateriaisView({ draft }: MateriaisViewProps) {
   const materials = draft.values.materials ?? [];
 
   if (materials.length === 0) {
-    return (
-      <p className="rounded-md bg-muted px-4 py-3.5 font-serif text-small italic text-fg-muted">
-        {t("materials_empty")}
-      </p>
-    );
+    return <EmptyHint>{t("materials_empty")}</EmptyHint>;
   }
 
   return (

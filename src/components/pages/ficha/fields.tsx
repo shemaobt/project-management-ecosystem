@@ -188,6 +188,14 @@ export function TagRow({ values, tone = "accent" }: TagRowProps) {
   );
 }
 
+export function EmptyHint({ children }: { children: ReactNode }) {
+  return (
+    <p className="rounded-md bg-muted px-4 py-3.5 font-serif text-small italic text-fg-muted">
+      {children}
+    </p>
+  );
+}
+
 export function NotesPanel({ children }: { children: ReactNode }) {
   return (
     <div className="rounded-md border-l-[3px] border-areia bg-muted px-5 py-4 font-serif text-small font-normal italic leading-[1.5] whitespace-pre-wrap text-fg">

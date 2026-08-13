@@ -21,6 +21,8 @@ import {
   photoSlots,
   prunePhotoAuthorization,
   videoEmbedUrl,
+  withMaterialFile,
+  withMaterialLink,
   withPhotoImage,
   withVideoUrl,
 } from "../media";
@@ -228,6 +230,43 @@ describe("authorization evidence", () => {
     const next = withVideoUrl(decided, "https://vimeo.com/123");
     expect(next.authorization).toBeNull();
     expect(next.caption).toBe(decided.caption);
+  });
+
+  it("replacing a material's file resets the decision and the probed duration", () => {
+    const decided = {
+      ...makeEmptyMaterial(),
+      kind: "audio" as const,
+      scope: "Evangelho de João",
+      fileName: "antigo.mp3",
+      fileSize: 100,
+      dataUrl: "data:audio/mpeg;base64,old",
+      format: "MP3",
+      durationSeconds: 272,
+      authorization: GRANTED,
+    };
+    const replaced = withMaterialFile(decided, {
+      fileName: "novo.wav",
+      fileSize: 200,
+      dataUrl: "data:audio/wav;base64,new",
+      format: "WAV",
+    });
+    expect(replaced.authorization).toBeNull();
+    expect(replaced.durationSeconds).toBeUndefined();
+    expect(replaced.format).toBe("WAV");
+    expect(replaced.scope).toBe(decided.scope);
+  });
+
+  it("changing a material's link resets the decision and keeps the file", () => {
+    const decided = {
+      ...makeEmptyMaterial(),
+      fileName: "rute.txt",
+      dataUrl: "data:text/plain;base64,abc",
+      authorization: GRANTED,
+    };
+    const next = withMaterialLink(decided, "https://drive.example/rute");
+    expect(next.authorization).toBeNull();
+    expect(next.link).toBe("https://drive.example/rute");
+    expect(next.fileName).toBe("rute.txt");
   });
 });
 

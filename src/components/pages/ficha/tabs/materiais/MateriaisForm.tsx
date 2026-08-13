@@ -13,7 +13,11 @@ import type {
   MaterialKind,
   ProjectMaterial,
 } from "../../../../../types/project";
-import { makeEmptyMaterial } from "../../../../../utils/media";
+import {
+  makeEmptyMaterial,
+  withMaterialFile,
+  withMaterialLink,
+} from "../../../../../utils/media";
 import { RemoveRowButton } from "../../../../common/RemoveRowButton";
 import {
   Button,
@@ -40,10 +44,13 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
     transform: (current: ProjectMaterial[]) => ProjectMaterial[],
   ) => draft.update("materials", (current) => transform(current ?? []));
 
-  const patchMaterial = (index: number, patch: Partial<ProjectMaterial>) =>
+  const patchMaterial = (
+    index: number,
+    transform: (material: ProjectMaterial) => ProjectMaterial,
+  ) =>
     updateMaterials((current) =>
       current.map((material, i) =>
-        i === index ? { ...material, ...patch } : material,
+        i === index ? transform(material) : material,
       ),
     );
 
@@ -59,11 +66,14 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
     }
     try {
       const stored = await storeMaterialFile(file);
-      patchMaterial(index, { ...stored, durationSeconds: undefined });
+      patchMaterial(index, (current) => withMaterialFile(current, stored));
       if (kind === "audio") {
         const duration = await readAudioDuration(stored.dataUrl);
         if (duration !== null) {
-          patchMaterial(index, { durationSeconds: duration });
+          patchMaterial(index, (current) => ({
+            ...current,
+            durationSeconds: duration,
+          }));
         }
       }
     } catch {
@@ -88,7 +98,9 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
                 value={material.kind}
                 onValueChange={(next) => {
                   const kind = MATERIAL_KINDS.find((entry) => entry === next);
-                  if (kind) patchMaterial(index, { kind });
+                  if (kind) {
+                    patchMaterial(index, (current) => ({ ...current, kind }));
+                  }
                 }}
               >
                 <SelectTrigger aria-label={t("mat_kind_label")}>
@@ -107,7 +119,10 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
                 placeholder={t("mat_scope")}
                 value={material.scope}
                 onChange={(event) =>
-                  patchMaterial(index, { scope: event.target.value })
+                  patchMaterial(index, (current) => ({
+                    ...current,
+                    scope: event.target.value,
+                  }))
                 }
               />
               <RemoveRowButton
@@ -167,7 +182,9 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
                 className="min-w-45 flex-1"
                 value={material.link ?? ""}
                 onChange={(event) =>
-                  patchMaterial(index, { link: event.target.value })
+                  patchMaterial(index, (current) =>
+                    withMaterialLink(current, event.target.value),
+                  )
                 }
               />
               {material.link?.trim() && (
