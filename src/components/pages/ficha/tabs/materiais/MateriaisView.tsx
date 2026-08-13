@@ -21,7 +21,7 @@ export function MateriaisView({ draft }: MateriaisViewProps) {
     <div className="flex flex-col gap-2">
       {materials.map((material, index) => (
         <div
-          key={index}
+          key={material.id ?? index}
           className="flex flex-wrap items-center gap-3 rounded-md bg-muted px-3.5 py-2.5"
         >
           <Badge tone="accent">{t(MATERIAL_KIND_LABEL_KEYS[material.kind])}</Badge>

@@ -5,6 +5,7 @@ import type {
   MediaAudience,
   MediaAuthorization,
   MediaPhoto,
+  ProjectMaterial,
   ProjectVideo,
 } from "../../types/project";
 import {
@@ -18,6 +19,7 @@ import {
   makeEmptyMediaPhoto,
   makeEmptyVideo,
   makeMediaAuthorization,
+  materialRowMatcher,
   photoSlots,
   prunePhotoAuthorization,
   videoEmbedUrl,
@@ -270,6 +272,46 @@ describe("authorization evidence", () => {
   });
 });
 
+describe("materialRowMatcher", () => {
+  const stored = {
+    fileName: "joao.mp3",
+    fileSize: 2048,
+    dataUrl: "data:audio/mpeg;base64,abc",
+    format: "MP3",
+  };
+
+  it("an in-flight import still lands on its row after the row above is removed", () => {
+    const first = { ...makeEmptyMaterial(), scope: "Rute" };
+    const second = { ...makeEmptyMaterial(), kind: "audio" as const, scope: "João" };
+    const matches = materialRowMatcher(second, 1);
+    const afterRemoval = [second];
+    const patched = afterRemoval.map((material, i) =>
+      matches(material, i) ? withMaterialFile(material, stored) : material,
+    );
+    expect(patched[0].fileName).toBe("joao.mp3");
+    expect(patched[0].scope).toBe("João");
+    expect(first.fileName).toBeUndefined();
+  });
+
+  it("never patches a different row that inherited the stale position", () => {
+    const removed = { ...makeEmptyMaterial(), kind: "audio" as const, scope: "João" };
+    const survivor = { ...makeEmptyMaterial(), scope: "Rute" };
+    const matches = materialRowMatcher(removed, 0);
+    const patched = [survivor].map((material, i) =>
+      matches(material, i) ? withMaterialFile(material, stored) : material,
+    );
+    expect(patched[0]).toBe(survivor);
+  });
+
+  it("falls back to the position only for a row without id", () => {
+    const legacy: ProjectMaterial = { kind: "text", scope: "Jonas" };
+    const other = { ...makeEmptyMaterial(), scope: "Rute" };
+    const matches = materialRowMatcher(legacy, 1);
+    expect(matches(other, 0)).toBe(false);
+    expect(matches(legacy, 1)).toBe(true);
+  });
+});
+
 describe("content predicates and slots", () => {
   it("an item exists when it has an image or a caption", () => {
     expect(hasPhotoContent(makeEmptyMediaPhoto())).toBe(false);
@@ -291,11 +333,14 @@ describe("content predicates and slots", () => {
   });
 
   it("a material carries an artifact when it has a file or a link — scope alone is a description", () => {
-    expect(makeEmptyMaterial()).toEqual({
+    const empty = makeEmptyMaterial();
+    expect(empty).toMatchObject({
       kind: "text",
       scope: "",
       authorization: null,
     });
+    expect(empty.id).toBeTruthy();
+    expect(makeEmptyMaterial().id).not.toBe(empty.id);
     expect(hasMaterialContent(makeEmptyMaterial())).toBe(false);
     expect(
       hasMaterialContent({ ...makeEmptyMaterial(), scope: "Evangelho de João" }),

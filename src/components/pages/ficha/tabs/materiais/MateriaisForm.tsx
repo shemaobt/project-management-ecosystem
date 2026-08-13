@@ -9,12 +9,10 @@ import {
   readAudioDuration,
   storeMaterialFile,
 } from "../../../../../services/mediaStorage";
-import type {
-  MaterialKind,
-  ProjectMaterial,
-} from "../../../../../types/project";
+import type { ProjectMaterial } from "../../../../../types/project";
 import {
   makeEmptyMaterial,
+  materialRowMatcher,
   withMaterialFile,
   withMaterialLink,
 } from "../../../../../utils/media";
@@ -45,35 +43,51 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
   ) => draft.update("materials", (current) => transform(current ?? []));
 
   const patchMaterial = (
+    target: ProjectMaterial,
     index: number,
     transform: (material: ProjectMaterial) => ProjectMaterial,
-  ) =>
+  ) => {
+    const matches = materialRowMatcher(target, index);
     updateMaterials((current) =>
       current.map((material, i) =>
-        i === index ? transform(material) : material,
+        matches(material, i) ? transform(material) : material,
       ),
     );
+  };
+
+  const removeMaterial = (target: ProjectMaterial, index: number) => {
+    const matches = materialRowMatcher(target, index);
+    updateMaterials((current) =>
+      current.filter((material, i) => !matches(material, i)),
+    );
+  };
 
   const importFile = async (
+    target: ProjectMaterial,
     index: number,
-    kind: MaterialKind,
     file: File | undefined,
   ) => {
     if (!file) return;
-    if (!isAcceptedMaterialFile(kind, file)) {
+    if (!isAcceptedMaterialFile(target.kind, file)) {
       toast.error(t("mat_invalid_type"));
       return;
     }
     try {
+      const previousDataUrl = target.dataUrl;
       const stored = await storeMaterialFile(file);
-      patchMaterial(index, (current) => withMaterialFile(current, stored));
-      if (kind === "audio") {
+      patchMaterial(target, index, (current) =>
+        current.dataUrl === previousDataUrl
+          ? withMaterialFile(current, stored)
+          : current,
+      );
+      if (target.kind === "audio") {
         const duration = await readAudioDuration(stored.dataUrl);
         if (duration !== null) {
-          patchMaterial(index, (current) => ({
-            ...current,
-            durationSeconds: duration,
-          }));
+          patchMaterial(target, index, (current) =>
+            current.dataUrl === stored.dataUrl
+              ? { ...current, durationSeconds: duration }
+              : current,
+          );
         }
       }
     } catch {
@@ -90,7 +104,7 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
       <div className="flex flex-col gap-2.5">
         {materials.map((material, index) => (
           <div
-            key={index}
+            key={material.id ?? index}
             className="flex flex-col gap-2 rounded-md border border-line bg-elevated p-3.5"
           >
             <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[168px_minmax(0,1fr)_28px]">
@@ -99,7 +113,10 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
                 onValueChange={(next) => {
                   const kind = MATERIAL_KINDS.find((entry) => entry === next);
                   if (kind) {
-                    patchMaterial(index, (current) => ({ ...current, kind }));
+                    patchMaterial(material, index, (current) => ({
+                      ...current,
+                      kind,
+                    }));
                   }
                 }}
               >
@@ -119,7 +136,7 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
                 placeholder={t("mat_scope")}
                 value={material.scope}
                 onChange={(event) =>
-                  patchMaterial(index, (current) => ({
+                  patchMaterial(material, index, (current) => ({
                     ...current,
                     scope: event.target.value,
                   }))
@@ -127,11 +144,7 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
               />
               <RemoveRowButton
                 label={`${t("row_remove")} · ${t(MATERIAL_KIND_LABEL_KEYS[material.kind])} ${index + 1}`}
-                onClick={() =>
-                  updateMaterials((current) =>
-                    current.filter((_, i) => i !== index),
-                  )
-                }
+                onClick={() => removeMaterial(material, index)}
               />
             </div>
 
@@ -149,8 +162,8 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
                     className="sr-only"
                     onChange={(event) => {
                       void importFile(
+                        material,
                         index,
-                        material.kind,
                         event.target.files?.[0],
                       );
                       event.target.value = "";
@@ -182,7 +195,7 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
                 className="min-w-45 flex-1"
                 value={material.link ?? ""}
                 onChange={(event) =>
-                  patchMaterial(index, (current) =>
+                  patchMaterial(material, index, (current) =>
                     withMaterialLink(current, event.target.value),
                   )
                 }

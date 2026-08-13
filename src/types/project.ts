@@ -188,6 +188,7 @@ export interface ProjectPhase {
 }
 
 export interface ProjectMaterial {
+  id?: string;
   kind: MaterialKind;
   scope: string;
   fileName?: string;

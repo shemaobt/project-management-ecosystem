@@ -23,7 +23,20 @@ export function makeEmptyVideo(): ProjectVideo {
 }
 
 export function makeEmptyMaterial(): ProjectMaterial {
-  return { kind: "text", scope: "", authorization: null };
+  return {
+    id: crypto.randomUUID(),
+    kind: "text",
+    scope: "",
+    authorization: null,
+  };
+}
+
+export function materialRowMatcher(
+  target: Pick<ProjectMaterial, "id">,
+  index: number,
+): (material: ProjectMaterial, i: number) => boolean {
+  return (material, i) =>
+    target.id !== undefined ? material.id === target.id : i === index;
 }
 
 export function photoSlots(
