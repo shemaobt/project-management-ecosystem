@@ -5,6 +5,7 @@ import { EquipePage } from "./components/pages/equipe/EquipePage";
 import { EtenPage } from "./components/pages/eten/EtenPage";
 import { FichaPage } from "./components/pages/ficha";
 import { FormulariosPage } from "./components/pages/formularios/FormulariosPage";
+import { InicioPage } from "./components/pages/inicio";
 import { IntercessoresPage } from "./components/pages/intercessores/IntercessoresPage";
 import { OracaoPage } from "./components/pages/oracao/OracaoPage";
 import { ProjetosPage } from "./components/pages/projetos/ProjetosPage";
@@ -20,7 +21,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route element={<AppShell />}>
-              <Route index element={<Navigate to="/projetos" replace />} />
+              <Route index element={<InicioPage />} />
               <Route path="projetos" element={<ProjetosPage />} />
               <Route path="ficha/:recordId" element={<FichaPage />} />
               <Route path="ficha/:recordId/:tab" element={<FichaPage />} />

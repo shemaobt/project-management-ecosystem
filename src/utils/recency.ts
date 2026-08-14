@@ -51,6 +51,18 @@ export function getStaleStatus(
   return "em-dia";
 }
 
+export function isNoNews(status: StaleStatus | null): boolean {
+  return status === "atencao" || status === "critico";
+}
+
+export function staleFilterMatches(
+  status: StaleStatus | null,
+  filter: StaleStatus,
+): boolean {
+  if (filter === "atencao") return isNoNews(status);
+  return status === filter;
+}
+
 export function getDeadlineInfo(
   deadline: string,
   now: Date = new Date(),
