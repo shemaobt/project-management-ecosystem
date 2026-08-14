@@ -304,6 +304,7 @@ export interface Project {
   healthPhysical?: HealthRating;
   healthHistory?: HealthAssessment[];
   prayerVisibility?: PrayerVisibility;
+  prayerRequestsAudio?: string;
   pastoralInterventionWhen?: string;
   location2?: string;
   portion?: string;

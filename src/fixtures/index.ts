@@ -8,7 +8,7 @@ import { buildEtenReport, loadEtenCredits } from "./eten";
 import { loadContinentOutlines } from "./geo";
 import { loadIntercessors } from "./intercessors";
 import { loadMeetingLog, loadMeetings } from "./meetings";
-import { buildPrayerRequests } from "./prayer";
+import { buildPrayerRequests } from "../utils/prayer";
 import { loadProject, loadProjects } from "./projects";
 import { loadRegions } from "./regions";
 
