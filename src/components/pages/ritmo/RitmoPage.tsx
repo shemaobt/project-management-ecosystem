@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   GLOBAL_SCOPE_LABEL_KEY,
@@ -40,6 +40,23 @@ interface Editing {
   scope: RhythmScope;
 }
 
+type Translate = ReturnType<typeof useTranslation>["t"];
+
+function periodLabel(
+  cadence: MeetingCadence,
+  date: CalendarDate,
+  t: Translate,
+): string {
+  if (cadence === "annual") return String(date.year);
+  if (cadence === "quarterly") {
+    return t("ritmo_period_quarter", {
+      quarter: quarterOf(date.month),
+      year: date.year,
+    });
+  }
+  return `${formatMonthName(date.year, date.month)} · ${date.year}`;
+}
+
 export function RitmoPage() {
   const { t } = useTranslation();
   const projects = useProjectsStore((state) => state.projects);
@@ -62,24 +79,42 @@ export function RitmoPage() {
     void hydrateRhythm();
   }, [hydrateProjects, hydrateRegions, hydrateRhythm]);
 
-  const now = new Date();
-  const today = toCalendarDate(now);
+  const todayIso = toLocalIsoDate();
+  const today = toCalendarDate(new Date(`${todayIso}T00:00:00`));
 
-  const periodLabel = (cadence: MeetingCadence, date: CalendarDate): string => {
-    if (cadence === "annual") return String(date.year);
-    if (cadence === "quarterly") {
-      return t("ritmo_period_quarter", {
-        quarter: quarterOf(date.month),
-        year: date.year,
-      });
-    }
-    return `${formatMonthName(date.year, date.month)} · ${date.year}`;
-  };
+  const agenda = useMemo(() => {
+    const now = new Date(`${todayIso}T00:00:00`);
+    const reference = toCalendarDate(now);
+    return RITMO_MEETINGS.map((meeting) => ({
+      meeting,
+      rows: scopesFor(meeting, projects, GLOBAL_SCOPE_LABEL_KEY).map((scope) => {
+        const status = meetingStatus(log, meeting, scope.key, now);
+        return {
+          scope,
+          status,
+          nextDue: formatDate(
+            formatIsoDate(nextOccurrence(meeting, status, now)),
+          ),
+          periodLabel: periodLabel(meeting.cadence, reference, t),
+          readiness: meeting.readiness
+            ? meetingReadiness(
+                meeting.readiness,
+                meeting.cadence,
+                projects,
+                scope.key,
+                now,
+              )
+            : null,
+          participants: resolveMeetingParticipants(meeting, scope.key, regions),
+        };
+      }),
+    }));
+  }, [todayIso, projects, log, regions, t]);
 
   const editingKey = editing
     ? draftKey(editing.meeting.id, editing.scope.key)
     : "";
-  const draft = drafts[editingKey] ?? { date: toLocalIsoDate(now), notes: "" };
+  const draft = drafts[editingKey] ?? { date: todayIso, notes: "" };
 
   return (
     <section className="mx-auto max-w-(--container-reading) px-(--container-pad) pt-8 pb-20">
@@ -109,57 +144,35 @@ export function RitmoPage() {
       ) : null}
 
       {hydrated
-        ? RITMO_MEETINGS.map((meeting) => {
-        const scopes = scopesFor(meeting, projects, GLOBAL_SCOPE_LABEL_KEY);
-        return (
-          <MeetingCard key={meeting.id} meeting={meeting}>
-            {scopes.length === 0 ? (
-              <p className="text-micro leading-[1.45] text-fg-subtle">
-                {t("ritmo_no_projects")}
-              </p>
-            ) : (
-              scopes.map((scope) => {
-                const status = meetingStatus(log, meeting, scope.key, now);
-                return (
+        ? agenda.map(({ meeting, rows }) => (
+            <MeetingCard key={meeting.id} meeting={meeting}>
+              {rows.length === 0 ? (
+                <p className="text-micro leading-[1.45] text-fg-subtle">
+                  {t("ritmo_no_projects")}
+                </p>
+              ) : (
+                rows.map((row) => (
                   <MeetingRow
-                    key={scope.key}
-                    scope={scope}
-                    status={status}
-                    nextDue={formatDate(
-                      formatIsoDate(nextOccurrence(meeting, status, now)),
-                    )}
-                    periodLabel={periodLabel(meeting.cadence, today)}
-                    readiness={
-                      meeting.readiness
-                        ? meetingReadiness(
-                            meeting.readiness,
-                            meeting.cadence,
-                            projects,
-                            scope.key,
-                            now,
-                          )
-                        : null
-                    }
-                    participants={resolveMeetingParticipants(
-                      meeting,
-                      scope.key,
-                      regions,
-                    )}
-                    onLog={() => setEditing({ meeting, scope })}
+                    key={row.scope.key}
+                    scope={row.scope}
+                    status={row.status}
+                    nextDue={row.nextDue}
+                    periodLabel={row.periodLabel}
+                    readiness={row.readiness}
+                    participants={row.participants}
+                    onLog={() => setEditing({ meeting, scope: row.scope })}
                     onUndo={() =>
                       undoMeeting(
                         meeting.id,
-                        scope.key,
+                        row.scope.key,
                         periodKey(meeting.cadence, today),
                       )
                     }
                   />
-                );
-              })
-            )}
-          </MeetingCard>
-        );
-          })
+                ))
+              )}
+            </MeetingCard>
+          ))
         : null}
 
       {editing ? (

@@ -14,10 +14,10 @@ import {
   MEETING_FEED_LABEL_KEYS,
 } from "../../../constants/meetings";
 import { surfaceOutlined } from "../../../styles";
-import type { MeetingDefinition } from "../../../types/meeting";
+import type { MeetingDefinition, MeetingIcon } from "../../../types/meeting";
 import { cn } from "../../../utils/cn";
 
-const MEETING_ICONS: Record<string, LucideIcon> = {
+const MEETING_ICONS: Record<MeetingIcon, LucideIcon> = {
   pulse: Activity,
   prayer: HandHeart,
   heart: Heart,
@@ -32,7 +32,7 @@ export interface MeetingCardProps {
 
 export function MeetingCard({ meeting, children }: MeetingCardProps) {
   const { t } = useTranslation();
-  const Icon = MEETING_ICONS[meeting.icon] ?? Users;
+  const Icon = MEETING_ICONS[meeting.icon];
 
   return (
     <section className={cn("mb-4.5 rounded-lg p-6 shadow-card", surfaceOutlined)}>

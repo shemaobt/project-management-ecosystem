@@ -10,6 +10,8 @@ export type MeetingId =
 
 export type MeetingCadence = "monthly" | "quarterly" | "annual";
 
+export type MeetingIcon = "pulse" | "prayer" | "heart" | "users" | "spark";
+
 export type MeetingScope = "region" | "global";
 
 export type MeetingAttendee =
@@ -37,7 +39,7 @@ export interface MeetingDefinition {
   id: MeetingId;
   cadence: MeetingCadence;
   scope: MeetingScope;
-  icon: string;
+  icon: MeetingIcon;
   roles: MeetingAttendee[];
   feeds: MeetingFeed;
   readiness?: MeetingReadiness;
