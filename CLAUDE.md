@@ -276,7 +276,7 @@ FE-05 shipped **reads only** — deliberately, since no screen writes yet. This 
 
 ## 5. Product areas (the six tabs)
 
-The app shell is: **TopBar → Hero (6 indicators) → TopNav (6 areas) → area content**, exactly as in `DS-PROJECT/app.jsx`.
+The app shell is: **TopBar → TopNav (6 areas) → area content**. The prototype renders the Hero with the 6 indicators between TopBar and TopNav on every tab (`app.jsx:1039`); the product gives it the first screen instead — the **Início** page at `/`, with the Atlas below. Decided in FE-30, recorded in §5.8; an earlier revision of this line repeated the prototype's per-tab placement and is superseded.
 
 | Tab | PT / EN | Prototype file | Wave 1 | Wave 2 |
 |---|---|---|---|---|
@@ -287,7 +287,7 @@ The app shell is: **TopBar → Hero (6 indicators) → TopNav (6 areas) → area
 | Formulários | Forms | `forms-hub.jsx`, `health-modal.jsx`, `modals.jsx` | FE-35, FE-37 | BE-12, INT-09 |
 | Equipe | Team | `equipe.jsx` | FE-36 | BE-13, INT-10 |
 
-Plus the project record (`modals.jsx`) as FE-20…28 / BE-06 / INT-03, and Início (hero + indicators) as FE-30.
+Plus the project record (`modals.jsx`) as FE-20…28 / BE-06 / INT-03, and Início (hero + indicators, §5.8) as FE-30.
 
 ### 5.1 Projetos — the living map
 
@@ -412,6 +412,18 @@ Annual credit report: yearly snapshot, credit calculation from the **delta** bet
 Regions: `south-america`, `north-america`, `africa`, `asia`, `oceania` (Pacífico), `europe`, `other` (América Central).
 
 **Everything else consumes this by reference** — the project record's Team tab, the sidebar's *Time por região*, and the Rhythm cards. Never duplicate role-holder names into another model.
+
+### 5.8 Início — the first screen
+
+Built in FE-30 ([OBT-372](https://linear.app/shema-obt/issue/OBT-372)), 14/aug/2026 — Levi Gomes. The index route (`/`) renders `src/components/pages/inicio/` — the greeting ("Vem ouvir." / "Assim na terra como no céu.", the שמע watermark as an `aria-hidden` literal, not an i18n key), the six-indicator band, and FE-14's `Globe` below, by reference. The issue's Scope spelled the folder `HomePage/`; the PR #31 review pointed at the nine sibling folders all carrying the product's own lowercase names, and §11's vocabulary rule decided it — the scope names files, it does not override the repo's naming. Seven decisions:
+
+- **An indicator's count is, by construction, what its link returns.** `INDICATORS` in `src/utils/indicators.ts` is the single owner of the label ↔ filter ↔ destination relation: `indicatorCount` derives every number through `filterProjects` over the same `ViewState` that `indicatorHref` encodes, so the band cannot promise results the click does not deliver (§13's count rule). The click also applies the view through `filtersStore.applyState` — the same replacement a shared URL performs on landing. **"Bases" is the one non-project count (distinct `team` strings) and is not a link**: the list has no way to show 21 bases, and a number must not promise a list that does not exist — raised in the PR #31 review, 14/aug/2026, deviating deliberately from the DoD's "each indicator links through".
+- **An indicator's href carries the reader's current `sort` and `metaphor`** (`indicatorHref(spec, { sort, metaphor })`, fed from `prefsStore`), so the landing decode is a no-op on prefs. The deep link promises its *filter*, nothing else — but it reuses the shared-URL codec, whose contract is absence-means-default: encoded with defaults, one indicator click from Diário silently reset the reader's persisted view (`ProjetosPage` applies whatever `decodeView` resolves, and `prefsStore` persists it). The codec's semantics stay untouched — they are what makes a shared view reproduce on the receiver's machine. Blocking finding of the PR #31 review, 14/aug/2026.
+- **"Urgentes" is the `attention` preset** (`?presets=attention`) — the sidebar chip the product already names "Urgente". The prototype's hero formula (`critica` or overdue deadline, against a hardcoded `2026-05-14` at `app.jsx:62`) is not ported: the issue demands the click land on "the corresponding filtered list", and behaviour is where the issue wins (§2).
+- **"Em andamento" counts only `em-andamento`** and links `?status=em-andamento`. The prototype's hero also counted `final` under the same label; the label wins over the computation (§13), and the destination's own facet must show the number the band promised.
+- **"Sem notícias" is 60+ days — `atencao` ∪ `critico` — and the `stale=atencao` filter now means exactly that.** `isNoNews` / `staleFilterMatches` in `src/utils/recency.ts` own the reading; `filterProjects`'s stale predicate and facet counting go through them, so the option FE-12 shipped labeled "Sem notícias 60+ dias" finally matches its own label — before this the bucket was exact-match [60, 120) and the projects most out of contact were absent from the very filter named after them. `em-dia` and `critico` keep exact matching, and `getStaleStatus` itself is untouched (parity holds).
+- **A loading or failed indicator never renders as "0".** The band takes `projects | null`; null renders "—" with `loading` as the text channel. Zero is good news and renders as the real number in calm ink — the telha accent lights only when an accented count is above zero.
+- **§4.1.1 holds on the reading side**: the page reads `projectsStore`, hydrating once, never the fixture module directly. `InicioView` is the presentational seam the render tests exercise — a static render reads a zustand store's initial state, not its mutated one, so the store-wired `InicioPage` and the testable view are separate exports of the same file.
 
 ---
 
