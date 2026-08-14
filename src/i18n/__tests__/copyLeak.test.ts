@@ -182,7 +182,6 @@ const ROUTES: [string, () => ReactElement][] = [
 ];
 
 const AREA_LEADS: [string, () => ReactElement, string][] = [
-  ["/ritmo", RitmoPage, en.ritmo_lead],
   ["/oracao", OracaoPage, en.oracao_lead],
   ["/eten", EtenPage, en.eten_lead],
   ["/formularios", FormulariosPage, en.forms_lead],
@@ -306,6 +305,14 @@ describe("the shell rendered with the language set to EN", () => {
     }
   });
 
+  it("stops calling Ritmo a placeholder once it carries the cascade", () => {
+    const rhythm = render(RitmoPage);
+    expect(rhythm).toContain(en.ritmo_lead);
+    expect(rhythm).toContain(en.ritmo_flow_title);
+    expect(rhythm).toContain(en.ritmo_m1_title);
+    expect(rhythm).not.toContain(`${en.ritmo_lead} ${en.empty_soon}`);
+  });
+
   it("keeps the intercessors link on the prayer placeholder", () => {
     expect(render(OracaoPage)).toContain(en.nav_intercessores);
   });
@@ -331,9 +338,8 @@ describe("the shell rendered with the language set to EN", () => {
   it("returns to Portuguese chrome when the language goes back", async () => {
     await i18n.changeLanguage("pt");
     expect(render(TopNav)).toContain(ptBR.nav_areas);
-    expect(render(RitmoPage)).toContain(
-      `${ptBR.ritmo_lead} ${ptBR.empty_soon}`,
-    );
+    expect(render(RitmoPage)).toContain(ptBR.ritmo_lead);
+    expect(render(RitmoPage)).toContain(ptBR.ritmo_meetings_title);
     await i18n.changeLanguage("en");
   });
 });

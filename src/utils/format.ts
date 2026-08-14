@@ -31,6 +31,17 @@ export function formatDayMonth(date: string, locale = getActiveLocale()): string
   });
 }
 
+export function formatMonthName(
+  year: number,
+  month: number,
+  locale = getActiveLocale(),
+): string {
+  const name = new Date(year, month - 1, 1).toLocaleDateString(locale, {
+    month: "long",
+  });
+  return `${name.charAt(0).toLocaleUpperCase(locale)}${name.slice(1)}`;
+}
+
 export function formatNumber(
   value: number,
   locale = getActiveLocale(),
