@@ -9,7 +9,7 @@ export {
   cardVariants,
 } from "./Card";
 export { Checkbox, CheckboxField } from "./Checkbox";
-export { Chip } from "./Chip";
+export { Chip, ChipRadio } from "./Chip";
 export {
   Dialog,
   DialogBody,

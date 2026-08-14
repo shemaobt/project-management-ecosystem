@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { RegionKey } from "../../../types/region";
 import type { PrayerRegionGroup } from "../../../utils/prayer";
-import { RadioButton, RadioGroup } from "../../ui";
+import { ChipRadio, RadioGroup } from "../../ui";
 
 export type ContinentFilterValue = RegionKey | "all";
 
@@ -13,12 +13,6 @@ export interface ContinentFilterProps {
   value: ContinentFilterValue;
   onChange: (value: ContinentFilterValue) => void;
 }
-
-const chip =
-  "group inline-flex items-center gap-1.75 rounded-pill border border-line bg-elevated px-3.5 py-2.25 text-[13px] leading-none font-semibold text-fg data-[state=checked]:border-telha data-[state=checked]:bg-telha data-[state=checked]:text-on-brand";
-
-const chipCount =
-  "text-[11px] font-bold text-fg-subtle group-data-[state=checked]:text-on-brand/80";
 
 export function ContinentFilter({
   groups,
@@ -39,14 +33,14 @@ export function ContinentFilter({
       }}
       className="mb-5 gap-2"
     >
-      <RadioButton value={ALL_CONTINENTS} className={chip}>
-        {t("oracao_all")} <span className={chipCount}>{total}</span>
-      </RadioButton>
+      <ChipRadio value={ALL_CONTINENTS} label={t("oracao_all")} count={total} />
       {groups.map((group) => (
-        <RadioButton key={group.region} value={group.region} className={chip}>
-          {t(group.labelKey)}{" "}
-          <span className={chipCount}>{group.requests.length}</span>
-        </RadioButton>
+        <ChipRadio
+          key={group.region}
+          value={group.region}
+          label={t(group.labelKey)}
+          count={group.requests.length}
+        />
       ))}
     </RadioGroup>
   );
