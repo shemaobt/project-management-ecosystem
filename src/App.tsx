@@ -7,7 +7,7 @@ import { FichaPage } from "./components/pages/ficha";
 import { FormulariosPage } from "./components/pages/formularios/FormulariosPage";
 import { InicioPage } from "./components/pages/inicio";
 import { IntercessoresPage } from "./components/pages/intercessores/IntercessoresPage";
-import { OracaoPage } from "./components/pages/oracao/OracaoPage";
+import { OracaoPage } from "./components/pages/oracao";
 import { ProjetosPage } from "./components/pages/projetos/ProjetosPage";
 import { RitmoPage } from "./components/pages/ritmo/RitmoPage";
 import { Toaster } from "./components/ui";

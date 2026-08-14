@@ -1,3 +1,4 @@
+import type { PrayerSource } from "../types/prayer";
 import type { PrayerVisibility } from "../types/project";
 
 export const PRAYER_VISIBILITIES = ["coordenacao", "rede"] as const;
@@ -17,3 +18,8 @@ export const PRAYER_VISIBILITY_HINT_KEYS: Record<PrayerVisibility, string> = {
 export function isPrayerVisibility(value: string): value is PrayerVisibility {
   return (PRAYER_VISIBILITIES as readonly string[]).includes(value);
 }
+
+export const PRAYER_SOURCE_LABEL_KEYS: Record<PrayerSource, string> = {
+  Formulário: "oracao_source_form",
+  Necessidade: "oracao_source_need",
+};

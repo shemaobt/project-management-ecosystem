@@ -9,7 +9,9 @@ export interface PrayerRequest {
   base: string;
   country: string;
   region: RegionKey;
+  locationWithheld: boolean;
   text: string;
+  audioUrl?: string;
   source: PrayerSource;
   answered: boolean;
   date: string;
