@@ -5,7 +5,7 @@ import type { ProjectStatus } from "../../types/project";
 import type { RegionKey } from "../../types/region";
 import { reachesPrayerWall } from "../../utils/prayer";
 import { createEmptyProject } from "../blank";
-import { buildEtenReport } from "../eten";
+import { buildEtenReport } from "../../utils/etenCredits";
 import { toIsoDate } from "../normalize";
 import { loadRawProjects } from "../projects";
 import {
@@ -283,15 +283,15 @@ describe("eten fixture", () => {
       progressHistory: [
         {
           date: "2024-12-31",
-          translatedUnits: 12,
-          communityCheckedUnits: 0,
-          approvedUnits: 0,
+          translatedUnits: 20,
+          communityCheckedUnits: 16,
+          approvedUnits: 12,
         },
         {
           date: "2025-12-31",
-          translatedUnits: 40,
-          communityCheckedUnits: 0,
-          approvedUnits: 0,
+          translatedUnits: 60,
+          communityCheckedUnits: 50,
+          approvedUnits: 40,
         },
       ],
     };
@@ -303,8 +303,9 @@ describe("eten fixture", () => {
       new Date("2026-05-14"),
     );
 
-    expect(report.snapshots[0].translatedUnitsAtPreviousYearEnd).toBe(12);
-    expect(report.snapshots[0].translatedUnitsAtYearEnd).toBe(40);
+    expect(report.snapshots[0].approvedAtStart).toBe(12);
+    expect(report.snapshots[0].approvedAtEnd).toBe(40);
+    expect(report.snapshots[0].advanced).toBe(28);
     expect(report.snapshots[0].credits).toBe(25);
     expect(report.snapshots[0].creditsSource).toBe("manual");
     expect(report.totalCredits).toBe(25);

@@ -11,9 +11,14 @@ export interface EtenYearSnapshot {
   projectId: string;
   languageName: string;
   country: string;
-  totalUnits: number;
-  translatedUnitsAtPreviousYearEnd: number;
-  translatedUnitsAtYearEnd: number;
+  scopeUnits: number;
+  approvedAtStart: number;
+  approvedAtEnd: number;
+  advanced: number;
+  concluded: boolean;
+  completedInYear: boolean;
+  undatedCompletion: boolean;
+  hasData: boolean;
   credits: number | null;
   creditsSource: EtenCreditSource | null;
 }
@@ -21,6 +26,8 @@ export interface EtenYearSnapshot {
 export interface EtenYearReport {
   year: number;
   listedProjects: number;
+  advancingProjects: number;
   totalCredits: number;
+  hasData: boolean;
   snapshots: EtenYearSnapshot[];
 }
