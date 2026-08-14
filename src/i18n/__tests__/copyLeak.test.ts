@@ -161,7 +161,7 @@ const { AuthProvider } = await import("../../contexts/AuthContext");
 const { RoleSwitcher } = await import("../../components/layout/RoleSwitcher");
 const { TopNav } = await import("../../components/layout/TopNav");
 const { RitmoPage } = await import("../../components/pages/ritmo/RitmoPage");
-const { OracaoPage } = await import("../../components/pages/oracao/OracaoPage");
+const { OracaoPage } = await import("../../components/pages/oracao");
 const { EtenPage } = await import("../../components/pages/eten/EtenPage");
 const { FormulariosPage } = await import(
   "../../components/pages/formularios/FormulariosPage"
@@ -182,7 +182,6 @@ const ROUTES: [string, () => ReactElement][] = [
 ];
 
 const AREA_LEADS: [string, () => ReactElement, string][] = [
-  ["/oracao", OracaoPage, en.oracao_lead],
   ["/eten", EtenPage, en.eten_lead],
   ["/formularios", FormulariosPage, en.forms_lead],
   ["/equipe", EquipePage, en.equipe_lead],
@@ -313,8 +312,10 @@ describe("the shell rendered with the language set to EN", () => {
     expect(rhythm).not.toContain(`${en.ritmo_lead} ${en.empty_soon}`);
   });
 
-  it("keeps the intercessors link on the prayer placeholder", () => {
-    expect(render(OracaoPage)).toContain(en.nav_intercessores);
+  it("keeps the intercessors link on the prayer wall", () => {
+    const chunks = render(OracaoPage);
+    expect(chunks).toContain(en.oracao_sub_rede);
+    expect(chunks).toContain(en.oracao_lead);
   });
 
   it("labels every session role chip from the catalogue", () => {

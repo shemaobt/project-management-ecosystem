@@ -20,7 +20,7 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
 const { projectsAPI, prayerAPI } = await import("../../../../fixtures");
-const { buildPrayerRequests } = await import("../../../../fixtures/prayer");
+const { buildPrayerRequests } = await import("../../../../utils/prayer");
 const { HEALTH_DIMENSIONS, HEALTH_DIMENSION_KEYS } = await import(
   "../../../../constants/health"
 );
