@@ -185,7 +185,6 @@ const AREA_LEADS: [string, () => ReactElement, string][] = [
   ["/eten", EtenPage, en.eten_lead],
   ["/formularios", FormulariosPage, en.forms_lead],
   ["/equipe", EquipePage, en.equipe_lead],
-  ["/oracao/intercessores", IntercessoresPage, en.int_lead],
 ];
 
 function markup(page: () => ReactElement): string {
@@ -316,6 +315,14 @@ describe("the shell rendered with the language set to EN", () => {
     const chunks = render(OracaoPage);
     expect(chunks).toContain(en.oracao_sub_rede);
     expect(chunks).toContain(en.oracao_lead);
+  });
+
+  it("stops calling the intercessor network a placeholder once it registers people", () => {
+    const network = render(IntercessoresPage);
+    expect(network).toContain(en.int_lead);
+    expect(network).toContain(en.int_name);
+    expect(network).toContain(en.int_privacy_note);
+    expect(network).not.toContain(`${en.int_lead} ${en.empty_soon}`);
   });
 
   it("labels every session role chip from the catalogue", () => {

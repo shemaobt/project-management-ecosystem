@@ -1,3 +1,4 @@
+import type { CountryCode } from "../constants/countries";
 import type { RegionKey } from "./region";
 
 export type PrayerSource = "Formulário" | "Necessidade";
@@ -17,9 +18,12 @@ export interface PrayerRequest {
   date: string;
 }
 
+export type ContactChannel = "phone" | "email";
+
 export interface Intercessor {
   id: string;
   name: string;
-  country: string;
+  country: CountryCode;
   contact: string;
+  addedAt: string;
 }
