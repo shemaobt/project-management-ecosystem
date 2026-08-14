@@ -101,11 +101,10 @@ export function holderName(team: RegionTeam, role: RoleKey): string | null {
   return team[role] || null;
 }
 
-export function getRegionTeam(
-  project: Located,
+export function getTeamOf(
+  key: RegionKey,
   regions: readonly Region[],
 ): RegionTeam {
-  const key = getRegion(project);
   return (
     regions.find((region) => region.key === key)?.team ?? {
       ...EMPTY_REGION_TEAM,
@@ -113,20 +112,34 @@ export function getRegionTeam(
   );
 }
 
-export interface ProjectRole {
+export function getRegionTeam(
+  project: Located,
+  regions: readonly Region[],
+): RegionTeam {
+  return getTeamOf(getRegion(project), regions);
+}
+
+export interface RoleHolder {
   key: RoleKey;
   labelKey: string;
   holder: string | null;
 }
 
-export function resolveProjectRoles(
-  project: Located,
+export function resolveRegionRoles(
+  key: RegionKey,
   regions: readonly Region[],
-): ProjectRole[] {
-  const team = getRegionTeam(project, regions);
+): RoleHolder[] {
+  const team = getTeamOf(key, regions);
   return ROLES.map((role) => ({
     key: role.key,
     labelKey: role.labelKey,
     holder: holderName(team, role.key),
   }));
+}
+
+export function resolveProjectRoles(
+  project: Located,
+  regions: readonly Region[],
+): RoleHolder[] {
+  return resolveRegionRoles(getRegion(project), regions);
 }

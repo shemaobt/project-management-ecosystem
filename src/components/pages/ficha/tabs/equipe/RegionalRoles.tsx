@@ -7,11 +7,11 @@ import {
   getRegion,
   getRegionLabelKey,
   resolveProjectRoles,
-  type ProjectRole,
+  type RoleHolder,
 } from "../../../../../utils/region";
 
 export interface RolesPanelProps {
-  roles: readonly ProjectRole[];
+  roles: readonly RoleHolder[];
   regionLabelKey: string;
 }
 
