@@ -27,3 +27,7 @@ export interface Region {
 }
 
 export type GeoOutline = Coordinates[];
+
+export type LocationDisplay =
+  | { withheld: false; location: string }
+  | { withheld: true; regionLabelKey: string };

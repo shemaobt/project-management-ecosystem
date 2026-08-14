@@ -345,7 +345,7 @@
   "oracao_audio": "Recorded prayer request",
   "eten_eyebrow": "Annual report · Resource Circle",
   "eten_title": "ETEN Credits",
-  "eten_lead": "ETEN funds most of Shema’s resources. Each year we report how many chapters each project advanced. Each chapter advanced is worth 1 credit — and the credit total corresponds to next cycle’s resources. Only projects on the ETEN list are counted.",
+  "eten_lead": "ETEN funds most of Shema's resources. Each year we report how far each project advanced. Each completed defined scope is worth 1 credit — and the credit total corresponds to the next cycle's resources. Only projects on the ETEN list are counted.",
   "eten_report_year": "Report year",
   "eten_total_credits": "Credits this year",
   "eten_credits_note": "1 completed scope = 1 credit",

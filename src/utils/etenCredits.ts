@@ -5,7 +5,7 @@ import type {
 } from "../types/eten";
 import type { Project } from "../types/project";
 import { parseIsoDate } from "./cadence";
-import { getCountry } from "./region";
+import { getCountryDisplay } from "./region";
 
 export const CREDIT_UNIT = "approvedUnits" as const;
 
@@ -69,7 +69,7 @@ export function accountFor(
   const account: Omit<CreditAccount, "credits" | "creditsSource"> = {
     approvedAtStart: start,
     approvedAtEnd: end,
-    advanced: Math.max(0, end - start),
+    advanced: end - start,
     scopeUnits,
     concluded,
     completedInYear,
@@ -102,7 +102,7 @@ export function buildEtenReport(
     .map((project) => ({
       projectId: project.id,
       languageName: project.languageName,
-      country: getCountry(project),
+      country: getCountryDisplay(project),
       ...accountFor(project, year, ledger, now),
     }))
     .sort(

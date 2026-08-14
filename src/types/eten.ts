@@ -1,3 +1,5 @@
+import type { LocationDisplay } from "./region";
+
 export type EtenCreditSource = "manual" | "calculated";
 
 export interface EtenCreditEntry {
@@ -10,7 +12,7 @@ export interface EtenCreditEntry {
 export interface EtenYearSnapshot {
   projectId: string;
   languageName: string;
-  country: string;
+  country: LocationDisplay;
   scopeUnits: number;
   approvedAtStart: number;
   approvedAtEnd: number;

@@ -9,6 +9,7 @@ import { ROLES } from "../constants/roles";
 import type { Coordinates, Project } from "../types/project";
 import { hasPlottableCoords } from "./identity";
 import type {
+  LocationDisplay,
   Region,
   RegionDefinition,
   RegionKey,
@@ -48,10 +49,6 @@ export function getMapPlacement(project: Project): MapPlacement {
   return { coords: project.coords, precision: "exact" };
 }
 
-export type LocationDisplay =
-  | { withheld: false; location: string }
-  | { withheld: true; regionLabelKey: string };
-
 export function getLocationDisplay(project: Project): LocationDisplay {
   if (project.sensitiveCountry) {
     return {
@@ -60,6 +57,13 @@ export function getLocationDisplay(project: Project): LocationDisplay {
     };
   }
   return { withheld: false, location: project.location };
+}
+
+export function getCountryDisplay(project: Project): LocationDisplay {
+  const display = getLocationDisplay(project);
+  return display.withheld
+    ? display
+    : { withheld: false, location: getCountry(project) };
 }
 
 export function orderRegionPanel(

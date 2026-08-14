@@ -59,6 +59,33 @@ describe("a fronteira do ano não depende do fuso de quem abre a tela", () => {
   });
 });
 
+describe("uma queda é anunciada, nunca silenciosa", () => {
+  it("aprovados que recuaram dão avanço negativo, não zero", () => {
+    const entries = [snapshot("2025-12-31", 40), snapshot("2026-12-31", 28)];
+    const account = accountFor(project(entries), 2026, [], NOW);
+
+    expect(account.advanced).toBe(-12);
+  });
+
+  it("recuar não se confunde com ficar parado", () => {
+    const parado = accountFor(
+      project([snapshot("2025-12-31", 40), snapshot("2026-12-31", 40)]),
+      2026,
+      [],
+      NOW,
+    );
+    const recuou = accountFor(
+      project([snapshot("2025-12-31", 40), snapshot("2026-12-31", 28)]),
+      2026,
+      [],
+      NOW,
+    );
+
+    expect(parado.advanced).toBe(0);
+    expect(recuou.advanced).toBeLessThan(parado.advanced);
+  });
+});
+
 describe("a unidade é capítulo aprovado, não traduzido", () => {
   it("ignora traduzidos e checados", () => {
     const entries = [snapshot("2026-12-31", 12)];

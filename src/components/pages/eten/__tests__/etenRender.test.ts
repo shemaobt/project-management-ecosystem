@@ -151,6 +151,47 @@ describe("a subtração aparece, não só o resultado", () => {
   });
 });
 
+describe("a tabela do ETEN é caminho de saída, e o §6.1 vale aqui", () => {
+  it("um país sensível não imprime o país verdadeiro na tabela", () => {
+    const markup = view([
+      listed({
+        id: "sensivel",
+        languageName: "Sigilosa",
+        location: "Egypt, Cairo",
+        sensitiveCountry: true,
+        progressHistory: [snapshot("2026-12-31", 10)],
+      }),
+    ]);
+
+    expect(markup).toContain("Sigilosa");
+    expect(markup).not.toContain("Egypt");
+    expect(markup).not.toContain("Cairo");
+    expect(markup).toContain(i18n.t("continent_africa"));
+  });
+
+  it("um país não sensível continua aparecendo", () => {
+    const markup = view([
+      listed({
+        location: "Brazil, Cuiabá",
+        progressHistory: [snapshot("2026-12-31", 10)],
+      }),
+    ]);
+    expect(markup).toContain("Brazil");
+  });
+});
+
+describe("uma queda aparece na tabela em vez de virar zero", () => {
+  it("o recuo se lê com sinal", () => {
+    const markup = view([
+      listed({
+        progressHistory: [snapshot("2025-12-31", 40), snapshot("2026-12-31", 28)],
+      }),
+    ]);
+    expect(markup).toContain("−12");
+    expect(markup).not.toContain("+0");
+  });
+});
+
 describe("ano sem dado não se parece com ano de zero crédito", () => {
   it("sem dado, a tela diz isso em palavras e não mostra zero", () => {
     const markup = view([listed({ progressHistory: [] })]);

@@ -77,11 +77,11 @@ export function CreditTable({ report }: CreditTableProps) {
               <span className="font-semibold wrap-anywhere text-fg-strong">
                 {snapshot.languageName}
               </span>
-              {snapshot.country ? (
-                <span className="mt-0.5 block text-tag text-fg-subtle">
-                  {snapshot.country}
-                </span>
-              ) : null}
+              <span className="mt-0.5 block text-tag text-fg-subtle">
+                {snapshot.country.withheld
+                  ? t(snapshot.country.regionLabelKey)
+                  : snapshot.country.location}
+              </span>
             </TableCell>
             <TableCell className={NUM}>{snapshot.scopeUnits || "—"}</TableCell>
             <TableCell className={NUM}>
@@ -90,8 +90,16 @@ export function CreditTable({ report }: CreditTableProps) {
             <TableCell className={NUM}>
               {snapshot.hasData ? snapshot.approvedAtEnd : "—"}
             </TableCell>
-            <TableCell className={cn(NUM, "font-semibold text-fg")}>
-              {snapshot.hasData ? `+${snapshot.advanced}` : "—"}
+            <TableCell
+              className={cn(
+                NUM,
+                "font-semibold",
+                snapshot.advanced < 0 ? "text-telha" : "text-fg",
+              )}
+            >
+              {snapshot.hasData
+                ? `${snapshot.advanced < 0 ? "−" : "+"}${Math.abs(snapshot.advanced)}`
+                : "—"}
             </TableCell>
             <TableCell className={NUM}>
               <Credits snapshot={snapshot} />
