@@ -42,10 +42,13 @@ export function OracaoView({
   const groups = useMemo(() => groupPrayerRequests(requests), [requests]);
   const indicators =
     projects === null ? null : countPrayerIndicators(requests);
+  const active = groups.some((group) => group.region === continent)
+    ? continent
+    : ALL_CONTINENTS;
   const visibleGroups =
-    continent === ALL_CONTINENTS
+    active === ALL_CONTINENTS
       ? groups
-      : groups.filter((group) => group.region === continent);
+      : groups.filter((group) => group.region === active);
 
   return (
     <section className="mx-auto w-full max-w-[1080px] px-(--container-pad) pt-8 pb-20">
@@ -85,7 +88,7 @@ export function OracaoView({
       <ContinentFilter
         groups={groups}
         total={requests.length}
-        value={continent}
+        value={active}
         onChange={setContinent}
       />
 

@@ -14,9 +14,6 @@ export function RequestCard({ request }: RequestCardProps) {
   const regionLabel = t(getRegionLabelKey(request.region));
   const place =
     request.base || (request.locationWithheld ? regionLabel : request.country);
-  const meta = request.answered
-    ? `✓ ${t("oracao_answered_tag")}`
-    : t(PRAYER_SOURCE_LABEL_KEYS[request.source]);
 
   return (
     <article
@@ -59,7 +56,16 @@ export function RequestCard({ request }: RequestCardProps) {
             request.answered && "font-bold text-answered-fg",
           )}
         >
-          {meta} · {formatDate(request.date, t("locale"))}
+          {request.answered ? (
+            <>
+              <span aria-hidden>✓ </span>
+              {t("oracao_answered_tag")}
+            </>
+          ) : (
+            t(PRAYER_SOURCE_LABEL_KEYS[request.source])
+          )}
+          {" · "}
+          {formatDate(request.date, t("locale"))}
         </span>
       </div>
     </article>

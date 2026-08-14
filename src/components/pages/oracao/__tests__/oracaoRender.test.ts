@@ -127,7 +127,15 @@ describe("OracaoView", () => {
     const markup = view([answered]);
 
     expect(markup).toContain("Agradecemos: o gravador chegou.");
-    expect(markup).toContain("✓ Respondida");
+    expect(markup).toContain("Respondida ·");
+    expect(markup).toMatch(/aria-hidden="true">✓/u);
+  });
+
+  it("uma seleção de continente que ficou órfã cai em Todas", () => {
+    const markup = view([brazil], "asia");
+
+    expect(markup).toContain("Orem pelos anciãos que recebem o Evangelho.");
+    expect(markup).not.toContain("Nenhum pedido de oração ainda.");
   });
 
   it("um pedido gravado em áudio toca no mural", () => {
