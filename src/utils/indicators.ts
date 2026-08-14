@@ -21,7 +21,7 @@ export interface IndicatorSpec {
   filters: Partial<ProjectFilters> | null;
 }
 
-export const PROJECTS_PATH = "/projetos";
+const PROJECTS_PATH = "/projetos";
 
 export const INDICATORS: readonly IndicatorSpec[] = [
   {
