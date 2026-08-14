@@ -4,6 +4,7 @@ import type {
   YesNoFilter,
 } from "../stores/filtersStore";
 import { PROGRESS_RANGES } from "../stores/filtersStore";
+import { STALE_STATUSES } from "../constants";
 import type {
   FinancialResource,
   NeedCategory,
@@ -21,7 +22,7 @@ import { hasPhotoContent, hasVideoContent } from "./media";
 import { hasOpenNeeds } from "./needs";
 import { matchesPreset } from "./presets";
 import { getProgress, getProjectStatus } from "./progress";
-import { getStaleStatus } from "./recency";
+import { getStaleStatus, staleFilterMatches } from "./recency";
 import { getCountry, getRegion } from "./region";
 
 const APOSTROPHES = /[‘’ʼ]/g;
@@ -215,7 +216,7 @@ export function filterProjects(
       financial:
         !filters.financial ||
         project.financialResources.includes(filters.financial),
-      stale: !filters.stale || stale === filters.stale,
+      stale: !filters.stale || staleFilterMatches(stale, filters.stale),
       country: !filters.country || country === filters.country,
       continent: !filters.continent || region === filters.continent,
       vitality:
@@ -284,7 +285,9 @@ export function filterProjects(
       }
     }
     if (countsFor("stale") && stale) {
-      counts.stale[stale] += 1;
+      for (const value of STALE_STATUSES) {
+        if (staleFilterMatches(stale, value)) counts.stale[value] += 1;
+      }
     }
     if (countsFor("country") && country) {
       counts.country[country] = (counts.country[country] ?? 0) + 1;
