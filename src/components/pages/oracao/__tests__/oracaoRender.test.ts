@@ -81,6 +81,7 @@ describe("OracaoView", () => {
   it("agrupa por região e mostra língua, base, origem e data", () => {
     const markup = view([brazil, asia]);
 
+    expect(markup).toContain('role="radiogroup"');
     expect(markup).toContain("América do Sul");
     expect(markup).toContain("Ásia");
     expect(markup).toContain("Tikuna");
@@ -183,6 +184,8 @@ describe("OracaoView", () => {
     const markup = view(null);
 
     expect(markup).not.toContain("Nenhum pedido de oração ainda.");
+    expect(markup).not.toContain('role="radiogroup"');
+    expect(markup).not.toContain("Todas");
     expect(markup).toContain("Pedidos reunidos");
   });
 });

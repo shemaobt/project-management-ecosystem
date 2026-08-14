@@ -85,30 +85,33 @@ export function OracaoView({
 
       <Indicators indicators={indicators} />
 
-      <ContinentFilter
-        groups={groups}
-        total={requests.length}
-        value={active}
-        onChange={setContinent}
-      />
+      {projects !== null && (
+        <>
+          <ContinentFilter
+            groups={groups}
+            total={requests.length}
+            value={active}
+            onChange={setContinent}
+          />
 
-      {projects !== null &&
-        (visibleGroups.length === 0 ? (
-          <EmptyState message={t("oracao_empty")} />
-        ) : (
-          visibleGroups.map((group) => (
-            <section key={group.region} className="mb-8">
-              <h2 className="mb-3.5 text-eyebrow text-fg-muted uppercase">
-                {t(group.labelKey)}
-              </h2>
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3.5">
-                {group.requests.map((request) => (
-                  <RequestCard key={request.id} request={request} />
-                ))}
-              </div>
-            </section>
-          ))
-        ))}
+          {visibleGroups.length === 0 ? (
+            <EmptyState message={t("oracao_empty")} />
+          ) : (
+            visibleGroups.map((group) => (
+              <section key={group.region} className="mb-8">
+                <h2 className="mb-3.5 text-eyebrow text-fg-muted uppercase">
+                  {t(group.labelKey)}
+                </h2>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3.5">
+                  {group.requests.map((request) => (
+                    <RequestCard key={request.id} request={request} />
+                  ))}
+                </div>
+              </section>
+            ))
+          )}
+        </>
+      )}
     </section>
   );
 }
