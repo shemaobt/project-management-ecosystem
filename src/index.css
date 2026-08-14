@@ -164,6 +164,7 @@
   --transition-duration-slow: var(--duration-slow);
 
   --container-max: 1200px;
+  --container-reading: 920px;
   --container-narrow: 760px;
   --container-pad: clamp(20px, 4vw, 56px);
   --container-modal: 900px;
@@ -232,11 +233,11 @@
 
   --rhythm-done-fg: #4d5d24;
   --rhythm-done-bg: #e5ecd8;
-  --rhythm-pending-fg: var(--shema-telha);
+  --rhythm-pending-fg: var(--accent-press);
   --rhythm-pending-bg: var(--accent-soft);
   --rhythm-overdue-fg: #9a3412;
   --rhythm-overdue-bg: #f3d4c8;
-  --rhythm-new-fg: var(--fg-subtle);
+  --rhythm-new-fg: var(--fg-muted);
   --rhythm-new-bg: var(--bg-muted);
 
   --answered-fg: #4d5d24;

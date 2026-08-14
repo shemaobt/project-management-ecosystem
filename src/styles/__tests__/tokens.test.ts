@@ -2,6 +2,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { RATING_ON, RATING_TONES } from "../../constants/health";
+import { MEETING_STATES } from "../../constants/meetings";
+import { RHYTHM_TONES } from "../badges";
 import {
   NEED_STATUSES,
   NEED_STATUS_TONES,
@@ -26,7 +28,9 @@ function token(name: string): string {
     .map((entry) => entry.trim())
     .find((entry) => entry.startsWith(prefix));
   if (!line) throw new Error(name);
-  return line.slice(prefix.length).replace(";", "").trim();
+  const value = line.slice(prefix.length).replace(";", "").trim();
+  const indirection = /^var\(--([a-z0-9-]+)\)$/u.exec(value);
+  return indirection ? token(indirection[1]) : value;
 }
 
 function channels(name: string): number[] {
@@ -173,6 +177,29 @@ describe("o número da aba se lê sobre o marcador dela", () => {
       }
     });
   });
+});
+
+describe("cada estado da reunião se lê no próprio selo", () => {
+  const tokenOf = (tone: string, prefix: string): string => {
+    const found = tone
+      .split(" ")
+      .find((entry) => entry.startsWith(`${prefix}-`));
+    if (!found) throw new Error(`${prefix}: ${tone}`);
+    return found.slice(prefix.length + 1);
+  };
+
+  it("os quatro estados estão cobertos", () => {
+    expect(Object.keys(RHYTHM_TONES).sort()).toEqual([...MEETING_STATES].sort());
+  });
+
+  for (const state of MEETING_STATES) {
+    it(`${state} carrega o rótulo de 11px`, () => {
+      const tone = RHYTHM_TONES[state];
+      expect(
+        contrast(tokenOf(tone, "text"), tokenOf(tone, "bg")),
+      ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+    });
+  }
 });
 
 describe("a interface tem duas famílias, e só as que o tema declara", () => {
