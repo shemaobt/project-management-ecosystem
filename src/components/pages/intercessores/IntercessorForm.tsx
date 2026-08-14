@@ -68,7 +68,7 @@ export function IntercessorForm({
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={countryId}>{t("int_country")}</Label>
           <Select
-            value={draft.country || undefined}
+            value={draft.country}
             onValueChange={(country) => onChange({ ...draft, country })}
           >
             <SelectTrigger

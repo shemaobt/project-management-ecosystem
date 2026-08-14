@@ -3,7 +3,6 @@ import type { ContactChannel, Intercessor } from "../types/prayer";
 import { countryName } from "./countries";
 import { toLocalIsoDate } from "./format";
 
-const DIGITS = /\d/gu;
 const NON_DIGITS = /\D/gu;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 
@@ -12,12 +11,7 @@ const MIN_PHONE_DIGITS = 8;
 export function contactChannel(contact: string): ContactChannel | null {
   const value = contact.trim();
   if (EMAIL.test(value)) return "email";
-  if (
-    (value.match(DIGITS)?.length ?? 0) >= MIN_PHONE_DIGITS &&
-    value.replace(NON_DIGITS, "").length >= MIN_PHONE_DIGITS
-  ) {
-    return "phone";
-  }
+  if (value.replace(NON_DIGITS, "").length >= MIN_PHONE_DIGITS) return "phone";
   return null;
 }
 
@@ -43,10 +37,11 @@ export function makeIntercessor(
   now: Date = new Date(),
 ): Intercessor | null {
   if (missingFields(draft).length > 0) return null;
+  if (!isCountryCode(draft.country)) return null;
   return {
     id,
     name: draft.name.trim(),
-    country: draft.country as CountryCode,
+    country: draft.country,
     contact: draft.contact.trim(),
     addedAt: toLocalIsoDate(now),
   };

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
@@ -23,6 +25,7 @@ vi.stubGlobal("window", { localStorage: storage });
 
 const { default: i18n } = await import("../../../../i18n");
 const { IntercessoresView } = await import("../IntercessoresPage");
+const { IntercessorForm } = await import("../IntercessorForm");
 const { default: ptBR } = await import("../../../../i18n/locales/pt-BR.json");
 const { default: en } = await import("../../../../i18n/locales/en.json");
 
@@ -154,6 +157,38 @@ describe("a página diz o que guarda e o que ainda não faz", () => {
 
   it("não promete o envio que a onda 1 não entrega", () => {
     expect(view([])).toContain(i18n.t("int_send_pending"));
+  });
+});
+
+describe("o campo de país é controlado, sempre", () => {
+  const form = (country: string) =>
+    renderToStaticMarkup(
+      createElement(IntercessorForm, {
+        draft: { name: "", country, contact: "" },
+        onChange: noop,
+        onSubmit: noop,
+        showing: [],
+        editing: false,
+      }),
+    );
+
+  it("vazio é '' e o gatilho mostra o convite, não um país", () => {
+    const markup = form("");
+    expect(markup).toContain('data-placeholder=""');
+    expect(markup).toContain(i18n.t("int_country_select"));
+  });
+
+  it("com país escolhido, o gatilho deixa de mostrar o convite", () => {
+    expect(form("BR")).not.toContain('data-placeholder=""');
+  });
+
+  it("o valor entregue ao Radix nunca é undefined, que o deixaria descontrolado", () => {
+    const source = readFileSync(
+      join(process.cwd(), "src/components/pages/intercessores/IntercessorForm.tsx"),
+      "utf8",
+    );
+    expect(source).toContain("value={draft.country}");
+    expect(source).not.toMatch(/value=\{[^}]*\|\|[^}]*undefined[^}]*\}/u);
   });
 });
 
