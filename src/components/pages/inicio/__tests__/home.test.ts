@@ -25,7 +25,7 @@ const { default: i18n } = await import("../../../../i18n");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
 const { Hero } = await import("../Hero");
 const { IndicatorBand } = await import("../IndicatorBand");
-const { HomePage, HomeView } = await import("../index");
+const { InicioPage, InicioView } = await import("../index");
 
 const render = (element: ReactElement): string =>
   renderToStaticMarkup(createElement(MemoryRouter, null, element));
@@ -86,13 +86,19 @@ describe("faixa de indicadores", () => {
     expect(markup).toContain(">1<");
   });
 
-  it("cada indicador leva à lista com seu filtro pré-aplicado", () => {
+  it("cada indicador de projetos leva à lista com seu filtro pré-aplicado", () => {
     const markup = band([]);
     expect(markup).toContain('href="/projetos?presets=attention"');
     expect(markup).toContain('href="/projetos?stale=atencao"');
     expect(markup).toContain('href="/projetos?status=em-andamento"');
     expect(markup).toContain('href="/projetos?status=concluido"');
-    expect(countOf(markup, 'href="/projetos"')).toBe(2);
+    expect(countOf(markup, 'href="/projetos"')).toBe(1);
+  });
+
+  it("bases não é link: a lista não tem como mostrar bases", () => {
+    const markup = band([]);
+    expect(countOf(markup, "<a ")).toBe(5);
+    expect(markup).toContain("Bases");
   });
 
   it("rótulos e caudas vêm do catálogo ativo", () => {
@@ -106,7 +112,7 @@ describe("faixa de indicadores", () => {
 
 describe("página Início", () => {
   it("antes da hidratação mostra o hero sem números e sem globo", () => {
-    const markup = render(createElement(HomePage));
+    const markup = render(createElement(InicioPage));
     expect(countOf(markup, "—")).toBe(6);
     expect(markup).not.toContain(">0<");
     expect(markup).not.toContain(i18n.t("atlas_stat_languages"));
@@ -114,7 +120,7 @@ describe("página Início", () => {
 
   it("hidratada, renderiza o Atlas abaixo do hero", () => {
     const markup = render(
-      createElement(HomeView, {
+      createElement(InicioView, {
         projects: [
           makeProject({ id: "p-1", languageName: "Aurora", coords: [10, 10] }),
           makeProject({ id: "p-2", languageName: "Boreal", coords: [-40, -5] }),

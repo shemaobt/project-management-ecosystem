@@ -6,12 +6,12 @@ import type { Project } from "../../../types/project";
 import { Globe } from "../projetos/Atlas/Globe";
 import { Hero } from "./Hero";
 
-export interface HomeViewProps {
+export interface InicioViewProps {
   projects: readonly Project[] | null;
   onOpen: (project: Project) => void;
 }
 
-export function HomeView({ projects, onOpen }: HomeViewProps) {
+export function InicioView({ projects, onOpen }: InicioViewProps) {
   return (
     <>
       <Hero projects={projects} />
@@ -24,7 +24,7 @@ export function HomeView({ projects, onOpen }: HomeViewProps) {
   );
 }
 
-export function HomePage() {
+export function InicioPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrate = useProjectsStore((state) => state.hydrate);
@@ -39,6 +39,6 @@ export function HomePage() {
   };
 
   return (
-    <HomeView projects={hydrated ? projects : null} onOpen={openRecord} />
+    <InicioView projects={hydrated ? projects : null} onOpen={openRecord} />
   );
 }

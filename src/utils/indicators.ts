@@ -1,5 +1,8 @@
-import { DEFAULT_METAPHOR } from "../constants/metaphors";
-import { DEFAULT_SORT } from "../constants/sorting";
+import {
+  DEFAULT_METAPHOR,
+  type CardMetaphor,
+} from "../constants/metaphors";
+import { DEFAULT_SORT, type SortKey } from "../constants/sorting";
 import { EMPTY_FILTERS, type ProjectFilters } from "../stores/filtersStore";
 import type { Project } from "../types/project";
 import { encodeViewToUrl, type ViewState } from "./filterSerialisation";
@@ -68,17 +71,33 @@ export const INDICATORS: readonly IndicatorSpec[] = [
   },
 ];
 
-export function indicatorView(spec: IndicatorSpec): ViewState {
+export interface IndicatorViewPrefs {
+  sort: SortKey;
+  metaphor: CardMetaphor;
+}
+
+const DEFAULT_VIEW_PREFS: IndicatorViewPrefs = {
+  sort: DEFAULT_SORT,
+  metaphor: DEFAULT_METAPHOR,
+};
+
+export function indicatorView(
+  spec: IndicatorSpec,
+  prefs: IndicatorViewPrefs = DEFAULT_VIEW_PREFS,
+): ViewState {
   return {
     filters: { ...EMPTY_FILTERS, ...spec.filters },
     search: "",
-    sort: DEFAULT_SORT,
-    metaphor: DEFAULT_METAPHOR,
+    sort: prefs.sort,
+    metaphor: prefs.metaphor,
   };
 }
 
-export function indicatorHref(spec: IndicatorSpec): string {
-  return encodeViewToUrl(indicatorView(spec), PROJECTS_PATH);
+export function indicatorHref(
+  spec: IndicatorSpec,
+  prefs: IndicatorViewPrefs = DEFAULT_VIEW_PREFS,
+): string {
+  return encodeViewToUrl(indicatorView(spec, prefs), PROJECTS_PATH);
 }
 
 function countBases(projects: readonly Project[]): number {

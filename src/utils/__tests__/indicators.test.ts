@@ -62,6 +62,32 @@ describe("indicadores ↔ destino", () => {
     }
   });
 
+  it("o link carrega a vista corrente e o decode aterrissa em no-op", () => {
+    const prefs = { sort: "name", metaphor: "diario" } as const;
+    for (const spec of INDICATORS) {
+      if (spec.filters === null) continue;
+      const href = indicatorHref(spec, prefs);
+      const decoded = decodeView(
+        new URLSearchParams(href.slice(href.indexOf("?") + 1)),
+      );
+      expect(decoded.sort, spec.id).toBe("name");
+      expect(decoded.metaphor, spec.id).toBe("diario");
+      expect(decoded.filters, spec.id).toEqual({
+        ...EMPTY_FILTERS,
+        ...spec.filters,
+      });
+    }
+  });
+
+  it("com as prefs default o link não escreve view nem sort", () => {
+    for (const spec of INDICATORS) {
+      if (spec.filters === null) continue;
+      const href = indicatorHref(spec);
+      expect(href, spec.id).not.toContain("sort=");
+      expect(href, spec.id).not.toContain("view=");
+    }
+  });
+
   it("bases conta equipes distintas, não projetos", () => {
     const shared = [
       makeProject({ team: "JOCUM Belém" }),
@@ -139,9 +165,9 @@ describe("filtro sem notícias — o rótulo manda", () => {
 describe("nenhuma figura de amostra do PRD vira literal", () => {
   const sources = [
     "src/utils/indicators.ts",
-    "src/components/pages/HomePage/index.tsx",
-    "src/components/pages/HomePage/Hero.tsx",
-    "src/components/pages/HomePage/IndicatorBand.tsx",
+    "src/components/pages/inicio/index.tsx",
+    "src/components/pages/inicio/Hero.tsx",
+    "src/components/pages/inicio/IndicatorBand.tsx",
   ];
 
   it.each(sources)("%s", (file) => {
