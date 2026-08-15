@@ -28,7 +28,7 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { NOTIF_DEFAULTS } = await import("../../../../constants/notifications");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
-const { visibleNotifications } = await import(
+const { routedNotifications, visibleNotifications } = await import(
   "../../../../utils/notifications"
 );
 const { NotificationsPanelBody } = await import("../NotificationsPanel");
@@ -71,11 +71,13 @@ const view = (overrides: Partial<NotificationPrefs> = {}) => {
   return renderToStaticMarkup(
     createElement(NotificationsPanelBody, {
       entries: visibleNotifications(
-        projects,
-        { role: "globalStrategist", regions: null },
+        routedNotifications(
+          projects,
+          { role: "globalStrategist", regions: null },
+          NOW,
+        ),
         prefs,
         "Karina Marinho",
-        NOW,
       ),
       projects,
       prefs,

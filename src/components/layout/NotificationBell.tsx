@@ -5,7 +5,11 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useNotificationStore } from "../../stores/notificationStore";
 import { useProjectsStore } from "../../stores/projectsStore";
 import { cn } from "../../utils/cn";
-import { countUnread, visibleNotifications } from "../../utils/notifications";
+import {
+  countUnread,
+  routedNotifications,
+  visibleNotifications,
+} from "../../utils/notifications";
 import { getRegion } from "../../utils/region";
 import { NotificationsPanel } from "../pages/notificacoes/NotificationsPanel";
 
@@ -37,17 +41,18 @@ export function NotificationBell({ className }: NotificationBellProps) {
     [projects, scope],
   );
 
-  const entries = useMemo(
+  const routed = useMemo(
     () =>
       hydrated
-        ? visibleNotifications(
-            projects,
-            { role: user.role, regions: scope },
-            prefs,
-            user.name,
-          )
+        ? routedNotifications(projects, { role: user.role, regions: scope })
         : null,
-    [hydrated, projects, user.role, user.name, scope, prefs],
+    [hydrated, projects, user.role, scope],
+  );
+
+  const entries = useMemo(
+    () =>
+      routed === null ? null : visibleNotifications(routed, prefs, user.name),
+    [routed, prefs, user.name],
   );
 
   const unread = entries === null ? 0 : countUnread(entries, readIds);

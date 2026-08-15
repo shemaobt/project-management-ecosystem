@@ -12,8 +12,8 @@ export const NOTIF_DEFAULTS: NotificationPrefs = {
   channels: { email: true, push: true, whatsapp: false },
   when: "now",
   scope: "all",
-  emailAddr: "karina@shema.org",
-  phoneAddr: "+55 11 9•••• ‑1234",
+  emailAddr: "",
+  phoneAddr: "",
   customProjectIds: [],
 };
 

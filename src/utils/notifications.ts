@@ -90,18 +90,22 @@ export function buildNotifications(
       });
     }
 
-    project.needsItems.forEach((need, index) => {
-      if (need.urgency !== "high" || !isOpenNeed(need)) return;
+    const needOccurrences = new Map<string, number>();
+    for (const need of project.needsItems) {
+      if (need.urgency !== "high" || !isOpenNeed(need)) continue;
+      const identity = `need:${project.id}:${need.category}:${need.submittedAt ?? ""}`;
+      const occurrence = needOccurrences.get(identity) ?? 0;
+      needOccurrences.set(identity, occurrence + 1);
       entries.push({
         kind: "need",
-        id: `need:${project.id}:${index}`,
+        id: `${identity}:${occurrence}`,
         urgent: true,
         audience: NOTIFICATION_AUDIENCES.need,
         date: need.submittedAt ?? "",
         category: need.category,
         ...shared,
       });
-    });
+    }
 
     const lastUpdate = getLastProgressUpdate(project);
     const daysSilent = getDaysSinceUpdate(project, now);
@@ -184,18 +188,23 @@ export function applyNotificationPrefs(
   });
 }
 
-export function visibleNotifications(
+export function routedNotifications(
   projects: readonly Project[],
   route: NotificationRoute,
-  prefs: NotificationPrefs,
-  userName: string | null,
   now: Date = new Date(),
 ): AppNotification[] {
-  return applyNotificationPrefs(
-    routeNotifications(buildNotifications(projects, now), route),
-    prefs,
-    userName,
-  ).slice(0, NOTIFICATION_LOG_LIMIT);
+  return routeNotifications(buildNotifications(projects, now), route);
+}
+
+export function visibleNotifications(
+  routed: readonly AppNotification[],
+  prefs: NotificationPrefs,
+  userName: string | null,
+): AppNotification[] {
+  return applyNotificationPrefs(routed, prefs, userName).slice(
+    0,
+    NOTIFICATION_LOG_LIMIT,
+  );
 }
 
 export function countUnread(

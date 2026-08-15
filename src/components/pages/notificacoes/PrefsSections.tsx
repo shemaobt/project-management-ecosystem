@@ -92,7 +92,8 @@ export function ChannelsSection({ prefs, handlers }: PrefsSectionProps) {
               {channel.addr && (
                 <input
                   aria-label={t(channel.labelKey)}
-                  className="mt-0.5 w-full bg-transparent text-[12px] leading-[1.2] font-medium text-fg-muted focus:text-fg-strong"
+                  placeholder={t(channel.labelKey)}
+                  className="mt-0.5 w-full bg-transparent text-[12px] leading-[1.2] font-medium text-fg-muted placeholder:text-fg-subtle focus:text-fg-strong"
                   value={prefs[channel.addr]}
                   onChange={(event) =>
                     channel.addr === "emailAddr"

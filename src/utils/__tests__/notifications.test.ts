@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import { NOTIF_DEFAULTS } from "../../constants/notifications";
 import type { AppNotification, NotificationPrefs } from "../../types/notification";
 import type { NeedItem, Project } from "../../types/project";
+import { removeNeedAt } from "../needs";
 import {
   applyNotificationPrefs,
   buildNotifications,
   countUnread,
   notificationAge,
+  routedNotifications,
   routeNotifications,
   visibleNotifications,
 } from "../notifications";
@@ -154,7 +156,52 @@ describe("buildNotifications", () => {
 
     expect(kinds(entries)).toEqual(["need"]);
     expect(entries[0].urgent).toBe(true);
-    expect(entries[0].id).toBe("need:needs:0");
+    expect(entries[0].id).toBe("need:needs:equipment:2026-08-01:0");
+  });
+
+  it("uma necessidade que vira urgente após remover outra não chega já lida", () => {
+    const needs = [
+      need({ category: "financial", submittedAt: "2026-07-01" }),
+      need({ category: "equipment", submittedAt: "2026-08-01", urgency: "medium" }),
+    ];
+    const before = buildNotifications(
+      [makeProject({ id: "shift", location: "Brazil", needsItems: needs })],
+      NOW,
+    );
+    const readIds = before.map((entry) => entry.id);
+
+    const after = buildNotifications(
+      [
+        makeProject({
+          id: "shift",
+          location: "Brazil",
+          needsItems: removeNeedAt(needs, 0).map((item) => ({
+            ...item,
+            urgency: "high" as const,
+          })),
+        }),
+      ],
+      NOW,
+    );
+
+    expect(kinds(after)).toEqual(["need"]);
+    expect(countUnread(after, readIds)).toBe(1);
+  });
+
+  it("necessidades indistinguíveis ganham ids distintos", () => {
+    const entries = buildNotifications(
+      [
+        makeProject({
+          id: "twins",
+          location: "Brazil",
+          needsItems: [need(), need()],
+        }),
+      ],
+      NOW,
+    );
+
+    expect(kinds(entries)).toEqual(["need", "need"]);
+    expect(new Set(entries.map((entry) => entry.id)).size).toBe(2);
   });
 
   it("sem notícias há 60+ dias notifica, datado do dia em que o silêncio começou", () => {
@@ -379,11 +426,9 @@ describe("visibleNotifications", () => {
     );
 
     const visible = visibleNotifications(
-      projects,
-      { role: "coordinator", regions: null },
+      routedNotifications(projects, { role: "coordinator", regions: null }, NOW),
       prefs(),
       null,
-      NOW,
     );
 
     expect(visible).toHaveLength(30);
@@ -404,11 +449,13 @@ describe("visibleNotifications", () => {
     });
 
     const visible = visibleNotifications(
-      [...loud, quiet],
-      { role: "coordinator", regions: ["africa"] },
+      routedNotifications(
+        [...loud, quiet],
+        { role: "coordinator", regions: ["africa"] },
+        NOW,
+      ),
       prefs(),
       null,
-      NOW,
     );
 
     expect(visible.map((entry) => entry.projectId)).toEqual(["uganda"]);
