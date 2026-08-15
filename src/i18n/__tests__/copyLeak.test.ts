@@ -164,7 +164,7 @@ const { RitmoPage } = await import("../../components/pages/ritmo/RitmoPage");
 const { OracaoPage } = await import("../../components/pages/oracao");
 const { EtenPage } = await import("../../components/pages/eten");
 const { FormulariosPage } = await import("../../components/pages/formularios");
-const { EquipePage } = await import("../../components/pages/equipe/EquipePage");
+const { EquipePage } = await import("../../components/pages/equipe");
 const { IntercessoresPage } = await import(
   "../../components/pages/intercessores/IntercessoresPage"
 );
@@ -179,13 +179,13 @@ const ROUTES: [string, () => ReactElement][] = [
   ["/oracao/intercessores", IntercessoresPage],
 ];
 
-const AREA_LEADS: [string, () => ReactElement, string][] = [
-  ["/equipe", EquipePage, en.equipe_lead],
-];
-
 function markup(page: () => ReactElement): string {
   return renderToStaticMarkup(
-    createElement(MemoryRouter, null, createElement(page)),
+    createElement(
+      MemoryRouter,
+      null,
+      createElement(AuthProvider, null, createElement(page)),
+    ),
   );
 }
 
@@ -293,9 +293,9 @@ describe("the shell rendered with the language set to EN", () => {
     ]);
   });
 
-  it("closes every area placeholder with its lead", () => {
-    for (const [route, page, lead] of AREA_LEADS) {
-      expect(render(page), route).toContain(`${lead} ${en.empty_soon}`);
+  it("has no area left rendering the placeholder line", () => {
+    for (const [route, page] of ROUTES) {
+      expect(render(page).join(" "), route).not.toContain(en.empty_soon);
     }
   });
 
@@ -319,6 +319,14 @@ describe("the shell rendered with the language set to EN", () => {
     expect(eten).toContain(en.eten_title);
     expect(eten).toContain(en.eten_report_year);
     expect(eten).not.toContain(`${en.eten_lead} ${en.empty_soon}`);
+  });
+
+  it("stops calling Team a placeholder once it carries the org chart", () => {
+    const team = render(EquipePage);
+    expect(team).toContain(en.equipe_lead);
+    expect(team).toContain(en.equipe_title);
+    expect(team).toContain(en.equipe_eyebrow);
+    expect(team).not.toContain(`${en.equipe_lead} ${en.empty_soon}`);
   });
 
   it("stops calling Forms a placeholder once it carries the two instruments", () => {

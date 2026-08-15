@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
 import { DesignSystemPage } from "./components/pages/design-system/DesignSystemPage";
-import { EquipePage } from "./components/pages/equipe/EquipePage";
+import { EquipePage } from "./components/pages/equipe";
 import { EtenPage } from "./components/pages/eten";
 import { FichaPage } from "./components/pages/ficha";
 import { FormulariosPage } from "./components/pages/formularios";
