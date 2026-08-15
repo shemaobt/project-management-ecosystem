@@ -1,11 +1,27 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import "../../i18n";
 import { DEFAULT_TAB } from "../../constants/recordTabs";
 import { NEW_RECORD } from "../../stores/recordStore";
+import { useProjectsStore } from "../../stores/projectsStore";
 import { BrandMark } from "../common/BrandMark";
 import { NotificationBell } from "./NotificationBell";
-import { toast } from "../ui";
+import { ExportDialog } from "../pages/dados/ExportDialog";
+import { ImportDialog } from "../pages/dados/ImportDialog";
+import { LeaderLinkDialog } from "../pages/dados/LeaderLinkDialog";
+import { ReceiveUpdateDialog } from "../pages/dados/ReceiveUpdateDialog";
+import {
+  Button,
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  toast,
+} from "../ui";
 import { usePrefsStore } from "../../stores/prefsStore";
 import { cn } from "../../utils/cn";
 
@@ -16,8 +32,8 @@ const TB_BTN = cn(
   "hover:border-branco/40 hover:bg-branco/[0.08]",
 );
 
-const PENDING_ACTIONS = [
-  { key: "field", glyph: "📨", labelKey: "btn_field" },
+const HEADER_ACTIONS = [
+  { key: "receive", glyph: "📨", labelKey: "btn_field" },
   { key: "export", glyph: "↓", labelKey: "btn_export" },
   { key: "import", glyph: "↑", labelKey: "btn_import" },
   {
@@ -29,14 +45,24 @@ const PENDING_ACTIONS = [
   { key: "intake", glyph: "🔗", labelKey: "btn_intake" },
 ] as const;
 
+type HeaderDialogKey = (typeof HEADER_ACTIONS)[number]["key"];
+
 export function AppHeader() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const lang = usePrefsStore((state) => state.lang);
   const toggleLang = usePrefsStore((state) => state.toggleLang);
+  const reload = useProjectsStore((state) => state.reload);
+  const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
 
-  const notifyPending = (label: string) => {
-    toast(t("toast_pending", { label }));
+  const closeDialog = (open: boolean) => {
+    if (!open) setDialog(null);
+  };
+
+  const handleReload = async () => {
+    await reload();
+    toast(t("reload_done"));
+    setDialog(null);
   };
 
   return (
@@ -65,13 +91,13 @@ export function AppHeader() {
           {lang === "pt" ? "🇺🇸 EN" : "🇧🇷 PT"}
         </button>
         <NotificationBell className={TB_BTN} />
-        {PENDING_ACTIONS.map((action) => (
+        {HEADER_ACTIONS.map((action) => (
           <button
             key={action.key}
             type="button"
             className={TB_BTN}
             title={"titleKey" in action ? t(action.titleKey) : undefined}
-            onClick={() => notifyPending(t(action.labelKey))}
+            onClick={() => setDialog(action.key)}
           >
             {action.glyph} {t(action.labelKey)}
           </button>
@@ -87,6 +113,41 @@ export function AppHeader() {
           + {t("btn_new")}
         </button>
       </div>
+
+      <ReceiveUpdateDialog
+        open={dialog === "receive"}
+        onOpenChange={closeDialog}
+      />
+      <ExportDialog open={dialog === "export"} onOpenChange={closeDialog} />
+      <ImportDialog open={dialog === "import"} onOpenChange={closeDialog} />
+      <LeaderLinkDialog open={dialog === "intake"} onOpenChange={closeDialog} />
+      <Dialog open={dialog === "reload"} onOpenChange={closeDialog}>
+        <DialogContent size="narrow" closeLabel={t("btn_close")}>
+          <DialogHeader>
+            <div className="min-w-0">
+              <DialogTitle>{t("btn_reload")}</DialogTitle>
+              <DialogDescription>{t("btn_reload_title")}</DialogDescription>
+            </div>
+          </DialogHeader>
+          <DialogBody>
+            <p className="text-small leading-body text-fg">
+              {t("confirm_reload")}
+            </p>
+          </DialogBody>
+          <DialogFooter>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setDialog(null)}
+            >
+              {t("btn_cancel")}
+            </Button>
+            <Button size="sm" onClick={() => void handleReload()}>
+              {t("btn_reload")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

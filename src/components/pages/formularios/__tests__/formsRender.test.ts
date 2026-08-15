@@ -73,11 +73,12 @@ describe("os dois formulários se distinguem à primeira vista", () => {
 
 describe("nenhuma cópia promete um formato enquanto o GATE-03 estiver aberto", () => {
   const FORMAT = /\.(json|html|csv|pdf|xlsx?)\b/iu;
+  const PULSE_COPY = /^(?:forms_|receive_|intake_)/u;
 
-  it("nenhum valor de forms_* nos dois catálogos nomeia uma extensão", () => {
+  it("nenhum valor de forms_*, receive_* ou intake_* nos dois catálogos nomeia uma extensão", () => {
     for (const catalogue of [en, pt]) {
       for (const [key, value] of Object.entries(catalogue)) {
-        if (!key.startsWith("forms_")) continue;
+        if (!PULSE_COPY.test(key)) continue;
         expect(value, key).not.toMatch(FORMAT);
       }
     }

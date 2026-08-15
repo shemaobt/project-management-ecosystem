@@ -11,7 +11,9 @@ interface ProjectsState {
   projects: Project[];
   hydrated: boolean;
   hydrate: () => Promise<void>;
+  reload: () => Promise<void>;
   saveProject: (project: Project) => void;
+  importProjects: (projects: Project[]) => void;
 }
 
 type PersistedProjects = Pick<ProjectsState, "projects" | "hydrated">;
@@ -26,6 +28,11 @@ export const useProjectsStore = create<ProjectsState>()(
         const list = await projectsAPI.list();
         set({ projects: list, hydrated: true });
       },
+      reload: async () => {
+        const list = await projectsAPI.list();
+        set({ projects: list, hydrated: true });
+      },
+      importProjects: (projects) => set({ projects, hydrated: true }),
       saveProject: (project) =>
         set((state) => {
           const index = state.projects.findIndex(
