@@ -1,4 +1,5 @@
 import type { PrayerState } from "../constants/status";
+import type { ReportingState } from "../types/forms";
 import type { MeetingState } from "../types/meeting";
 import type {
   OverallHealth,
@@ -43,6 +44,12 @@ export const RHYTHM_TONES: Record<MeetingState, string> = {
 
 export const PRAYER_TONES: Record<PrayerState, string> = {
   answered: "bg-answered-bg text-answered-fg",
+};
+
+export const REPORTING_TONES: Record<ReportingState, string> = {
+  reported: "text-verde-claro-ink",
+  awaiting: "text-fg-muted",
+  never: "text-telha",
 };
 
 export const PRIORITY_TONES: Record<ProjectPriority, string> = {

@@ -82,7 +82,7 @@ export function nextOccurrence(
     : periodEnd(meeting.cadence, today);
 }
 
-function hasReported(
+export function hasReported(
   kind: MeetingReadiness,
   project: Project,
   cadence: MeetingCadence,

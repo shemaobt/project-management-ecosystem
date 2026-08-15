@@ -1,10 +1,12 @@
 import type { EtenCreditEntry, EtenYearReport } from "../types/eten";
+import type { ReceivedSubmission } from "../types/forms";
 import type { MeetingDefinition, MeetingLogEntry } from "../types/meeting";
 import type { Intercessor, PrayerRequest } from "../types/prayer";
 import type { Project } from "../types/project";
 import type { GeoOutline, Region } from "../types/region";
 import { createEmptyProject } from "./blank";
 import { loadEtenCredits } from "./eten";
+import { loadReceivedSubmissions } from "./forms";
 import { loadContinentOutlines } from "./geo";
 import { buildEtenReport } from "../utils/etenCredits";
 import { loadIntercessors } from "./intercessors";
@@ -55,6 +57,12 @@ export const etenAPI = {
   },
   async credits(): Promise<EtenCreditEntry[]> {
     return loadEtenCredits();
+  },
+};
+
+export const formsAPI = {
+  async received(): Promise<ReceivedSubmission[]> {
+    return loadReceivedSubmissions();
   },
 };
 

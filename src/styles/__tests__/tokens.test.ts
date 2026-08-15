@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { RATING_ON, RATING_TONES } from "../../constants/health";
 import { MEETING_STATES } from "../../constants/meetings";
-import { RHYTHM_TONES } from "../badges";
+import { REPORTING_TONES, RHYTHM_TONES } from "../badges";
 import {
   NEED_STATUSES,
   NEED_STATUS_TONES,
@@ -197,6 +197,28 @@ describe("cada estado da reunião se lê no próprio selo", () => {
       const tone = RHYTHM_TONES[state];
       expect(
         contrast(tokenOf(tone, "text"), tokenOf(tone, "bg")),
+      ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+    });
+  }
+});
+
+describe("o estado do relatório se lê sobre a superfície do cartão", () => {
+  const REPORTING_STATES = ["reported", "awaiting", "never"] as const;
+  const PALETTE_TOKEN: Record<string, string> = { telha: "shema-telha" };
+
+  it("os três estados estão cobertos", () => {
+    expect(Object.keys(REPORTING_TONES).sort()).toEqual(
+      [...REPORTING_STATES].sort(),
+    );
+  });
+
+  for (const state of REPORTING_STATES) {
+    it(`${state} passa em texto pequeno sobre bg-elevated`, () => {
+      const tone = REPORTING_TONES[state];
+      expect(tone.startsWith("text-"), tone).toBe(true);
+      const utility = tone.slice("text-".length);
+      expect(
+        contrast(PALETTE_TOKEN[utility] ?? utility, "bg-elevated"),
       ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
     });
   }
