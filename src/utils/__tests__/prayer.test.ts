@@ -229,6 +229,10 @@ describe("groupPrayerRequests", () => {
 describe("todo caminho de leitura passa pelo dono da visibilidade", () => {
   const RAW_FIELD =
     /\bprayerRequests\b|\bprayerVisibility\b|\bprayerRequestsAudio\b/u;
+  const STRING_LITERAL = /'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"/gu;
+
+  const withoutStringLiterals = (source: string): string =>
+    source.replace(STRING_LITERAL, '""');
 
   const SHIPPED_SOURCE = /\.tsx?$/u;
   const TEST_FILE = /(?:^|\/)__tests__\//u;
@@ -254,10 +258,24 @@ describe("todo caminho de leitura passa pelo dono da visibilidade", () => {
   const readers = walk(join(process.cwd(), "src"))
     .map((path) => relative(process.cwd(), path).split("\\").join("/"))
     .filter((path) => SHIPPED_SOURCE.test(path) && !TEST_FILE.test(path))
-    .filter((path) => RAW_FIELD.test(readFileSync(path, "utf8")));
+    .filter((path) =>
+      RAW_FIELD.test(withoutStringLiterals(readFileSync(path, "utf8"))),
+    );
 
   it("nenhum arquivo novo lê os campos crus fora da lista", () => {
     expect(readers.sort()).toEqual([...RECORD_SURFACES_AND_OWNER].sort());
+  });
+
+  it("a varredura ignora o nome entre aspas e pega o acesso à propriedade", () => {
+    expect(
+      RAW_FIELD.test(withoutStringLiterals('["prayerRequests", isString]')),
+    ).toBe(false);
+    expect(
+      RAW_FIELD.test(withoutStringLiterals("project.prayerRequests.trim()")),
+    ).toBe(true);
+    expect(
+      RAW_FIELD.test(withoutStringLiterals("const { prayerVisibility } = p")),
+    ).toBe(true);
   });
 
   it("o mural consome a consulta, nunca os campos crus", () => {

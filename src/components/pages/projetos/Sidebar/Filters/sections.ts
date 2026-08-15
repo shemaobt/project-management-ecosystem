@@ -8,6 +8,10 @@ import {
   TRANSLATION_TYPES,
   VITALITY_SCALE,
 } from "../../../../../constants";
+import {
+  STALE_LABEL_KEYS,
+  STATUS_LABEL_KEYS,
+} from "../../../../../constants/status";
 import type { ProgressRange } from "../../../../../stores/filtersStore";
 import {
   EMPTY_FILTERS,
@@ -17,8 +21,6 @@ import {
 import type {
   HealthLevel,
   Project,
-  ProjectStatus,
-  StaleStatus,
 } from "../../../../../types/project";
 import type { FacetCounts, FacetGroup } from "../../../../../utils/search";
 import { filterProjects } from "../../../../../utils/search";
@@ -66,27 +68,10 @@ export type FilterOptionsById = {
   [Id in FilterSectionId]: FilterOptionSpec<FacetOptionValue<Id>>[];
 };
 
-const STATUS_LABEL_KEYS: Record<ProjectStatus, string> = {
-  "nao-iniciado": "status_not_started",
-  "em-andamento": "status_in_progress",
-  final: "status_final",
-  concluido: "status_completed",
-  pausado: "status_paused",
-  cancelado: "status_canceled",
-  planejado: "status_planned",
-  desconhecido: "status_unknown",
-};
-
 const HEALTH_LABEL_KEYS: Record<HealthLevel, string> = {
   boa: "health_good",
   atencao: "health_attention",
   critica: "health_critical",
-};
-
-const STALE_LABEL_KEYS: Record<StaleStatus, string> = {
-  "em-dia": "stale_uptodate",
-  atencao: "stale_attention",
-  critico: "stale_critical",
 };
 
 const RANGE_LABEL_KEYS: Record<ProgressRange, string> = {

@@ -1,8 +1,23 @@
 import type { MeetingState } from "../types/meeting";
-import type { OverallHealth, StaleStatus } from "../types/project";
+import type {
+  OverallHealth,
+  ProjectStatus,
+  StaleStatus,
+} from "../types/project";
 
 export const PRAYER_STATES = ["answered"] as const;
 export type PrayerState = (typeof PRAYER_STATES)[number];
+
+export const STATUS_LABEL_KEYS: Record<ProjectStatus, string> = {
+  "nao-iniciado": "status_not_started",
+  "em-andamento": "status_in_progress",
+  final: "status_final",
+  concluido: "status_completed",
+  pausado: "status_paused",
+  cancelado: "status_canceled",
+  planejado: "status_planned",
+  desconhecido: "status_unknown",
+};
 
 export const HEALTH_LABEL_KEYS: Record<OverallHealth, string> = {
   boa: "health_good",
