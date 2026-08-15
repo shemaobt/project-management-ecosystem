@@ -8,6 +8,7 @@ import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
 import { notificationAge } from "../../../utils/notifications";
 import { EmptyState } from "../../common/EmptyState";
+import { LoadingSpinner } from "../../common/LoadingSpinner";
 
 function needCategoryLabel(category: NeedCategory, t: TFunction): string {
   const found = NEED_CATEGORIES.find((candidate) => candidate.id === category);
@@ -86,12 +87,20 @@ function LogRow({ entry }: { entry: AppNotification }) {
 }
 
 export interface NotificationLogProps {
-  entries: readonly AppNotification[];
+  entries: readonly AppNotification[] | null;
   enabled: boolean;
 }
 
 export function NotificationLog({ entries, enabled }: NotificationLogProps) {
   const { t } = useTranslation();
+
+  if (entries === null) {
+    return (
+      <div className="flex justify-center py-6">
+        <LoadingSpinner label={t("loading")} />
+      </div>
+    );
+  }
 
   if (entries.length === 0) {
     return (

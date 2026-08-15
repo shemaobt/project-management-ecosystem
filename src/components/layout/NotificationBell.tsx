@@ -46,14 +46,14 @@ export function NotificationBell({ className }: NotificationBellProps) {
             prefs,
             user.name,
           )
-        : [],
+        : null,
     [hydrated, projects, user.role, user.name, scope, prefs],
   );
 
-  const unread = countUnread(entries, readIds);
+  const unread = entries === null ? 0 : countUnread(entries, readIds);
 
   useEffect(() => {
-    if (!open || entries.length === 0) return;
+    if (!open || entries === null || entries.length === 0) return;
     markRead(entries.map((entry) => entry.id));
   }, [open, entries, markRead]);
 

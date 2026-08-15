@@ -19,7 +19,9 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
 const { NOTIF_DEFAULTS } = await import("../../constants/notifications");
-const { useNotificationStore } = await import("../notificationStore");
+const { NOTIFICATIONS_VERSION, useNotificationStore } = await import(
+  "../notificationStore"
+);
 
 const KEY = "shema-notifications-v1";
 
@@ -89,6 +91,20 @@ describe("o estado de leitura sobrevive ao recarregamento", () => {
     expect(useNotificationStore.getState().readIds).toEqual([
       "health:a:2026-08-10",
     ]);
+  });
+
+  it("outra versão descarta a cópia guardada e volta aos padrões", async () => {
+    storage.setItem(
+      KEY,
+      JSON.stringify({
+        state: { prefs: { enabled: false }, readIds: ["velho"] },
+        version: NOTIFICATIONS_VERSION - 1,
+      }),
+    );
+    await useNotificationStore.persist.rehydrate();
+
+    expect(useNotificationStore.getState().prefs).toEqual(NOTIF_DEFAULTS);
+    expect(useNotificationStore.getState().readIds).toEqual([]);
   });
 
   it("marcar de novo não duplica, e o limite segura o crescimento", () => {

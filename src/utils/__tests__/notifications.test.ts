@@ -267,7 +267,7 @@ describe("routeNotifications", () => {
       }),
       makeProject({
         id: "africa",
-        location: "Kenya",
+        location: "Uganda",
         healthAssessmentDate: "2026-08-11",
       }),
     ],
@@ -387,6 +387,31 @@ describe("visibleNotifications", () => {
     );
 
     expect(visible).toHaveLength(30);
+  });
+
+  it("o corte vem depois do roteamento: o volume de uma região não come a entrada de outra", () => {
+    const loud: Project[] = Array.from({ length: 35 }, (_, index) =>
+      makeProject({
+        id: `sa${index}`,
+        location: "Brazil",
+        healthAssessmentDate: "2026-08-10",
+      }),
+    );
+    const quiet = makeProject({
+      id: "uganda",
+      location: "Uganda",
+      healthAssessmentDate: "2026-06-01",
+    });
+
+    const visible = visibleNotifications(
+      [...loud, quiet],
+      { role: "coordinator", regions: ["africa"] },
+      prefs(),
+      null,
+      NOW,
+    );
+
+    expect(visible.map((entry) => entry.projectId)).toEqual(["uganda"]);
   });
 });
 

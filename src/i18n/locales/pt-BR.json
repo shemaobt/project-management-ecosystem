@@ -816,7 +816,7 @@
   "notif_channel_push": "Push neste aparelho",
   "notif_channel_push_sub": "Avisos diretos no navegador",
   "notif_channel_whatsapp": "WhatsApp",
-  "notif_channels_hint": "A entrega por e-mail, push e WhatsApp chega na onda 2 — sua escolha já fica registrada.",
+  "notif_channels_hint": "A entrega em si — e-mail, push, WhatsApp, o resumo às 08h — chega na onda 2; sua escolha já fica registrada.",
   "notif_when_now": "Na hora",
   "notif_when_now_sub": "Cada formulário gera uma notificação imediata.",
   "notif_when_urgent": "Só os urgentes",

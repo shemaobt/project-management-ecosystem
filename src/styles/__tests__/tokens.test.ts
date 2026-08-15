@@ -297,6 +297,12 @@ describe("a voz urgente é um vermelho próprio, e o halo é da mesma série", (
     expect(contrast("urgent", "bg")).toBeGreaterThanOrEqual(AA_NON_TEXT);
   });
 
+  it("e serve de tinta de texto pequeno onde a etiqueta Urgente vive", () => {
+    expect(contrast("urgent", "bg-elevated")).toBeGreaterThanOrEqual(
+      AA_SMALL_TEXT,
+    );
+  });
+
   it("é mais fundo que o telha, para as duas vozes não se confundirem", () => {
     expect(luminance("urgent")).toBeLessThan(luminance("status-critical"));
   });

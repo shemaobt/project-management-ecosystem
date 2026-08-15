@@ -42,7 +42,7 @@ function SectionLabel({
 }
 
 export interface NotificationsPanelBodyProps {
-  entries: readonly AppNotification[];
+  entries: readonly AppNotification[] | null;
   projects: readonly Project[];
   prefs: NotificationPrefs;
   handlers: NotificationPrefsHandlers;
@@ -76,7 +76,7 @@ export function NotificationsPanelBody({
 export interface NotificationsPanelProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  entries: readonly AppNotification[];
+  entries: readonly AppNotification[] | null;
   projects: readonly Project[];
 }
 

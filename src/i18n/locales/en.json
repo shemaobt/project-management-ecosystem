@@ -816,7 +816,7 @@
   "notif_channel_push": "Push on this device",
   "notif_channel_push_sub": "Alerts right in the browser",
   "notif_channel_whatsapp": "WhatsApp",
-  "notif_channels_hint": "Email, push and WhatsApp delivery arrives in wave 2 — your choice is already recorded.",
+  "notif_channels_hint": "Delivery itself — email, push, WhatsApp, the 8 AM digest — arrives in wave 2; your choice is already recorded.",
   "notif_when_now": "Right away",
   "notif_when_now_sub": "Each form triggers an immediate notification.",
   "notif_when_urgent": "Urgent only",

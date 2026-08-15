@@ -131,6 +131,20 @@ describe("NotificationsPanelBody", () => {
     expect(markup).not.toContain("Avaliação de saúde recebida");
   });
 
+  it("carregando não é vazio: o log gira em vez de negar", () => {
+    const markup = renderToStaticMarkup(
+      createElement(NotificationsPanelBody, {
+        entries: null,
+        projects: [],
+        prefs: { ...NOTIF_DEFAULTS },
+        handlers,
+      }),
+    );
+
+    expect(markup).toContain("Carregando");
+    expect(markup).not.toContain("Nenhuma notificação");
+  });
+
   it("em inglês nada fica em português", () => {
     return i18n.changeLanguage("en").then(() => {
       const markup = view();

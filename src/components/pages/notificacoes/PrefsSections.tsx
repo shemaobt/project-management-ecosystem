@@ -74,7 +74,7 @@ export function ChannelsSection({ prefs, handlers }: PrefsSectionProps) {
             <span
               aria-hidden
               className={cn(
-                "flex size-8.5 shrink-0 items-center justify-center rounded-[10px] bg-muted text-base",
+                "flex size-8.5 shrink-0 items-center justify-center rounded-[10px] bg-muted text-[16px]",
                 on && "bg-telha text-on-brand",
               )}
             >
