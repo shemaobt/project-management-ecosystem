@@ -1,10 +1,10 @@
-import { Bell } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import "../../i18n";
 import { DEFAULT_TAB } from "../../constants/recordTabs";
 import { NEW_RECORD } from "../../stores/recordStore";
 import { BrandMark } from "../common/BrandMark";
+import { NotificationBell } from "./NotificationBell";
 import { toast } from "../ui";
 import { usePrefsStore } from "../../stores/prefsStore";
 import { cn } from "../../utils/cn";
@@ -64,15 +64,7 @@ export function AppHeader() {
         >
           {lang === "pt" ? "🇺🇸 EN" : "🇧🇷 PT"}
         </button>
-        <button
-          type="button"
-          className={TB_BTN}
-          title={t("notif_bell")}
-          onClick={() => notifyPending(t("notif_bell"))}
-        >
-          <Bell size={16} strokeWidth={2} aria-hidden />
-          <span className="sr-only">{t("notif_bell")}</span>
-        </button>
+        <NotificationBell className={TB_BTN} />
         {PENDING_ACTIONS.map((action) => (
           <button
             key={action.key}

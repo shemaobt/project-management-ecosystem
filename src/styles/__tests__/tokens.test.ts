@@ -288,3 +288,28 @@ describe("os três anéis se distinguem sobre o papel do Diário", () => {
     });
   }
 });
+
+describe("a voz urgente é um vermelho próprio, e o halo é da mesma série", () => {
+  it("o ponto urgente carrega significado sobre o painel e sobre a tela", () => {
+    expect(contrast("urgent", "bg-elevated")).toBeGreaterThanOrEqual(
+      AA_NON_TEXT,
+    );
+    expect(contrast("urgent", "bg")).toBeGreaterThanOrEqual(AA_NON_TEXT);
+  });
+
+  it("e serve de tinta de texto pequeno onde a etiqueta Urgente vive", () => {
+    expect(contrast("urgent", "bg-elevated")).toBeGreaterThanOrEqual(
+      AA_SMALL_TEXT,
+    );
+  });
+
+  it("é mais fundo que o telha, para as duas vozes não se confundirem", () => {
+    expect(luminance("urgent")).toBeLessThan(luminance("status-critical"));
+  });
+
+  it("urgent-soft fica na matiz de urgent", () => {
+    expect(Math.abs(hue("urgent-soft") - hue("urgent"))).toBeLessThan(
+      HUE_TOLERANCE,
+    );
+  });
+});
