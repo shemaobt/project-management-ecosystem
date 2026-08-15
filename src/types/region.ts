@@ -1,4 +1,5 @@
 import type { Coordinates } from "./project";
+import type { RoleKey } from "./role";
 
 export type RegionKey =
   | "south-america"
@@ -24,6 +25,15 @@ export interface Region {
   key: RegionKey;
   labelKey: string;
   team: RegionTeam;
+}
+
+export interface RoleChange {
+  regionKey: RegionKey;
+  role: RoleKey;
+  from: string;
+  to: string;
+  changedBy: string;
+  changedAt: string;
 }
 
 export type GeoOutline = Coordinates[];
