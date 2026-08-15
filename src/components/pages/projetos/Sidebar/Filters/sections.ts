@@ -8,6 +8,7 @@ import {
   TRANSLATION_TYPES,
   VITALITY_SCALE,
 } from "../../../../../constants";
+import { STATUS_LABEL_KEYS } from "../../../../../constants/status";
 import type { ProgressRange } from "../../../../../stores/filtersStore";
 import {
   EMPTY_FILTERS,
@@ -17,7 +18,6 @@ import {
 import type {
   HealthLevel,
   Project,
-  ProjectStatus,
   StaleStatus,
 } from "../../../../../types/project";
 import type { FacetCounts, FacetGroup } from "../../../../../utils/search";
@@ -64,17 +64,6 @@ export interface FilterOptionSpec<V extends string = string> {
 
 export type FilterOptionsById = {
   [Id in FilterSectionId]: FilterOptionSpec<FacetOptionValue<Id>>[];
-};
-
-const STATUS_LABEL_KEYS: Record<ProjectStatus, string> = {
-  "nao-iniciado": "status_not_started",
-  "em-andamento": "status_in_progress",
-  final: "status_final",
-  concluido: "status_completed",
-  pausado: "status_paused",
-  cancelado: "status_canceled",
-  planejado: "status_planned",
-  desconhecido: "status_unknown",
 };
 
 const HEALTH_LABEL_KEYS: Record<HealthLevel, string> = {
