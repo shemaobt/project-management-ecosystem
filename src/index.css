@@ -231,6 +231,9 @@
   --status-critical-line: rgba(190, 74, 1, 0.3);
   --status-na: var(--shema-areia);
 
+  --urgent: #b03a1a;
+  --urgent-soft: #f4d8d2;
+
   --rhythm-done-fg: #4d5d24;
   --rhythm-done-bg: #e5ecd8;
   --rhythm-pending-fg: var(--accent-press);
@@ -299,6 +302,8 @@
   --color-status-critical-bg: var(--status-critical-bg);
   --color-status-critical-line: var(--status-critical-line);
   --color-status-na: var(--status-na);
+  --color-urgent: var(--urgent);
+  --color-urgent-soft: var(--urgent-soft);
 
   --color-rhythm-done-fg: var(--rhythm-done-fg);
   --color-rhythm-done-bg: var(--rhythm-done-bg);

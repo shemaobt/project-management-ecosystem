@@ -48,6 +48,7 @@ export {
   SheetTrigger,
 } from "./Sheet";
 export { Skeleton } from "./Skeleton";
+export { Switch } from "./Switch";
 export {
   Table,
   TableBody,
