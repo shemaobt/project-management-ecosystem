@@ -23,6 +23,7 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { createEmptyProject } = await import("../../../../fixtures/blank");
 const { FormulariosView } = await import("..");
+const { formatDate } = await import("../../../../utils/format");
 const en = (await import("../../../../i18n/locales/en.json")).default;
 const pt = (await import("../../../../i18n/locales/pt-BR.json")).default;
 
@@ -126,6 +127,21 @@ describe("o ciclo do Pulso aparece com a posição do projeto escolhido", () => 
     );
   });
 
+  it("o ciclo lê o estado do Pulso, não o do formulário que estiver primeiro na lista", () => {
+    const markup = view([
+      project({
+        lastUpdated: "2026-02-01",
+        healthAssessmentDate: "2026-04-02",
+        healthEmotional: "boa",
+      }),
+    ]);
+
+    expect(markup).toContain(i18n.t("forms_loop_open", { project: "Kadiwéu" }));
+    expect(markup).not.toContain(
+      i18n.t("forms_loop_closed", { project: "Kadiwéu" }),
+    );
+  });
+
   it("as cinco perguntas do Pulso aparecem", () => {
     const markup = view([project()]);
 
@@ -136,27 +152,63 @@ describe("o ciclo do Pulso aparece com a posição do projeto escolhido", () => 
 });
 
 describe("a tela mostra quem ainda não reportou neste período", () => {
+  const pulseName = () => i18n.t("forms_pulse_title");
+
   it("lista os pendentes e não lista quem reportou", () => {
     const markup = view([
       project({ id: "atrasado", languageName: "Baikeno", lastUpdated: "2026-02-01" }),
       project({ id: "emdia", languageName: "Asháninka", lastUpdated: "2026-05-09" }),
     ]);
 
-    expect(markup).toContain(i18n.t("forms_pending_title"));
     expect(markup).toContain("Baikeno");
     expect(markup).toContain(
-      i18n.t("forms_readiness", { reported: 1, total: 2 }),
+      i18n.t("forms_readiness", {
+        reported: 1,
+        total: 2,
+        form: pulseName(),
+        date: formatDate("2026-05-31"),
+      }),
     );
+  });
+
+  it("a contagem diz de qual formulário é, e qual ciclo está contando", () => {
+    const markup = view([project()]);
+
+    expect(markup).toContain(
+      i18n.t("forms_pending_title", { form: pulseName() }),
+    );
+    expect(markup).toContain(pulseName());
+    expect(markup).not.toContain(
+      i18n.t("forms_pending_title", { form: i18n.t("forms_health_title") }),
+    );
+  });
+
+  it("o ciclo contado é o mensal do Pulso, não o trimestral da Avaliação", () => {
+    const markup = view([project({ lastUpdated: "2026-02-01" })]);
+    const line = (date: string) =>
+      i18n.t("forms_readiness", {
+        reported: 0,
+        total: 1,
+        form: pulseName(),
+        date: formatDate(date),
+      });
+
+    expect(markup).toContain(line("2026-05-31"));
+    expect(markup).not.toContain(line("2026-06-30"));
   });
 
   it("com todos em dia, afirma isso em vez de mostrar uma lista vazia", () => {
     const markup = view([project({ lastUpdated: "2026-05-09" })]);
 
-    expect(markup).toContain(i18n.t("forms_pending_none"));
+    expect(markup).toContain(
+      i18n.t("forms_pending_none", { form: pulseName() }),
+    );
   });
 
   it("diz de onde o sinal vem, para não parecer que um Pulso chegou", () => {
-    expect(view([project()])).toContain(i18n.t("forms_reporting_note"));
+    expect(view([project()])).toContain(
+      i18n.t("forms_reporting_note", { form: pulseName() }),
+    );
   });
 });
 

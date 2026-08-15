@@ -52,6 +52,9 @@ export function FormulariosView({
     }));
   }, [project, todayIso]);
 
+  const pulseState =
+    reporting?.find(({ form }) => form.kind === pulse.kind)?.state ?? null;
+
   return (
     <section className="mx-auto w-full max-w-(--container-reading) px-(--container-pad) pt-8 pb-20">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-5">
@@ -79,7 +82,7 @@ export function FormulariosView({
         <div className="flex justify-center py-16">
           <LoadingSpinner size="lg" label={t("loading")} />
         </div>
-      ) : !project || !reporting ? (
+      ) : !project || !reporting || !pulseState ? (
         <EmptyState message={t("forms_no_projects")} />
       ) : (
         <div className="flex flex-col gap-4">
@@ -91,10 +94,10 @@ export function FormulariosView({
 
           <StepByStep
             projectName={project.languageName}
-            reporting={reporting[0].state}
+            reporting={pulseState}
           />
 
-          <PendingProjects readiness={readiness} />
+          <PendingProjects form={pulse} readiness={readiness} />
 
           <ReceivedArchive submissions={submissions} />
 

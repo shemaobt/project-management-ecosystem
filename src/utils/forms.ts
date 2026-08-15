@@ -85,6 +85,7 @@ export function formReadiness(
   return {
     reported: projects.length - pending.length,
     total: projects.length,
+    periodEnd: formatIsoDate(periodEnd(form.cadence, today)),
     pending,
   };
 }

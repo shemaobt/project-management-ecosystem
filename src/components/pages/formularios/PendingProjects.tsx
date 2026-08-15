@@ -1,31 +1,35 @@
 import { useTranslation } from "react-i18next";
 import { surfaceOutlined } from "../../../styles";
-import type { FormReadiness } from "../../../types/forms";
+import type { FormDefinition, FormReadiness } from "../../../types/forms";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
 
 export interface PendingProjectsProps {
+  form: FormDefinition;
   readiness: FormReadiness;
 }
 
-export function PendingProjects({ readiness }: PendingProjectsProps) {
+export function PendingProjects({ form, readiness }: PendingProjectsProps) {
   const { t } = useTranslation();
+  const formName = t(form.titleKey);
 
   return (
     <section className={cn("rounded-lg p-6 shadow-card", surfaceOutlined)}>
       <h2 className="text-h4 leading-tight font-black tracking-tight text-fg-strong">
-        {t("forms_pending_title")}
+        {t("forms_pending_title", { form: formName })}
       </h2>
       <p className="mt-1.5 text-small leading-normal text-fg-muted">
         {t("forms_readiness", {
           reported: readiness.reported,
           total: readiness.total,
+          form: formName,
+          date: formatDate(readiness.periodEnd),
         })}
       </p>
 
       {readiness.pending.length === 0 ? (
         <p className="mt-4 text-small leading-normal text-verde-claro-ink">
-          {t("forms_pending_none")}
+          {t("forms_pending_none", { form: formName })}
         </p>
       ) : (
         <ul className="mt-4 max-h-96 overflow-y-auto">
@@ -53,7 +57,7 @@ export function PendingProjects({ readiness }: PendingProjectsProps) {
       )}
 
       <p className="mt-4 text-micro leading-normal text-fg-subtle">
-        {t("forms_reporting_note")}
+        {t("forms_reporting_note", { form: formName })}
       </p>
     </section>
   );

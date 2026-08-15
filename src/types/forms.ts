@@ -44,12 +44,15 @@ export interface PendingProject {
 export interface FormReadiness {
   reported: number;
   total: number;
+  periodEnd: string;
   pending: readonly PendingProject[];
 }
 
+export type ArchivedKind = Extract<FormKind, "pulso">;
+
 export interface ReceivedSubmission {
   id: string;
-  kind: FormKind;
+  kind: ArchivedKind;
   projectId: string;
   languageName: string;
   submittedBy: string;
