@@ -162,7 +162,7 @@ const { RoleSwitcher } = await import("../../components/layout/RoleSwitcher");
 const { TopNav } = await import("../../components/layout/TopNav");
 const { RitmoPage } = await import("../../components/pages/ritmo/RitmoPage");
 const { OracaoPage } = await import("../../components/pages/oracao");
-const { EtenPage } = await import("../../components/pages/eten/EtenPage");
+const { EtenPage } = await import("../../components/pages/eten");
 const { FormulariosPage } = await import(
   "../../components/pages/formularios/FormulariosPage"
 );
@@ -182,7 +182,6 @@ const ROUTES: [string, () => ReactElement][] = [
 ];
 
 const AREA_LEADS: [string, () => ReactElement, string][] = [
-  ["/eten", EtenPage, en.eten_lead],
   ["/formularios", FormulariosPage, en.forms_lead],
   ["/equipe", EquipePage, en.equipe_lead],
 ];
@@ -315,6 +314,14 @@ describe("the shell rendered with the language set to EN", () => {
     const chunks = render(OracaoPage);
     expect(chunks).toContain(en.oracao_sub_rede);
     expect(chunks).toContain(en.oracao_lead);
+  });
+
+  it("stops calling ETEN a placeholder once it reports credits", () => {
+    const eten = render(EtenPage);
+    expect(eten).toContain(en.eten_lead);
+    expect(eten).toContain(en.eten_title);
+    expect(eten).toContain(en.eten_report_year);
+    expect(eten).not.toContain(`${en.eten_lead} ${en.empty_soon}`);
   });
 
   it("stops calling the intercessor network a placeholder once it registers people", () => {
