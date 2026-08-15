@@ -10,7 +10,10 @@ import {
   serializeExport,
   type ExportFormat,
 } from "../../../utils/export";
-import { getLocationDisplay } from "../../../utils/region";
+import {
+  countWithheldLocations,
+  redactProjectsForExport,
+} from "../../../utils/privacy";
 import {
   Button,
   Dialog,
@@ -33,11 +36,9 @@ export function ExportDialogBody({
   onDownload,
 }: ExportDialogBodyProps) {
   const { t } = useTranslation();
-  const withheld =
-    projects === null
-      ? 0
-      : projects.filter((project) => getLocationDisplay(project).withheld)
-          .length;
+  const records =
+    projects === null ? null : redactProjectsForExport(projects, t);
+  const withheld = records === null ? 0 : countWithheldLocations(records);
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -45,12 +46,12 @@ export function ExportDialogBody({
       <p className="text-small font-semibold leading-body text-fg-strong">
         {t("export_confidential")}
       </p>
-      {projects === null ? (
+      {records === null ? (
         <p className="text-small text-fg-muted">{t("loading")}</p>
       ) : (
         <>
           <p className="text-small text-fg-muted">
-            {t("export_count", { count: projects.length })}
+            {t("export_count", { count: records.length })}
           </p>
           {withheld > 0 && (
             <p className="text-small leading-body text-fg-muted">

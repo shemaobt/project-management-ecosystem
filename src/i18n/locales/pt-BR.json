@@ -753,7 +753,6 @@
   "toast_saved": "Projeto salvo.",
   "toast_deleted": "Projeto removido.",
   "toast_exported": "Dados exportados.",
-  "toast_imported": "projetos importados.",
   "toast_field_generated": "Formulário do campo gerado — envie ao time.",
   "toast_field_received": "Atualização do campo aplicada.",
   "toast_field_invalid": "Arquivo de atualização inválido.",
@@ -906,5 +905,7 @@
   "intake_scope": "Escopo: só o cadastro. O link não abre o painel nem mostra dados de nenhum projeto existente.",
   "intake_expiry": "Validade: o link expira e vale para um único cadastro — quem precisar cadastrar de novo recebe um link novo.",
   "intake_pending": "Gerar o link chega na onda 2.",
-  "reload_done": "Dados recarregados."
+  "reload_done": "Dados recarregados.",
+  "import_done_one": "{{count}} projeto importado.",
+  "import_done_other": "{{count}} projetos importados."
 }

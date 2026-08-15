@@ -753,7 +753,6 @@
   "toast_saved": "Project saved.",
   "toast_deleted": "Project removed.",
   "toast_exported": "Data exported.",
-  "toast_imported": "projects imported.",
   "toast_field_generated": "Field form generated — send to the team.",
   "toast_field_received": "Field update applied.",
   "toast_field_invalid": "Invalid update file.",
@@ -906,5 +905,7 @@
   "intake_scope": "Scope: the intake only. The link opens no console and shows no data from any existing project.",
   "intake_expiry": "Validity: the link expires and serves a single intake — whoever needs to register again receives a new link.",
   "intake_pending": "Generating the link arrives in wave 2.",
-  "reload_done": "Data reloaded."
+  "reload_done": "Data reloaded.",
+  "import_done_one": "{{count}} project imported.",
+  "import_done_other": "{{count}} projects imported."
 }

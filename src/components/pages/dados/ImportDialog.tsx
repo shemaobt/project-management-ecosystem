@@ -90,14 +90,23 @@ export function ImportDialog({ open, onOpenChange }: HeaderDialogProps) {
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
-    const raw = await file.text();
+    let raw: string;
+    try {
+      raw = await file.text();
+    } catch {
+      setPick({
+        fileName: file.name,
+        result: { ok: false, error: { key: "import_invalid_json" } },
+      });
+      return;
+    }
     setPick({ fileName: file.name, result: parseProjectsImport(raw) });
   };
 
   const handleApply = () => {
     if (pick === null || !pick.result.ok) return;
     importProjects(pick.result.projects);
-    toast(`${pick.result.projects.length} ${t("toast_imported")}`);
+    toast(t("import_done", { count: pick.result.projects.length }));
     handleOpenChange(false);
   };
 
