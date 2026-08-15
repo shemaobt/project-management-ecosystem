@@ -163,9 +163,7 @@ const { TopNav } = await import("../../components/layout/TopNav");
 const { RitmoPage } = await import("../../components/pages/ritmo/RitmoPage");
 const { OracaoPage } = await import("../../components/pages/oracao");
 const { EtenPage } = await import("../../components/pages/eten");
-const { FormulariosPage } = await import(
-  "../../components/pages/formularios/FormulariosPage"
-);
+const { FormulariosPage } = await import("../../components/pages/formularios");
 const { EquipePage } = await import("../../components/pages/equipe/EquipePage");
 const { IntercessoresPage } = await import(
   "../../components/pages/intercessores/IntercessoresPage"
@@ -182,7 +180,6 @@ const ROUTES: [string, () => ReactElement][] = [
 ];
 
 const AREA_LEADS: [string, () => ReactElement, string][] = [
-  ["/formularios", FormulariosPage, en.forms_lead],
   ["/equipe", EquipePage, en.equipe_lead],
 ];
 
@@ -322,6 +319,14 @@ describe("the shell rendered with the language set to EN", () => {
     expect(eten).toContain(en.eten_title);
     expect(eten).toContain(en.eten_report_year);
     expect(eten).not.toContain(`${en.eten_lead} ${en.empty_soon}`);
+  });
+
+  it("stops calling Forms a placeholder once it carries the two instruments", () => {
+    const forms = render(FormulariosPage);
+    expect(forms).toContain(en.forms_lead);
+    expect(forms).toContain(en.forms_title);
+    expect(forms).toContain(en.forms_eyebrow);
+    expect(forms).not.toContain(`${en.forms_lead} ${en.empty_soon}`);
   });
 
   it("stops calling the intercessor network a placeholder once it registers people", () => {

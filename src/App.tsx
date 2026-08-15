@@ -4,7 +4,7 @@ import { DesignSystemPage } from "./components/pages/design-system/DesignSystemP
 import { EquipePage } from "./components/pages/equipe/EquipePage";
 import { EtenPage } from "./components/pages/eten";
 import { FichaPage } from "./components/pages/ficha";
-import { FormulariosPage } from "./components/pages/formularios/FormulariosPage";
+import { FormulariosPage } from "./components/pages/formularios";
 import { InicioPage } from "./components/pages/inicio";
 import { IntercessoresPage } from "./components/pages/intercessores/IntercessoresPage";
 import { OracaoPage } from "./components/pages/oracao";
