@@ -42,3 +42,7 @@ export function InicioPage() {
     <InicioView projects={hydrated ? projects : null} onOpen={openRecord} />
   );
 }
+
+export function ciRedProof() {
+  return 0;
+}
