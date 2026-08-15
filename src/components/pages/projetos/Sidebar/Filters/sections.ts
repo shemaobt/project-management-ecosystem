@@ -8,7 +8,10 @@ import {
   TRANSLATION_TYPES,
   VITALITY_SCALE,
 } from "../../../../../constants";
-import { STATUS_LABEL_KEYS } from "../../../../../constants/status";
+import {
+  STALE_LABEL_KEYS,
+  STATUS_LABEL_KEYS,
+} from "../../../../../constants/status";
 import type { ProgressRange } from "../../../../../stores/filtersStore";
 import {
   EMPTY_FILTERS,
@@ -18,7 +21,6 @@ import {
 import type {
   HealthLevel,
   Project,
-  StaleStatus,
 } from "../../../../../types/project";
 import type { FacetCounts, FacetGroup } from "../../../../../utils/search";
 import { filterProjects } from "../../../../../utils/search";
@@ -70,12 +72,6 @@ const HEALTH_LABEL_KEYS: Record<HealthLevel, string> = {
   boa: "health_good",
   atencao: "health_attention",
   critica: "health_critical",
-};
-
-const STALE_LABEL_KEYS: Record<StaleStatus, string> = {
-  "em-dia": "stale_uptodate",
-  atencao: "stale_attention",
-  critico: "stale_critical",
 };
 
 const RANGE_LABEL_KEYS: Record<ProgressRange, string> = {
