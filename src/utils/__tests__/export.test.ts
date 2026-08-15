@@ -86,6 +86,7 @@ const sensitive = () =>
     id: "sensitive",
     languageName: "Ngäbere",
     location: "Peru, Loreto",
+    team: "YWAM Peru",
     coords: [-74.2, -4.5],
     sensitiveCountry: true,
   });
@@ -141,10 +142,28 @@ describe("a transformação de país sensível é visível, não silenciosa", ()
     expect(JSON.stringify(record)).not.toContain("-74.2");
   });
 
-  it("um projeto aberto mantém o local como está no registro", () => {
+  it("a base de um projeto sensível também é recolhida — ela devolveria o país", () => {
+    const named = makeProject({
+      id: "named-base",
+      languageName: "Guardada",
+      location: "Egypt",
+      team: "YWAM Egypt",
+      sensitiveCountry: true,
+    });
+    const data = buildProjectsExport([named], t, NOW);
+
+    expect(redactProjectForExport(named, t).base).toBe("");
+    for (const file of [toJsonExport(data), toCsvExport(data, t)]) {
+      expect(file).not.toContain("YWAM Egypt");
+      expect(file).not.toContain("Egypt");
+    }
+  });
+
+  it("um projeto aberto mantém local e base como estão no registro", () => {
     const record = redactProjectForExport(shared(), t);
 
     expect(record.location).toBe("Brazil");
+    expect(record.base).toBe("JOCUM Belém");
     expect(record.locationWithheld).toBe(false);
   });
 
@@ -314,6 +333,66 @@ describe("a importação valida tudo antes de aplicar qualquer coisa", () => {
       ok: false,
       error: { key: "import_bad_record", index: 1 },
     });
+  });
+
+  it("um valor fora do vocabulário é recusado — status, visibilidade, saúde, coords", () => {
+    const badRecords = [
+      { status: "banana" },
+      { prayerVisibility: "publico" },
+      { healthEmotional: "otima" },
+      { coords: [1] },
+      { coords: ["-74.2", "-4.5"] },
+      { objective: [42] },
+    ];
+    for (const fields of badRecords) {
+      const result = parseProjectsImport(
+        JSON.stringify([{ id: "a", languageName: "Tikuna", ...fields }]),
+      );
+      expect(result, JSON.stringify(fields)).toEqual({
+        ok: false,
+        error: { key: "import_bad_record", index: 1 },
+      });
+    }
+  });
+
+  it("um item de lista que não é registro é recusado — o mural quebraria depois", () => {
+    const broken = [
+      {
+        id: "a",
+        languageName: "Tikuna",
+        needsItems: [{ description: 42, prayerShared: true }],
+      },
+    ];
+    const result = parseProjectsImport(JSON.stringify(broken));
+
+    expect(result).toEqual({
+      ok: false,
+      error: { key: "import_bad_record", index: 1 },
+    });
+  });
+
+  it("os valores legais dos mesmos campos passam — a recusa é do vocabulário, não do campo", () => {
+    const legal = [
+      {
+        id: "a",
+        languageName: "Tikuna",
+        status: "pausado",
+        prayerVisibility: "rede",
+        healthEmotional: "",
+        healthRelational: "atencao",
+        coords: [-74.2, -4.5],
+        needsItems: [
+          { category: "equipment", urgency: "high", status: "open", description: "Um gravador." },
+        ],
+        progressHistory: [{ date: "2026-05-14", translatedUnits: 3 }],
+      },
+    ];
+    const result = parseProjectsImport(JSON.stringify(legal));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.projects[0].status).toBe("pausado");
+    expect(result.projects[0].coords).toEqual([-74.2, -4.5]);
   });
 
   it("id repetido é recusado antes de aplicar", () => {

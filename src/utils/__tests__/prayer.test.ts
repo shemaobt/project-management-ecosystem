@@ -241,6 +241,7 @@ describe("todo caminho de leitura passa pelo dono da visibilidade", () => {
     "src/fixtures/seeds.ts",
     "src/stores/recordStore.ts",
     "src/types/project.ts",
+    "src/utils/export.ts",
     "src/utils/prayer.ts",
   ];
 

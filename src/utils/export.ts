@@ -1,4 +1,6 @@
 import type { TFunction } from "i18next";
+import { isPrayerVisibility } from "../constants/prayer";
+import { HEALTH_LEVELS, PROJECT_STATUSES } from "../constants/project";
 import { HEALTH_LABEL_KEYS, STATUS_LABEL_KEYS } from "../constants/status";
 import { createEmptyProject } from "../fixtures/blank";
 import type { Project } from "../types/project";
@@ -155,6 +157,8 @@ export function serializeExport(
   return format === "json" ? toJsonExport(data) : toCsvExport(data, t);
 }
 
+const REVOKE_DELAY_MS = 40_000;
+
 export function downloadTextFile(
   fileName: string,
   content: string,
@@ -165,8 +169,10 @@ export function downloadTextFile(
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = fileName;
+  document.body.appendChild(anchor);
   anchor.click();
-  URL.revokeObjectURL(url);
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
 }
 
 export type ImportError =
@@ -181,10 +187,34 @@ export type ImportParseResult =
   | { ok: false; error: ImportError };
 
 const isString = (value: unknown): value is string => typeof value === "string";
-const isNumber = (value: unknown): boolean =>
+const isFiniteNumber = (value: unknown): boolean =>
   typeof value === "number" && Number.isFinite(value);
 const isBoolean = (value: unknown): boolean => typeof value === "boolean";
-const isArray = (value: unknown): boolean => Array.isArray(value);
+
+const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const isOneOf =
+  (vocabulary: readonly string[]) =>
+  (value: unknown): boolean =>
+    isString(value) && vocabulary.includes(value);
+
+const isHealthRating = (value: unknown): boolean =>
+  value === "" || isOneOf(HEALTH_LEVELS)(value);
+
+const isCoordinatePair = (value: unknown): boolean =>
+  Array.isArray(value) && value.length === 2 && value.every(isFiniteNumber);
+
+const isListOf =
+  (accepts: (item: unknown) => boolean) =>
+  (value: unknown): boolean =>
+    Array.isArray(value) && value.every(accepts);
+
+const recordWithStrings =
+  (fields: readonly string[]) =>
+  (item: unknown): boolean =>
+    isPlainRecord(item) &&
+    fields.every((field) => item[field] === undefined || isString(item[field]));
 
 const IMPORT_FIELD_CHECKS: ReadonlyArray<
   readonly [keyof Project, (value: unknown) => boolean]
@@ -193,23 +223,46 @@ const IMPORT_FIELD_CHECKS: ReadonlyArray<
   ["location", isString],
   ["team", isString],
   ["ywamBase", isString],
-  ["status", isString],
   ["notes", isString],
   ["healthNotes", isString],
+  ["prayerRequests", isString],
+  ["prayerRequestsAudio", isString],
+  ["healthAssessmentDate", isString],
+  ["healthAssessor", isString],
+  ["startDate", isString],
+  ["deadline", isString],
   ["lastUpdated", isString],
-  ["objective", isArray],
-  ["translationType", isArray],
-  ["financialResources", isArray],
-  ["needsItems", isArray],
-  ["progressHistory", isArray],
-  ["bookProgress", isArray],
-  ["storyProgress", isArray],
-  ["materials", isArray],
-  ["phases", isArray],
-  ["totalUnits", isNumber],
-  ["translatedUnits", isNumber],
-  ["communityCheckedUnits", isNumber],
-  ["approvedUnits", isNumber],
+  ["status", isOneOf(PROJECT_STATUSES)],
+  ["prayerVisibility", (value) => isString(value) && isPrayerVisibility(value)],
+  ["healthEmotional", isHealthRating],
+  ["healthRelational", isHealthRating],
+  ["healthSpiritual", isHealthRating],
+  ["healthPhysical", isHealthRating],
+  ["coords", isCoordinatePair],
+  ["objective", isListOf(isString)],
+  ["translationType", isListOf(isString)],
+  ["financialResources", isListOf(isString)],
+  [
+    "needsItems",
+    isListOf(recordWithStrings(["description", "category", "urgency", "status"])),
+  ],
+  ["progressHistory", isListOf(recordWithStrings(["date"]))],
+  ["bookProgress", isListOf(recordWithStrings(["id", "name"]))],
+  ["storyProgress", isListOf(recordWithStrings(["name"]))],
+  ["otherProgress", isListOf(recordWithStrings(["name"]))],
+  [
+    "materials",
+    isListOf(
+      recordWithStrings(["kind", "scope", "link", "fileName", "dataUrl", "format"]),
+    ),
+  ],
+  ["phases", isListOf(recordWithStrings(["label", "scope", "date"]))],
+  ["mediaVideos", isListOf(recordWithStrings(["url", "caption"]))],
+  ["mediaPhotos", isListOf(recordWithStrings(["caption"]))],
+  ["totalUnits", isFiniteNumber],
+  ["translatedUnits", isFiniteNumber],
+  ["communityCheckedUnits", isFiniteNumber],
+  ["approvedUnits", isFiniteNumber],
   ["sensitiveCountry", isBoolean],
   ["inETEN", isBoolean],
 ];

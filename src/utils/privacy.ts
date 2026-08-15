@@ -55,7 +55,7 @@ export function redactProjectForExport(
     bridgeLanguage: project.bridgeLanguage,
     vitalityStatus: project.vitalityStatus,
     speakerCount: project.speakerCount,
-    base: project.team || project.ywamBase,
+    base: display.withheld ? "" : project.team || project.ywamBase,
     location: display.withheld ? t(display.regionLabelKey) : display.location,
     locationWithheld: display.withheld,
     sensitiveCountry: project.sensitiveCountry,
