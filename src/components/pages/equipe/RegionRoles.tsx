@@ -3,9 +3,8 @@ import { useTranslation } from "react-i18next";
 import { ROLES } from "../../../constants/roles";
 import { BODY_LABEL_KEYS, ROLE_BODY } from "../../../constants/team";
 import { surfaceOutlined } from "../../../styles";
-import type { Region, RoleChange } from "../../../types/region";
+import type { Region, RegionTeam, RoleChange } from "../../../types/region";
 import type { RoleKey } from "../../../types/role";
-import type { TeamDraft } from "../../../types/team";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
 import { lastChangeFor } from "../../../utils/team";
@@ -14,7 +13,7 @@ import { Input, Label } from "../../ui";
 export interface RegionRolesProps {
   region: Region;
   count: number;
-  draft: TeamDraft;
+  draft: RegionTeam;
   changes: readonly RoleChange[];
   onChange: (role: RoleKey, holder: string) => void;
 }

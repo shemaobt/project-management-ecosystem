@@ -14,7 +14,7 @@ export function Leadership() {
 
       <div className="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         <article className="rounded-md bg-accent-soft px-4 py-3.5">
-          <p className="text-tag font-bold tracking-button uppercase text-telha">
+          <p className="text-tag font-bold tracking-button uppercase text-accent-press">
             {t("equipe_body_leadership_scope")}
           </p>
           <p className="mt-1 text-small font-semibold text-fg-strong">

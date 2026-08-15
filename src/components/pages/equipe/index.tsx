@@ -53,9 +53,11 @@ export function EquipeView({
   const drafts = useMemo(() => {
     const base = draftsFor(visible);
     for (const region of visible) {
+      const draft = base[region.key];
+      if (!draft) continue;
       for (const role of ROLES) {
         const edited = edits[editKey(region.key, role.key)];
-        if (edited !== undefined) base[region.key][role.key] = edited;
+        if (edited !== undefined) draft[role.key] = edited;
       }
     }
     return base;
@@ -63,17 +65,20 @@ export function EquipeView({
 
   const dirty = useMemo(
     () =>
-      visible.some((region) =>
-        ROLES.some(
-          (role) =>
-            region.team[role.key].trim() !==
-            drafts[region.key][role.key].trim(),
-        ),
-      ),
+      visible.some((region) => {
+        const draft = drafts[region.key];
+        return (
+          draft !== undefined &&
+          ROLES.some(
+            (role) =>
+              region.team[role.key].trim() !== draft[role.key].trim(),
+          )
+        );
+      }),
     [visible, drafts],
   );
 
-  const pending = unassignedCount(visible);
+  const pending = unassignedCount(drafts);
 
   return (
     <section className="mx-auto w-full max-w-(--container-max) px-(--container-pad) pt-8 pb-20">
@@ -116,7 +121,7 @@ export function EquipeView({
                   key={region.key}
                   region={region}
                   count={counts.get(region.key) ?? 0}
-                  draft={drafts[region.key]}
+                  draft={drafts[region.key] ?? region.team}
                   changes={changes}
                   onChange={(role, holder) => {
                     setOutcome(null);

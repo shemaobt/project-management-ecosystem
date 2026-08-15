@@ -11,12 +11,6 @@ export interface TeamBody {
   purposeKey: string;
 }
 
-export interface TeamDraft {
-  coordinator: string;
-  obtLab: string;
-  resourceCircle: string;
-}
-
 export interface SaveOutcome {
   changed: number;
   filled: number;

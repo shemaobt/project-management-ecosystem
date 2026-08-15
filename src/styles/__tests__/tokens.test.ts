@@ -202,6 +202,15 @@ describe("cada estado da reunião se lê no próprio selo", () => {
   }
 });
 
+describe("o telha sobre o realce suave também precisa da tinta", () => {
+  it("não passa em texto pequeno, a tinta passa", () => {
+    expect(contrast("shema-telha", "accent-soft")).toBeLessThan(AA_SMALL_TEXT);
+    expect(contrast("accent-press", "accent-soft")).toBeGreaterThanOrEqual(
+      AA_SMALL_TEXT,
+    );
+  });
+});
+
 describe("o estado do relatório se lê sobre a superfície do cartão", () => {
   const REPORTING_STATES = ["reported", "awaiting", "never"] as const;
   const PALETTE_TOKEN: Record<string, string> = { telha: "shema-telha" };

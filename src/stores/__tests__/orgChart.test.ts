@@ -43,7 +43,9 @@ const peruvian = {
 async function saveHolder(name: string, role = "coordinator" as const) {
   await useRegionsStore.getState().hydrate();
   const drafts = draftsFor(useRegionsStore.getState().regions);
-  drafts["south-america"][role] = name;
+  const draft = drafts["south-america"];
+  if (!draft) throw new Error("a América do Sul não veio nas regiões");
+  draft[role] = name;
   return useRegionsStore.getState().saveTeams(drafts, "Karina Marinho", NOW);
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ROLE_BODY } from "../../constants/team";
-import type { Region } from "../../types/region";
+import type { Region, RegionKey, RegionTeam } from "../../types/region";
 import {
   applyChanges,
   diffTeams,
@@ -8,9 +8,16 @@ import {
   lastChangeFor,
   summarize,
   unassignedCount,
+  type TeamDrafts,
 } from "../team";
 
 const NOW = new Date(2026, 4, 14);
+
+function draftOf(drafts: TeamDrafts, key: RegionKey): RegionTeam {
+  const draft = drafts[key];
+  if (!draft) throw new Error(`sem rascunho para ${key}`);
+  return draft;
+}
 
 const regions = (): Region[] => [
   {
@@ -29,13 +36,13 @@ describe("o rascunho parte do que está salvo, sem mexer nele", () => {
   it("copia os times sem compartilhar referência", () => {
     const source = regions();
     const drafts = draftsFor(source);
-    drafts["south-america"].coordinator = "Outra";
+    draftOf(drafts, "south-america").coordinator = "Outra";
 
     expect(source[0].team.coordinator).toBe("Ana");
   });
 
   it("uma região sem ninguém vem com os três campos vazios", () => {
-    expect(draftsFor(regions())["africa"]).toEqual({
+    expect(draftOf(draftsFor(regions()), "africa")).toEqual({
       coordinator: "",
       obtLab: "",
       resourceCircle: "",
@@ -52,7 +59,7 @@ describe("só o que mudou vira evento", () => {
   it("espaço em branco a mais não é mudança", () => {
     const source = regions();
     const drafts = draftsFor(source);
-    drafts["south-america"].coordinator = "  Ana  ";
+    draftOf(drafts, "south-america").coordinator = "  Ana  ";
 
     expect(diffTeams(source, drafts, "Karina", NOW)).toEqual([]);
   });
@@ -60,7 +67,7 @@ describe("só o que mudou vira evento", () => {
   it("o evento carrega o antes, o depois, quem e quando", () => {
     const source = regions();
     const drafts = draftsFor(source);
-    drafts["africa"].obtLab = "Grace Achieng";
+    draftOf(drafts, "africa").obtLab = "Grace Achieng";
 
     expect(diffTeams(source, drafts, "Karina", NOW)).toEqual([
       {
@@ -79,7 +86,7 @@ describe("aplicar as mudanças não corrompe o que não mudou", () => {
   it("mexe só na região e no papel do evento", () => {
     const source = regions();
     const drafts = draftsFor(source);
-    drafts["africa"].coordinator = "Josué";
+    draftOf(drafts, "africa").coordinator = "Josué";
     const next = applyChanges(source, diffTeams(source, drafts, "K", NOW));
 
     expect(next[1].team.coordinator).toBe("Josué");
@@ -96,8 +103,8 @@ describe("o resumo do salvamento conta o que a tela vai afirmar", () => {
   it("separa preenchido de esvaziado", () => {
     const source = regions();
     const drafts = draftsFor(source);
-    drafts["africa"].coordinator = "Josué";
-    drafts["south-america"].resourceCircle = "";
+    draftOf(drafts, "africa").coordinator = "Josué";
+    draftOf(drafts, "south-america").resourceCircle = "";
 
     expect(summarize(diffTeams(source, drafts, "K", NOW))).toEqual({
       changed: 2,
@@ -109,13 +116,22 @@ describe("o resumo do salvamento conta o que a tela vai afirmar", () => {
 
 describe("papel sem responsável é estado, não falha de render", () => {
   it("conta os vazios das duas regiões", () => {
-    expect(unassignedCount(regions())).toBe(4);
+    expect(unassignedCount(draftsFor(regions()))).toBe(4);
   });
 
   it("nome só de espaços conta como vazio", () => {
     const source = regions();
     source[0].team.obtLab = "   ";
-    expect(unassignedCount(source)).toBe(4);
+    expect(unassignedCount(draftsFor(source))).toBe(4);
+  });
+
+  it("conta o rascunho, não o salvo — é o mesmo que a marca do campo lê", () => {
+    const source = regions();
+    const drafts = draftsFor(source);
+    draftOf(drafts, "africa").coordinator = "Josué";
+
+    expect(unassignedCount(draftsFor(source))).toBe(4);
+    expect(unassignedCount(drafts)).toBe(3);
   });
 });
 

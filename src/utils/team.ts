@@ -1,14 +1,19 @@
 import { EMPTY_REGION_TEAM } from "../constants/regions";
 import { ROLES } from "../constants/roles";
-import type { Region, RegionKey, RoleChange } from "../types/region";
+import type {
+  Region,
+  RegionKey,
+  RegionTeam,
+  RoleChange,
+} from "../types/region";
 import type { RoleKey } from "../types/role";
-import type { SaveOutcome, TeamDraft } from "../types/team";
+import type { SaveOutcome } from "../types/team";
 import { toLocalIsoDate } from "./format";
 
-export type TeamDrafts = Record<RegionKey, TeamDraft>;
+export type TeamDrafts = Partial<Record<RegionKey, RegionTeam>>;
 
 export function draftsFor(regions: readonly Region[]): TeamDrafts {
-  const drafts = {} as TeamDrafts;
+  const drafts: TeamDrafts = {};
   for (const region of regions) {
     drafts[region.key] = { ...EMPTY_REGION_TEAM, ...region.team };
   }
@@ -69,10 +74,12 @@ export function summarize(changes: readonly RoleChange[]): SaveOutcome {
   };
 }
 
-export function unassignedCount(regions: readonly Region[]): number {
-  return regions.reduce(
-    (total, region) =>
-      total + ROLES.filter((role) => !region.team[role.key].trim()).length,
+export function unassignedCount(drafts: TeamDrafts): number {
+  return Object.values(drafts).reduce(
+    (total, team) =>
+      team === undefined
+        ? total
+        : total + ROLES.filter((role) => !team[role.key].trim()).length,
     0,
   );
 }
