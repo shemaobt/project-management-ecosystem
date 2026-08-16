@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { FIELD_FORMS } from "../../../constants/forms";
 import { useFormsStore } from "../../../stores/formsStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
@@ -9,6 +10,7 @@ import { formOf, formReadiness, reportingFor, selectableProjects } from "../../.
 import { toLocalIsoDate } from "../../../utils/format";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { Button } from "../../ui";
 import { FormCard } from "./FormCard";
 import { PendingProjects } from "./PendingProjects";
 import { ProjectSelector } from "./ProjectSelector";
@@ -88,7 +90,20 @@ export function FormulariosView({
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {reporting.map(({ form, state }) => (
-              <FormCard key={form.kind} form={form} reporting={state} />
+              <FormCard
+                key={form.kind}
+                form={form}
+                reporting={state}
+                action={
+                  form.mechanism === "inApp" ? (
+                    <Button asChild>
+                      <Link to={`/formularios/avaliacao/${project.id}`}>
+                        {t("forms_open_health")}
+                      </Link>
+                    </Button>
+                  ) : null
+                }
+              />
             ))}
           </div>
 

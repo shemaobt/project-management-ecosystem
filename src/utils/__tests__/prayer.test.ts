@@ -238,13 +238,16 @@ describe("todo caminho de leitura passa pelo dono da visibilidade", () => {
   const TEST_FILE = /(?:^|\/)__tests__\//u;
 
   const RECORD_SURFACES_AND_OWNER = [
+    "src/components/pages/avaliacao/index.tsx",
     "src/components/pages/ficha/tabs/saude/SaudeForm.tsx",
     "src/components/pages/ficha/tabs/saude/SaudeView.tsx",
     "src/components/pages/projetos/card.ts",
     "src/fixtures/blank.ts",
     "src/fixtures/seeds.ts",
     "src/stores/recordStore.ts",
+    "src/types/assessment.ts",
     "src/types/project.ts",
+    "src/utils/assessment.ts",
     "src/utils/prayer.ts",
   ];
 

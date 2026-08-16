@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
+import { AvaliacaoPage } from "./components/pages/avaliacao";
 import { DesignSystemPage } from "./components/pages/design-system/DesignSystemPage";
 import { EquipePage } from "./components/pages/equipe";
 import { EtenPage } from "./components/pages/eten";
@@ -33,6 +34,10 @@ export default function App() {
               />
               <Route path="eten" element={<EtenPage />} />
               <Route path="formularios" element={<FormulariosPage />} />
+              <Route
+                path="formularios/avaliacao/:projectId"
+                element={<AvaliacaoPage />}
+              />
               <Route path="equipe" element={<EquipePage />} />
             </Route>
             <Route path="design-system" element={<DesignSystemPage />} />
