@@ -6,18 +6,23 @@ import { surfaceOutlined } from "../../../styles";
 import type { AssessmentDraft, PastoralAnswer, PastoralWhen } from "../../../types/assessment";
 import { cn } from "../../../utils/cn";
 import { overallOf, pastoralSuggestion } from "../../../utils/assessment";
-import { Input, Label, Textarea } from "../../ui";
+import { Input, Label, RadioButton, RadioGroup, Textarea } from "../../ui";
 import { StatusBadge } from "../../common/StatusBadge";
 
 const PASTORAL_CHOICES: {
+  value: string;
   answer: PastoralAnswer;
   when: PastoralWhen;
   labelKey: string;
 }[] = [
-  { answer: "sim", when: "now", labelKey: "hw_pastoral_now" },
-  { answer: "sim", when: "30d", labelKey: "hw_pastoral_30d" },
-  { answer: "nao", when: "now", labelKey: "hw_pastoral_no" },
+  { value: "sim-now", answer: "sim", when: "now", labelKey: "hw_pastoral_now" },
+  { value: "sim-30d", answer: "sim", when: "30d", labelKey: "hw_pastoral_30d" },
+  { value: "nao", answer: "nao", when: "now", labelKey: "hw_pastoral_no" },
 ];
+
+function pastoralValue(answer: PastoralAnswer, when: PastoralWhen): string {
+  return answer === "nao" ? "nao" : `sim-${when}`;
+}
 
 export interface CompletionProps {
   draft: AssessmentDraft;
@@ -117,35 +122,32 @@ export function Completion({ draft, onChange }: CompletionProps) {
           </p>
         )}
 
-        <div className="mt-3.5 flex flex-wrap gap-2">
-          {PASTORAL_CHOICES.map((choice) => {
-            const on =
-              draft.pastoral === choice.answer &&
-              (choice.answer === "nao" || draft.pastoralWhen === choice.when);
-            return (
-              <button
-                key={choice.labelKey}
-                type="button"
-                aria-pressed={on}
-                onClick={() =>
-                  onChange({
-                    pastoral: choice.answer,
-                    pastoralWhen: choice.when,
-                  })
-                }
-                className={cn(
-                  "rounded-pill border px-4 py-2 text-micro font-bold tracking-button uppercase",
-                  on
-                    ? "border-telha bg-accent-soft text-accent-press"
-                    : "border-line bg-elevated text-fg-muted hover:border-fg-muted",
-                )}
-              >
-                {choice.labelKey === "hw_pastoral_no" ? "" : "✓ "}
-                {t(choice.labelKey)}
-              </button>
+        <RadioGroup
+          aria-label={t("hw_pastoral_q")}
+          value={pastoralValue(draft.pastoral, draft.pastoralWhen)}
+          onValueChange={(next) => {
+            const choice = PASTORAL_CHOICES.find(
+              (entry) => entry.value === next,
             );
-          })}
-        </div>
+            if (choice) {
+              onChange({ pastoral: choice.answer, pastoralWhen: choice.when });
+            }
+          }}
+          className="mt-3.5 flex-wrap gap-2"
+        >
+          {PASTORAL_CHOICES.map((choice) => (
+            <RadioButton
+              key={choice.value}
+              value={choice.value}
+              className={cn(
+                "rounded-pill border border-line bg-elevated px-4 py-2 text-micro font-bold tracking-button uppercase text-fg-muted hover:border-fg-muted",
+                "data-[state=checked]:border-telha data-[state=checked]:bg-accent-soft data-[state=checked]:text-accent-press",
+              )}
+            >
+              {t(choice.labelKey)}
+            </RadioButton>
+          ))}
+        </RadioGroup>
 
         <p className="mt-3 max-w-[80ch] text-micro leading-normal text-fg-subtle">
           {t("hw_pastoral_not_applied")}

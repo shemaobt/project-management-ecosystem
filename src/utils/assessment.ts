@@ -1,4 +1,4 @@
-import { HEALTH_DIMENSIONS } from "../constants/health";
+import { HEALTH_DIMENSIONS, type AssessedProject } from "../constants/health";
 import { DEFAULT_PRAYER_VISIBILITY } from "../constants/prayer";
 import type {
   AssessmentDraft,
@@ -10,8 +10,10 @@ import type {
   HealthDimensionKey,
   HealthRating,
   OverallHealth,
+  Project,
 } from "../types/project";
 import { toLocalIsoDate } from "./format";
+import { getOverallHealth, recordAssessment } from "./health";
 
 const EMPTY_RATINGS: Record<HealthDimensionKey, HealthRating> = {
   emotional: "",
@@ -54,15 +56,16 @@ export function assessedCount(draft: AssessmentDraft): number {
   ).length;
 }
 
-export function overallOf(draft: AssessmentDraft): OverallHealth {
-  const rated = HEALTH_DIMENSIONS.map(
-    (dimension) => draft.ratings[dimension.key],
-  ).filter((rating): rating is Exclude<HealthRating, ""> => rating !== "");
+export function asAssessedProject(draft: AssessmentDraft): AssessedProject {
+  const assessed: AssessedProject = {};
+  for (const dimension of HEALTH_DIMENSIONS) {
+    assessed[dimension.field] = draft.ratings[dimension.key];
+  }
+  return assessed;
+}
 
-  if (rated.length === 0) return "na";
-  if (rated.includes("critica")) return "critica";
-  if (rated.includes("atencao")) return "atencao";
-  return "boa";
+export function overallOf(draft: AssessmentDraft): OverallHealth {
+  return getOverallHealth(asAssessedProject(draft));
 }
 
 export function pastoralSuggestion(draft: AssessmentDraft): PastoralSuggestion {
@@ -90,6 +93,24 @@ export function compileNotes(
 
   if (draft.overallNote.trim() !== "") parts.push(draft.overallNote.trim());
   return parts.join("\n\n");
+}
+
+export function applyAssessment(
+  project: Project,
+  draft: AssessmentDraft,
+  label: (key: string) => string,
+): Project {
+  const raised = draft.prayerRequest.trim();
+
+  return {
+    ...recordAssessment(project, toAssessment(draft, label)),
+    needsPastoralIntervention: draft.pastoral,
+    pastoralInterventionName: draft.pastoralWho,
+    pastoralInterventionWhen: draft.pastoralWhen,
+    ...(raised === ""
+      ? {}
+      : { prayerRequests: raised, prayerVisibility: draft.prayerVisibility }),
+  };
 }
 
 export function toAssessment(

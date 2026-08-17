@@ -6,7 +6,7 @@ import { useAssessmentStore } from "../../../stores/assessmentStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { AssessmentDraft } from "../../../types/assessment";
 import type { Project } from "../../../types/project";
-import { toAssessment } from "../../../utils/assessment";
+import { applyAssessment } from "../../../utils/assessment";
 import { formatDate } from "../../../utils/format";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -182,23 +182,7 @@ export function AvaliacaoPage() {
       onStep={saveStep}
       onFinish={(finished) => {
         if (!project) return;
-        const assessment = toAssessment(finished, t);
-        saveProject({
-          ...project,
-          healthEmotional: assessment.emotional,
-          healthRelational: assessment.relational,
-          healthSpiritual: assessment.spiritual,
-          healthPhysical: assessment.physical,
-          healthAssessmentDate: assessment.date,
-          healthAssessor: assessment.assessor,
-          healthNotes: assessment.notes,
-          healthHistory: [...(project.healthHistory ?? []), assessment],
-          needsPastoralIntervention: finished.pastoral,
-          pastoralInterventionName: finished.pastoralWho,
-          pastoralInterventionWhen: finished.pastoralWhen,
-          prayerRequests: finished.prayerRequest,
-          prayerVisibility: finished.prayerVisibility,
-        });
+        saveProject(applyAssessment(project, finished, t));
         discardDraft(projectId);
         toast.success(t("hw_saved", { language: project.languageName }));
         void navigate("/formularios");

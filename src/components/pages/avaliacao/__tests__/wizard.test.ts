@@ -51,6 +51,12 @@ const draft = (over: Partial<AssessmentDraft> = {}): AssessmentDraft => ({
   ...over,
 });
 
+function controlFor(markup: string, label: string): string {
+  const end = markup.indexOf(`>${label}</button>`);
+  if (end === -1) throw new Error(`sem controle para ${label}`);
+  return markup.slice(markup.lastIndexOf("<button", end), end + 1);
+}
+
 const view = (over: Partial<AssessmentDraft> = {}) =>
   renderToStaticMarkup(
     createElement(
@@ -189,10 +195,22 @@ describe("o cuidado pastoral é proposto com motivo, e espera confirmação", ()
     });
 
     expect(markup).toContain(i18n.t("hw_pastoral_not_applied"));
-    expect(markup).toMatch(
-      /aria-pressed="true"[^>]*>[^<]*Não|Não[^<]*<\/button>/u,
+    expect(controlFor(markup, i18n.t("hw_pastoral_no"))).toContain(
+      'data-state="checked"',
+    );
+    expect(controlFor(markup, i18n.t("hw_pastoral_now"))).toContain(
+      'data-state="unchecked"',
     );
     expect(markup).not.toContain(i18n.t("hw_pastoral_who"));
+  });
+
+  it("as três respostas são uma escolha só, não três paradas de tabulação", () => {
+    const markup = completion({});
+
+    for (const key of ["hw_pastoral_now", "hw_pastoral_30d", "hw_pastoral_no"]) {
+      expect(controlFor(markup, i18n.t(key)), key).toContain('tabindex="-1"');
+    }
+    expect(markup).not.toContain("aria-pressed");
   });
 
   it("sem nada crítico, a tela diz que ninguém pediu, sem esconder a opção", () => {

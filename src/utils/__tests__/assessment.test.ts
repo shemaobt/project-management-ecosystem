@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { HEALTH_DIMENSIONS } from "../../constants/health";
 import { GUIDING_QUESTIONS, QUESTIONS_PENDING_CLIENT } from "../../constants/healthQuestions";
+import { createEmptyProject } from "../../fixtures/blank";
 import type { AssessmentDraft } from "../../types/assessment";
+import type { Project } from "../../types/project";
 import {
+  applyAssessment,
+  asAssessedProject,
   assessedCount,
   compileNotes,
   emptyDraft,
@@ -10,6 +14,7 @@ import {
   pastoralSuggestion,
   toAssessment,
 } from "../assessment";
+import { getOverallHealth } from "../health";
 
 const NOW = new Date(2026, 4, 14);
 const label = (key: string) => key;
@@ -150,6 +155,166 @@ describe("o cuidado pastoral é sugerido com motivo, e nunca se aplica sozinho",
     expect(pastoralSuggestion(critical).suggested).toBe(true);
     expect(critical.pastoral).toBe("nao");
     expect(toAssessment(critical, label).date).toBe("2026-05-14");
+  });
+});
+
+describe("salvar passa pelo dono do par histórico/campos rasos", () => {
+  const project = (over: Partial<Project> = {}): Project => ({
+    ...createEmptyProject("kadiweu"),
+    languageName: "Kadiwéu",
+    ...over,
+  });
+
+  const conversation = (over: Partial<AssessmentDraft> = {}) =>
+    draft({
+      ratings: {
+        emotional: "boa",
+        relational: "boa",
+        spiritual: "boa",
+        physical: "boa",
+      },
+      assessor: "Ana",
+      ...over,
+    });
+
+  it("uma avaliação retroativa não vira a atual nos campos rasos", () => {
+    const saved = applyAssessment(
+      project({
+        healthHistory: [
+          {
+            date: "2026-05-10",
+            assessor: "Levi",
+            emotional: "critica",
+            relational: "critica",
+            spiritual: "critica",
+            physical: "critica",
+            notes: "",
+          },
+        ],
+      }),
+      conversation({ date: "2026-01-20" }),
+      label,
+    );
+
+    expect(saved.healthHistory).toHaveLength(2);
+    expect(saved.healthAssessmentDate).toBe("2026-05-10");
+    expect(saved.healthEmotional).toBe("critica");
+  });
+
+  it("um projeto sem histórico não perde o que os campos rasos já traziam", () => {
+    const saved = applyAssessment(
+      project({
+        healthEmotional: "atencao",
+        healthRelational: "atencao",
+        healthSpiritual: "atencao",
+        healthPhysical: "atencao",
+        healthAssessmentDate: "2025-11-02",
+        healthAssessor: "Levi",
+      }),
+      conversation({ date: "2026-05-14" }),
+      label,
+    );
+
+    expect(saved.healthHistory).toHaveLength(2);
+    expect(saved.healthHistory?.[0].date).toBe("2025-11-02");
+    expect(saved.healthAssessmentDate).toBe("2026-05-14");
+  });
+
+  it("o histórico fica ordenado por data, não por ordem de digitação", () => {
+    const saved = applyAssessment(
+      project({
+        healthHistory: [
+          {
+            date: "2026-05-10",
+            assessor: "Levi",
+            emotional: "boa",
+            relational: "boa",
+            spiritual: "boa",
+            physical: "boa",
+            notes: "",
+          },
+        ],
+      }),
+      conversation({ date: "2026-01-20" }),
+      label,
+    );
+
+    expect(saved.healthHistory?.map((entry) => entry.date)).toEqual([
+      "2026-01-20",
+      "2026-05-10",
+    ]);
+  });
+});
+
+describe("uma avaliação sem pedido de oração não apaga o que o projeto já tinha", () => {
+  const withRequest = {
+    ...createEmptyProject("kadiweu"),
+    prayerRequests: "Orem pela chuva.",
+    prayerVisibility: "rede" as const,
+  };
+
+  it("terminar sem escrever pedido preserva texto e consentimento", () => {
+    const saved = applyAssessment(withRequest, draft(), label);
+
+    expect(saved.prayerRequests).toBe("Orem pela chuva.");
+    expect(saved.prayerVisibility).toBe("rede");
+  });
+
+  it("só espaços também não conta como pedido novo", () => {
+    const saved = applyAssessment(
+      withRequest,
+      draft({ prayerRequest: "   " }),
+      label,
+    );
+
+    expect(saved.prayerRequests).toBe("Orem pela chuva.");
+  });
+
+  it("um pedido escrito grava o texto e o consentimento daquele pedido", () => {
+    const saved = applyAssessment(
+      withRequest,
+      draft({
+        prayerRequest: "  Orem pela equipe.  ",
+        prayerVisibility: "coordenacao",
+      }),
+      label,
+    );
+
+    expect(saved.prayerRequests).toBe("Orem pela equipe.");
+    expect(saved.prayerVisibility).toBe("coordenacao");
+  });
+
+  it("a resposta pastoral é sempre gravada, com ou sem pedido", () => {
+    const saved = applyAssessment(
+      withRequest,
+      draft({ pastoral: "sim", pastoralWhen: "30d", pastoralWho: "Daniel" }),
+      label,
+    );
+
+    expect(saved.needsPastoralIntervention).toBe("sim");
+    expect(saved.pastoralInterventionWhen).toBe("30d");
+    expect(saved.pastoralInterventionName).toBe("Daniel");
+  });
+});
+
+describe("a leitura geral tem um dono só", () => {
+  it("o rascunho é projetado nos campos que o getOverallHealth já lê", () => {
+    const mixed = draft({
+      ratings: {
+        emotional: "boa",
+        relational: "atencao",
+        spiritual: "",
+        physical: "",
+      },
+    });
+
+    expect(overallOf(mixed)).toBe(getOverallHealth(asAssessedProject(mixed)));
+    expect(asAssessedProject(mixed)).toEqual({
+      healthEmotional: "boa",
+      healthRelational: "atencao",
+      healthSpiritual: "",
+      healthPhysical: "",
+    });
   });
 });
 
