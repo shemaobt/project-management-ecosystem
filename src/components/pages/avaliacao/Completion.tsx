@@ -140,7 +140,8 @@ export function Completion({ draft, onChange }: CompletionProps) {
               key={choice.value}
               value={choice.value}
               className={cn(
-                "rounded-pill border border-line bg-elevated px-4 py-2 text-micro font-bold tracking-button uppercase text-fg-muted hover:border-fg-muted",
+                "rounded-pill border border-line bg-elevated px-4 py-2 text-micro font-bold tracking-button uppercase text-fg-muted",
+                "data-[state=unchecked]:hover:border-fg-muted",
                 "data-[state=checked]:border-telha data-[state=checked]:bg-accent-soft data-[state=checked]:text-accent-press",
               )}
             >
