@@ -1,5 +1,6 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 function createMemoryStorage() {
@@ -42,7 +43,11 @@ const project = (over: Partial<Project> = {}): Project => ({
 
 const view = (projects: Project[] | null) =>
   renderToStaticMarkup(
-    createElement(FormulariosView, { projects, submissions: [], now: NOW }),
+    createElement(
+      MemoryRouter,
+      null,
+      createElement(FormulariosView, { projects, submissions: [], now: NOW }),
+    ),
   );
 
 beforeEach(async () => {

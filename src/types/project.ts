@@ -32,6 +32,7 @@ export interface HealthAssessment {
   spiritual: HealthRating;
   physical: HealthRating;
   notes: string;
+  dimensionNotes?: Partial<Record<HealthDimensionKey, string>>;
 }
 
 export type ProjectPriority =

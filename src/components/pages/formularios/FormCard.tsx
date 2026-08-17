@@ -1,4 +1,5 @@
 import { FileUp, MonitorSmartphone } from "lucide-react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FORM_FILLER_LABEL_KEYS,
@@ -19,9 +20,10 @@ const MECHANISM_ICONS = {
 export interface FormCardProps {
   form: FormDefinition;
   reporting: ProjectReporting;
+  action?: ReactNode;
 }
 
-export function FormCard({ form, reporting }: FormCardProps) {
+export function FormCard({ form, reporting, action }: FormCardProps) {
   const { t } = useTranslation();
   const Icon = MECHANISM_ICONS[form.mechanism];
 
@@ -83,6 +85,7 @@ export function FormCard({ form, reporting }: FormCardProps) {
       <p className="mt-1 text-tag text-fg-subtle">
         {t("forms_period_ends", { date: formatDate(reporting.periodEnd) })}
       </p>
+      {action ? <div className="mt-4">{action}</div> : null}
     </section>
   );
 }
