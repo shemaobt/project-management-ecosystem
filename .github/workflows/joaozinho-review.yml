@@ -22,6 +22,7 @@ jobs:
     with:
       lens_pack: react-ts
       verdict_mode: block
+      max_turns: 45
       app_id: ${{ vars.JOAOZINHO_APP_ID }}
     secrets:
       app_private_key: ${{ secrets.JOAOZINHO_APP_PRIVATE_KEY }}
