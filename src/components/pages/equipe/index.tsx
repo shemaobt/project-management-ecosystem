@@ -26,7 +26,7 @@ export interface EquipeViewProps {
   regions: readonly Region[] | null;
   projects?: readonly Project[];
   changes?: readonly RoleChange[];
-  onSave: (drafts: ReturnType<typeof draftsFor>) => SaveOutcome;
+  onSave: (drafts: ReturnType<typeof draftsFor>) => Promise<SaveOutcome>;
 }
 
 export function EquipeView({
@@ -38,6 +38,7 @@ export function EquipeView({
   const { t } = useTranslation();
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [outcome, setOutcome] = useState<SaveOutcome | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const visible = useMemo(() => regions ?? [], [regions]);
 
@@ -142,13 +143,18 @@ export function EquipeView({
               {t("equipe_hint")}
             </p>
             <Button
-              disabled={!dirty}
+              disabled={!dirty || saving}
               onClick={() => {
-                setOutcome(onSave(drafts));
-                setEdits({});
+                setSaving(true);
+                onSave(drafts)
+                  .then((result) => {
+                    setOutcome(result);
+                    setEdits({});
+                  })
+                  .finally(() => setSaving(false));
               }}
             >
-              {t("equipe_save")}
+              {saving ? t("equipe_saving") : t("equipe_save")}
             </Button>
           </div>
 

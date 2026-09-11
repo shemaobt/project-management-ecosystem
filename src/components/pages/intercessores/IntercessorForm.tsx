@@ -2,6 +2,7 @@ import { useId, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Button,
+  CheckboxField,
   Input,
   Label,
   Select,
@@ -9,45 +10,44 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Textarea,
 } from "../../ui";
 import { listCountries } from "../../../utils/countries";
 import type {
-  IntercessorDraft,
-  IntercessorField,
+  CreateField,
+  IntercessorCreateDraft,
 } from "../../../utils/intercessors";
 
-const HINT_KEYS: Record<IntercessorField, string> = {
+const HINT_KEYS: Record<CreateField, string> = {
   name: "int_needs_name",
   country: "int_needs_country",
   contact: "int_needs_contact",
+  consentBasis: "int_needs_consent_basis",
 };
 
 export interface IntercessorFormProps {
-  draft: IntercessorDraft;
-  onChange: (draft: IntercessorDraft) => void;
+  draft: IntercessorCreateDraft;
+  onChange: (draft: IntercessorCreateDraft) => void;
   onSubmit: () => void;
-  onCancel?: () => void;
-  showing: readonly IntercessorField[];
-  editing: boolean;
+  showing: readonly CreateField[];
 }
 
 export function IntercessorForm({
   draft,
   onChange,
   onSubmit,
-  onCancel,
   showing,
-  editing,
 }: IntercessorFormProps) {
   const { t } = useTranslation();
   const nameId = useId();
   const countryId = useId();
   const contactId = useId();
+  const basisId = useId();
 
   const locale = t("locale");
   const countries = useMemo(() => listCountries(locale), [locale]);
 
-  const invalid = (field: IntercessorField) => showing.includes(field);
+  const invalid = (field: CreateField) => showing.includes(field);
 
   return (
     <section className="mb-5.5 rounded-lg border border-line bg-elevated px-6 py-5.5">
@@ -101,6 +101,45 @@ export function IntercessorForm({
         </div>
       </div>
 
+      <div className="mt-3.5 flex flex-col gap-1.5">
+        <Label htmlFor={basisId}>{t("int_consent_basis")}</Label>
+        <Textarea
+          id={basisId}
+          value={draft.consentBasis}
+          invalid={invalid("consentBasis")}
+          placeholder={t("int_consent_basis_ph")}
+          onChange={(event) =>
+            onChange({ ...draft, consentBasis: event.target.value })
+          }
+        />
+        <p className="text-micro leading-[1.45] text-fg-subtle">
+          {t("int_consent_basis_hint")}
+        </p>
+      </div>
+
+      <div className="mt-3.5 flex flex-col gap-2.5">
+        <CheckboxField
+          id={`${basisId}-directory`}
+          label={t("int_list_in_directory")}
+          checked={draft.listInDirectory}
+          onCheckedChange={(next) =>
+            onChange({ ...draft, listInDirectory: next === true })
+          }
+        />
+        <p className="-mt-1.5 pl-6.5 text-micro leading-[1.45] text-fg-subtle">
+          {t("int_list_in_directory_hint")}
+        </p>
+
+        <CheckboxField
+          id={`${basisId}-sensitive`}
+          label={t("f_sensitive")}
+          checked={draft.sensitiveCountry}
+          onCheckedChange={(next) =>
+            onChange({ ...draft, sensitiveCountry: next === true })
+          }
+        />
+      </div>
+
       {showing.length > 0 ? (
         <ul className="mt-3 flex list-none flex-col gap-1">
           {showing.map((field) => (
@@ -112,14 +151,7 @@ export function IntercessorForm({
       ) : null}
 
       <div className="mt-3.5 flex flex-wrap items-center gap-2">
-        <Button onClick={onSubmit}>
-          {editing ? t("int_save") : t("int_add")}
-        </Button>
-        {onCancel ? (
-          <Button variant="secondary" onClick={onCancel}>
-            {t("btn_cancel")}
-          </Button>
-        ) : null}
+        <Button onClick={onSubmit}>{t("int_add")}</Button>
       </div>
 
       <p className="mt-3.5 text-micro leading-[1.45] text-fg-subtle">
