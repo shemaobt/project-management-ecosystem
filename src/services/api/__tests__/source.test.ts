@@ -47,18 +47,20 @@ describe("a tabela de troca", () => {
     }
   });
 
-  it("a INT-01 liga a sessão e mais nada: o resto espera o endpoint dela", () => {
+  it("cada namespace liga na sua própria issue: sessão por INT-01, organograma e rede por INT-10", () => {
     expect(INTEGRATED.session).toBe("api");
     expect(INTEGRATED_BY.session).toBe("INT-01 · BE-03");
+    expect(INTEGRATED.regions).toBe("api");
+    expect(INTEGRATED_BY.regions).toBe("INT-10 · BE-13");
+    expect(INTEGRATED.intercessors).toBe("api");
+    expect(INTEGRATED_BY.intercessors).toBe("INT-10 · BE-13");
     const waiting = NAMESPACES.filter(
       (namespace) => INTEGRATED[namespace] === "fixtures",
     );
     expect(waiting).toEqual([
       "projects",
-      "regions",
       "meetings",
       "prayer",
-      "intercessors",
       "eten",
       "forms",
     ]);

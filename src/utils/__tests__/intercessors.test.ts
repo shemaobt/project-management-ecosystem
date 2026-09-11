@@ -1,21 +1,41 @@
 import { describe, expect, it } from "vitest";
 import { COUNTRY_CODES, isCountryCode } from "../../constants/countries";
-import type { Intercessor } from "../../types/prayer";
+import type { IntercessorEntry } from "../../types/prayer";
 import { countryName, listCountries } from "../countries";
 import {
   contactChannel,
   groupByCountry,
-  makeIntercessor,
-  missingFields,
-  toDraft,
+  hasConsent,
+  makeIntercessorCreate,
+  makeIntercessorUpdate,
+  matchesQuery,
+  missingCreateFields,
+  missingEditFields,
+  toEditDraft,
+  type IntercessorCreateDraft,
 } from "../intercessors";
 
-const person = (over: Partial<Intercessor> = {}): Intercessor => ({
-  id: "i1",
+const CREATE_DRAFT: IntercessorCreateDraft = {
   name: "Ana Ribeiro",
   country: "BR",
   contact: "ana@exemplo.org",
+  sensitiveCountry: false,
+  consentBasis: "verbal, no encontro regional",
+  listInDirectory: true,
+};
+
+const entry = (over: Partial<IntercessorEntry> = {}): IntercessorEntry => ({
+  id: "i1",
+  name: "Ana Ribeiro",
+  country: "BR",
+  contactChannel: "email",
+  contactHint: "an…@exemplo.org",
+  sensitiveCountry: false,
   addedAt: "2026-08-14",
+  consents: [
+    { context: "network", basis: "verbal", recordedAt: "2026-08-14" },
+    { context: "directory", basis: "verbal", recordedAt: "2026-08-14" },
+  ],
   ...over,
 });
 
@@ -29,9 +49,9 @@ describe("o país é chave, não texto livre", () => {
 
   it("Brasil, Brazil e BR não podem virar três grupos", () => {
     const network = [
-      person({ id: "a", country: "BR" }),
-      person({ id: "b", country: "BR" }),
-      person({ id: "c", country: "BR" }),
+      entry({ id: "a", country: "BR" }),
+      entry({ id: "b", country: "BR" }),
+      entry({ id: "c", country: "BR" }),
     ];
     const groups = groupByCountry(network, "pt-BR");
 
@@ -41,7 +61,7 @@ describe("o país é chave, não texto livre", () => {
   });
 
   it("trocar o idioma renomeia o grupo sem parti-lo", () => {
-    const network = [person({ id: "a" }), person({ id: "b" })];
+    const network = [entry({ id: "a" }), entry({ id: "b" })];
     const pt = groupByCountry(network, "pt-BR");
     const en = groupByCountry(network, "en");
 
@@ -77,9 +97,9 @@ describe("o país é chave, não texto livre", () => {
 
   it("os grupos saem na ordem do idioma, com acento no lugar certo", () => {
     const network = [
-      person({ id: "a", country: "ZA" }),
-      person({ id: "b", country: "BR" }),
-      person({ id: "c", country: "AO" }),
+      entry({ id: "a", country: "ZA" }),
+      entry({ id: "b", country: "BR" }),
+      entry({ id: "c", country: "AO" }),
     ];
 
     expect(groupByCountry(network, "pt-BR").map((group) => group.name)).toEqual([
@@ -115,58 +135,131 @@ describe("sem canal de contato o cadastro não serve", () => {
     expect(contactChannel("@ana")).toBeNull();
   });
 
-  it("o formulário nomeia tudo que falta de uma vez", () => {
-    expect(missingFields({ name: "", country: "", contact: "" })).toEqual([
-      "name",
-      "country",
-      "contact",
-    ]);
+  it("o formulário de cadastro nomeia tudo que falta de uma vez", () => {
     expect(
-      missingFields({ name: "Ana", country: "BR", contact: "ana@exemplo.org" }),
-    ).toEqual([]);
+      missingCreateFields({
+        name: "",
+        country: "",
+        contact: "",
+        sensitiveCountry: false,
+        consentBasis: "",
+        listInDirectory: false,
+      }),
+    ).toEqual(["name", "country", "contact", "consentBasis"]);
+    expect(missingCreateFields(CREATE_DRAFT)).toEqual([]);
     expect(
-      missingFields({ name: "  ", country: "BR", contact: "ana@exemplo.org" }),
+      missingCreateFields({ ...CREATE_DRAFT, name: "  " }),
     ).toEqual(["name"]);
     expect(
-      missingFields({ name: "Ana", country: "Brasil", contact: "ana@x.org" }),
+      missingCreateFields({ ...CREATE_DRAFT, country: "Brasil" }),
     ).toEqual(["country"]);
+    expect(
+      missingCreateFields({ ...CREATE_DRAFT, consentBasis: "  " }),
+    ).toEqual(["consentBasis"]);
   });
 
   it("um cadastro incompleto não vira registro", () => {
     expect(
-      makeIntercessor({ name: "Ana", country: "BR", contact: "oi" }, "i1"),
+      makeIntercessorCreate({ ...CREATE_DRAFT, contact: "oi" }),
+    ).toBeNull();
+    expect(
+      makeIntercessorCreate({ ...CREATE_DRAFT, consentBasis: "" }),
     ).toBeNull();
   });
 
-  it("um cadastro completo guarda o nome aparado e a data de entrada", () => {
-    const made = makeIntercessor(
-      { name: "  Ana Ribeiro  ", country: "BR", contact: " ana@exemplo.org " },
-      "i1",
-      new Date(2026, 7, 14),
-    );
-    expect(made).toEqual({
-      id: "i1",
-      name: "Ana Ribeiro",
-      country: "BR",
-      contact: "ana@exemplo.org",
-      addedAt: "2026-08-14",
+  it("um cadastro completo apara nome e base de consentimento", () => {
+    const made = makeIntercessorCreate({
+      ...CREATE_DRAFT,
+      name: "  Ana Ribeiro  ",
+      contact: " ana@exemplo.org ",
+      consentBasis: "  verbal  ",
     });
-  });
-
-  it("editar parte do rascunho do registro que já existe", () => {
-    expect(toDraft(person())).toEqual({
+    expect(made).toEqual({
       name: "Ana Ribeiro",
       country: "BR",
       contact: "ana@exemplo.org",
+      sensitiveCountry: false,
+      consentBasis: "verbal",
     });
   });
 });
 
+describe("editar não exige revelar o contato de novo", () => {
+  it("o rascunho de edição parte sem contato — precisa ser revelado", () => {
+    expect(toEditDraft(entry())).toEqual({
+      name: "Ana Ribeiro",
+      country: "BR",
+      contact: "",
+      contactRevealed: false,
+      sensitiveCountry: false,
+    });
+  });
+
+  it("nome e país continuam obrigatórios, contato vazio não é falta", () => {
+    expect(
+      missingEditFields({
+        name: "",
+        country: "",
+        contact: "",
+        contactRevealed: false,
+        sensitiveCountry: false,
+      }),
+    ).toEqual(["name", "country"]);
+  });
+
+  it("um contato digitado por engano ainda é validado", () => {
+    expect(
+      missingEditFields({
+        name: "Ana",
+        country: "BR",
+        contact: "oi",
+        contactRevealed: true,
+        sensitiveCountry: false,
+      }),
+    ).toEqual(["contact"]);
+  });
+
+  it("sem tocar no contato, a atualização não o envia", () => {
+    const update = makeIntercessorUpdate({
+      name: "Ana Beatriz",
+      country: "BR",
+      contact: "",
+      contactRevealed: false,
+      sensitiveCountry: true,
+    });
+    expect(update).toEqual({
+      name: "Ana Beatriz",
+      country: "BR",
+      sensitiveCountry: true,
+    });
+  });
+
+  it("tocando no contato, a atualização o carrega", () => {
+    const update = makeIntercessorUpdate({
+      name: "Ana",
+      country: "BR",
+      contact: " +55 11 98765-4321 ",
+      contactRevealed: true,
+      sensitiveCountry: false,
+    });
+    expect(update?.contact).toBe("+55 11 98765-4321");
+  });
+});
+
 describe("a rede não é o papel da plataforma", () => {
-  it("um intercessor da rede não carrega papel nem região", () => {
-    const keys = Object.keys(person()).sort();
-    expect(keys).toEqual(["addedAt", "contact", "country", "id", "name"]);
-    for (const forbidden of ["role", "roleKey", "region", "regionKey", "userId"]) {
+  it("um intercessor da rede nunca carrega contato bruto, papel ou região", () => {
+    const keys = Object.keys(entry()).sort();
+    expect(keys).toEqual([
+      "addedAt",
+      "consents",
+      "contactChannel",
+      "contactHint",
+      "country",
+      "id",
+      "name",
+      "sensitiveCountry",
+    ]);
+    for (const forbidden of ["contact", "role", "roleKey", "region", "regionKey", "userId"]) {
       expect(keys, forbidden).not.toContain(forbidden);
     }
   });
@@ -187,17 +280,43 @@ describe("a rede não é o papel da plataforma", () => {
   });
 });
 
+describe("consentimento é lido por contexto", () => {
+  it("cada contexto é uma pergunta separada", () => {
+    const person = entry({
+      consents: [{ context: "network", basis: "verbal", recordedAt: "2026-08-14" }],
+    });
+    expect(hasConsent(person, "network")).toBe(true);
+    expect(hasConsent(person, "directory")).toBe(false);
+    expect(hasConsent(person, "partner-export")).toBe(false);
+  });
+});
+
+describe("a busca opera só sobre quem já chegou à tela", () => {
+  it("casa por nome ou pelo nome do país no idioma corrente", () => {
+    const ana = entry({ id: "a", name: "Ana Ribeiro", country: "BR" });
+    expect(matchesQuery(ana, "ana", "Brasil")).toBe(true);
+    expect(matchesQuery(ana, "brasil", "Brasil")).toBe(true);
+    expect(matchesQuery(ana, "joão", "Brasil")).toBe(false);
+  });
+
+  it("busca vazia não filtra nada", () => {
+    const ana = entry();
+    expect(matchesQuery(ana, "", "Brasil")).toBe(true);
+    expect(matchesQuery(ana, "   ", "Brasil")).toBe(true);
+  });
+});
+
 describe("dentro do país, as pessoas saem em ordem", () => {
   it("ordena por nome", () => {
     const groups = groupByCountry(
       [
-        person({ id: "a", name: "Zeca" }),
-        person({ id: "b", name: "Ana" }),
-        person({ id: "c", name: "Marcos" }),
+        entry({ id: "a", name: "Zeca" }),
+        entry({ id: "b", name: "Ana" }),
+        entry({ id: "c", name: "Marcos" }),
       ],
       "pt-BR",
     );
-    expect(groups[0].people.map((entry) => entry.name)).toEqual([
+    expect(groups[0].people.map((person) => person.name)).toEqual([
       "Ana",
       "Marcos",
       "Zeca",

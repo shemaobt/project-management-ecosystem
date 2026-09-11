@@ -175,7 +175,7 @@ describe("trocar quem ocupa um papel é evento, não edição de texto", () => {
 
   it("salvar sem mudar nada não inventa evento", async () => {
     await saveHolder("Ana Beatriz Rocha");
-    const outcome = useRegionsStore
+    const outcome = await useRegionsStore
       .getState()
       .saveTeams(
         draftsFor(useRegionsStore.getState().regions),

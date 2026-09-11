@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { IntercessorEntry } from "../../../../types/prayer";
 
 function createMemoryStorage() {
   const data = new Map<string, string>();
@@ -26,46 +27,52 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { IntercessoresView } = await import("../IntercessoresPage");
 const { IntercessorForm } = await import("../IntercessorForm");
+const { EMPTY_CREATE_DRAFT } = await import("../../../../utils/intercessors");
 const { default: ptBR } = await import("../../../../i18n/locales/pt-BR.json");
 const { default: en } = await import("../../../../i18n/locales/en.json");
 
-type Person = {
-  id: string;
-  name: string;
-  country: "BR" | "PT" | "MZ";
-  contact: string;
-  addedAt: string;
-};
+const refuseAsync = async () => false;
 
-const noop = () => {};
-const refuse = () => false;
-
-const ANA: Person = {
+const ANA: IntercessorEntry = {
   id: "i1",
   name: "Ana Ribeiro",
   country: "BR",
-  contact: "ana@exemplo.org",
+  contactChannel: "email",
+  contactHint: "an…@exemplo.org",
+  sensitiveCountry: false,
   addedAt: "2026-08-14",
+  consents: [
+    { context: "network", basis: "verbal", recordedAt: "2026-08-14" },
+    { context: "directory", basis: "verbal", recordedAt: "2026-08-14" },
+  ],
 };
 
-const JOAO: Person = {
+const JOAO: IntercessorEntry = {
   id: "i2",
   name: "João Alves",
   country: "PT",
-  contact: "+351 912 345 678",
+  contactChannel: "phone",
+  contactHint: "…5678",
+  sensitiveCountry: true,
   addedAt: "2026-08-10",
+  consents: [
+    { context: "network", basis: "verbal", recordedAt: "2026-08-10" },
+    { context: "directory", basis: "verbal", recordedAt: "2026-08-10" },
+  ],
 };
 
-const view = (people: Person[] | null) =>
+const view = (people: IntercessorEntry[] | null, withheldCount = 0) =>
   renderToStaticMarkup(
     createElement(
       MemoryRouter,
       null,
       createElement(IntercessoresView, {
         people,
-        onAdd: refuse,
-        onUpdate: refuse,
-        onRemove: noop,
+        withheldCount,
+        onAdd: refuseAsync,
+        onUpdate: refuseAsync,
+        onRemove: refuseAsync,
+        onRevealContact: async () => null,
       }),
     ),
   );
@@ -75,11 +82,13 @@ beforeEach(async () => {
 });
 
 describe("a página abre com o cadastro e a sub-navegação da Oração", () => {
-  it("traz os três campos que o registro exige", () => {
+  it("traz os campos que o registro exige", () => {
     const markup = view([]);
     expect(markup).toContain(i18n.t("int_name"));
     expect(markup).toContain(i18n.t("int_country"));
     expect(markup).toContain(i18n.t("int_contact"));
+    expect(markup).toContain(i18n.t("int_consent_basis"));
+    expect(markup).toContain(i18n.t("int_list_in_directory"));
     expect(markup).toContain(i18n.t("int_add"));
   });
 
@@ -103,7 +112,7 @@ describe("a página abre com o cadastro e a sub-navegação da Oração", () => 
   });
 });
 
-describe("a rede se lê agrupada por país", () => {
+describe("a rede se lê agrupada por país, sem o contato em bloco", () => {
   const markup = () => view([ANA, JOAO]);
 
   it("cada país é um grupo, com o nome no idioma corrente", () => {
@@ -111,13 +120,24 @@ describe("a rede se lê agrupada por país", () => {
     expect(markup()).toContain("Portugal");
   });
 
-  it("cada pessoa mostra nome, canal e contato", () => {
+  it("cada pessoa mostra nome, canal e a dica — nunca o contato completo", () => {
     const html = markup();
     expect(html).toContain("Ana Ribeiro");
-    expect(html).toContain("ana@exemplo.org");
+    expect(html).toContain("an…@exemplo.org");
+    expect(html).not.toContain("ana@exemplo.org");
     expect(html).toContain(i18n.t("int_channel_email"));
     expect(html).toContain("João Alves");
     expect(html).toContain(i18n.t("int_channel_phone"));
+  });
+
+  it("oferece ação de ligar ou mandar mensagem, não uma lista de telefones", () => {
+    const html = markup();
+    expect(html).toContain(i18n.t("int_message"));
+    expect(html).toContain(i18n.t("int_call"));
+  });
+
+  it("um país sensível se anuncia na própria linha", () => {
+    expect(markup()).toContain(i18n.t("f_sensitive"));
   });
 
   it("mostra desde quando a pessoa está na rede", () => {
@@ -128,6 +148,18 @@ describe("a rede se lê agrupada por país", () => {
     const html = markup();
     expect(html).toContain(i18n.t("int_edit"));
     expect(html).toContain(i18n.t("int_remove"));
+  });
+});
+
+describe("retido lê como retido", () => {
+  it("um total retido aparece nomeado, não escondido no total", () => {
+    const markup = view([ANA], 3);
+    expect(markup).toContain(i18n.t("int_withheld_count", { count: 3 }));
+  });
+
+  it("sem ninguém retido, a nota some", () => {
+    const markup = view([ANA], 0);
+    expect(markup).not.toContain("int_withheld_count");
   });
 });
 
@@ -155,6 +187,10 @@ describe("a página diz o que guarda e o que ainda não faz", () => {
     expect(en.int_privacy_note).toContain("erases the contact");
   });
 
+  it("nomeia a base do consentimento, exigida no cadastro", () => {
+    expect(view([])).toContain(i18n.t("int_consent_basis_hint"));
+  });
+
   it("não promete o envio que a onda 1 não entrega", () => {
     expect(view([])).toContain(i18n.t("int_send_pending"));
   });
@@ -164,11 +200,10 @@ describe("o campo de país é controlado, sempre", () => {
   const form = (country: string) =>
     renderToStaticMarkup(
       createElement(IntercessorForm, {
-        draft: { name: "", country, contact: "" },
-        onChange: noop,
-        onSubmit: noop,
+        draft: { ...EMPTY_CREATE_DRAFT, country },
+        onChange: () => {},
+        onSubmit: () => {},
         showing: [],
-        editing: false,
       }),
     );
 

@@ -48,7 +48,7 @@ const view = (
       regions,
       projects,
       changes,
-      onSave: () => ({ changed: 0, filled: 0, cleared: 0 }),
+      onSave: () => Promise.resolve({ changed: 0, filled: 0, cleared: 0 }),
     }),
   );
 
