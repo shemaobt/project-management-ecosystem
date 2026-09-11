@@ -20,7 +20,12 @@ export const INTEGRATED_BY: Record<DataNamespace, string> = {
   regions: "INT-10 · BE-13",
   meetings: "INT-07 · BE-10",
   prayer: "INT-06 · BE-09",
-  intercessors: "INT-06 · BE-09",
+  // The org chart and the intercessor network share one owner on the backend
+  // (BE-13 · Equipe e intercessores, `docs/shema.md` §1.3 C3) even though
+  // FE-44 §9.6 grouped this namespace with the prayer wall under BE-09. The
+  // frozen paths did not move, only who builds them, and INT-10 is the
+  // screen the graph names as blocked by BE-13.
+  intercessors: "INT-10 · BE-13",
   eten: "INT-08 · BE-11",
   forms: "INT-09 · BE-12",
 };
@@ -28,10 +33,10 @@ export const INTEGRATED_BY: Record<DataNamespace, string> = {
 export const INTEGRATED: Record<DataNamespace, DataSource> = {
   session: "api",
   projects: "fixtures",
-  regions: "fixtures",
+  regions: "api",
   meetings: "fixtures",
   prayer: "fixtures",
-  intercessors: "fixtures",
+  intercessors: "api",
   eten: "fixtures",
   forms: "fixtures",
 };
