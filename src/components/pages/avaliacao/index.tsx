@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { HEALTH_DIMENSIONS } from "../../../constants/health";
+import { useAuth } from "../../../contexts/AuthContext";
+import { failureMessage } from "../../../services/api";
 import { useAssessmentStore } from "../../../stores/assessmentStore";
-import { useProjectsStore } from "../../../stores/projectsStore";
+import { useProjectRecordStore } from "../../../stores/projectRecordStore";
 import type { AssessmentDraft } from "../../../types/assessment";
 import type { Project } from "../../../types/project";
-import { applyAssessment } from "../../../utils/assessment";
+import type { ApiFailure } from "../../../types/session";
 import { formatDate } from "../../../utils/format";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -14,19 +16,28 @@ import { Button, toast } from "../../ui";
 import { Completion } from "./Completion";
 import { DimensionStep } from "./DimensionStep";
 import { PrayerRequestStep } from "./PrayerRequestStep";
+import { SubmitOutcomeNote, type SubmitOutcome } from "./SubmitOutcomeNote";
 
 const LAST_STEP = HEALTH_DIMENSIONS.length;
 
 export interface AvaliacaoViewProps {
   project: Project | null | undefined;
+  loadError?: ApiFailure | null;
+  onRetryLoad?: () => void;
   draft: AssessmentDraft;
+  submitting?: boolean;
+  submitOutcome?: SubmitOutcome | null;
   onStep: (draft: AssessmentDraft) => void;
   onFinish: (draft: AssessmentDraft) => void;
 }
 
 export function AvaliacaoView({
   project,
+  loadError,
+  onRetryLoad,
   draft,
+  submitting = false,
+  submitOutcome = null,
   onStep,
   onFinish,
 }: AvaliacaoViewProps) {
@@ -52,9 +63,19 @@ export function AvaliacaoView({
   }
 
   if (project === null) {
+    const isNotFound = !loadError || loadError.kind === "notFound";
     return (
       <section className="mx-auto w-full max-w-(--container-reading) px-(--container-pad) py-16">
-        <EmptyState message={t("hw_not_found")} />
+        <EmptyState
+          message={isNotFound ? t("hw_not_found") : failureMessage(loadError, t)}
+          action={
+            isNotFound || !onRetryLoad ? undefined : (
+              <Button variant="secondary" size="sm" onClick={onRetryLoad}>
+                {t("net_retry")}
+              </Button>
+            )
+          }
+        />
       </section>
     );
   }
@@ -116,6 +137,8 @@ export function AvaliacaoView({
           </>
         )}
 
+        {submitOutcome ? <SubmitOutcomeNote outcome={submitOutcome} /> : null}
+
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-muted px-5 py-4">
           <p className="text-small leading-normal text-fg-muted">
             {t("hw_autosaved")}
@@ -125,6 +148,7 @@ export function AvaliacaoView({
               <Button
                 variant="secondary"
                 onClick={() => setStep((current) => current - 1)}
+                disabled={submitting}
               >
                 {t("hw_back")}
               </Button>
@@ -134,7 +158,9 @@ export function AvaliacaoView({
                 {step === LAST_STEP - 1 ? t("hw_review") : t("hw_next")}
               </Button>
             ) : (
-              <Button onClick={() => onFinish(draft)}>{t("hw_save")}</Button>
+              <Button onClick={() => onFinish(draft)} disabled={submitting}>
+                {submitting ? t("record_saving") : t("hw_save")}
+              </Button>
             )}
           </div>
         </div>
@@ -151,24 +177,36 @@ export function AvaliacaoPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { projectId = "" } = useParams();
+  const { user } = useAuth();
 
-  const projects = useProjectsStore((state) => state.projects);
-  const hydrated = useProjectsStore((state) => state.hydrated);
-  const hydrate = useProjectsStore((state) => state.hydrate);
-  const saveProject = useProjectsStore((state) => state.saveProject);
+  const open = useProjectRecordStore((state) => state.open);
+  const reload = useProjectRecordStore((state) => state.reload);
+  const record = useProjectRecordStore((state) => state.record);
+  const recordId = useProjectRecordStore((state) => state.id);
+  const loading = useProjectRecordStore((state) => state.loading);
+  const loadError = useProjectRecordStore((state) => state.loadError);
+  const submitAssessment = useProjectRecordStore(
+    (state) => state.submitAssessment,
+  );
 
   const drafts = useAssessmentStore((state) => state.drafts);
   const draftFor = useAssessmentStore((state) => state.draftFor);
   const saveStep = useAssessmentStore((state) => state.saveStep);
   const discardDraft = useAssessmentStore((state) => state.discardDraft);
 
-  useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitOutcome, setSubmitOutcome] = useState<SubmitOutcome | null>(
+    null,
+  );
 
-  const project = hydrated
-    ? (projects.find((entry) => entry.id === projectId) ?? null)
-    : undefined;
+  useEffect(() => {
+    void open(projectId);
+  }, [projectId, open]);
+
+  const project =
+    loading || recordId !== projectId
+      ? undefined
+      : (record?.project ?? null);
 
   const draft = useMemo(
     () => drafts[projectId] ?? draftFor(projectId),
@@ -178,14 +216,27 @@ export function AvaliacaoPage() {
   return (
     <AvaliacaoView
       project={project}
+      loadError={loadError}
+      onRetryLoad={() => void reload()}
       draft={draft}
+      submitting={submitting}
+      submitOutcome={submitOutcome}
       onStep={saveStep}
-      onFinish={(finished) => {
-        if (!project) return;
-        saveProject(applyAssessment(project, finished, t));
-        discardDraft(projectId);
-        toast.success(t("hw_saved", { language: project.languageName }));
-        void navigate("/formularios");
+      onFinish={async (finished) => {
+        setSubmitting(true);
+        setSubmitOutcome(null);
+        const outcome = await submitAssessment(finished, user.name ?? "");
+        setSubmitting(false);
+
+        if (outcome.kind === "saved") {
+          discardDraft(projectId);
+          toast.success(
+            t("hw_saved", { language: outcome.project.languageName }),
+          );
+          void navigate("/formularios");
+          return;
+        }
+        setSubmitOutcome(outcome);
       }}
     />
   );

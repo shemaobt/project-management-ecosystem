@@ -290,3 +290,44 @@ describe("as notas se leem sem depender de cor", () => {
     expect(markup).toContain(i18n.t("hw_skipped"));
   });
 });
+
+describe("a leitura geral do resumo é prévia — quem conta é o servidor", () => {
+  const completion = (over: Partial<AssessmentDraft>) =>
+    renderToStaticMarkup(
+      createElement(Completion, { draft: draft(over), onChange: () => {} }),
+    );
+
+  it("o resumo se marca como prévia, sempre", () => {
+    const markup = completion({});
+    expect(markup).toContain(i18n.t("hw_preview_tag"));
+    expect(markup).toContain(i18n.t("hw_overall_preview_note"));
+  });
+
+  it("uma crítica avisa a consequência antes de salvar, não depois", () => {
+    const markup = completion({
+      ratings: {
+        emotional: "critica",
+        relational: "",
+        spiritual: "",
+        physical: "",
+      },
+    });
+    expect(markup).toContain(i18n.t("hw_critical_notice"));
+  });
+
+  it("sem crítica, o aviso de consequência não aparece", () => {
+    const markup = completion({
+      ratings: {
+        emotional: "boa",
+        relational: "boa",
+        spiritual: "boa",
+        physical: "boa",
+      },
+    });
+    expect(markup).not.toContain(i18n.t("hw_critical_notice"));
+  });
+
+  it("a nota geral diz que fica só no rascunho — a BE-07 não tem onde guardá-la", () => {
+    expect(completion({})).toContain(i18n.t("hw_overallnote_local_only"));
+  });
+});

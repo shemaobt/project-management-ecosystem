@@ -284,4 +284,67 @@ describe("o histórico aparece junto do estado atual", () => {
     expect(markup).toContain("Mentor antigo");
     expect(markup).not.toContain(i18n.t("d_health_history_empty"));
   });
+
+  it("uma entrada da BE-07 mostra quem filiou, além de quem avaliou", () => {
+    const markup = tab("ver", {
+      ...ASSESSED,
+      healthHistory: [
+        {
+          date: "2026-05-14",
+          assessor: "Mentor de campo",
+          author: "Coordenadora Regional",
+          emotional: "boa",
+          relational: "boa",
+          spiritual: "boa",
+          physical: "boa",
+          notes: "",
+          questionSetVersion: 1,
+          overall: "boa",
+        },
+      ],
+    });
+
+    expect(markup).toContain("Mentor de campo");
+    expect(markup).toContain("Coordenadora Regional");
+  });
+
+  it("uma entrada sem versão de perguntas diz que respondeu a nenhum questionário", () => {
+    const markup = tab("ver", {
+      ...ASSESSED,
+      healthHistory: [
+        {
+          date: "2025-01-10",
+          assessor: "",
+          emotional: "boa",
+          relational: "boa",
+          spiritual: "boa",
+          physical: "boa",
+          notes: "",
+          questionSetVersion: null,
+        },
+      ],
+    });
+
+    expect(markup).toContain(i18n.t("d_health_version_none"));
+  });
+
+  it("uma entrada sem overall recebe uma leitura calculada, nunca undefined", () => {
+    const markup = tab("ver", {
+      ...ASSESSED,
+      healthHistory: [
+        {
+          date: "2025-01-10",
+          assessor: "Mentor antigo",
+          emotional: "critica",
+          relational: "boa",
+          spiritual: "boa",
+          physical: "boa",
+          notes: "",
+        },
+      ],
+    });
+
+    expect(markup).toContain(i18n.t("health_critical"));
+    expect(markup).not.toContain("undefined");
+  });
 });
