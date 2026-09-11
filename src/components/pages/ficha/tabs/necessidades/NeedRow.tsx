@@ -13,7 +13,16 @@ import type {
   NeedStatus,
   NeedUrgency,
 } from "../../../../../types/project";
+import type { RecordFieldError } from "../../../../../types/projectRecord";
+import { formatDate } from "../../../../../utils/format";
 import {
+  daysSinceRaised,
+  isUnacknowledged,
+  needMoneyError,
+} from "../../../../../utils/needs";
+import { listCurrencies } from "../../../../../utils/currency";
+import {
+  Button,
   CheckboxField,
   Input,
   Select,
@@ -28,6 +37,8 @@ import { Field, FieldGrid } from "../../fields";
 export interface NeedRowProps {
   need: NeedItem;
   index: number;
+  sensitiveCountry: boolean;
+  errors: RecordFieldError[];
   onChange: (patch: Partial<NeedItem>) => void;
   onStatus: (status: NeedStatus) => void;
   onRemove: () => void;
@@ -36,12 +47,21 @@ export interface NeedRowProps {
 export function NeedRow({
   need,
   index,
+  sensitiveCountry,
+  errors,
   onChange,
   onStatus,
   onRemove,
 }: NeedRowProps) {
   const { t } = useTranslation();
+  const locale = t("locale");
   const id = `need-${index}`;
+  const moneyError = needMoneyError(need);
+  const serverMessage = errors[0]?.message;
+  const willNotify = need.urgency === "high" && need.status === "open";
+  const canAcknowledge =
+    need.status === "open" && !need.acknowledgedAt && !need.acknowledged;
+  const stale = isUnacknowledged(need);
 
   return (
     <li className="rounded-[12px] border border-line bg-elevated p-4">
@@ -120,15 +140,26 @@ export function NeedRow({
           )}
         </Field>
 
-        <button
-          type="button"
-          aria-label={t("need_remove")}
-          onClick={onRemove}
-          className="mb-1 inline-flex size-8 cursor-pointer items-center justify-center rounded-pill text-fg-muted transition-colors duration-fast ease-out hover:bg-accent-soft hover:text-telha"
-        >
-          <X size={15} strokeWidth={2.25} />
-        </button>
+        {/* A saved need has a history the region is judged by, so a save never deletes
+            it — only an id-less draft row, never sent yet, can still be undone locally. */}
+        {!need.id && (
+          <button
+            type="button"
+            aria-label={t("need_remove")}
+            onClick={onRemove}
+            className="mb-1 inline-flex size-8 cursor-pointer items-center justify-center rounded-pill text-fg-muted transition-colors duration-fast ease-out hover:bg-accent-soft hover:text-telha"
+          >
+            <X size={15} strokeWidth={2.25} />
+          </button>
+        )}
       </div>
+
+      {willNotify && (
+        <p className="mt-2 text-micro leading-[1.5] text-status-attention-fg">
+          {t("need_urgent_notifies")}
+          {sensitiveCountry && ` ${t("need_urgent_notifies_sensitive")}`}
+        </p>
+      )}
 
       <div className="mt-3">
         <Field id={`${id}-desc`} label={t("need_description")} full>
@@ -155,6 +186,50 @@ export function NeedRow({
                   onChange({ estimatedValue: event.target.value })
                 }
               />
+            )}
+          </Field>
+
+          <Field
+            id={`${id}-amount`}
+            label={t("need_amount_label")}
+            error={moneyError === "amount" ? t("need_currency_needs_amount") : undefined}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.01"
+                value={need.estimatedAmount ?? ""}
+                onChange={(event) =>
+                  onChange({ estimatedAmount: event.target.value })
+                }
+              />
+            )}
+          </Field>
+
+          <Field
+            id={`${id}-currency`}
+            label={t("need_currency_label")}
+            error={moneyError === "currency" ? t("need_amount_needs_currency") : undefined}
+          >
+            {(control) => (
+              <Select
+                value={need.estimatedCurrency ?? ""}
+                onValueChange={(next) => onChange({ estimatedCurrency: next })}
+              >
+                <SelectTrigger {...control}>
+                  <SelectValue placeholder={t("need_currency_placeholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {listCurrencies(locale).map((currency) => (
+                    <SelectItem key={currency.code} value={currency.code}>
+                      {currency.code} — {currency.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </Field>
 
@@ -228,6 +303,50 @@ export function NeedRow({
           checked={Boolean(need.prayerAnswered)}
           onCheckedChange={(next) => onChange({ prayerAnswered: next === true })}
         />
+      </div>
+
+      {serverMessage && (
+        <p role="alert" className="mt-3 text-micro font-semibold text-telha">
+          {serverMessage}
+        </p>
+      )}
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-dashed border-line pt-3 text-micro text-fg-muted">
+        {need.submittedAt && (
+          <span>
+            {t("need_submitted_at")} {formatDate(need.submittedAt, locale)}
+          </span>
+        )}
+
+        {need.acknowledgedAt && (
+          <span>
+            {t("need_acknowledged_line", {
+              date: formatDate(need.acknowledgedAt, locale),
+              name: need.acknowledgedBy || "—",
+            })}
+          </span>
+        )}
+
+        {!need.acknowledgedAt && need.acknowledged && (
+          <span className="text-fg">{t("need_acknowledge_pending")}</span>
+        )}
+
+        {stale && (
+          <span className="font-semibold text-status-attention-fg">
+            {t("need_unacknowledged_badge", { days: daysSinceRaised(need) })}
+          </span>
+        )}
+
+        {canAcknowledge && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onChange({ acknowledged: true })}
+          >
+            {t("need_acknowledge")}
+          </Button>
+        )}
       </div>
     </li>
   );
