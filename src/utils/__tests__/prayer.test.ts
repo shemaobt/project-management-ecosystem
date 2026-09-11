@@ -249,6 +249,10 @@ describe("todo caminho de leitura passa pelo dono da visibilidade", () => {
     "src/fixtures/blank.ts",
     "src/fixtures/projectBrowse.ts",
     "src/fixtures/seeds.ts",
+    // INT-04: the wizard's wire boundary — `POST .../health-assessments` carries the
+    // prayer fields only when one was actually written (§9.4), the same rule the record
+    // write already enforces from `src/services/api/projectRecord.ts`.
+    "src/services/api/healthAssessments.ts",
     "src/services/api/projectRecord.ts",
     "src/stores/recordStore.ts",
     "src/types/assessment.ts",

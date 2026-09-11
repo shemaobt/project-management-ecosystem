@@ -3,6 +3,7 @@ export type DataNamespace =
   | "projects"
   | "projectsBrowse"
   | "projectRecord"
+  | "healthAssessments"
   | "regions"
   | "meetings"
   | "prayer"
@@ -29,6 +30,8 @@ export const INTEGRATED_BY: Record<DataNamespace, string> = {
   projectsBrowse: "INT-02 · BE-05",
   // The ficha's own capability — one record, its version, and the writes that quote it.
   projectRecord: "INT-03 · BE-06",
+  // The wizard's own capability — one reading filed, the record it landed on.
+  healthAssessments: "INT-04 · BE-07",
   regions: "INT-10 · BE-13",
   meetings: "INT-07 · BE-10",
   prayer: "INT-06 · BE-09",
@@ -42,6 +45,7 @@ export const INTEGRATED: Record<DataNamespace, DataSource> = {
   projects: "fixtures",
   projectsBrowse: "api",
   projectRecord: "api",
+  healthAssessments: "api",
   regions: "fixtures",
   meetings: "fixtures",
   prayer: "fixtures",
