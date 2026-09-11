@@ -92,10 +92,14 @@ describe("onde o token vive", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("substituir o access token não inventa sessão onde não havia", () => {
-    replaceAccessToken("access-1");
+  it("substituir o access token não inventa sessão onde não havia, e diz que não", () => {
+    expect(replaceAccessToken("access-1")).toBe(false);
     expect(accessToken()).toBeNull();
     expect(hasSession()).toBe(false);
+
+    setTokens({ accessToken: "a", refreshToken: "r" });
+    expect(replaceAccessToken("access-2")).toBe(true);
+    expect(accessToken()).toBe("access-2");
   });
 });
 
