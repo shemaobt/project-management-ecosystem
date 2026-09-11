@@ -4,18 +4,18 @@ import { useAuth } from "../../contexts/AuthContext";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 import { EntrarView } from "../pages/entrar";
 import { SessionExpired } from "../pages/entrar/SessionExpired";
+import { sessionSurface } from "./sessionSurface";
 
 export function SessionGate({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const { status, signIn, signOut, failure } = useAuth();
+  const surface = sessionSurface(status, Boolean(signIn && signOut));
 
-  if (!signIn || !signOut) return <>{children}</>;
-
-  if (status === "anonymous") {
+  if (surface === "signIn" && signIn) {
     return <EntrarView onSubmit={signIn} failure={failure} />;
   }
 
-  if (status === "loading") {
+  if (surface === "loading") {
     return (
       <main className="flex min-h-screen items-center justify-center bg-canvas">
         <LoadingSpinner size="lg" label={t("entrar_loading")} />
@@ -26,12 +26,14 @@ export function SessionGate({ children }: { children: ReactNode }) {
   return (
     <>
       {children}
-      <SessionExpired
-        open={status === "expired"}
-        onSubmit={signIn}
-        onSignOut={signOut}
-        failure={failure}
-      />
+      {signIn && signOut ? (
+        <SessionExpired
+          open={surface === "reauth"}
+          onSubmit={signIn}
+          onSignOut={signOut}
+          failure={failure}
+        />
+      ) : null}
     </>
   );
 }

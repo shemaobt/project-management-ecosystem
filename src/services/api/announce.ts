@@ -1,5 +1,5 @@
-import i18n from "i18next";
 import { toast } from "sonner";
+import i18n from "../../i18n";
 import type { ApiFailure } from "../../types/session";
 import { failureMessage, isAnnounceable } from "./errors";
 
