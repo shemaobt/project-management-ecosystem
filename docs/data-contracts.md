@@ -45,9 +45,13 @@ and the route prefix are BE-01's.
 
 ## 1. What is frozen, and what is not
 
-**Frozen** — the ten type modules under `src/types/`, re-exported whole by `src/types/index.ts`.
+**Frozen** — the type modules under `src/types/`, re-exported whole by `src/types/index.ts`.
 `src/types/__tests__/contract.test.ts` fails the build when a module is left out of that index, and
-when `Project`'s required/optional split stops matching the export (§5.1).
+when `Project`'s required/optional split stops matching the export (§5.1). There were ten when this
+document was written; **INT-01 added an eleventh, `session.ts`**, which is §9.13's own shape —
+`SessionRole`, `ShemaSession`, the account and token pair the platform's auth routes answer, and the
+`ApiFailure` taxonomy the client classifies into. That is this document being filled in rather than
+departed from; nothing already frozen moved.
 
 **Frozen** — the derivations in `src/utils/`. They are pure functions of `(record, now)` and
 `src/utils/__tests__/dataJsParity.json` pins their output over all 127 records at the reference
@@ -1150,8 +1154,25 @@ non-Latin names survive Excel; and the import refuses the export file by recogni
 ### 9.13 Sessão e autenticação — INT-01 ([OBT-406](https://linear.app/shema-obt/issue/OBT-406)) · BE-03 ([OBT-392](https://linear.app/shema-obt/issue/OBT-392))
 
 Reuse `shema-api`'s existing routes whole (§3): `POST /api/auth/login`, `/refresh`, `/logout`,
-`GET /api/auth/me`. The frontend attaches the bearer token from a single Axios instance, retries
-once on 401 after a refresh, and on refresh failure clears the tokens and redirects to `/login`.
+`GET /api/auth/me`. The frontend attaches the bearer token from a single Axios instance and retries
+once on 401 after a refresh.
+
+**Two lines of this section were written before the screen existed, and INT-01 departed from both
+(`CLAUDE.md` §8 carries the reasoning).** First, *"clears the tokens and redirects to `/login`"*: it
+clears the tokens and does **not** redirect — the gate keeps the app mounted and asks for the
+password in a dialog over it, because a redirect unmounts exactly the unsaved work the issue exists
+to protect. Second, the tokens were assumed to live in `localStorage`; **no token is written to any
+web storage**, both live in module memory, and the cost is that a page reload asks for the password
+again. ⚠️ **Closing that is a server change, not a frontend one**: `/api/auth/refresh` takes the
+refresh token in the body, so a session that survives a reload needs `shema-api` to set it as an
+httpOnly, `Secure`, `SameSite` cookie. Nobody owns that yet.
+
+**One requirement this section did not state, and the client now depends on: the wire spelling.**
+`GET /api/shema/session` answers camelCase (BE-03 aliases it), and the client does **no case
+conversion anywhere** — the frozen types in `src/types/` are the wire. **BE-05 and BE-06 must serve
+`Project` in camelCase.** The platform's own `/api/auth/*` is the single exception: it is
+pre-existing snake_case and gets one named three-field mapping. A second spelling for the record
+would put a translation table on every read, which is the defect §9.0's conventions exist to avoid.
 
 One Shemá-specific read is missing and BE-03 owns it:
 
