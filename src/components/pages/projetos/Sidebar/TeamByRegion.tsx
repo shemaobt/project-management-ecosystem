@@ -1,30 +1,57 @@
 import { Globe } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { REGIONS } from "../../../../constants/regions";
 import { ROLES } from "../../../../constants/roles";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { useFiltersStore } from "../../../../stores/filtersStore";
 import { useRegionsStore } from "../../../../stores/regionsStore";
-import type { Project } from "../../../../types/project";
-import type { RegionKey } from "../../../../types/region";
+import type { Region, RegionKey } from "../../../../types/region";
 import { cn } from "../../../../utils/cn";
-import { buildRegionPanel, holderName } from "../../../../utils/region";
+import {
+  getTeamOf,
+  holderName,
+  type RegionPanelCard,
+} from "../../../../utils/region";
 
 export interface TeamByRegionProps {
-  projects: readonly Project[];
+  /** Unfiltered, whole-scope counts — decides which region cards exist and their order. */
+  baseline: Partial<Record<RegionKey, number>>;
+  /** Live, filtered counts — the badge next to each card. */
   counts: Partial<Record<RegionKey, number>>;
 }
 
-export function TeamByRegion({ projects, counts }: TeamByRegionProps) {
+/**
+ * Which region cards to show and in what order — off the *baseline* (unfiltered) counts,
+ * never off the live filtered ones: a region stays in the panel even when the active
+ * filters currently return none of its projects, the same "zero stays visible" rule
+ * `Sidebar/Filters` follows (§5.1). And never off a locally re-derived region-per-project
+ * pass — the browse response already redacts a sensitive project's placement, so counting
+ * from raw projects here would double as a second, weaker owner of the same number the
+ * sidebar and the map already show (§13: one owner per fact).
+ */
+function orderByCounts(
+  baseline: Partial<Record<RegionKey, number>>,
+  regions: readonly Region[],
+): RegionPanelCard[] {
+  return REGIONS.filter(
+    (region) => (baseline[region.key] ?? 0) > 0 || region.key === "europe",
+  )
+    .sort((a, b) => (baseline[b.key] ?? 0) - (baseline[a.key] ?? 0))
+    .map(({ key, labelKey }) => ({ key, labelKey, team: getTeamOf(key, regions) }));
+}
+
+export function TeamByRegion({ baseline, counts }: TeamByRegionProps) {
   const { t } = useTranslation();
   const { canSeeRegion } = useAuth();
   const regions = useRegionsStore((state) => state.regions);
   const continent = useFiltersStore((state) => state.filters.continent);
   const setFilter = useFiltersStore((state) => state.setFilter);
 
-  const cards = useMemo(
-    () => buildRegionPanel(projects, regions, canSeeRegion),
-    [projects, regions, canSeeRegion],
+  const cards: RegionPanelCard[] = useMemo(
+    () =>
+      orderByCounts(baseline, regions).filter((card) => canSeeRegion(card.key)),
+    [baseline, regions, canSeeRegion],
   );
   if (cards.length === 0) return null;
 

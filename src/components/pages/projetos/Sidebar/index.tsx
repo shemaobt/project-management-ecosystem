@@ -1,4 +1,3 @@
-import type { Project } from "../../../../types/project";
 import type { FacetCounts } from "../../../../utils/search";
 import { Chips } from "./Chips";
 import { DetailedFilters } from "./Filters";
@@ -8,13 +7,16 @@ import { SearchBox } from "./SearchBox";
 import { TeamByRegion } from "./TeamByRegion";
 
 export interface SidebarProps {
-  projects: readonly Project[];
+  /** Unfiltered, whole-scope counts — option universes, saved-view availability, and
+   * which "Time por região" cards exist. Never re-derived from a raw project list here:
+   * the server (or, for local dev, the fixtures browse adapter) is the one owner. */
+  baseline: FacetCounts;
   shown: number;
   total: number;
   counts: FacetCounts;
 }
 
-export function Sidebar({ projects, shown, total, counts }: SidebarProps) {
+export function Sidebar({ baseline, shown, total, counts }: SidebarProps) {
   return (
     <aside className="self-start lg:sticky lg:top-[78px] lg:max-h-[calc(100vh-90px)] lg:overflow-y-auto lg:pr-1.5">
       <div className="sticky top-0 z-5 mb-1 bg-linear-to-b from-canvas from-80% to-transparent pb-3.5">
@@ -23,11 +25,11 @@ export function Sidebar({ projects, shown, total, counts }: SidebarProps) {
         <ResultCount shown={shown} total={total} />
       </div>
 
-      <SavedViews projects={projects} />
+      <SavedViews counts={baseline} />
 
-      <TeamByRegion projects={projects} counts={counts.continent} />
+      <TeamByRegion baseline={baseline.continent} counts={counts.continent} />
 
-      <DetailedFilters projects={projects} counts={counts} />
+      <DetailedFilters baseline={baseline} counts={counts} />
     </aside>
   );
 }

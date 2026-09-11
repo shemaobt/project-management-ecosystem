@@ -1,9 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { Project, ProjectPriority } from "../../../../types/project";
 import { cn } from "../../../../utils/cn";
-import { getPriority } from "../../../../utils/health";
-import { getProgress } from "../../../../utils/progress";
-import { getLocationDisplay } from "../../../../utils/region";
+import { cardLocationDisplay, cardPriority, cardProgress } from "../derived";
 
 const MEDALLION_TONES: Partial<Record<ProjectPriority, string>> = {
   warning:
@@ -34,10 +32,10 @@ export interface MedallionProps {
 
 export function Medallion({ project, onClose, onOpen }: MedallionProps) {
   const { t } = useTranslation();
-  const progress = getProgress(project);
-  const priority = getPriority(project);
+  const progress = cardProgress(project);
+  const priority = cardPriority(project);
   const speakers = Number(project.speakerCount) || 0;
-  const location = getLocationDisplay(project);
+  const location = cardLocationDisplay(project);
 
   return (
     <div
