@@ -116,6 +116,7 @@ interface RecordState {
     updater: (current: Project[K] | undefined) => Project[K],
   ) => void;
   discardDraft: (recordId: string) => void;
+  settleDraft: (recordId: string, written: readonly (keyof Project)[]) => void;
 }
 
 type PersistedRecords = Pick<RecordState, "drafts">;
@@ -146,6 +147,27 @@ export const useRecordStore = create<RecordState>()(
         set((state) => {
           const drafts = { ...state.drafts };
           delete drafts[recordId];
+          return { drafts };
+        }),
+      /**
+       * Forget exactly what the server took, and keep the rest.
+       *
+       * A save writes the fields the record endpoint owns; the ones it does not own yet
+       * (`constants/recordFields.ts`) stay typed where they were typed, because throwing
+       * away input nothing accepted is the loss this screen exists to prevent. What is
+       * dropped is dropped because the record now carries it — the draft is an overlay,
+       * and an overlay that repeats what is underneath it only hides the next edit
+       * somebody else makes.
+       */
+      settleDraft: (recordId, written) =>
+        set((state) => {
+          const draft = state.drafts[recordId];
+          if (!draft) return state;
+          const kept: ProjectDraft = { ...draft };
+          for (const field of written) delete kept[field];
+          const drafts = { ...state.drafts };
+          if (Object.keys(kept).length === 0) delete drafts[recordId];
+          else drafts[recordId] = kept;
           return { drafts };
         }),
     }),
