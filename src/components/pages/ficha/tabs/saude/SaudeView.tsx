@@ -29,7 +29,7 @@ export function SaudeView({ draft }: SaudeViewProps) {
 
   return (
     <div className="flex flex-col gap-5">
-      <CareNote project={values} />
+      <CareNote overall={draft.saved?.derived?.health ?? null} />
 
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {HEALTH_DIMENSIONS.map((dimension) => {

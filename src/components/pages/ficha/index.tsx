@@ -7,17 +7,23 @@ import {
   RECORD_TABS,
   type RecordTabId,
 } from "../../../constants/recordTabs";
-import { selectProject, useProjectsStore } from "../../../stores/projectsStore";
+import { failureMessage } from "../../../services/api";
+import {
+  tabOfFirstError,
+  useProjectRecordStore,
+} from "../../../stores/projectRecordStore";
 import {
   materializeDraft,
   NEW_RECORD,
   REQUIRED_FIELD_TAB,
+  useRecordStore,
   type ProjectDraft,
 } from "../../../stores/recordStore";
 import type { Project } from "../../../types/project";
-import { toLocalIsoDate } from "../../../utils/format";
-import { applyProgressUpdate } from "../../../utils/progress";
+import { EmptyState } from "../../common/EmptyState";
+import { LoadingSpinner } from "../../common/LoadingSpinner";
 import {
+  Button,
   Dialog,
   DialogBody,
   DialogContent,
@@ -27,6 +33,8 @@ import {
 } from "../../ui";
 import { RecordFooter } from "./RecordFooter";
 import { RecordHero } from "./RecordHero";
+import { SaveOutcomeNote } from "./SaveOutcomeNote";
+import { savedSentence } from "./saveReport";
 import { TabNav } from "./TabNav";
 import { TAB_COMPONENTS } from "./tabs";
 import type { RecordMode } from "./types";
@@ -45,16 +53,28 @@ export function FichaPage() {
   const { recordId = NEW_RECORD, tab } = useParams();
   const [params, setParams] = useSearchParams();
 
-  const hydrate = useProjectsStore((state) => state.hydrate);
-  const saveProject = useProjectsStore((state) => state.saveProject);
+  const open = useProjectRecordStore((state) => state.open);
+  const reload = useProjectRecordStore((state) => state.reload);
+  const forget = useProjectRecordStore((state) => state.forget);
+  const save = useProjectRecordStore((state) => state.save);
+  const dismiss = useProjectRecordStore((state) => state.dismiss);
+  const record = useProjectRecordStore((state) => state.record);
+  const loadError = useProjectRecordStore((state) => state.loadError);
+  const saving = useProjectRecordStore((state) => state.saving);
+  const outcome = useProjectRecordStore((state) => state.outcome);
+  const settleDraft = useRecordStore((state) => state.settleDraft);
 
   const draft = useDraft(recordId);
   const mode = readMode(params.get(MODE_PARAM), draft.isNew);
   const active: RecordTabId = tab && isRecordTab(tab) ? tab : DEFAULT_TAB;
 
   useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+    if (recordId === NEW_RECORD) {
+      forget();
+      return;
+    }
+    void open(recordId);
+  }, [recordId, open, forget]);
 
   useEffect(() => {
     if (!tab || isRecordTab(tab)) return;
@@ -78,26 +98,93 @@ export function FichaPage() {
 
   const discard = () => {
     draft.discard();
+    dismiss();
     toast(t("record_draft_discarded"));
     if (draft.isNew) close();
   };
 
-  const save = () => {
+  /**
+   * One attempt, four answers — and the draft survives all four.
+   *
+   * Only a save the server accepted takes anything out of the draft, and it takes
+   * exactly the tabs it wrote (`settleDraft`): a conflict, a refusal and a dead
+   * connection all leave every keystroke where it was, which is what lets the same
+   * button be pressed again.
+   */
+  const attempt = async () => {
     if (draft.missing.length > 0) {
       const first = draft.missing[0];
       toast.error(t("record_save_blocked"));
       goToTab(REQUIRED_FIELD_TAB[first]);
       return;
     }
-    const stored = draft.isNew
-      ? null
-      : (selectProject(useProjectsStore.getState().projects, recordId) ?? null);
-    const today = toLocalIsoDate();
-    saveProject(applyProgressUpdate(stored, promote(draft.values, recordId), today));
-    draft.discard();
-    toast.success(t("record_saved", { name: draft.values.languageName }));
-    close();
+
+    const result = await save(
+      draft.isNew ? promote(draft.values, recordId) : draft.values,
+      draft.isNew,
+    );
+
+    switch (result.kind) {
+      case "saved": {
+        settleDraft(recordId, result.report.writtenFields);
+        toast.success(
+          [
+            t("record_saved", { name: draft.values.languageName }),
+            savedSentence(result.report.written, result.report.withheld, t),
+          ]
+            .filter(Boolean)
+            .join(" "),
+        );
+        close();
+        return;
+      }
+      case "unchanged":
+        toast(t("record_no_changes"));
+        return;
+      case "invalid": {
+        const target = tabOfFirstError(result.errors);
+        if (target && target !== active) goToTab(target);
+        return;
+      }
+      default:
+        return;
+    }
   };
+
+  if (!draft.isNew && !record) {
+    return (
+      <Dialog open onOpenChange={(next) => !next && close()}>
+        <DialogContent closeLabel={t("btn_close")}>
+          <RecordHero mode={mode} draft={draft} />
+          <DialogBody className="flex justify-center py-20">
+            {loadError ? (
+              <EmptyState
+                title={
+                  loadError.kind === "notFound"
+                    ? t("record_not_found_title")
+                    : undefined
+                }
+                message={failureMessage(loadError, t)}
+                action={
+                  loadError.kind === "notFound" ? undefined : (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => void reload()}
+                    >
+                      {t("net_retry")}
+                    </Button>
+                  )
+                }
+              />
+            ) : (
+              <LoadingSpinner size="lg" label={t("record_loading")} />
+            )}
+          </DialogBody>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const Tab = TAB_COMPONENTS[active];
   const pending = RECORD_TABS.filter((option) =>
@@ -114,6 +201,16 @@ export function FichaPage() {
         >
           <TabNav pending={mode === "editar" ? pending : []} />
           <DialogBody className="max-h-[calc(100vh-330px)] pt-6">
+            {outcome && (
+              <div className="mb-5">
+                <SaveOutcomeNote
+                  outcome={outcome}
+                  saving={saving}
+                  onRetry={() => void attempt()}
+                  onGoToTab={goToTab}
+                />
+              </div>
+            )}
             {RECORD_TABS.map((option) => (
               <TabsContent key={option} value={option} className="pt-0">
                 {option === active && (
@@ -127,8 +224,9 @@ export function FichaPage() {
           <RecordFooter
             mode={mode}
             draft={draft}
+            saving={saving}
             onEdit={startEditing}
-            onSave={save}
+            onSave={() => void attempt()}
             onDiscard={discard}
             onClose={close}
           />

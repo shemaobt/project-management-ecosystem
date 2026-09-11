@@ -1,6 +1,11 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type {
+  OverallHealth,
+  Project,
+  ProjectDerived,
+} from "../../../../types/project";
 
 function createMemoryStorage() {
   const data = new Map<string, string>();
@@ -30,19 +35,47 @@ const noop = () => {};
 
 type Values = Partial<ReturnType<typeof makeEmptyProject>>;
 
-const handle = (values: Values = {}) => ({
+/** The server's nine, of which this tab reads exactly one: `health`. */
+const serverDerived = (health: OverallHealth): ProjectDerived => ({
+  status: "em-andamento",
+  health,
+  stale: null,
+  progress: 0,
+  priority: "default",
+  healthScore: 0,
+  daysSinceUpdate: null,
+  lastProgressUpdate: null,
+  region: "other",
+});
+
+const handle = (values: Values = {}, health: OverallHealth | null = null) => ({
   values: { ...makeEmptyProject(), ...values },
+  saved:
+    health === null
+      ? undefined
+      : ({
+          ...makeEmptyProject(),
+          ...values,
+          id: "p1",
+          derived: serverDerived(health),
+        } as Project),
   isNew: false,
   hasChanges: false,
   missing: [],
   set: noop,
   update: noop,
+  errors: [],
+  errorsFor: () => [],
   discard: noop,
 });
 
-const tab = (mode: "ver" | "editar", values: Values = {}) =>
+const tab = (
+  mode: "ver" | "editar",
+  values: Values = {},
+  health: OverallHealth | null = null,
+) =>
   renderToStaticMarkup(
-    createElement(SaudeTab, { mode, draft: handle(values) }),
+    createElement(SaudeTab, { mode, draft: handle(values, health) }),
   );
 
 const ASSESSED: Values = {
@@ -104,29 +137,62 @@ describe("a nota se lê sem cor", () => {
 
 describe("a copy fala de cuidado, não de nota", () => {
   it("crítica chama para cuidar", () => {
-    const markup = tab("ver", { ...ASSESSED, healthEmotional: "critica" });
+    const markup = tab(
+      "ver",
+      { ...ASSESSED, healthEmotional: "critica" },
+      "critica",
+    );
     expect(markup).toContain(i18n.t("health_care_critical"));
   });
 
   it("atenção sugere conversa antes da próxima avaliação", () => {
-    expect(tab("ver", ASSESSED)).toContain(i18n.t("health_care_attention"));
+    expect(tab("ver", ASSESSED, "atencao")).toContain(
+      i18n.t("health_care_attention"),
+    );
   });
 
   it("boa não recebe recado nenhum", () => {
-    const markup = tab("ver", {
-      healthEmotional: "boa",
-      healthRelational: "boa",
-      healthSpiritual: "boa",
-      healthPhysical: "boa",
-    });
+    const markup = tab(
+      "ver",
+      {
+        healthEmotional: "boa",
+        healthRelational: "boa",
+        healthSpiritual: "boa",
+        healthPhysical: "boa",
+      },
+      "boa",
+    );
     expect(markup).not.toContain(i18n.t("health_care_critical"));
     expect(markup).not.toContain(i18n.t("health_care_attention"));
   });
 
   it("nunca avaliada diz que não foi escutada, não que está bem", () => {
-    const markup = tab("ver");
+    const markup = tab("ver", {}, "na");
     expect(markup).toContain(i18n.t("health_never_assessed"));
     expect(markup).not.toContain(i18n.t("health_care_critical"));
+  });
+
+  it("o recado é a leitura do servidor, não uma conta local das quatro notas", () => {
+    // As quatro notas dizem crítica; o servidor diz boa. Se a ficha ainda calculasse,
+    // o recado de cuidado apareceria — é essa divergência que a INT-03 remove.
+    const markup = tab(
+      "ver",
+      {
+        healthEmotional: "critica",
+        healthRelational: "critica",
+        healthSpiritual: "critica",
+        healthPhysical: "critica",
+      },
+      "boa",
+    );
+    expect(markup).not.toContain(i18n.t("health_care_critical"));
+    expect(markup).not.toContain(i18n.t("health_never_assessed"));
+  });
+
+  it("sem bloco derived a ficha não inventa leitura nenhuma", () => {
+    const markup = tab("ver", { ...ASSESSED, healthEmotional: "critica" });
+    expect(markup).not.toContain(i18n.t("health_care_critical"));
+    expect(markup).not.toContain(i18n.t("health_never_assessed"));
   });
 });
 

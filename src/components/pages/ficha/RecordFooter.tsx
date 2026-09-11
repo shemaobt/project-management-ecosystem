@@ -8,6 +8,7 @@ import type { DraftHandle } from "./useDraft";
 export interface RecordFooterProps {
   mode: RecordMode;
   draft: DraftHandle;
+  saving: boolean;
   onEdit: () => void;
   onSave: () => void;
   onDiscard: () => void;
@@ -17,6 +18,7 @@ export interface RecordFooterProps {
 export function RecordFooter({
   mode,
   draft,
+  saving,
   onEdit,
   onSave,
   onDiscard,
@@ -60,8 +62,8 @@ export function RecordFooter({
           {t("record_discard_draft")}
         </Button>
       )}
-      <Button onClick={onSave} disabled={blocked}>
-        {t("btn_save")}
+      <Button onClick={onSave} disabled={blocked || saving}>
+        {saving ? t("record_saving") : t("btn_save")}
       </Button>
     </div>
   );
