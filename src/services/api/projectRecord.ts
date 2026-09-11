@@ -104,6 +104,9 @@ interface WireNeed {
   status: NeedItem["status"];
   description: string;
   estimatedValue: string | null;
+  /** `Numeric(14, 2)` over the wire — a decimal string, e.g. `"1234.50"`, never a float. */
+  estimatedAmount: string | null;
+  estimatedCurrency: string | null;
   deadline: string | null;
   prayerShared: boolean;
   prayerAnswered: boolean;
@@ -112,6 +115,8 @@ interface WireNeed {
   droppedDate: string | null;
   submittedBy: string | null;
   submittedAt: string | null;
+  acknowledgedAt: string | null;
+  acknowledgedBy: string;
 }
 
 interface WireAssessment {
@@ -241,17 +246,25 @@ function material(wire: WireMaterial): ProjectMaterial {
 }
 
 /**
- * `id` is dropped: `NeedItem` has none, the record write does not take needs at all
- * (BE-08 owns them), and a key the type cannot hold would travel untyped. INT-05 is
- * where the row gains an address it can be edited by.
+ * The read direction: a wire need, as the record hands it out.
+ *
+ * `id` now travels — it is the row's address, and a save quotes it back so the server
+ * can tell *this one moved* from *this is a new need* (BE-08). `acknowledgedAt` and
+ * `acknowledgedBy` are stamped by the server and never sent back; the client's only
+ * lever is the gesture, `NeedItem.acknowledged`, which {@link needWire} turns into the
+ * stamp. `estimatedAmount` stays a string end to end — `Numeric(14, 2)` on the wire —
+ * so a client never rounds a value it did not choose the precision of.
  */
 function need(wire: WireNeed): NeedItem {
   return {
+    id: wire.id,
     category: wire.category as NeedItem["category"],
     urgency: wire.urgency,
     status: wire.status,
     description: wire.description,
     estimatedValue: text(wire.estimatedValue),
+    estimatedAmount: text(wire.estimatedAmount),
+    estimatedCurrency: text(wire.estimatedCurrency),
     deadline: text(wire.deadline),
     prayerShared: wire.prayerShared,
     prayerAnswered: wire.prayerAnswered,
@@ -260,7 +273,47 @@ function need(wire: WireNeed): NeedItem {
     droppedDate: text(wire.droppedDate),
     submittedBy: text(wire.submittedBy),
     submittedAt: text(wire.submittedAt),
+    acknowledgedAt: text(wire.acknowledgedAt),
+    acknowledgedBy: wire.acknowledgedBy,
   };
+}
+
+/** An empty string is this record's "no day"; the wire's is `null` — §9.0's date rule,
+ * applied inside a need the same way {@link toWire} applies it at the top level. */
+function needDate(value: string | undefined): string | null {
+  return value ? value : null;
+}
+
+/**
+ * The write direction: one `needsItems` row, in the shape `ShemaNeedWrite` accepts.
+ *
+ * **Not a pass-through.** `acknowledgedAt` / `acknowledgedBy` are read-only on the wire
+ * — the write model does not declare them and refuses unknown keys — so they are never
+ * sent; what travels instead is `acknowledged`, the gesture BE-08's server turns into
+ * the stamp. `id` is omitted for a need this console has not saved yet, which is what
+ * tells the server *this is a new need* rather than *this is need id `undefined`*.
+ */
+function needWire(need: NeedItem): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    category: need.category,
+    urgency: need.urgency,
+    status: need.status,
+    description: need.description,
+    estimatedValue: need.estimatedValue || null,
+    estimatedAmount: need.estimatedAmount || null,
+    estimatedCurrency: need.estimatedCurrency || null,
+    deadline: needDate(need.deadline),
+    prayerShared: Boolean(need.prayerShared),
+    prayerAnswered: Boolean(need.prayerAnswered),
+    fulfilledBy: need.fulfilledBy || null,
+    fulfilledDate: needDate(need.fulfilledDate),
+    droppedDate: needDate(need.droppedDate),
+    submittedBy: need.submittedBy || null,
+    submittedAt: needDate(need.submittedAt),
+    acknowledged: Boolean(need.acknowledged),
+  };
+  if (need.id) body.id = need.id;
+  return body;
 }
 
 /** An unassessed dimension is `""` and `""` is not `boa` (§5.2) — `null` reads as `""`. */
@@ -383,6 +436,10 @@ export function toWire(
     if (field === FOLDED_INTO_TEAM || !SERVER_WRITABLE.has(field)) continue;
     const value = values[field];
     if (value === undefined) continue;
+    if (field === "needsItems") {
+      body[field] = (value as NeedItem[]).map(needWire);
+      continue;
+    }
     body[field] = DATE_FIELDS.has(field) && value === "" ? null : value;
   }
   return body;

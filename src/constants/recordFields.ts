@@ -99,9 +99,10 @@ export const TAB_FIELDS: Record<RecordTabId, readonly RecordField[]> = {
  *
  * It is narrower than the ten tabs, and narrower than FE-44 §10's table, which routes
  * the whole record through this one endpoint. BE-06 did not take the health projection
- * (its only writer is the assessment, §5.2 — BE-07), the need items (BE-08), or media
- * and materials, whose bytes have no serving path yet. Those are named in
- * {@link PENDING_WRITE} rather than silently dropped.
+ * (its only writer is the assessment, §5.2 — BE-07) or media and materials, whose bytes
+ * have no serving path yet. Those are named in {@link PENDING_WRITE} rather than
+ * silently dropped. **INT-05 moved `needsItems` here** once BE-08 landed the batch write
+ * — the need items travel with the record's own `PATCH`, per FE-44 §9.5.
  *
  * The body model forbids unknown keys, so sending a field that is not here is a 422 on
  * the whole save — which is why this set is the gate and not a comment.
@@ -163,6 +164,7 @@ export const SERVER_WRITABLE: ReadonlySet<RecordField> = new Set<RecordField>([
   "pastoralInterventionWhen",
   "needsNotes",
   "notes",
+  "needsItems",
 ]);
 
 /**
@@ -196,7 +198,6 @@ export const PENDING_WRITE: Partial<
     ],
     noteKey: "record_pending_health",
   },
-  necessidades: { fields: ["needsItems"], noteKey: "record_pending_needs" },
   midia: {
     fields: ["mediaPhotos", "mediaVideos"],
     noteKey: "record_pending_media",
