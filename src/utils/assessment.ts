@@ -13,7 +13,7 @@ import type {
   Project,
 } from "../types/project";
 import { toLocalIsoDate } from "./format";
-import { getOverallHealth, recordAssessment } from "./health";
+import { getOverallHealth, overallOfEntry, recordAssessment } from "./health";
 
 const EMPTY_RATINGS: Record<HealthDimensionKey, HealthRating> = {
   emotional: "",
@@ -95,15 +95,26 @@ export function compileNotes(
   return parts.join("\n\n");
 }
 
+export interface AssessmentEntryMeta {
+  author?: string;
+  questionSetVersion?: number;
+}
+
+/**
+ * `meta` exists for the fixture double standing in for BE-07 (INT-04): the live wizard
+ * never calls this directly, it posts to `healthAssessmentsAPI.submit` and reads the
+ * server's own record back.
+ */
 export function applyAssessment(
   project: Project,
   draft: AssessmentDraft,
   label: (key: string) => string,
+  meta: AssessmentEntryMeta = {},
 ): Project {
   const raised = draft.prayerRequest.trim();
 
   return {
-    ...recordAssessment(project, toAssessment(draft, label)),
+    ...recordAssessment(project, toAssessment(draft, label, meta)),
     needsPastoralIntervention: draft.pastoral,
     pastoralInterventionName: draft.pastoralWho,
     pastoralInterventionWhen: draft.pastoralWhen,
@@ -113,11 +124,18 @@ export function applyAssessment(
   };
 }
 
+/**
+ * `meta` is only ever supplied by a caller standing in for the server — the fixture
+ * double (INT-04 · BE-07) — never by the live wizard, which reads `author` and
+ * `questionSetVersion` back from the response instead of guessing them. `overall` is
+ * always computed: it is a fact about the four ratings on hand, not a server opinion.
+ */
 export function toAssessment(
   draft: AssessmentDraft,
   label: (key: string) => string,
+  meta: AssessmentEntryMeta = {},
 ): HealthAssessment {
-  return {
+  const entry = {
     date: draft.date,
     assessor: draft.assessor.trim(),
     emotional: draft.ratings.emotional,
@@ -126,5 +144,7 @@ export function toAssessment(
     physical: draft.ratings.physical,
     notes: compileNotes(draft, label),
     dimensionNotes: { ...draft.notes },
+    ...meta,
   };
+  return { ...entry, overall: overallOfEntry(entry) };
 }

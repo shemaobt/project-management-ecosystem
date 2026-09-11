@@ -35,6 +35,16 @@ export interface HealthAssessment {
   physical: HealthRating;
   notes: string;
   dimensionNotes?: Partial<Record<HealthDimensionKey, string>>;
+  /**
+   * Which published set of guiding questions this entry answered — `null` for a row
+   * carried out of the record's flat fields before this endpoint existed, which
+   * answered no questionnaire at all (BE-07). Absent on an entry no server ever built.
+   */
+  questionSetVersion?: number | null;
+  /** Who filed the row through the platform — not always the `assessor` who read the team. */
+  author?: string;
+  /** The worst of this entry's own four, computed once by the server (BE-07) and never resent. */
+  overall?: OverallHealth;
 }
 
 export type ProjectPriority =
