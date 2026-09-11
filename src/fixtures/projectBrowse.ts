@@ -7,6 +7,7 @@ import type {
 import { computeDerived } from "../utils/projectDerived";
 import { filterProjects } from "../utils/search";
 import { loadProjects } from "./projects";
+import { applyRecordOverlay } from "./projectRecord";
 
 export type { ProjectBrowseQuery, ProjectBrowseResult };
 
@@ -94,7 +95,9 @@ function withoutPrayerFields(project: Project): Project {
 export async function browseProjects(
   query: ProjectBrowseQuery,
 ): Promise<ProjectBrowseResult> {
-  const projects = loadProjects();
+  // Anything the record double has been told, applied on top: inside one session the
+  // list and the record read the same collection, exactly as they do against the API.
+  const projects = applyRecordOverlay(loadProjects());
   const result = filterProjects(projects, query.filters, query.search);
   const sorted = [...result.projects].sort(comparatorFor(query.sort));
 

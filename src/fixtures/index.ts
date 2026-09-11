@@ -3,6 +3,8 @@ import type { ReceivedSubmission } from "../types/forms";
 import type { MeetingDefinition, MeetingLogEntry } from "../types/meeting";
 import type { Intercessor, PrayerRequest } from "../types/prayer";
 import type { Project } from "../types/project";
+import type { LoadedRecord } from "../types/projectRecord";
+import type { RecordSaveResult } from "../services/api/projectRecord";
 import type { GeoOutline, Region } from "../types/region";
 import type {
   ProjectBrowseQuery,
@@ -18,6 +20,7 @@ import { loadMeetingLog, loadMeetings } from "./meetings";
 import { buildPrayerRequests } from "../utils/prayer";
 import { browseProjects } from "./projectBrowse";
 import { loadProject, loadProjects } from "./projects";
+import { createRecord, patchRecord, readRecord } from "./projectRecord";
 import { loadRegions } from "./regions";
 
 export const projectsAPI = {
@@ -26,6 +29,26 @@ export const projectsAPI = {
   },
   async get(id: string): Promise<Project | null> {
     return loadProject(id);
+  },
+};
+
+/**
+ * The ficha's own capability — one record, its version, and the writes that quote it.
+ * See `fixtures/projectRecord.ts` for why this double remembers what it is told.
+ */
+export const projectRecordAPI = {
+  async read(id: string): Promise<LoadedRecord> {
+    return readRecord(id);
+  },
+  async create(project: Project): Promise<RecordSaveResult> {
+    return createRecord(project);
+  },
+  async patch(
+    id: string,
+    patch: Record<string, unknown>,
+    version: string,
+  ): Promise<RecordSaveResult> {
+    return patchRecord(id, patch, version);
   },
 };
 
