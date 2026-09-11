@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import * as fixture from "../../../fixtures";
 import * as resolved from "../index";
 import * as api from "../endpoints";
+import { projectBrowseAPI as apiProjectBrowseAPI } from "../projectBrowse";
 import {
   INTEGRATED,
   INTEGRATED_BY,
@@ -17,6 +18,12 @@ const NAMESPACES = Object.keys(INTEGRATED) as DataNamespace[];
 
 const PAIRS = [
   ["projects", api.projectsAPI, fixture.projectsAPI, resolved.projectsAPI],
+  [
+    "projectsBrowse",
+    apiProjectBrowseAPI,
+    fixture.projectBrowseAPI,
+    resolved.projectBrowseAPI,
+  ],
   ["regions", api.regionsAPI, fixture.regionsAPI, resolved.regionsAPI],
   ["meetings", api.meetingsAPI, fixture.meetingsAPI, resolved.meetingsAPI],
   ["prayer", api.prayerAPI, fixture.prayerAPI, resolved.prayerAPI],

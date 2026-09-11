@@ -4,6 +4,10 @@ import type { MeetingDefinition, MeetingLogEntry } from "../types/meeting";
 import type { Intercessor, PrayerRequest } from "../types/prayer";
 import type { Project } from "../types/project";
 import type { GeoOutline, Region } from "../types/region";
+import type {
+  ProjectBrowseQuery,
+  ProjectBrowseResult,
+} from "../types/projectBrowse";
 import { createEmptyProject } from "./blank";
 import { loadEtenCredits } from "./eten";
 import { loadReceivedSubmissions } from "./forms";
@@ -12,6 +16,7 @@ import { buildEtenReport } from "../utils/etenCredits";
 import { loadIntercessors } from "./intercessors";
 import { loadMeetingLog, loadMeetings } from "./meetings";
 import { buildPrayerRequests } from "../utils/prayer";
+import { browseProjects } from "./projectBrowse";
 import { loadProject, loadProjects } from "./projects";
 import { loadRegions } from "./regions";
 
@@ -21,6 +26,13 @@ export const projectsAPI = {
   },
   async get(id: string): Promise<Project | null> {
     return loadProject(id);
+  },
+};
+
+/** The Projetos screen's own capability — see `types/projectBrowse.ts`. */
+export const projectBrowseAPI = {
+  async browse(query: ProjectBrowseQuery): Promise<ProjectBrowseResult> {
+    return browseProjects(query);
   },
 };
 
