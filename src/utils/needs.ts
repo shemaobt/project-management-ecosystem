@@ -1,4 +1,4 @@
-import { OPEN_NEED_STATUSES } from "../constants/project";
+import { OPEN_NEED_STATUSES, RECENT_UPDATE_DAYS } from "../constants/project";
 import type {
   NeedCategory,
   NeedItem,
@@ -7,6 +7,7 @@ import type {
   Project,
 } from "../types/project";
 import type { RegionKey } from "../types/region";
+import { atLocalMidnight, MS_PER_DAY } from "./recency";
 import { getRegion } from "./region";
 
 export function isOpenNeed(need: NeedItem): boolean {
@@ -86,6 +87,65 @@ export function closedOn(need: NeedItem): string | undefined {
   if (need.status === "fulfilled") return need.fulfilledDate;
   if (need.status === "dropped") return need.droppedDate;
   return undefined;
+}
+
+/**
+ * How long a need may sit unseen before it is surfaced as unacknowledged.
+ *
+ * The same thirty days BE-08's `list_unacknowledged_needs` sweeps for, and the same
+ * reason: FE-44 §7.7's `recent` preset already calls thirty days "nothing has happened
+ * lately" for a whole project, so a need is held to no stricter a bar than the rest of
+ * the product uses for this question. Reusing `RECENT_UPDATE_DAYS` rather than a second
+ * constant is what keeps the two readings from drifting apart on their own.
+ */
+export const UNACKNOWLEDGED_AFTER_DAYS = RECENT_UPDATE_DAYS;
+
+/** The day a need is aged from — `submittedAt`, or `undefined` for one the console has
+ * not saved yet (an unsaved draft has no age to report). */
+export function raisedOn(need: NeedItem): string | undefined {
+  return need.submittedAt || undefined;
+}
+
+/** Days since `need` was raised, as of `now` — `null` for a need with no date to age
+ * from, the same shape `getDaysSinceUpdate` (`src/utils/recency.ts`) uses. */
+export function daysSinceRaised(need: NeedItem, now: Date = new Date()): number | null {
+  const date = raisedOn(need);
+  if (!date) return null;
+  return Math.floor((now.getTime() - atLocalMidnight(date).getTime()) / MS_PER_DAY);
+}
+
+/**
+ * Whether nobody has so much as looked at this need in over a month.
+ *
+ * The product's own second question, after "what is happening": *has anybody seen it*.
+ * A need already moved out of `open` was seen by whoever moved it (BE-08's own rule,
+ * stated on the payload so the two axes cannot disagree) — `isOpenNeed` is checked
+ * first so a fulfilled or dropped need is never read as unacknowledged.
+ */
+export function isUnacknowledged(need: NeedItem, now: Date = new Date()): boolean {
+  if (!isOpenNeed(need)) return false;
+  if (need.acknowledgedAt) return false;
+  const days = daysSinceRaised(need, now);
+  return days !== null && days >= UNACKNOWLEDGED_AFTER_DAYS;
+}
+
+export function unacknowledgedNeeds(
+  needs: readonly NeedItem[],
+  now: Date = new Date(),
+): NeedItem[] {
+  return needs.filter((need) => isUnacknowledged(need, now));
+}
+
+/**
+ * Which half of the money pair is missing, or `null` when the two agree — both present
+ * or both absent. The database refuses the mismatched pair with a `CHECK`; this is the
+ * half that can say which field to fill before the round trip.
+ */
+export function needMoneyError(need: NeedItem): "amount" | "currency" | null {
+  const hasAmount = Boolean(need.estimatedAmount);
+  const hasCurrency = Boolean(need.estimatedCurrency);
+  if (hasAmount === hasCurrency) return null;
+  return hasAmount ? "currency" : "amount";
 }
 
 export interface NeedsQuery {
