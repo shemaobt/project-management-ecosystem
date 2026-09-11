@@ -1,4 +1,7 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import { READS_THROUGH_THE_API_LAYER } from "../../../../eslint.config.js";
 import * as fixture from "../../../fixtures";
 import * as resolved from "../index";
 import * as api from "../endpoints";
@@ -136,5 +139,40 @@ describe("atrás da mesma interface", () => {
       expect(resolved, namespace).toHaveProperty(namespace);
       expect(fixture, namespace).toHaveProperty(namespace);
     }
+  });
+});
+
+describe("quem tem permissão de importar o dublê", () => {
+  const TEST_FILE = /(?:^|\/)__tests__\//u;
+
+  function walk(dir: string): string[] {
+    return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const path = join(dir, entry.name);
+      return entry.isDirectory() ? walk(path) : [path];
+    });
+  }
+
+  const shipped = ["components", "contexts", "hooks", "stores"]
+    .flatMap((dir) => walk(join(process.cwd(), "src", dir)))
+    .map((path) => relative(process.cwd(), path).split("\\").join("/"))
+    .filter((path) => /\.tsx?$/u.test(path) && !TEST_FILE.test(path));
+
+  it("a varredura enxerga as quatro pastas que a regra de lint nomeia", () => {
+    expect(READS_THROUGH_THE_API_LAYER).toEqual([
+      "src/components/**/*.{ts,tsx}",
+      "src/contexts/**/*.{ts,tsx}",
+      "src/hooks/**/*.{ts,tsx}",
+      "src/stores/**/*.{ts,tsx}",
+    ]);
+    expect(shipped.length).toBeGreaterThan(80);
+    expect(shipped).toContain("src/stores/projectsStore.ts");
+    expect(shipped).toContain("src/components/pages/eten/index.tsx");
+  });
+
+  it("nenhuma tela nem store importa src/fixtures — todas passam pela camada de API", () => {
+    const offenders = shipped.filter((path) =>
+      /from "[^"]*\/fixtures(?:\/|")/u.test(readFileSync(path, "utf8")),
+    );
+    expect(offenders).toEqual([]);
   });
 });
