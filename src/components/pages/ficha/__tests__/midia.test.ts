@@ -39,6 +39,7 @@ const handle = (values: Values = {}) => ({
   missing: [],
   set: noop,
   update: noop,
+  typed: {},
   errors: [],
   errorsFor: () => [],
   discard: noop,

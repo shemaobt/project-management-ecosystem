@@ -6,6 +6,7 @@ const { http } = await import("../client");
 const { projectRecordAPI, readConflict, readFieldErrors, toWire } =
   await import("../projectRecord");
 const { toApiFailure } = await import("../errors");
+const { historyDeltas } = await import("../../../utils/progress");
 
 interface Reply {
   status: number;
@@ -162,6 +163,76 @@ describe("a leitura do registro", () => {
     // Status armazenado ausente é `desconhecido` — é o que `statusOptionsFor` oferece
     // como quarto cartão, e é o que mantém a volta possível.
     expect(project.status).toBe("desconhecido");
+  });
+
+  it("o trilho volta com ausência, não com null — a conta do delta depende disso", async () => {
+    script = () => ({
+      status: 200,
+      headers: { etag: '"1"' },
+      data: {
+        ...WIRE,
+        progressHistory: [
+          {
+            date: "2026-05-02",
+            translatedUnits: 28,
+            communityCheckedUnits: 10,
+            approvedUnits: 4,
+            totalUnits: null,
+            bookProgress: null,
+            storyProgress: null,
+            otherProgress: null,
+            previousTranslated: null,
+            previousCommunity: null,
+            previousApproved: null,
+            initial: true,
+            synthetic: false,
+            fromField: null,
+            formType: null,
+          },
+        ],
+      },
+    });
+    const { project } = await projectRecordAPI.read("ashaninka");
+    const entry = project.progressHistory[0];
+
+    // `historyDeltas` pergunta `!== undefined`; um `null` passaria nesse teste e
+    // renderia a contagem inteira como avanço.
+    expect(entry.previousTranslated).toBeUndefined();
+    expect(entry.totalUnits).toBeUndefined();
+    expect(entry.bookProgress).toBeUndefined();
+    expect(entry.fromField).toBeUndefined();
+    expect(historyDeltas(entry)).toEqual({
+      translated: 0,
+      community: 0,
+      approved: 0,
+    });
+  });
+
+  it("a linha de história guarda ausência nos quatro opcionais", async () => {
+    script = () => ({
+      status: 200,
+      headers: { etag: '"1"' },
+      data: {
+        ...WIRE,
+        storyProgress: [
+          {
+            name: "A criação",
+            audioHours: null,
+            recordLocation: null,
+            recordStatus: null,
+            aiAssisted: null,
+          },
+        ],
+      },
+    });
+    const { project } = await projectRecordAPI.read("ashaninka");
+    expect(project.storyProgress[0]).toEqual({
+      name: "A criação",
+      audioHours: undefined,
+      recordLocation: undefined,
+      recordStatus: undefined,
+      aiAssisted: undefined,
+    });
   });
 
   it("uma ficha que não existe chega como falha do cliente compartilhado", async () => {

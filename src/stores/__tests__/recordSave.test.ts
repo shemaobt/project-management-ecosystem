@@ -168,6 +168,20 @@ const CONFLICT: Reply = {
   },
 };
 
+/** The screen hands `values` (the merge) and `typed` (the overlay); a patch's draft is
+ * both, and a create's typed half is what the coordinator entered. */
+const saving = (typed: Record<string, unknown>) => ({
+  values: { ...typed } as never,
+  typed: { ...typed } as never,
+  isNew: false,
+});
+
+const creating = (values: never, typed: Record<string, unknown> = {}) => ({
+  values,
+  typed: typed as never,
+  isNew: true,
+});
+
 const store = () => useProjectRecordStore.getState();
 const drafts = () => useRecordStore.getState().drafts;
 
@@ -216,6 +230,37 @@ describe("cada aba escreve só o que é dela", () => {
       withheldFields({ notes: "x", healthEmotional: "boa", needsItems: [] }),
     ).toEqual(["healthEmotional", "needsItems"]);
   });
+
+  it("o que ficou pendente é o que foi digitado, não o registro inteiro", async () => {
+    await openAt();
+    // A ficha entrega a visão mesclada (todo campo existe nela) e a camada digitada.
+    // Perguntar à mesclada reportaria a lista pendente inteira e prometeria guardar
+    // entrada que ninguém escreveu.
+    queue = [ok({ notes: "vai" }, '"8"')];
+    const outcome = await store().save({
+      values: { ...record(), notes: "vai" } as never,
+      typed: { notes: "vai" } as never,
+      isNew: false,
+    });
+
+    expect(outcome.kind).toBe("saved");
+    if (outcome.kind !== "saved") return;
+    expect(outcome.report.withheld).toEqual([]);
+  });
+});
+
+describe("abrir a ficha é sempre uma leitura nova", () => {
+  it("reabrir o mesmo registro relê, porque a versão em cache é sobre a qual se salva", async () => {
+    await openAt('"7"');
+    expect(store().record?.version).toBe('"7"');
+
+    queue = [ok({ notes: "alguém mexeu" }, '"9"')];
+    await store().open("p1");
+
+    expect(store().record?.version).toBe('"9"');
+    expect(store().record?.project.notes).toBe("alguém mexeu");
+    expect(sent.filter((config) => config.method === "get")).toHaveLength(2);
+  });
 });
 
 describe("o conflito avisa e não descarta o que foi digitado", () => {
@@ -227,10 +272,7 @@ describe("o conflito avisa e não descarta o que foi digitado", () => {
 
     // O 409 e, logo atrás, a releitura: é a outra pessoa tendo salvo no meio.
     queue = [CONFLICT, ok({ notes: "texto da Maria", version: 9 }, '"9"')];
-    const outcome = await store().save(
-      { ...drafts().p1 },
-      false,
-    );
+    const outcome = await store().save(saving(drafts().p1));
 
     expect(outcome.kind).toBe("conflict");
     if (outcome.kind !== "conflict") return;
@@ -254,7 +296,7 @@ describe("o conflito avisa e não descarta o que foi digitado", () => {
     await openAt();
     useRecordStore.getState().updateDraft("p1", { notes: "meu" });
     queue = [CONFLICT, ok({}, '"9"')];
-    await store().save({ ...drafts().p1 }, false);
+    await store().save(saving(drafts().p1));
 
     expect(sent.filter((config) => config.method === "patch")).toHaveLength(1);
   });
@@ -263,10 +305,10 @@ describe("o conflito avisa e não descarta o que foi digitado", () => {
     await openAt();
     useRecordStore.getState().updateDraft("p1", { notes: "meu" });
     queue = [CONFLICT, ok({}, '"9"')];
-    await store().save({ ...drafts().p1 }, false);
+    await store().save(saving(drafts().p1));
 
     queue = [ok({ notes: "meu" }, '"10"')];
-    const outcome = await store().save({ ...drafts().p1 }, false);
+    const outcome = await store().save(saving(drafts().p1));
 
     expect(outcome.kind).toBe("saved");
     const patches = sent.filter((config) => config.method === "patch");
@@ -277,7 +319,7 @@ describe("o conflito avisa e não descarta o que foi digitado", () => {
     await openAt();
     useRecordStore.getState().updateDraft("p1", { notes: "meu" });
     queue = [CONFLICT, { status: 500 }];
-    const outcome = await store().save({ ...drafts().p1 }, false);
+    const outcome = await store().save(saving(drafts().p1));
 
     expect(outcome.kind).toBe("conflict");
     expect(drafts().p1).toEqual({ notes: "meu" });
@@ -292,12 +334,12 @@ describe("queda de rede não custa entrada nenhuma", () => {
       .updateDraft("p1", { notes: "três semanas de contagem" });
 
     queue = [{ status: 0 }];
-    const failed = await store().save({ ...drafts().p1 }, false);
+    const failed = await store().save(saving(drafts().p1));
     expect(failed.kind).toBe("failed");
     expect(drafts().p1).toEqual({ notes: "três semanas de contagem" });
 
     queue = [ok({ notes: "três semanas de contagem" }, '"8"')];
-    const retried = await store().save({ ...drafts().p1 }, false);
+    const retried = await store().save(saving(drafts().p1));
     expect(retried.kind).toBe("saved");
   });
 
@@ -321,7 +363,7 @@ describe("o salvamento aceito esquece só o que o servidor levou", () => {
     });
 
     queue = [ok({ notes: "vai" }, '"8"')];
-    const outcome = await store().save({ ...drafts().p1 }, false);
+    const outcome = await store().save(saving(drafts().p1));
 
     expect(outcome.kind).toBe("saved");
     if (outcome.kind !== "saved") return;
@@ -339,7 +381,7 @@ describe("o salvamento aceito esquece só o que o servidor levou", () => {
     await openAt();
     useRecordStore.getState().updateDraft("p1", { notes: "vai" });
     queue = [ok({ notes: "vai" }, '"8"')];
-    const outcome = await store().save({ ...drafts().p1 }, false);
+    const outcome = await store().save(saving(drafts().p1));
 
     if (outcome.kind !== "saved") throw new Error("esperava salvo");
     useRecordStore.getState().settleDraft("p1", outcome.report.writtenFields);
@@ -348,7 +390,7 @@ describe("o salvamento aceito esquece só o que o servidor levou", () => {
 
   it("salvar sem mudança nenhuma não manda requisição", async () => {
     await openAt();
-    const outcome = await store().save({ notes: "" }, false);
+    const outcome = await store().save(saving({ notes: "" }));
 
     expect(outcome.kind).toBe("unchanged");
     expect(sent.filter((config) => config.method === "patch")).toHaveLength(0);
@@ -369,7 +411,7 @@ describe("o progresso é um lote atômico", () => {
     useRecordStore.getState().updateDraft("p1", { bookProgress: rows });
 
     queue = [ok({ bookProgress: rows }, '"8"')];
-    const outcome = await store().save({ ...drafts().p1 }, false);
+    const outcome = await store().save(saving(drafts().p1));
 
     expect(outcome.kind).toBe("saved");
     const patches = sent.filter((config) => config.method === "patch");
@@ -398,7 +440,7 @@ describe("o progresso é um lote atômico", () => {
         },
       },
     ];
-    const outcome = await store().save({ ...drafts().p1 }, false);
+    const outcome = await store().save(saving(drafts().p1));
 
     expect(outcome.kind).toBe("invalid");
     if (outcome.kind !== "invalid") return;
@@ -410,6 +452,61 @@ describe("o progresso é um lote atômico", () => {
     // O registro não andou, e as vinte linhas continuam digitadas.
     expect(store().record?.version).toBe('"7"');
     expect(drafts().p1.bookProgress).toHaveLength(2);
+  });
+});
+
+describe("um registro novo é filed no slug que o cliente cunhou", () => {
+  it("o POST leva o id e o dia local de quem salva", async () => {
+    queue = [ok({ id: "novo-slug" }, '"1"')];
+    const outcome = await store().save(creating({ ...record(), id: "novo-slug" } as never));
+
+    expect(outcome.kind).toBe("saved");
+    const post = sent.find((config) => config.method === "post");
+    expect(post).toBeDefined();
+    expect(JSON.parse(String(post?.data)).id).toBe("novo-slug");
+    expect(post?.headers["X-Shema-Local-Date"]).toMatch(/^\d{4}-\d{2}-\d{2}$/u);
+    expect(store().id).toBe("novo-slug");
+  });
+
+  it("o slug já tomado volta como recusa legível, não como registro criado", async () => {
+    queue = [
+      {
+        status: 409,
+        data: {
+          detail: "novo-slug: a project already exists at this slug",
+          code: "CONFLICT",
+        },
+      },
+    ];
+    const outcome = await store().save(creating({ ...record(), id: "novo-slug" } as never));
+
+    expect(outcome.kind).toBe("conflict");
+  });
+
+  it("um registro novo guarda só o que foi digitado nas abas pendentes", async () => {
+    queue = [ok({ id: "novo-slug" }, '"1"')];
+    const outcome = await store().save(
+      creating({ ...record(), id: "novo-slug" } as never, {
+        languageName: "Nova",
+        mediaVideos: [{ url: "https://exemplo/v" }],
+      }),
+    );
+
+    expect(outcome.kind).toBe("saved");
+    if (outcome.kind !== "saved") return;
+    expect(outcome.report.withheld).toEqual(["mediaVideos"]);
+  });
+
+  it("nenhum campo que o POST não aceita atravessa", async () => {
+    queue = [ok({ id: "novo-slug" }, '"1"')];
+    await store().save(creating({ ...record(), id: "novo-slug", healthEmotional: "boa" } as never));
+
+    const body = JSON.parse(
+      String(sent.find((config) => config.method === "post")?.data),
+    );
+    expect(body).not.toHaveProperty("healthEmotional");
+    expect(body).not.toHaveProperty("ywamBase");
+    expect(body).not.toHaveProperty("needsItems");
   });
 });
 

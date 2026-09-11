@@ -162,6 +162,7 @@ const noop = () => {};
 
 const handle = {
   values: project,
+  typed: {},
   saved: project,
   isNew: false,
   hasChanges: false,

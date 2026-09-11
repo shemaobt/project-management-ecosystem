@@ -47,10 +47,16 @@ export function changedFields(
   );
 }
 
-/** Fields a tab still edits that this endpoint does not take — kept, never reported. */
-export function withheldFields(draft: Partial<Project>): RecordField[] {
+/**
+ * Fields a tab still edits that this endpoint does not take — kept, never reported.
+ *
+ * It reads the **typed** draft, not the merged values: the merge carries every field of
+ * the record, so asking it would report the whole pending list on every save and promise
+ * to keep input nobody entered.
+ */
+export function withheldFields(typed: Partial<Project>): RecordField[] {
   return RECORD_TABS.flatMap((tab) => PENDING_WRITE[tab]?.fields ?? []).filter(
-    (field) => field in draft && !SERVER_WRITABLE.has(field),
+    (field) => field in typed && !SERVER_WRITABLE.has(field),
   );
 }
 
@@ -87,6 +93,18 @@ export function overlappingFields(
   return conflict.changedFields.filter((field) => field in draft);
 }
 
+/**
+ * `values` is what the record would become and `typed` is what somebody actually wrote.
+ * They are two arguments because the two questions are different: the diff is taken
+ * against the merged view, and *what did this person enter* can only be read off the
+ * draft overlay.
+ */
+export interface SaveAttempt {
+  values: Partial<Project>;
+  typed: Partial<Project>;
+  isNew: boolean;
+}
+
 export type SaveOutcome =
   | { kind: "saved"; report: RecordSaveReport }
   | { kind: "conflict"; conflict: RecordConflict; overlap: RecordField[] }
@@ -103,7 +121,7 @@ interface RecordStoreState {
   outcome: SaveOutcome | null;
   open: (id: string) => Promise<void>;
   reload: () => Promise<void>;
-  save: (draft: Partial<Project>, isNew: boolean) => Promise<SaveOutcome>;
+  save: (attempt: SaveAttempt) => Promise<SaveOutcome>;
   dismiss: () => void;
   forget: () => void;
 }
@@ -156,9 +174,15 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
   saving: false,
   outcome: null,
 
+  /**
+   * Always a fresh read. A cached record is one somebody else may have moved since, and
+   * the version it carries is what the next save stands on — re-opening a record to find
+   * a stale version is the conflict this screen exists to avoid handing people.
+   */
   open: async (id) => {
-    if (get().id === id && get().record) return;
-    set({ id, record: null, loading: true, loadError: null, outcome: null });
+    if (get().id !== id) {
+      set({ id, record: null, loading: true, loadError: null, outcome: null });
+    }
     await get().reload();
   },
 
@@ -184,8 +208,8 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
    * itself is last-write-wins with an extra round trip. Pressing save again is the
    * decision, and it is the coordinator's.
    */
-  save: async (draft, isNew) => {
-    const withheld = withheldFields(draft);
+  save: async ({ values: draft, typed, isNew }) => {
+    const withheld = withheldFields(typed);
 
     if (isNew) {
       set({ saving: true, outcome: null });
