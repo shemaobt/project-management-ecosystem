@@ -1,10 +1,16 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { meetingsAPI } from "../fixtures";
+import { meetingsAPI } from "../services/api";
 import type { MeetingCadence, MeetingId, MeetingLogEntry } from "../types/meeting";
 import { parseIsoDate, periodKey } from "../utils/cadence";
 import type { MeetingScopeKey } from "../utils/rhythm";
 import { createDeferredJsonStorage } from "./draftStorage";
+import {
+  createHydrationSlot,
+  hydrateOnce,
+  NOT_HYDRATED,
+  type HydrationStatus,
+} from "./hydration";
 
 const RHYTHM_KEY = "shema-rhythm-v1";
 
@@ -22,10 +28,9 @@ export function draftKey(
   return `${meetingId}__${scopeKey}`;
 }
 
-interface RhythmState {
+interface RhythmState extends HydrationStatus {
   log: MeetingLogEntry[];
   drafts: Record<string, MeetingNote>;
-  hydrated: boolean;
   hydrate: () => Promise<void>;
   setDraft: (key: string, draft: MeetingNote) => void;
   clearDraft: (key: string) => void;
@@ -46,17 +51,18 @@ type PersistedRhythm = Pick<RhythmState, "log" | "drafts" | "hydrated">;
 
 const rhythmStorage = createDeferredJsonStorage<PersistedRhythm>();
 
+const rhythmSlot = createHydrationSlot();
+
 export const useRhythmStore = create<RhythmState>()(
   persist<RhythmState, [], [], PersistedRhythm>(
     (set, get) => ({
       log: [],
       drafts: {},
-      hydrated: false,
-      hydrate: async () => {
-        if (get().hydrated) return;
-        const log = await meetingsAPI.log();
-        set({ log, hydrated: true });
-      },
+      ...NOT_HYDRATED,
+      hydrate: () =>
+        hydrateOnce(rhythmSlot, get, set, async () => {
+          set({ log: await meetingsAPI.log() });
+        }),
       setDraft: (key, draft) =>
         set((state) => ({ drafts: { ...state.drafts, [key]: draft } })),
       clearDraft: (key) =>
