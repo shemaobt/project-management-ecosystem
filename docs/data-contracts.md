@@ -59,7 +59,7 @@ verbatim from the design prototype's `modals.jsx`, not re-derived from the PRD (
 **Not frozen, on purpose** — pagination, sorting and filter *transport*. Wave 1 filters in the
 browser over the whole collection; §9.1 says why, and when that stops being true.
 
-**Not frozen** — anything behind the three client gates of §11, and the eight questions of §12.
+**Not frozen** — anything behind the three client gates of §11, and the nine questions of §12.
 
 ---
 
@@ -353,6 +353,7 @@ export agrees with it** — its chapter counts sum to 1,189 and the New Testamen
 exactly the `totalUnits` values the export carries for *Bíblia Completa* (×10) and *NT* (×52). A
 server that keeps its own book list must match it book for book, or the roll-up and the export
 disagree about what a complete Bible is.
+
 **`OtherProgressItem`** — the same shape without the `id`.
 **`StoryProgressItem`** — `{name}` plus optional `audioHours` (**`number | string`** — the field
 types ranges), `recordLocation`, `recordStatus` (`planned | recording | recorded`), `aiAssisted`.
@@ -363,8 +364,13 @@ types ranges), `recordLocation`, `recordStatus` (`planned | recording | recorded
 required; `totalUnits`, the three unit tables, `previousTranslated|Community|Approved`, `initial`,
 `synthetic`, `fromField`, `formType` optional. Each entry **snapshots the unit tables**, which is
 what makes `progressAsOf` a point-in-time reader and the ETEN year-end reconstruction possible.
-`fromField` is the submitter's name as a string and `formType` the form kind — together they are
-the entry's provenance, and a notification only exists for an entry that has one (§9.11).
+`fromField` is the submitter's name as a string and together they are the entry's provenance; a
+notification only exists for an entry that has one (§9.11).
+
+**`formType` is a free `string`, and it is deliberately not `FormKind` — §12.9.** `FormKind` is
+`pulso | health`, and neither is what anyone writes: the values in the repo today are `"full"` —
+the prototype's own generator mode (`generateFieldFormHTML(project, …, 'full')`) — and `"field"`.
+Typing the column as the union would reject the prototype's own value on the first import.
 
 **`ProjectPhase`** — `{label, scope, date}`.
 
@@ -727,14 +733,27 @@ future mobile client all read the same services, and a rule that lives in a Reac
 none of them.
 
 The test that proves the whole section is the one the delivery plan already names: **an
-unauthorized prayer request is absent from all four output paths.**
+unauthorized prayer request is absent from all four output paths** — the prayer wall, exports, the
+ETEN report and notifications.
+
+**Where redaction lives, stated once, because the types already encode it.** A project read by
+someone allowed to open it is a *coordination* surface and carries the truth: `Project.location` is
+a plain string and the console applies the display rule when it draws a card, a tooltip or a
+marker. Every shape that *leaves* coordination carries the redaction **in its own type** —
+`PrayerRequest.locationWithheld`, `EtenYearSnapshot.country: LocationDisplay`,
+`AppNotification.locationWithheld`, `ExportedProject.locationWithheld` — so a renderer downstream
+cannot leak what the payload does not hold. **That split is the rule**: redact in the payload on
+every path that leaves, and never on the project read itself, where hiding the country from its own
+author is data loss rather than privacy (§8.1, rule 5).
 
 ### 8.1 Sensitive countries
 
 `sensitiveCountry` is the flag; `sensitivity` is the export's text beside it (§5.1).
 
-**Server requirement, on every output path — the map, exports in any format, the prayer wall, the
-ETEN report, notifications, and the Pulse:**
+**Server requirement, on every path that leaves coordination — exports in any format, the prayer
+wall, the ETEN report, notifications, and the Pulse.** The console's own map and cards apply the
+same rule while rendering, through the same single owner (`getLocationDisplay` / `getMapPlacement`);
+rules 1 to 3 below are what both sides implement, and the server is the one that must hold.
 
 1. **The location is replaced by the region name, never the country or the place.** The frontend's
    single owner is `getLocationDisplay`; its shape is `{withheld: true, regionLabelKey}` or
@@ -879,8 +898,10 @@ it picks, the paths below keep their shape.
 - **Dates on the wire are `YYYY-MM-DD` strings**, never datetimes, because every date in this
   product is a calendar day a person wrote down (§7.5). `addedAt`, `changedAt` and
   `MediaAuthorization.at` are the same.
-- **Every list response is already scoped and already redacted.** A response never carries a value
-  the caller may not see, and never carries a raw prayer column (§8).
+- **Every response is already scoped, and every *leaving* shape is already redacted.** A response
+  never carries a project the caller may not see, and never carries a raw prayer column (§8). The
+  project read itself carries the true `location` — it is a coordination surface, and §8 states the
+  split once.
 - Errors are the repository's own envelope; the frontend surfaces the message and nothing else.
 - **No endpoint returns a vocabulary the frontend already has** (Appendix A), with one exception
   named in §9.7.
@@ -891,8 +912,10 @@ it picks, the paths below keep their shape.
 GET /api/shema/projects            -> Project[]
 ```
 
-**Response:** the whole collection the caller's role and region allow, redacted per §8.1. No
-pagination, no filter parameters, no facet counts.
+**Response:** the whole collection the caller's role and region allow, scoped server-side. `Project`
+carries the true `location`, per the split in §8 — the console applies the display rule when it
+draws a card or a marker; the server applies it on the paths that leave. No pagination, no filter
+parameters, no facet counts.
 
 That is a decision, not an omission. Sixteen facet groups and four presets are computed in **one
 pass** by `filterProjects`, under a rule — an option counts a record that passes every group except
@@ -1287,6 +1310,11 @@ Each of these is a real question with a named owner. None is an oversight.
    data loss in the browser they used, and no issue owns it yet.
 8. **Whether saved views follow the user.** Per browser today; the view codec is shareable by URL,
    which is the substitute.
+9. **What `ProgressHistoryEntry.formType` may contain** — BE-12, alongside GATE-03. It is a free
+   `string` (§5.2) because the only values written are the prototype's generator modes, and
+   narrowing it to `FormKind` would both reject those and put a cycle in the type graph
+   (`project.ts` is the root: `region.ts` imports it, and `forms.ts` reaches `region.ts` through
+   `meeting.ts`). Whoever settles the Pulse settles this vocabulary, in `forms.ts`.
 
 ---
 
