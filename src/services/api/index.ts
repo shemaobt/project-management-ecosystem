@@ -55,6 +55,7 @@ export { authAPI, readSession, sessionAPI } from "./endpoints";
 export { API_BASE_URL, REQUEST_TIMEOUT_MS, http } from "./client";
 export {
   FAILURE_MESSAGE_KEYS,
+  UNKNOWN_VOCABULARY,
   failure,
   failureMessage,
   failureMessageKey,

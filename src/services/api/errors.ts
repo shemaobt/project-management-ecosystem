@@ -44,7 +44,10 @@ interface HttpShape {
   response?: unknown;
 }
 
-export type Translate = (key: string, params?: Record<string, unknown>) => string;
+export type Translate = (
+  key: string,
+  params?: Record<string, unknown>,
+) => string;
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null
@@ -52,7 +55,10 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function envelope(data: unknown): { code: string | null; detail: string | null } {
+function envelope(data: unknown): {
+  code: string | null;
+  detail: string | null;
+} {
   const body = asRecord(data);
   const code = body?.code;
   const detail = body?.detail;
@@ -117,11 +123,14 @@ export function toApiFailure(error: unknown): ApiFailure {
   };
 }
 
+export const UNKNOWN_VOCABULARY = "UNKNOWN_VOCABULARY";
+
 export function failure(
   kind: ApiFailureKind,
   detail: string | null = null,
+  code: string | null = null,
 ): ApiFailure {
-  return { kind, status: null, code: null, detail };
+  return { kind, status: null, code, detail };
 }
 
 export function failureMessageKey(failure: ApiFailure): string {

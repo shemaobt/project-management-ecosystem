@@ -13,7 +13,7 @@ import type {
   ShemaSession,
 } from "../../types/session";
 import { http, refreshSession } from "./client";
-import { failure, toApiFailure } from "./errors";
+import { failure, toApiFailure, UNKNOWN_VOCABULARY } from "./errors";
 import { forgetTokens, refreshToken, setTokens } from "./tokens";
 
 const SHEMA = "/shema";
@@ -50,12 +50,12 @@ export function readSession(payload: unknown): ShemaSession {
   const body = (payload ?? {}) as Record<string, unknown>;
   const role = body.role;
   if (typeof role !== "string" || !ROLE_KEYS.has(role)) {
-    throw failure("invalid", null);
+    throw failure("invalid", null, UNKNOWN_VOCABULARY);
   }
 
   const scope = body.regionScope;
   if (scope !== null && scope !== undefined && !Array.isArray(scope)) {
-    throw failure("invalid", null);
+    throw failure("invalid", null, UNKNOWN_VOCABULARY);
   }
 
   const regionScope =
@@ -63,7 +63,7 @@ export function readSession(payload: unknown): ShemaSession {
       ? null
       : scope.map((key) => {
           if (typeof key !== "string" || !REGION_KEYS.has(key)) {
-            throw failure("invalid", null);
+            throw failure("invalid", null, UNKNOWN_VOCABULARY);
           }
           return key as RegionKey;
         });
@@ -102,6 +102,9 @@ export const authAPI = {
     const token = refreshToken();
     try {
       if (token) await http.post("/auth/logout", { refresh_token: token });
+    } catch {
+      // The local session is gone either way, and a refresh token this browser
+      // never wrote down cannot be replayed from here.
     } finally {
       forgetTokens("signedOut");
     }
@@ -148,9 +151,7 @@ export const meetingsAPI = {
   },
 
   async log(): Promise<MeetingLogEntry[]> {
-    const { data } = await http.get<MeetingLogEntry[]>(
-      `${SHEMA}/meetings/log`,
-    );
+    const { data } = await http.get<MeetingLogEntry[]>(`${SHEMA}/meetings/log`);
     return data;
   },
 };
