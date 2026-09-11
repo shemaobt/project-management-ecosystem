@@ -63,7 +63,6 @@ describe("a tabela de troca", () => {
       "prayer",
       "intercessors",
       "eten",
-      "forms",
     ]);
   });
 

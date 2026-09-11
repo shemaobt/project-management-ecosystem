@@ -33,7 +33,7 @@ export const INTEGRATED: Record<DataNamespace, DataSource> = {
   prayer: "fixtures",
   intercessors: "fixtures",
   eten: "fixtures",
-  forms: "fixtures",
+  forms: "api",
 };
 
 export function parseOverride(raw: unknown): DataSource | null {
