@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { regionsAPI } from "../services/api";
+import { announceFailure, regionsAPI, toApiFailure } from "../services/api";
 import type { Region, RoleChange } from "../types/region";
 import type { SaveOutcome } from "../types/team";
-import { applyChanges, diffTeams, summarize, type TeamDrafts } from "../utils/team";
+import { applyChanges, diffTeams, type TeamDrafts } from "../utils/team";
 import {
   createHydrationSlot,
   hydrateOnce,
@@ -23,7 +23,7 @@ interface RegionsState extends HydrationStatus {
     drafts: TeamDrafts,
     changedBy: string,
     now?: Date,
-  ) => SaveOutcome;
+  ) => Promise<SaveOutcome>;
 }
 
 type PersistedRegions = Pick<
@@ -36,7 +36,14 @@ export const useRegionsStore = create<RegionsState>()(
     (set, get) => {
       const slot = createHydrationSlot();
       const load = async () => {
-        set({ regions: await regionsAPI.list() });
+        const [regions, changes] = await Promise.all([
+          regionsAPI.list(),
+          // The trail is a bonus read: a role without `coordinator` (or a
+          // scope with nothing to show) refuses it, and that must not sink
+          // the screen the seats themselves render fine without.
+          regionsAPI.roleChanges().catch(() => get().changes),
+        ]);
+        set({ regions, changes });
       };
 
       return {
@@ -44,16 +51,56 @@ export const useRegionsStore = create<RegionsState>()(
         changes: [],
         ...NOT_HYDRATED,
         hydrate: () => hydrateOnce(slot, get, set, load),
-        saveTeams: (drafts, changedBy, now = new Date()) => {
+        saveTeams: async (drafts, changedBy, now = new Date()) => {
           const { regions, changes } = get();
-          const fresh = diffTeams(regions, drafts, changedBy, now);
-          if (fresh.length > 0) {
+          const dirty = [
+            ...new Set(
+              diffTeams(regions, drafts, changedBy, now).map(
+                (change) => change.regionKey,
+              ),
+            ),
+          ];
+          if (dirty.length === 0) {
+            return { changed: 0, filled: 0, cleared: 0 };
+          }
+
+          const results = await Promise.allSettled(
+            dirty.map((regionKey) => {
+              const region = regions.find((entry) => entry.key === regionKey);
+              const draft = drafts[regionKey];
+              if (!region || !draft) {
+                return Promise.reject(new Error(`unknown region '${regionKey}'`));
+              }
+              return regionsAPI.saveTeam(
+                regionKey,
+                region.team,
+                draft,
+                changedBy,
+                now,
+              );
+            }),
+          );
+
+          const outcome: SaveOutcome = { changed: 0, filled: 0, cleared: 0 };
+          const won: RoleChange[] = [];
+          for (const result of results) {
+            if (result.status === "fulfilled") {
+              outcome.changed += result.value.outcome.changed;
+              outcome.filled += result.value.outcome.filled;
+              outcome.cleared += result.value.outcome.cleared;
+              won.push(...result.value.changes);
+            } else {
+              announceFailure(toApiFailure(result.reason));
+            }
+          }
+
+          if (won.length > 0) {
             set({
-              regions: applyChanges(regions, fresh),
-              changes: [...changes, ...fresh],
+              regions: applyChanges(regions, won),
+              changes: [...changes, ...won],
             });
           }
-          return summarize(fresh);
+          return outcome;
         },
       };
     },
