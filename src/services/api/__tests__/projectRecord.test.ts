@@ -431,7 +431,9 @@ describe("a recusa do servidor aponta para o campo", () => {
 describe("a rede caindo é uma quarta resposta, não uma exceção solta", () => {
   it("o salvamento volta como falha de transporte, legível", async () => {
     script = () => {
-      throw { code: "ECONNABORTED", config: {} };
+      // A INT-01 passou a exigir `isAxiosError` para ler ausência de resposta como
+      // rede — sem isso um Error solto é `unexpected`. Mesmo dublê de errors.test.ts.
+      throw { isAxiosError: true, code: "ECONNABORTED", config: {} };
     };
     const result = await projectRecordAPI.patch("a", { notes: "x" }, '"7"');
 
