@@ -1,5 +1,5 @@
 import type { ApiFailure, ShemaSession } from "../types/session";
-import type { SessionStatus } from "./session";
+import type { SessionPersona, SessionStatus } from "./session";
 
 export interface SignedSession {
   accountId: string;
@@ -28,6 +28,21 @@ export const ANONYMOUS: ApiSessionState = {
   proving: false,
 };
 
+const NOBODY: SessionPersona = {
+  id: "",
+  role: "globalStrategist",
+  regionScope: [],
+};
+
+export function personaOf(signed: SignedSession | null): SessionPersona {
+  if (!signed) return NOBODY;
+  return {
+    id: signed.accountId,
+    role: signed.session.role,
+    regionScope: signed.session.regionScope,
+  };
+}
+
 function statusAfterRefusedSignIn(before: SessionStatus): SessionStatus {
   return before === "expired" ? "expired" : "anonymous";
 }
@@ -46,13 +61,15 @@ export function apiSessionReducer(
         failure: null,
         proving: false,
       };
-    case "refused":
+    case "refused": {
+      const status = statusAfterRefusedSignIn(state.status);
       return {
-        status: statusAfterRefusedSignIn(state.status),
-        signed: null,
+        status,
+        signed: status === "expired" ? state.signed : null,
         failure: action.failure,
         proving: false,
       };
+    }
     case "expired":
       if (state.proving) return state;
       return { ...state, status: "expired" };
