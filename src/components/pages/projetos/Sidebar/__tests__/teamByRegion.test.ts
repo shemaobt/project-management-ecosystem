@@ -17,6 +17,7 @@ import {
   orderRegionPanel,
 } from "../../../../../utils/region";
 import { filterProjects } from "../../../../../utils/search";
+import { orderByCounts } from "../TeamByRegion";
 
 const NOW = new Date("2026-05-14T12:00:00Z");
 const SCOPED_ROLES = ["coordinator", "obtLab", "resourceCircle"] as const;
@@ -52,6 +53,27 @@ describe("region panel order", () => {
     for (const card of cards) {
       expect(card.labelKey).toMatch(/^continent_/);
     }
+  });
+
+  it("orderByCounts — the browse-baseline path Projetos actually calls — agrees with orderRegionPanel", async () => {
+    const [projects, regions] = await Promise.all([
+      projectsAPI.list(),
+      regionsAPI.list(),
+    ]);
+    // `counts.continent` is exactly the shape a browse baseline sends: a totals map,
+    // not raw projects. Driving orderByCounts through it (rather than reading the
+    // component's source as text) is what catches the europe rule drifting between
+    // the two callers.
+    const { counts } = filterProjects(projects, EMPTY_FILTERS, "");
+    const cards = orderByCounts(counts.continent, regions);
+    expect(cards.map((card) => card.key)).toEqual(
+      orderRegionPanel(projects).map((region) => region.key),
+    );
+  });
+
+  it("orderByCounts keeps Europe visible at zero, same as orderRegionPanel", () => {
+    const cards = orderByCounts({ africa: 5 }, []);
+    expect(cards.map((card) => card.key)).toContain("europe");
   });
 });
 

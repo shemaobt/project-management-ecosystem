@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { REGION_CENTROIDS } from "../../constants/geo";
 import { DEFAULT_SORT, SORT_KEYS } from "../../constants/sorting";
 import { EMPTY_FILTERS } from "../../stores/filtersStore";
+import { getProgress } from "../../utils/progress";
 import { getRegion } from "../../utils/region";
 import { filterProjects } from "../../utils/search";
 import { browseProjects, type ProjectBrowseQuery } from "../projectBrowse";
@@ -56,6 +57,14 @@ describe("browseProjects — o mesmo que a BE-05 promete, do lado das fixtures",
     const result = await browseProjects({ ...BASE, sort });
     expect(result.items).toHaveLength(127);
     expect(new Set(result.items.map((project) => project.id)).size).toBe(127);
+  });
+
+  it("ordena por progresso de fato — decrescente, do maior para o menor", async () => {
+    const result = await browseProjects({ ...BASE, sort: "progress" });
+    const scores = result.items.map((project) => getProgress(project));
+    for (let index = 1; index < scores.length; index += 1) {
+      expect(scores[index - 1]).toBeGreaterThanOrEqual(scores[index]);
+    }
   });
 
   it("país sensível chega com localização, base e coordenadas já reduzidas ao centroide", async () => {

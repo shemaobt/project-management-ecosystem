@@ -46,6 +46,7 @@ function cell() {
 }
 
 const offline = () => ({
+  isAxiosError: true,
   code: "ERR_NETWORK",
   config: {},
   response: undefined,

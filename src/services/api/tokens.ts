@@ -24,9 +24,10 @@ export function setTokens(next: AuthTokens): void {
   announce("signedIn");
 }
 
-export function replaceAccessToken(accessToken: string): void {
-  if (!tokens) return;
+export function replaceAccessToken(accessToken: string): boolean {
+  if (!tokens) return false;
   tokens = { ...tokens, accessToken };
+  return true;
 }
 
 export function accessToken(): string | null {

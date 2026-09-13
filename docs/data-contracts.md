@@ -45,9 +45,15 @@ and the route prefix are BE-01's.
 
 ## 1. What is frozen, and what is not
 
-**Frozen** — the ten type modules under `src/types/`, re-exported whole by `src/types/index.ts`.
+**Frozen** — the type modules under `src/types/`, re-exported whole by `src/types/index.ts`.
 `src/types/__tests__/contract.test.ts` fails the build when a module is left out of that index, and
-when `Project`'s required/optional split stops matching the export (§5.1).
+when `Project`'s required/optional split stops matching the export (§5.1). There were ten when this
+document was written, and one shape that travels on the wire lived outside them and outside that
+test — the session's, §9.13 — which §12.3 named with an owner rather than moving here.
+**INT-01 closed that item**: `session.ts` is the eleventh module — `SessionRole`, `ShemaSession`,
+the account and token pair the platform's auth routes answer, and the `ApiFailure` taxonomy the
+client classifies into. That is this document being filled in rather than departed from; nothing
+already frozen moved.
 
 **Frozen** — the derivations in `src/utils/`. They are pure functions of `(record, now)` and
 `src/utils/__tests__/dataJsParity.json` pins their output over all 127 records at the reference
@@ -59,7 +65,7 @@ verbatim from the design prototype's `modals.jsx`, not re-derived from the PRD (
 **Not frozen, on purpose** — pagination, sorting and filter *transport*. Wave 1 filters in the
 browser over the whole collection; §9.1 says why, and when that stops being true.
 
-**Not frozen** — anything behind the three client gates of §11, and the nine questions of §12.
+**Not frozen** — anything behind the three client gates of §11, and the ten questions of §12.
 
 ---
 
@@ -85,7 +91,7 @@ endpoint and a setter does not**. §10 is that mapping, and it is the reason the
 (`recordStore`, `shema-record-drafts-v1`) and the health wizard's per-step draft
 (`assessmentStore`) live in `localStorage` and are consumed only by an explicit save. Wave 2 may
 move them to the server; nothing here requires it. The cost of leaving them client-side is stated
-in §12.7.
+in §12.8.
 
 ---
 
@@ -344,7 +350,7 @@ list without being deleted, because deleting loses the history a region is judge
 `status !== "fulfilled"` is a bug the moment a fifth state exists. **Urgency is not health**: they
 never share a vocabulary and the health derivation never reads needs. A need carries **no id**;
 `submittedAt` plus `category` plus the project is what identifies it in a derived notification, and
-§12.5 says why a server-side id would be an improvement.
+§12.6 says why a server-side id would be an improvement.
 
 **`BookProgressItem`** — `{id, name, chapters, translated, communityChecked, mentorApproved}`. The
 `id` is a Bible book key from `BIBLE_BOOKS` (`src/constants/bible.ts`): 66 books, 39 OT and 27 NT,
@@ -367,7 +373,7 @@ what makes `progressAsOf` a point-in-time reader and the ETEN year-end reconstru
 `fromField` is the submitter's name as a string and together they are the entry's provenance; a
 notification only exists for an entry that has one (§9.11).
 
-**`formType` is a free `string`, and it is deliberately not `FormKind` — §12.9.** `FormKind` is
+**`formType` is a free `string`, and it is deliberately not `FormKind` — §12.10.** `FormKind` is
 `pulso | health`, and neither is what anyone writes: the values in the repo today are `"full"` —
 the prototype's own generator mode (`generateFieldFormHTML(project, …, 'full')`) — and `"field"`.
 Typing the column as the union would reject the prototype's own value on the first import.
@@ -965,7 +971,7 @@ GET /api/shema/projects/{id}/progress-history  -> ProgressHistoryEntry[]
 Only if the record stops carrying the history inline. Wave 1 reads it off the project and the
 history is small; this is named so BE-06 does not invent a different split.
 
-**Drafts are not part of this contract** (§2 and §12.7).
+**Drafts are not part of this contract** (§2 and §12.8).
 
 ### 9.4 Avaliação de Saúde — INT-04 ([OBT-409](https://linear.app/shema-obt/issue/OBT-409)) · BE-07 ([OBT-396](https://linear.app/shema-obt/issue/OBT-396))
 
@@ -1150,8 +1156,25 @@ non-Latin names survive Excel; and the import refuses the export file by recogni
 ### 9.13 Sessão e autenticação — INT-01 ([OBT-406](https://linear.app/shema-obt/issue/OBT-406)) · BE-03 ([OBT-392](https://linear.app/shema-obt/issue/OBT-392))
 
 Reuse `shema-api`'s existing routes whole (§3): `POST /api/auth/login`, `/refresh`, `/logout`,
-`GET /api/auth/me`. The frontend attaches the bearer token from a single Axios instance, retries
-once on 401 after a refresh, and on refresh failure clears the tokens and redirects to `/login`.
+`GET /api/auth/me`. The frontend attaches the bearer token from a single Axios instance and retries
+once on 401 after a refresh.
+
+**Two lines of this section were written before the screen existed, and INT-01 departed from both
+(`CLAUDE.md` §8 carries the reasoning).** First, *"clears the tokens and redirects to `/login`"*: it
+clears the tokens and does **not** redirect — the gate keeps the app mounted and asks for the
+password in a dialog over it, because a redirect unmounts exactly the unsaved work the issue exists
+to protect. Second, the tokens were assumed to live in `localStorage`; **no token is written to any
+web storage**, both live in module memory, and the cost is that a page reload asks for the password
+again. ⚠️ **Closing that is a server change, not a frontend one**: `/api/auth/refresh` takes the
+refresh token in the body, so a session that survives a reload needs `shema-api` to set it as an
+httpOnly, `Secure`, `SameSite` cookie. Nobody owns that yet.
+
+**One requirement this section did not state, and the client now depends on: the wire spelling.**
+`GET /api/shema/session` answers camelCase (BE-03 aliases it), and the client does **no case
+conversion anywhere** — the frozen types in `src/types/` are the wire. **BE-05 and BE-06 must serve
+`Project` in camelCase.** The platform's own `/api/auth/*` is the single exception: it is
+pre-existing snake_case and gets one named three-field mapping. A second spelling for the record
+would put a translation table on every read, which is the defect §9.0's conventions exist to avoid.
 
 One Shemá-specific read is missing and BE-03 owns it:
 
@@ -1162,7 +1185,10 @@ GET /api/shema/session   -> { role: SessionRole, regionScope: RegionKey[] | null
 `SessionRole` is `globalStrategist | coordinator | obtLab | resourceCircle`; `regionScope: null`
 means global. **`name` is resolved from the org chart** (§5.3) — it is not a user profile field, and
 renaming a role-holder renames who the session says you are. `GET /api/auth/my-roles` cannot answer
-this today because the grant has no region (§3.1).
+this today because the grant has no region (§3.1). `SessionRole` and `SessionPersona` were declared
+in `src/contexts/AuthContext.tsx` rather than under `src/types/`, the one gap in the frozen surface
+of §1. INT-01 closed it (§12.3): they live in `src/types/session.ts` now, under the same
+`contract.test.ts` guard as the other ten, and the context re-exports them so no import moved.
 
 ---
 
@@ -1184,9 +1210,9 @@ can exist; `hydrate()` becomes the matching `GET`.
 | `notificationStore` (`shema-notifications-v1`) | the seven `NotificationPrefsHandlers` | one `PUT /notifications/prefs` (§9.11) |
 | | `markRead(ids)` | `POST /notifications/read` (§9.11) |
 | `assessmentStore` (`shema-assessments-v1`) | `saveStep` / `discardDraft` | stays client-side; only the finished draft posts (§9.4) |
-| `recordStore` (`shema-record-drafts-v1`) | the record draft | stays client-side (§12.7) |
+| `recordStore` (`shema-record-drafts-v1`) | the record draft | stays client-side (§12.8) |
 | `formsStore` (`shema-form-submissions-v1`) | — read-only in wave 1 | `GET /forms/submissions`; the write is the import (§9.9) |
-| `filtersStore`, `prefsStore`, `savedViewsStore` | filters, sort, metaphor, saved views | **stay client-side.** Saved views are per browser today; §12.8 is the question of whether they should follow the user. |
+| `filtersStore`, `prefsStore`, `savedViewsStore` | filters, sort, metaphor, saved views | **stay client-side.** Saved views are per browser today; §12.9 is the question of whether they should follow the user. |
 
 There is no other write. Anything a wave-2 issue adds that is not on this list is new product, not
 integration.
@@ -1297,24 +1323,35 @@ Each of these is a real question with a named owner. None is an oversight.
    per-directory naming evidence so the decision is made once.
 2. **How the region dimension attaches to the role grant** — BE-03. §3.1. Whatever the mechanism,
    the frontend needs exactly `{role, regionScope}` back from §9.13.
-3. **Whether `team`/`ywamBase` and `sensitivity`/`sensitiveCountry` stay as two columns each** —
+3. **Where the session shape lives** — INT-01, with BE-03 holding the other half of it (item 2).
+   **Closed by INT-01**; the paragraph below is the record of why it was open.
+   `SessionRole`, `SessionPersona` and `SessionUser` are declared in
+   `src/contexts/AuthContext.tsx`, not under `src/types/`: §9.13's response body is the one shape
+   on the wire that §1's frozen surface misses, and `contract.test.ts` cannot see it either,
+   because it scans that directory. Half of it is frozen anyway — `SessionRole` is
+   `"globalStrategist" | RoleKey` and `regionScope` is `RegionKey[] | null` — so what lives loose
+   is the `globalStrategist` member and the persona envelope around them. Wave 1 has no second
+   reader: the session is mocked in the shell, and the types are the mock's own. INT-01 is the
+   issue that gives the shape a server, and that is when it becomes `src/types/session.ts`, under
+   the same guard as the other ten — which is what INT-01 did.
+4. **Whether `team`/`ywamBase` and `sensitivity`/`sensitiveCountry` stay as two columns each** —
    BE-02. §5.1. Either way, one input writes both and one of each pair is authoritative.
-4. **Whether `approvedUnits` is migrated as-is, as zero, or flagged unverified** — BE-16, with
+5. **Whether `approvedUnits` is migrated as-is, as zero, or flagged unverified** — BE-16, with
    BE-11 needing the answer. §6.2 and §11.1.
-5. **Whether a `NeedItem` gets a server-side id.** It has none today; a notification identifies one
+6. **Whether a `NeedItem` gets a server-side id.** It has none today; a notification identifies one
    by `(project, category, submittedAt)`. A real id would be better and would change
    `NeedItem` — which is why it is named here rather than done quietly.
-6. **Signed URLs or a gated read endpoint for media** — BE-04. §3.1 and §8.3.
-7. **Whether drafts move to the server.** They are `localStorage` today, which means a coordinator
+7. **Signed URLs or a gated read endpoint for media** — BE-04. §3.1 and §8.3.
+8. **Whether drafts move to the server.** They are `localStorage` today, which means a coordinator
    who fills half a record and opens a different browser has lost it. That is a real cost, it is not
    data loss in the browser they used, and no issue owns it yet.
-8. **Whether saved views follow the user.** Per browser today; the view codec is shareable by URL,
+9. **Whether saved views follow the user.** Per browser today; the view codec is shareable by URL,
    which is the substitute.
-9. **What `ProgressHistoryEntry.formType` may contain** — BE-12, alongside GATE-03. It is a free
-   `string` (§5.2) because the only values written are the prototype's generator modes, and
-   narrowing it to `FormKind` would both reject those and put a cycle in the type graph
-   (`project.ts` is the root: `region.ts` imports it, and `forms.ts` reaches `region.ts` through
-   `meeting.ts`). Whoever settles the Pulse settles this vocabulary, in `forms.ts`.
+10. **What `ProgressHistoryEntry.formType` may contain** — BE-12, alongside GATE-03. It is a free
+    `string` (§5.2) because the only values written are the prototype's generator modes, and
+    narrowing it to `FormKind` would both reject those and put a cycle in the type graph
+    (`project.ts` is the root: `region.ts` imports it, and `forms.ts` reaches `region.ts` through
+    `meeting.ts`). Whoever settles the Pulse settles this vocabulary, in `forms.ts`.
 
 ---
 
