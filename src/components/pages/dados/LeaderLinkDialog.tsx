@@ -219,7 +219,10 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
         if (!cancelled) setLinks(result);
       })
       .catch((raw) => {
-        if (!cancelled) setError(failureMessage(toApiFailure(raw), t));
+        if (!cancelled) {
+          setError(failureMessage(toApiFailure(raw), t));
+          setLinks([]);
+        }
       });
     return () => {
       cancelled = true;

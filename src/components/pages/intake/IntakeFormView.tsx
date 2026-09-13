@@ -76,7 +76,7 @@ export function IntakeFormView({
 
         {reloadNeeded ? (
           <div className="rounded-md border border-status-critical-line bg-accent-soft p-3.5">
-            <p className="text-small font-semibold text-telha">
+            <p className="text-small font-semibold text-accent-press">
               {t("intake_form_reload_needed")}
             </p>
             <Button

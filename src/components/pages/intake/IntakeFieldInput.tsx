@@ -1,13 +1,10 @@
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  isPrayerVisibility,
-  PRAYER_VISIBILITY_HINT_KEYS,
-  PRAYER_VISIBILITY_LABEL_KEYS,
-} from "../../../constants/prayer";
+import { DEFAULT_PRAYER_VISIBILITY, isPrayerVisibility } from "../../../constants/prayer";
 import type { IntakeField } from "../../../types/forms";
 import type { BookProgressItem } from "../../../types/project";
 import { BookTable } from "../ficha/tabs/progresso/BookTable";
+import { PrayerConsent } from "../ficha/tabs/saude/PrayerConsent";
 import { Input, Label, Radio, RadioGroup, Textarea } from "../../ui";
 
 export interface IntakeFieldInputProps {
@@ -25,6 +22,11 @@ function asRows(value: unknown): BookProgressItem[] {
   return Array.isArray(value) ? (value as BookProgressItem[]) : [];
 }
 
+/** The one choice field the server sends today — §5.3/§6.2's consent question. */
+function isPrayerVisibilityField(field: IntakeField): boolean {
+  return field.type === "choice" && field.options.every(isPrayerVisibility);
+}
+
 export function IntakeFieldInput({
   field,
   value,
@@ -34,10 +36,19 @@ export function IntakeFieldInput({
   const { t } = useTranslation();
   const fieldId = useId();
   const invalid = Boolean(errorKey);
+  const prayerVisibilityField = isPrayerVisibilityField(field);
+
+  const hasOwnControlId =
+    field.type === "text" || field.type === "longText" || field.type === "period";
+  const labelId = hasOwnControlId ? undefined : fieldId;
+  const rawChoice = asString(value);
+  const currentPrayerVisibility = isPrayerVisibility(rawChoice)
+    ? rawChoice
+    : DEFAULT_PRAYER_VISIBILITY;
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor={fieldId}>
+      <Label id={labelId} htmlFor={hasOwnControlId ? fieldId : undefined}>
         {t(field.labelKey)}
         {field.required ? null : ` ${t("intake_optional")}`}
       </Label>
@@ -82,11 +93,18 @@ export function IntakeFieldInput({
       ) : null}
 
       {field.type === "progressRows" ? (
-        <BookTable rows={asRows(value)} onChange={onChange} />
+        <div role="group" aria-labelledby={fieldId}>
+          <BookTable rows={asRows(value)} onChange={onChange} />
+        </div>
       ) : null}
 
-      {field.type === "choice" ? (
+      {field.type === "choice" && prayerVisibilityField ? (
+        <PrayerConsent value={currentPrayerVisibility} onChange={onChange} />
+      ) : null}
+
+      {field.type === "choice" && !prayerVisibilityField ? (
         <RadioGroup
+          aria-labelledby={fieldId}
           className="flex-col gap-2.5"
           value={asString(value)}
           onValueChange={onChange}
@@ -97,17 +115,8 @@ export function IntakeFieldInput({
               className="flex cursor-pointer items-start gap-2.5 rounded-md border border-line p-3"
             >
               <Radio value={option} className="mt-0.5" />
-              <span className="min-w-0">
-                <span className="block text-small font-semibold text-fg">
-                  {isPrayerVisibility(option)
-                    ? t(PRAYER_VISIBILITY_LABEL_KEYS[option])
-                    : option}
-                </span>
-                {isPrayerVisibility(option) ? (
-                  <span className="block text-tag text-fg-subtle">
-                    {t(PRAYER_VISIBILITY_HINT_KEYS[option])}
-                  </span>
-                ) : null}
+              <span className="block min-w-0 text-small font-semibold text-fg">
+                {option}
               </span>
             </label>
           ))}
