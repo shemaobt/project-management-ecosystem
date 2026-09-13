@@ -33,6 +33,7 @@ function leakedKeys(chunks: string[]): string[] {
   const keys: string[] = [];
   for (const chunk of chunks) {
     for (const [key, translated] of divergingEntries) {
+      if (chunk.length < translated.length) continue;
       const leaked =
         chunk === translated ||
         (translated.length >= PHRASE_LENGTH && chunk.includes(translated));

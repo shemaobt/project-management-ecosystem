@@ -9,7 +9,7 @@ import type { LocationDisplay } from "../../../types/region";
 import { hasPlottableCoords } from "../../../utils/identity";
 import { getPriority, getOverallHealth } from "../../../utils/health";
 import { getProgress } from "../../../utils/progress";
-import { getStaleStatus } from "../../../utils/recency";
+import { getLastProgressUpdate, getStaleStatus } from "../../../utils/recency";
 import {
   getRegion,
   getRegionLabelKey,
@@ -54,9 +54,7 @@ export function cardHealth(project: Project): OverallHealth {
 export function cardLastProgressUpdate(project: Project): string | null {
   return project.derived
     ? project.derived.lastProgressUpdate
-    : project.progressHistory.length > 0
-      ? project.progressHistory[project.progressHistory.length - 1].date
-      : project.startDate || null;
+    : getLastProgressUpdate(project);
 }
 
 export function cardLocationDisplay(project: Project): LocationDisplay {

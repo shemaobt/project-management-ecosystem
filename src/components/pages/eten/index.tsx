@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { etenAPI } from "../../../fixtures";
+import { etenAPI } from "../../../services/api";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { EtenCreditEntry } from "../../../types/eten";
 import type { Project } from "../../../types/project";

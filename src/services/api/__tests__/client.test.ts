@@ -44,7 +44,12 @@ const adapter = async (config: InternalAxiosRequestConfig) => {
 
   const reply = script(call, attempt);
   if ("networkCode" in reply) {
-    throw { code: reply.networkCode, config, response: undefined };
+    throw {
+      isAxiosError: true,
+      code: reply.networkCode,
+      config,
+      response: undefined,
+    };
   }
   const response = {
     data: reply.data ?? null,
@@ -54,7 +59,7 @@ const adapter = async (config: InternalAxiosRequestConfig) => {
     config,
   };
   if (reply.status >= 200 && reply.status < 300) return response;
-  throw { code: "ERR_BAD_REQUEST", config, response };
+  throw { isAxiosError: true, code: "ERR_BAD_REQUEST", config, response };
 };
 
 http.defaults.adapter = adapter;
@@ -195,6 +200,19 @@ describe("quando o refresh também falha", () => {
 });
 
 describe("as rotas de autenticação nunca entram no refresh", () => {
+  it("e um id de projeto que contenha o nome de uma delas não engana o guarda", async () => {
+    setTokens({ accessToken: "stale", refreshToken: "refresh-1" });
+    script = (call, attempt) => {
+      if (call.url.includes("/auth/refresh")) {
+        return { status: 200, data: { access_token: "fresh" } };
+      }
+      return attempt === 1 ? { status: 401 } : { status: 200 };
+    };
+
+    await http.get("/shema/projects/auth/login");
+    expect(calls.some((call) => call.url.includes("/auth/refresh"))).toBe(true);
+  });
+
   it("um 401 no login é credencial recusada e nada mais acontece", async () => {
     script = () => ({ status: 401, data: { detail: "Invalid credentials" } });
 

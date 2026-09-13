@@ -50,6 +50,7 @@ const serverDerived = (health: OverallHealth): ProjectDerived => ({
 
 const handle = (values: Values = {}, health: OverallHealth | null = null) => ({
   values: { ...makeEmptyProject(), ...values },
+  typed: {},
   saved:
     health === null
       ? undefined

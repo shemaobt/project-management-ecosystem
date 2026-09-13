@@ -64,6 +64,9 @@ export function FichaPage() {
   const outcome = useProjectRecordStore((state) => state.outcome);
   const settleDraft = useRecordStore((state) => state.settleDraft);
 
+  const moveDraft = useRecordStore((state) => state.updateDraft);
+  const dropDraft = useRecordStore((state) => state.discardDraft);
+
   const draft = useDraft(recordId);
   const mode = readMode(params.get(MODE_PARAM), draft.isNew);
   const active: RecordTabId = tab && isRecordTab(tab) ? tab : DEFAULT_TAB;
@@ -96,6 +99,32 @@ export function FichaPage() {
     setParams(next, { replace: true });
   };
 
+  /**
+   * Forget what the server took; carry what it does not take yet to where the record now
+   * lives.
+   *
+   * A create leaves the draft keyed by `novo`, and anything still in it would greet the
+   * *next* new record as if it belonged to it. So the remainder moves to the minted slug
+   * and the `novo` key is dropped — the input survives, under the record that is now its
+   * own.
+   */
+  const carryDraft = (
+    key: string,
+    mintedId: string | null,
+    written: { writtenFields: (keyof Project)[]; withheld: (keyof Project)[] },
+  ) => {
+    if (!mintedId) {
+      settleDraft(key, written.writtenFields);
+      return;
+    }
+    const kept: ProjectDraft = {};
+    for (const field of written.withheld) {
+      Object.assign(kept, { [field]: draft.values[field] });
+    }
+    if (Object.keys(kept).length > 0) moveDraft(mintedId, kept);
+    dropDraft(key);
+  };
+
   const discard = () => {
     draft.discard();
     dismiss();
@@ -119,18 +148,29 @@ export function FichaPage() {
       return;
     }
 
-    const result = await save(
-      draft.isNew ? promote(draft.values, recordId) : draft.values,
-      draft.isNew,
-    );
+    // The slug is minted **once** and kept in the draft. A create that timed out may
+    // well have landed, and a retry that minted a second id would file the record twice
+    // instead of meeting the server's own slug collision.
+    const filed = draft.isNew ? promote(draft.values) : null;
+    if (filed && filed.id !== draft.values.id) draft.set("id", filed.id);
+
+    const result = await save({
+      values: filed ?? draft.values,
+      typed: draft.typed,
+      isNew: draft.isNew,
+    });
 
     switch (result.kind) {
       case "saved": {
-        settleDraft(recordId, result.report.writtenFields);
+        // A create wrote the whole record, so naming ten tabs says nothing; a patch
+        // names the ones it touched. Either way the withheld half is named, because
+        // that is the part the coordinator would otherwise believe had landed.
+        const written = filed ? [] : result.report.written;
+        carryDraft(recordId, filed?.id ?? null, result.report);
         toast.success(
           [
             t("record_saved", { name: draft.values.languageName }),
-            savedSentence(result.report.written, result.report.withheld, t),
+            savedSentence(written, result.report.withheld, t),
           ]
             .filter(Boolean)
             .join(" "),
@@ -236,7 +276,6 @@ export function FichaPage() {
   );
 }
 
-function promote(values: ProjectDraft, recordId: string): Project {
-  const id = recordId === NEW_RECORD ? crypto.randomUUID() : recordId;
-  return materializeDraft(values, id);
+function promote(values: ProjectDraft): Project {
+  return materializeDraft(values, values.id || crypto.randomUUID());
 }

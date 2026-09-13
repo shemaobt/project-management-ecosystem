@@ -247,4 +247,28 @@ describe("as contagens, grupo por grupo", () => {
     expect(result.counts.preset.prayer).toBe(1);
     expect(result.counts.groupAll.status).toBe(1);
   });
+
+  it("um grupo de facet que o servidor inventou é ignorado, não derruba a leitura (fail closed)", async () => {
+    script = () => ({
+      status: 200,
+      data: {
+        ...WIRE_PAGE,
+        counts: {
+          ...WIRE_PAGE.counts,
+          groups: { ...WIRE_PAGE.counts.groups, futureGroup: { x: 3 } },
+        },
+      },
+    });
+    const result = await projectBrowseAPI.browse({
+      filters: EMPTY_FILTERS,
+      search: "",
+      sort: DEFAULT_SORT,
+      limit: null,
+      offset: 0,
+    });
+    expect(result.counts.status.pausado).toBe(1);
+    expect(
+      (result.counts as unknown as Record<string, unknown>).futureGroup,
+    ).toBeUndefined();
+  });
 });

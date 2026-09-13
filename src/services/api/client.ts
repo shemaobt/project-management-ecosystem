@@ -21,7 +21,7 @@ interface RetriedConfig extends InternalAxiosRequestConfig {
 }
 
 function isAuthRoute(url: string | undefined): boolean {
-  return NEVER_REFRESHED.some((route) => (url ?? "").includes(route));
+  return NEVER_REFRESHED.some((route) => (url ?? "").startsWith(route));
 }
 
 export const http: AxiosInstance = axios.create({
@@ -48,8 +48,7 @@ async function requestNewAccessToken(): Promise<boolean> {
       { timeout: REQUEST_TIMEOUT_MS, headers: { Accept: "application/json" } },
     );
     if (!response.data?.access_token) return false;
-    replaceAccessToken(response.data.access_token);
-    return true;
+    return replaceAccessToken(response.data.access_token);
   } catch {
     return false;
   }
