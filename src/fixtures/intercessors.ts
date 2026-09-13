@@ -6,16 +6,11 @@ import type {
   IntercessorEntry,
   IntercessorUpdatePayload,
 } from "../types/prayer";
-import { contactChannel } from "../utils/intercessors";
+import { contactChannel, hasConsent } from "../utils/intercessors";
 import { toLocalIsoDate } from "../utils/format";
 
-/**
- * The local dev/test stand-in for `list_intercessors.py` and its siblings.
- * A real backend persists this in Postgres; this module keeps the same
- * shape in memory for the life of the page, which is enough to exercise the
- * screen without one running — `docs/shema.md`'s design for the aggregate,
- * simulated rather than reimplemented against a database.
- */
+// In memory rather than a database: enough to exercise the screen for the
+// life of the page without a backend running.
 const PEOPLE = new Map<string, IntercessorEntry>();
 const CONTACTS = new Map<string, string>();
 
@@ -24,10 +19,6 @@ function hint(contact: string): string {
   if (at > 1) return `${contact.slice(0, 2)}…${contact.slice(at)}`;
   const digits = contact.replace(/\D/gu, "");
   return digits.length >= 4 ? `…${digits.slice(-4)}` : "…";
-}
-
-function hasConsent(person: IntercessorEntry, context: ConsentContext): boolean {
-  return person.consents.some((consent) => consent.context === context);
 }
 
 export async function loadIntercessors(): Promise<IntercessorDirectory> {
@@ -46,7 +37,7 @@ export async function createIntercessor(
   const entry: IntercessorEntry = {
     id: crypto.randomUUID(),
     name: payload.name,
-    country: payload.country as IntercessorEntry["country"],
+    country: payload.country,
     contactChannel: contactChannel(payload.contact),
     contactHint: hint(payload.contact),
     sensitiveCountry: payload.sensitiveCountry,
@@ -72,7 +63,7 @@ export async function updateIntercessor(
   const updated: IntercessorEntry = {
     ...current,
     name: payload.name ?? current.name,
-    country: (payload.country as IntercessorEntry["country"]) ?? current.country,
+    country: payload.country ?? current.country,
     sensitiveCountry: payload.sensitiveCountry ?? current.sensitiveCountry,
     contactChannel: payload.contact
       ? contactChannel(payload.contact)

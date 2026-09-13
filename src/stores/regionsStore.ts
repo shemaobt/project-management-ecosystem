@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { announceFailure, regionsAPI, toApiFailure } from "../services/api";
-import type { Region, RoleChange } from "../types/region";
-import type { SaveOutcome } from "../types/team";
+import type { Region, RegionKey, RoleChange } from "../types/region";
+import type { SaveOutcome, TeamSaveResult } from "../types/team";
 import { applyChanges, diffTeams, type TeamDrafts } from "../utils/team";
 import {
   createHydrationSlot,
@@ -23,7 +23,7 @@ interface RegionsState extends HydrationStatus {
     drafts: TeamDrafts,
     changedBy: string,
     now?: Date,
-  ) => Promise<SaveOutcome>;
+  ) => Promise<TeamSaveResult>;
 }
 
 type PersistedRegions = Pick<
@@ -61,7 +61,7 @@ export const useRegionsStore = create<RegionsState>()(
             ),
           ];
           if (dirty.length === 0) {
-            return { changed: 0, filled: 0, cleared: 0 };
+            return { outcome: { changed: 0, filled: 0, cleared: 0 }, failedRegions: [] };
           }
 
           const results = await Promise.allSettled(
@@ -83,16 +83,18 @@ export const useRegionsStore = create<RegionsState>()(
 
           const outcome: SaveOutcome = { changed: 0, filled: 0, cleared: 0 };
           const won: RoleChange[] = [];
-          for (const result of results) {
+          const failedRegions: RegionKey[] = [];
+          results.forEach((result, index) => {
             if (result.status === "fulfilled") {
               outcome.changed += result.value.outcome.changed;
               outcome.filled += result.value.outcome.filled;
               outcome.cleared += result.value.outcome.cleared;
               won.push(...result.value.changes);
             } else {
+              failedRegions.push(dirty[index]);
               announceFailure(toApiFailure(result.reason));
             }
-          }
+          });
 
           if (won.length > 0) {
             set({
@@ -100,7 +102,7 @@ export const useRegionsStore = create<RegionsState>()(
               changes: [...changes, ...won],
             });
           }
-          return outcome;
+          return { outcome, failedRegions };
         },
       };
     },

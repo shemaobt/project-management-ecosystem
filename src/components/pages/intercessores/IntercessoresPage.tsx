@@ -163,7 +163,10 @@ export function IntercessoresView({
         <>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-small font-semibold text-fg-muted">
-              {t("int_count", { count: total })}
+              {t("int_count", { count: visible.length })}
+              {visible.length !== total ? (
+                <> {t("results_of")} {total}</>
+              ) : null}
             </p>
             <div className="relative">
               <Search

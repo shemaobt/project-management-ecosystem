@@ -10,7 +10,7 @@ import { useRegionsStore } from "../../../stores/regionsStore";
 import type { Project } from "../../../types/project";
 import type { Region, RegionKey, RoleChange } from "../../../types/region";
 import type { RoleKey } from "../../../types/role";
-import type { SaveOutcome } from "../../../types/team";
+import type { SaveOutcome, TeamSaveResult } from "../../../types/team";
 import { getRegion } from "../../../utils/region";
 import { draftsFor, unassignedCount } from "../../../utils/team";
 import { EmptyState } from "../../common/EmptyState";
@@ -26,7 +26,7 @@ export interface EquipeViewProps {
   regions: readonly Region[] | null;
   projects?: readonly Project[];
   changes?: readonly RoleChange[];
-  onSave: (drafts: ReturnType<typeof draftsFor>) => Promise<SaveOutcome>;
+  onSave: (drafts: ReturnType<typeof draftsFor>) => Promise<TeamSaveResult>;
 }
 
 export function EquipeView({
@@ -147,9 +147,17 @@ export function EquipeView({
               onClick={() => {
                 setSaving(true);
                 onSave(drafts)
-                  .then((result) => {
-                    setOutcome(result);
-                    setEdits({});
+                  .then(({ outcome, failedRegions }) => {
+                    setOutcome(outcome);
+                    setEdits((current) =>
+                      Object.fromEntries(
+                        Object.entries(current).filter(([key]) =>
+                          failedRegions.includes(
+                            key.slice(0, key.lastIndexOf(":")) as RegionKey,
+                          ),
+                        ),
+                      ),
+                    );
                   })
                   .finally(() => setSaving(false));
               }}

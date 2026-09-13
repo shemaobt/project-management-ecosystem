@@ -46,7 +46,7 @@ export interface IntercessorDirectory {
 
 export interface IntercessorCreate {
   name: string;
-  country: string;
+  country: CountryCode;
   contact: string;
   sensitiveCountry: boolean;
   consentBasis: string;
@@ -54,7 +54,7 @@ export interface IntercessorCreate {
 
 export interface IntercessorUpdatePayload {
   name?: string;
-  country?: string;
+  country?: CountryCode;
   contact?: string;
   sensitiveCountry?: boolean;
 }

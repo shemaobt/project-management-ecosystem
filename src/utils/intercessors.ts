@@ -1,5 +1,6 @@
 import { isCountryCode, type CountryCode } from "../constants/countries";
 import type {
+  ConsentContext,
   ContactChannel,
   IntercessorCreate,
   IntercessorEntry,
@@ -115,7 +116,7 @@ export function makeIntercessorUpdate(
 
 export function hasConsent(
   person: IntercessorEntry,
-  context: "network" | "directory" | "partner-export",
+  context: ConsentContext,
 ): boolean {
   return person.consents.some((consent) => consent.context === context);
 }
