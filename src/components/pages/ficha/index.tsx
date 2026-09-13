@@ -34,7 +34,7 @@ import {
 import { RecordFooter } from "./RecordFooter";
 import { RecordHero } from "./RecordHero";
 import { SaveOutcomeNote } from "./SaveOutcomeNote";
-import { savedSentence } from "./saveReport";
+import { savedSentence, unchangedSentence } from "./saveReport";
 import { TabNav } from "./TabNav";
 import { TAB_COMPONENTS } from "./tabs";
 import type { RecordMode } from "./types";
@@ -178,9 +178,13 @@ export function FichaPage() {
         close();
         return;
       }
-      case "unchanged":
-        toast(t("record_no_changes"));
+      case "unchanged": {
+        // Nothing reached the server: no success, and the modal stays open. If the only
+        // thing typed was a tab the record write does not carry yet, that is what the
+        // sentence says — the same wording a real save uses for its withheld half.
+        toast(unchangedSentence(result.withheld, t));
         return;
+      }
       case "invalid": {
         const target = tabOfFirstError(result.errors);
         if (target && target !== active) goToTab(target);

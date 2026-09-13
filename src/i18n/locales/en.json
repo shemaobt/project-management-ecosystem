@@ -1017,6 +1017,7 @@
   "record_saved_tabs": "Saved in {{tabs}}.",
   "record_saved_withheld": "{{tabs}}: what you typed is kept here — this part of the record is not written to the server yet.",
   "record_no_changes": "Nothing changed since the last time you saved.",
+  "record_nothing_written": "Nothing was written to the server.",
   "record_pending_title": "Not written to the server yet",
   "record_pending_health": "The four health readings, the date and the assessor have a single writer: the Health Assessment, which does not write to the server yet. This tab's prayer request, consent and pastoral answer save normally.",
   "record_pending_needs": "Needs are not written to the server yet. What you edit here is kept in this browser; the tab's notes save normally.",
