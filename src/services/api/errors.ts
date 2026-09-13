@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import type { ApiFailure, ApiFailureKind } from "../../types/session";
 
 const TIMEOUT_CODES = new Set(["ECONNABORTED", "ETIMEDOUT"]);
@@ -111,7 +112,8 @@ export function toApiFailure(error: unknown): ApiFailure {
   const status = typeof response?.status === "number" ? response.status : null;
 
   if (status === null) {
-    return { kind: withoutResponse(code), status: null, code, detail: null };
+    const kind = isAxiosError(error) ? withoutResponse(code) : "unexpected";
+    return { kind, status: null, code, detail: null };
   }
 
   const body = envelope(response?.data);
