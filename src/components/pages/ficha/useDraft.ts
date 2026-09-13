@@ -13,6 +13,8 @@ import type { RecordField, RecordFieldError } from "../../../types/projectRecord
 
 export interface DraftHandle {
   values: ProjectDraft;
+  /** What this coordinator actually wrote — the overlay, not the merge. */
+  typed: ProjectDraft;
   saved?: Project;
   isNew: boolean;
   hasChanges: boolean;
@@ -29,6 +31,7 @@ export interface DraftHandle {
 }
 
 const NO_ERRORS: RecordFieldError[] = [];
+const EMPTY_DRAFT: ProjectDraft = {};
 
 export function useDraft(recordId: string): DraftHandle {
   const draft = useRecordStore((state) => state.drafts[recordId]);
@@ -79,6 +82,7 @@ export function useDraft(recordId: string): DraftHandle {
 
   return {
     values,
+    typed: draft ?? EMPTY_DRAFT,
     saved: stored,
     isNew,
     hasChanges: Object.keys(draft ?? {}).length > 0,

@@ -15,8 +15,6 @@ import {
 
 const INTERCESSORS_KEY = "shema-intercessors-v1";
 
-const prayerSlot = createHydrationSlot();
-
 export const INTERCESSORS_VERSION = 1;
 
 interface PrayerState extends HydrationStatus {
@@ -31,38 +29,42 @@ type PersistedPrayer = Pick<PrayerState, "intercessors" | "hydrated">;
 
 export const usePrayerStore = create<PrayerState>()(
   persist<PrayerState, [], [], PersistedPrayer>(
-    (set, get) => ({
-      intercessors: [],
-      ...NOT_HYDRATED,
-      hydrate: () =>
-        hydrateOnce(prayerSlot, get, set, async () => {
-          set({ intercessors: await intercessorsAPI.list() });
-        }),
-      addIntercessor: (draft, id) => {
-        const person = makeIntercessor(draft, id);
-        if (!person) return false;
-        set((state) => ({ intercessors: [person, ...state.intercessors] }));
-        return true;
-      },
-      updateIntercessor: (id, draft) => {
-        const current = get().intercessors.find((person) => person.id === id);
-        if (!current) return false;
-        const next = makeIntercessor(draft, id);
-        if (!next) return false;
-        set((state) => ({
-          intercessors: state.intercessors.map((person) =>
-            person.id === id ? { ...next, addedAt: current.addedAt } : person,
-          ),
-        }));
-        return true;
-      },
-      removeIntercessor: (id) =>
-        set((state) => ({
-          intercessors: state.intercessors.filter(
-            (person) => person.id !== id,
-          ),
-        })),
-    }),
+    (set, get) => {
+      const slot = createHydrationSlot();
+
+      return {
+        intercessors: [],
+        ...NOT_HYDRATED,
+        hydrate: () =>
+          hydrateOnce(slot, get, set, async () => {
+            set({ intercessors: await intercessorsAPI.list() });
+          }),
+        addIntercessor: (draft, id) => {
+          const person = makeIntercessor(draft, id);
+          if (!person) return false;
+          set((state) => ({ intercessors: [person, ...state.intercessors] }));
+          return true;
+        },
+        updateIntercessor: (id, draft) => {
+          const current = get().intercessors.find((person) => person.id === id);
+          if (!current) return false;
+          const next = makeIntercessor(draft, id);
+          if (!next) return false;
+          set((state) => ({
+            intercessors: state.intercessors.map((person) =>
+              person.id === id ? { ...next, addedAt: current.addedAt } : person,
+            ),
+          }));
+          return true;
+        },
+        removeIntercessor: (id) =>
+          set((state) => ({
+            intercessors: state.intercessors.filter(
+              (person) => person.id !== id,
+            ),
+          })),
+      };
+    },
     {
       name: INTERCESSORS_KEY,
       version: INTERCESSORS_VERSION,

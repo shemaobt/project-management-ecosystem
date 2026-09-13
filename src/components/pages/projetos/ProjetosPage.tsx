@@ -20,6 +20,12 @@ import { Toolbar } from "./Toolbar";
 import { useProjectBrowse } from "./useProjectBrowse";
 
 const PAGE_SIZE = 30;
+// BE-05's `limit` is `ge=1` — there is no "counts only, no items" request, so the
+// smallest window that still asks for a page is the closest thing to it. The
+// baseline's `items` are never read (only `.counts`, below), so this trades the whole
+// unpaged collection for one card's worth of payload without changing what the
+// sidebar, saved views or "Time por região" can see.
+const BASELINE_LIMIT = 1;
 
 interface ResultsViewProps {
   metaphor: CardMetaphor;
@@ -93,7 +99,7 @@ export function ProjetosPage() {
     filters: EMPTY_FILTERS,
     search: "",
     sort: DEFAULT_SORT,
-    limit: null,
+    limit: BASELINE_LIMIT,
     offset: 0,
   });
 

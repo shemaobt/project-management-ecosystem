@@ -278,6 +278,47 @@ function need(wire: WireNeed): NeedItem {
   };
 }
 
+const maybe = <T,>(value: T | null): T | undefined => value ?? undefined;
+
+/**
+ * A story row's four optionals are nullable on the wire and optional on the record.
+ *
+ * The table reads them through `?? ""` either way, so nothing renders wrong today —
+ * but `null` is not the absence `StoryProgressItem` declares, and a row that round-trips
+ * through the draft would carry it back out.
+ */
+function storyRow(wire: Project["storyProgress"][number]): Project["storyProgress"][number] {
+  return {
+    name: wire.name,
+    audioHours: maybe(wire.audioHours ?? null),
+    recordLocation: maybe(wire.recordLocation ?? null),
+    recordStatus: maybe(wire.recordStatus ?? null),
+    aiAssisted: maybe(wire.aiAssisted ?? null),
+  };
+}
+
+/**
+ * The trail, with the server's nulls read as the absence the record means.
+ *
+ * `historyDeltas` asks `previousTranslated !== undefined`, and `null` passes that test:
+ * an entry with no previous side would render its whole count as the advance. The
+ * arithmetic is the reason this mapper exists rather than a pass-through.
+ */
+function historyEntry(wire: ProgressHistoryEntry): ProgressHistoryEntry {
+  return {
+    ...wire,
+    totalUnits: maybe(wire.totalUnits ?? null),
+    bookProgress: maybe(wire.bookProgress ?? null),
+    storyProgress: wire.storyProgress?.map(storyRow),
+    otherProgress: maybe(wire.otherProgress ?? null),
+    previousTranslated: maybe(wire.previousTranslated ?? null),
+    previousCommunity: maybe(wire.previousCommunity ?? null),
+    previousApproved: maybe(wire.previousApproved ?? null),
+    fromField: maybe(wire.fromField ?? null),
+    formType: maybe(wire.formType ?? null),
+  };
+}
+
 /** An empty string is this record's "no day"; the wire's is `null` — §9.0's date rule,
  * applied inside a need the same way {@link toWire} applies it at the top level. */
 function needDate(value: string | undefined): string | null {
@@ -389,9 +430,9 @@ export function mapRecord(wire: WireRecord): Project {
     readyVesselsAudioHours: text(wire.readyVesselsAudioHours),
     phases: wire.phases,
     bookProgress: wire.bookProgress,
-    storyProgress: wire.storyProgress,
+    storyProgress: wire.storyProgress.map(storyRow),
     otherProgress: wire.otherProgress ?? [],
-    progressHistory: wire.progressHistory,
+    progressHistory: wire.progressHistory.map(historyEntry),
     healthEmotional: rating(wire.healthEmotional),
     healthRelational: rating(wire.healthRelational),
     healthSpiritual: rating(wire.healthSpiritual),
