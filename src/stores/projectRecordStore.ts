@@ -112,7 +112,7 @@ export type SaveOutcome =
   | { kind: "conflict"; conflict: RecordConflict; overlap: RecordField[] }
   | { kind: "invalid"; errors: RecordFieldError[] }
   | { kind: "failed"; failure: ApiFailure }
-  | { kind: "unchanged" };
+  | { kind: "unchanged"; withheld: RecordField[] };
 
 /**
  * What filing one health reading (BE-07 · INT-04) answered — no `"conflict"` and no
@@ -260,9 +260,12 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
 
     const fields = changedFields(draft, record.project);
     if (fields.length === 0) {
-      const outcome: SaveOutcome = withheld.length > 0
-        ? { kind: "saved", report: report([], withheld) }
-        : { kind: "unchanged" };
+      // No request goes out, so this is **not** a save — and it must not be answered
+      // with one. Somebody who only typed into a tab this endpoint does not take yet
+      // would otherwise read *"Asháninka salvo."* over a record the server never heard
+      // about. The withheld half still travels with the answer, because it is the half
+      // that has to be said: the input is in this browser and nowhere else.
+      const outcome: SaveOutcome = { kind: "unchanged", withheld };
       set({ outcome });
       return outcome;
     }

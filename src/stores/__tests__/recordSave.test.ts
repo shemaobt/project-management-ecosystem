@@ -395,6 +395,20 @@ describe("o salvamento aceito esquece só o que o servidor levou", () => {
     expect(outcome.kind).toBe("unchanged");
     expect(sent.filter((config) => config.method === "patch")).toHaveLength(0);
   });
+
+  it("digitar só numa aba que o servidor não leva não conta como salvo", async () => {
+    await openAt();
+    const outcome = await store().save(
+      saving({ healthEmotional: "boa", mediaVideos: [{ url: "https://e/v" }] }),
+    );
+
+    // Nenhuma requisição saiu: chamar isso de salvo seria a única frase da tela a
+    // prometer uma escrita que não houve.
+    expect(sent.filter((config) => config.method === "patch")).toHaveLength(0);
+    expect(outcome.kind).toBe("unchanged");
+    if (outcome.kind !== "unchanged") return;
+    expect(outcome.withheld).toEqual(["healthEmotional", "mediaVideos"]);
+  });
 });
 
 describe("o progresso é um lote atômico", () => {

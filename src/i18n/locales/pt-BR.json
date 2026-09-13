@@ -1025,6 +1025,7 @@
   "record_saved_tabs": "Salvo em {{tabs}}.",
   "record_saved_withheld": "{{tabs}}: o que você digitou fica guardado aqui — esta parte da ficha ainda não é gravada no servidor.",
   "record_no_changes": "Nada mudou desde a última vez que você salvou.",
+  "record_nothing_written": "Nada foi gravado no servidor.",
   "record_pending_title": "Ainda não vai para o servidor",
   "record_pending_health": "As quatro leituras de saúde, a data e o avaliador têm um só escritor: a Avaliação de Saúde, que ainda não grava no servidor. O pedido de oração, o consentimento e a resposta pastoral desta aba são salvos normalmente.",
   "record_pending_needs": "As necessidades ainda não são gravadas no servidor. O que você editar aqui fica guardado neste navegador; as notas da aba são salvas normalmente.",
