@@ -12,32 +12,8 @@ import {
   toApiFailure,
 } from "../services/api";
 import { useRegionsStore } from "../stores/regionsStore";
-import {
-  ANONYMOUS,
-  apiSessionReducer,
-  type SignedSession,
-} from "./apiSession";
-import {
-  AuthContext,
-  scopeRegions,
-  type AuthSession,
-  type SessionPersona,
-} from "./session";
-
-const NOBODY: SessionPersona = {
-  id: "",
-  role: "globalStrategist",
-  regionScope: [],
-};
-
-function personaOf(signed: SignedSession | null): SessionPersona {
-  if (!signed) return NOBODY;
-  return {
-    id: signed.accountId,
-    role: signed.session.role,
-    regionScope: signed.session.regionScope,
-  };
-}
+import { ANONYMOUS, apiSessionReducer, personaOf } from "./apiSession";
+import { AuthContext, scopeRegions, type AuthSession } from "./session";
 
 export function ApiAuthProvider({ children }: { children: ReactNode }) {
   const [{ status, signed, failure }, dispatch] = useReducer(
