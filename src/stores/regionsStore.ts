@@ -35,22 +35,22 @@ export const useRegionsStore = create<RegionsState>()(
   persist<RegionsState, [], [], PersistedRegions>(
     (set, get) => {
       const slot = createHydrationSlot();
-      const load = async () => {
-        const [regions, changes] = await Promise.all([
-          regionsAPI.list(),
-          // The trail is a bonus read: a role without `coordinator` (or a
-          // scope with nothing to show) refuses it, and that must not sink
-          // the screen the seats themselves render fine without.
-          regionsAPI.roleChanges().catch(() => get().changes),
-        ]);
-        set({ regions, changes });
-      };
 
       return {
         regions: [],
         changes: [],
         ...NOT_HYDRATED,
-        hydrate: () => hydrateOnce(slot, get, set, load),
+        hydrate: () =>
+          hydrateOnce(slot, get, set, async () => {
+            const [regions, changes] = await Promise.all([
+              regionsAPI.list(),
+              // The trail is a bonus read: a role without `coordinator` (or a
+              // scope with nothing to show) refuses it, and that must not sink
+              // the screen the seats themselves render fine without.
+              regionsAPI.roleChanges().catch(() => get().changes),
+            ]);
+            set({ regions, changes });
+          }),
         saveTeams: async (drafts, changedBy, now = new Date()) => {
           const { regions, changes } = get();
           const dirty = [

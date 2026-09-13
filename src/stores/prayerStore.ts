@@ -17,8 +17,6 @@ import {
 
 const INTERCESSORS_KEY = "shema-intercessors-v1";
 
-const prayerSlot = createHydrationSlot();
-
 export const INTERCESSORS_VERSION = 2;
 
 interface PrayerState extends HydrationStatus {
@@ -48,72 +46,76 @@ async function safely<T>(action: () => Promise<T>): Promise<T | null> {
 
 export const usePrayerStore = create<PrayerState>()(
   persist<PrayerState, [], [], PersistedPrayer>(
-    (set, get) => ({
-      intercessors: [],
-      withheldCount: 0,
-      ...NOT_HYDRATED,
-      hydrate: () =>
-        hydrateOnce(prayerSlot, get, set, async () => {
-          const directory = await intercessorsAPI.list();
-          set({
-            intercessors: directory.people,
-            withheldCount: directory.withheldCount,
-          });
-        }),
-      addIntercessor: async (draft) => {
-        const payload = makeIntercessorCreate(draft);
-        if (!payload) return false;
+    (set, get) => {
+      const slot = createHydrationSlot();
 
-        const created = await safely(() => intercessorsAPI.create(payload));
-        if (!created) return false;
+      return {
+        intercessors: [],
+        withheldCount: 0,
+        ...NOT_HYDRATED,
+        hydrate: () =>
+          hydrateOnce(slot, get, set, async () => {
+            const directory = await intercessorsAPI.list();
+            set({
+              intercessors: directory.people,
+              withheldCount: directory.withheldCount,
+            });
+          }),
+        addIntercessor: async (draft) => {
+          const payload = makeIntercessorCreate(draft);
+          if (!payload) return false;
 
-        if (!draft.listInDirectory) {
-          set((state) => ({ withheldCount: state.withheldCount + 1 }));
+          const created = await safely(() => intercessorsAPI.create(payload));
+          if (!created) return false;
+
+          if (!draft.listInDirectory) {
+            set((state) => ({ withheldCount: state.withheldCount + 1 }));
+            return true;
+          }
+
+          const listed = await safely(() =>
+            intercessorsAPI.grantConsent(
+              created.id,
+              "directory",
+              payload.consentBasis,
+            ),
+          );
+          const entry = listed ?? created;
+          if (!listed) {
+            // The person is held but not shown until the directory consent
+            // lands — announced already by `safely`, so the count carries it.
+            set((state) => ({ withheldCount: state.withheldCount + 1 }));
+            return true;
+          }
+          set((state) => ({ intercessors: [entry, ...state.intercessors] }));
           return true;
-        }
+        },
+        updateIntercessor: async (id, draft) => {
+          const payload = makeIntercessorUpdate(draft);
+          if (!payload) return false;
 
-        const listed = await safely(() =>
-          intercessorsAPI.grantConsent(
-            created.id,
-            "directory",
-            payload.consentBasis,
-          ),
-        );
-        const entry = listed ?? created;
-        if (!listed) {
-          // The person is held but not shown until the directory consent
-          // lands — announced already by `safely`, so the count carries it.
-          set((state) => ({ withheldCount: state.withheldCount + 1 }));
+          const updated = await safely(() => intercessorsAPI.update(id, payload));
+          if (!updated) return false;
+
+          set((state) => ({
+            intercessors: state.intercessors.map((person) =>
+              person.id === id ? updated : person,
+            ),
+          }));
           return true;
-        }
-        set((state) => ({ intercessors: [entry, ...state.intercessors] }));
-        return true;
-      },
-      updateIntercessor: async (id, draft) => {
-        const payload = makeIntercessorUpdate(draft);
-        if (!payload) return false;
+        },
+        removeIntercessor: async (id) => {
+          const ok = (await safely(() => intercessorsAPI.remove(id))) !== null;
+          if (!ok) return false;
 
-        const updated = await safely(() => intercessorsAPI.update(id, payload));
-        if (!updated) return false;
-
-        set((state) => ({
-          intercessors: state.intercessors.map((person) =>
-            person.id === id ? updated : person,
-          ),
-        }));
-        return true;
-      },
-      removeIntercessor: async (id) => {
-        const ok = (await safely(() => intercessorsAPI.remove(id))) !== null;
-        if (!ok) return false;
-
-        set((state) => ({
-          intercessors: state.intercessors.filter((person) => person.id !== id),
-        }));
-        return true;
-      },
-      revealContact: (id) => safely(() => intercessorsAPI.contact(id)),
-    }),
+          set((state) => ({
+            intercessors: state.intercessors.filter((person) => person.id !== id),
+          }));
+          return true;
+        },
+        revealContact: (id) => safely(() => intercessorsAPI.contact(id)),
+      };
+    },
     {
       name: INTERCESSORS_KEY,
       version: INTERCESSORS_VERSION,
