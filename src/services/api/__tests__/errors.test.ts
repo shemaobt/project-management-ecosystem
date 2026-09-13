@@ -24,11 +24,16 @@ const t = (key: string, params?: Record<string, unknown>) =>
   );
 
 function withResponse(status: number, data?: unknown) {
-  return { code: "ERR_BAD_REQUEST", config: {}, response: { status, data } };
+  return {
+    isAxiosError: true,
+    code: "ERR_BAD_REQUEST",
+    config: {},
+    response: { status, data },
+  };
 }
 
 function withoutResponse(code?: string) {
-  return { code, config: {}, response: undefined };
+  return { isAxiosError: true, code, config: {}, response: undefined };
 }
 
 afterEach(() => {
@@ -110,6 +115,29 @@ describe("as demais recusas do envelope do shema-api", () => {
   it("o que não é erro de rede nenhum não vira erro de servidor", () => {
     expect(toApiFailure("boom").kind).toBe("unexpected");
     expect(toApiFailure(undefined).kind).toBe("unexpected");
+  });
+
+  it("um defeito nosso é inesperado, nunca queda de rede", () => {
+    expect(toApiFailure(new TypeError("x.map is not a function")).kind).toBe(
+      "unexpected",
+    );
+    expect(toApiFailure(new Error("boom")).kind).toBe("unexpected");
+    expect(toApiFailure({ code: "ERR_NETWORK" }).kind).toBe("unexpected");
+  });
+
+  it("e não é a rede nem com o navegador offline", () => {
+    vi.stubGlobal("navigator", { onLine: false });
+    expect(toApiFailure(new TypeError("boom")).kind).toBe("unexpected");
+    expect(toApiFailure(withoutResponse("ERR_NETWORK")).kind).toBe("offline");
+  });
+
+  it("a frase que o campo lê separa o defeito da queda", () => {
+    expect(failureMessage(toApiFailure(new TypeError("boom")), t)).toBe(
+      pt.net_unexpected,
+    );
+    expect(failureMessage(toApiFailure(new TypeError("boom")), t)).not.toBe(
+      pt.net_offline,
+    );
   });
 
   it("classificar duas vezes devolve a mesma falha", () => {
