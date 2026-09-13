@@ -34,6 +34,10 @@ import {
 } from "../../../../ui";
 import { Field, FieldGrid } from "../../fields";
 
+/** Radix reads `value=""` as "nothing selected" — the boundary sentinel CLAUDE.md §3.1
+ * asks for, the same convention `IdentidadeForm` uses for vitality. */
+const NO_CURRENCY = "na";
+
 export interface NeedRowProps {
   need: NeedItem;
   index: number;
@@ -216,13 +220,20 @@ export function NeedRow({
           >
             {(control) => (
               <Select
-                value={need.estimatedCurrency ?? ""}
-                onValueChange={(next) => onChange({ estimatedCurrency: next })}
+                value={need.estimatedCurrency || NO_CURRENCY}
+                onValueChange={(next) =>
+                  onChange({
+                    estimatedCurrency: next === NO_CURRENCY ? "" : next,
+                  })
+                }
               >
                 <SelectTrigger {...control}>
                   <SelectValue placeholder={t("need_currency_placeholder")} />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={NO_CURRENCY}>
+                    {t("need_currency_none")}
+                  </SelectItem>
                   {listCurrencies(locale).map((currency) => (
                     <SelectItem key={currency.code} value={currency.code}>
                       {currency.code} — {currency.name}

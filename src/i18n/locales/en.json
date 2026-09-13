@@ -779,6 +779,7 @@
   "need_amount_label": "Amount",
   "need_currency_label": "Currency",
   "need_currency_placeholder": "Select currency",
+  "need_currency_none": "None",
   "need_amount_needs_currency": "An amount needs a currency.",
   "need_currency_needs_amount": "A currency needs an amount.",
   "need_acknowledge": "Mark as seen",

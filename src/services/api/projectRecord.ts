@@ -116,7 +116,7 @@ interface WireNeed {
   submittedBy: string | null;
   submittedAt: string | null;
   acknowledgedAt: string | null;
-  acknowledgedBy: string;
+  acknowledgedBy: string | null;
 }
 
 interface WireAssessment {
@@ -274,7 +274,7 @@ function need(wire: WireNeed): NeedItem {
     submittedBy: text(wire.submittedBy),
     submittedAt: text(wire.submittedAt),
     acknowledgedAt: text(wire.acknowledgedAt),
-    acknowledgedBy: wire.acknowledgedBy,
+    acknowledgedBy: text(wire.acknowledgedBy),
   };
 }
 

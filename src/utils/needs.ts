@@ -1,4 +1,4 @@
-import { OPEN_NEED_STATUSES, RECENT_UPDATE_DAYS } from "../constants/project";
+import { OPEN_NEED_STATUSES } from "../constants/project";
 import type {
   NeedCategory,
   NeedItem,
@@ -92,13 +92,14 @@ export function closedOn(need: NeedItem): string | undefined {
 /**
  * How long a need may sit unseen before it is surfaced as unacknowledged.
  *
- * The same thirty days BE-08's `list_unacknowledged_needs` sweeps for, and the same
- * reason: FE-44 §7.7's `recent` preset already calls thirty days "nothing has happened
- * lately" for a whole project, so a need is held to no stricter a bar than the rest of
- * the product uses for this question. Reusing `RECENT_UPDATE_DAYS` rather than a second
- * constant is what keeps the two readings from drifting apart on their own.
+ * Owned by the server's sweep, not by the frontend's `recent` preset — BE-08's
+ * `list_unacknowledged_needs` sweeps for thirty days, and this mirrors that number so
+ * the two readings agree. It happens to equal `RECENT_UPDATE_DAYS` today, but the two
+ * are answering different questions (has anybody seen this need vs. did anything
+ * change on the project lately) and must not be aliased, or moving one silently moves
+ * the other.
  */
-export const UNACKNOWLEDGED_AFTER_DAYS = RECENT_UPDATE_DAYS;
+export const UNACKNOWLEDGED_AFTER_DAYS = 30;
 
 /** The day a need is aged from — `submittedAt`, or `undefined` for one the console has
  * not saved yet (an unsaved draft has no age to report). */

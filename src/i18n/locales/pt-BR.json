@@ -779,6 +779,7 @@
   "need_amount_label": "Valor",
   "need_currency_label": "Moeda",
   "need_currency_placeholder": "Selecionar moeda",
+  "need_currency_none": "Nenhuma",
   "need_amount_needs_currency": "Um valor precisa de uma moeda.",
   "need_currency_needs_amount": "Uma moeda precisa de um valor.",
   "need_acknowledge": "Marcar como visto",
