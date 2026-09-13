@@ -152,8 +152,19 @@ export function patchRecord(
   return { ok: true, record: store(applied, kept.version + 1) };
 }
 
-/** The wire's own word for "no free text" — an untranslated key never enters stored data. */
-const rawLabel = (key: string): string => key;
+/**
+ * BE-07's own fixed dimension names — the note is compiled once, server-side, at write
+ * time (never re-rendered from `dimensionNotes` on read), so it carries one language
+ * regardless of the reader's locale. `d_emotional` etc. are `HEALTH_DIMENSIONS`'
+ * `labelKey`s; a key this map does not know still returns something rather than nothing.
+ */
+const DIMENSION_LABEL: Record<string, string> = {
+  d_emotional: "Emocional",
+  d_relational: "Relacional",
+  d_spiritual: "Espiritual",
+  d_physical: "Física",
+};
+const wireLabel = (key: string): string => DIMENSION_LABEL[key] ?? key;
 
 /**
  * The double for `POST /projects/{id}/health-assessments` (BE-07, INT-04): append one
@@ -183,10 +194,18 @@ export function submitAssessment(
     ? { ...draft, assessor: actorName }
     : draft;
 
-  const filed = applyAssessment(kept.project, assessorFilled, rawLabel, {
-    author: actorName,
-    questionSetVersion: CURRENT_QUESTION_SET_VERSION,
-  });
+  // `buildSubmission` never sends `overallNote` — BE-07 has no field for it — so the
+  // double drops it here too, before `compileNotes` can fold it into `notes` the way
+  // the wizard's own `hw_overallnote_local_only` says it never does server-side.
+  const filed = applyAssessment(
+    kept.project,
+    { ...assessorFilled, overallNote: "" },
+    wireLabel,
+    {
+      author: actorName,
+      questionSetVersion: CURRENT_QUESTION_SET_VERSION,
+    },
+  );
 
   return { ok: true, record: store(filed, kept.version + 1) };
 }

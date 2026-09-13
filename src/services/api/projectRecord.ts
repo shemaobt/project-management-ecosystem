@@ -12,6 +12,7 @@ import type {
   MediaPhoto,
   NeedItem,
   Objective,
+  OverallHealth,
   ProgressHistoryEntry,
   Project,
   ProjectDerived,
@@ -123,6 +124,9 @@ interface WireAssessment {
   physical: HealthRating | null;
   notes: string;
   dimensionNotes: HealthAssessment["dimensionNotes"] | null;
+  author: string | null;
+  questionSetVersion: number | null;
+  overall: OverallHealth | null;
 }
 
 interface WireRecord {
@@ -317,6 +321,9 @@ function assessment(wire: WireAssessment): HealthAssessment {
     physical: rating(wire.physical),
     notes: wire.notes,
     dimensionNotes: wire.dimensionNotes ?? undefined,
+    author: maybe(wire.author),
+    questionSetVersion: wire.questionSetVersion,
+    overall: maybe(wire.overall),
   };
 }
 

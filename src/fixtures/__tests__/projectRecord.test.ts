@@ -62,6 +62,35 @@ describe("submitAssessment — o duplo do POST .../health-assessments (BE-07)", 
     expect(outcome.record.project.healthAssessor).toBe("Ana Coordenadora");
   });
 
+  it("as notas compiladas usam os nomes das dimensões, nunca a chave crua — e a nota geral não viaja", () => {
+    seeded();
+    const draft = {
+      ...emptyDraft("kadiweu", NOW),
+      ratings: {
+        emotional: "atencao" as const,
+        relational: "" as const,
+        spiritual: "" as const,
+        physical: "" as const,
+      },
+      notes: {
+        emotional: "Dormindo mal",
+        relational: "",
+        spiritual: "",
+        physical: "",
+      },
+      overallNote: "Conversa vai continuar mês que vem",
+    };
+
+    const outcome = submitAssessment("kadiweu", draft, "Ana Coordenadora");
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+
+    const entry = outcome.record.project.healthHistory?.[0];
+    expect(entry?.notes).toBe("Emocional: Dormindo mal");
+    expect(entry?.notes).not.toContain("d_emotional");
+    expect(entry?.notes).not.toContain("Conversa vai continuar");
+  });
+
   it("cada submissão bem-sucedida avança a versão — sem If-Match a checar", () => {
     seeded();
     const draft = {
