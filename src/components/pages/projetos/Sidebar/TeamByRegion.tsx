@@ -1,7 +1,6 @@
 import { Globe } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { REGIONS } from "../../../../constants/regions";
 import { ROLES } from "../../../../constants/roles";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { useFiltersStore } from "../../../../stores/filtersStore";
@@ -11,6 +10,7 @@ import { cn } from "../../../../utils/cn";
 import {
   getTeamOf,
   holderName,
+  orderRegionsByTotals,
   type RegionPanelCard,
 } from "../../../../utils/region";
 
@@ -28,17 +28,19 @@ export interface TeamByRegionProps {
  * `Sidebar/Filters` follows (§5.1). And never off a locally re-derived region-per-project
  * pass — the browse response already redacts a sensitive project's placement, so counting
  * from raw projects here would double as a second, weaker owner of the same number the
- * sidebar and the map already show (§13: one owner per fact).
+ * sidebar and the map already show (§13: one owner per fact). The filter-and-sort itself
+ * is `orderRegionsByTotals` — the same one `orderRegionPanel` calls off raw projects —
+ * so the two callers cannot disagree about which regions show or in what order.
  */
-function orderByCounts(
+export function orderByCounts(
   baseline: Partial<Record<RegionKey, number>>,
   regions: readonly Region[],
 ): RegionPanelCard[] {
-  return REGIONS.filter(
-    (region) => (baseline[region.key] ?? 0) > 0 || region.key === "europe",
-  )
-    .sort((a, b) => (baseline[b.key] ?? 0) - (baseline[a.key] ?? 0))
-    .map(({ key, labelKey }) => ({ key, labelKey, team: getTeamOf(key, regions) }));
+  return orderRegionsByTotals(baseline).map(({ key, labelKey }) => ({
+    key,
+    labelKey,
+    team: getTeamOf(key, regions),
+  }));
 }
 
 export function TeamByRegion({ baseline, counts }: TeamByRegionProps) {

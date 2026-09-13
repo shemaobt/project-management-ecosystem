@@ -4,6 +4,8 @@ import type {
   ProjectBrowseQuery,
   ProjectBrowseResult,
 } from "../types/projectBrowse";
+import { healthScore } from "../utils/health";
+import { getProgress } from "../utils/progress";
 import { computeDerived } from "../utils/projectDerived";
 import { filterProjects } from "../utils/search";
 import { loadProjects } from "./projects";
@@ -48,11 +50,9 @@ function comparatorFor(
         (a, b) => a.localeCompare(b),
       );
     case "progress":
-      return (a, b) =>
-        (b.derived?.progress ?? 0) - (a.derived?.progress ?? 0);
+      return (a, b) => getProgress(b) - getProgress(a);
     case "health":
-      return (a, b) =>
-        (b.derived?.healthScore ?? 0) - (a.derived?.healthScore ?? 0);
+      return (a, b) => healthScore(b) - healthScore(a);
   }
 }
 

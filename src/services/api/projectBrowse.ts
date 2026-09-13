@@ -193,8 +193,15 @@ function mapCard(wire: WireProjectCard): Project {
  * visible" rule (§5.1) expects. */
 function mapCounts(wire: WireFacetCounts): FacetCounts {
   const counts = emptyCounts();
-  for (const group of Object.keys(wire.groups) as FacetGroup[]) {
-    Object.assign(counts[group] as Record<string, number>, wire.groups[group]);
+  for (const group of Object.keys(wire.groups)) {
+    // Fail closed (per INT-01's `readSession` precedent): a facet group the console
+    // does not know yet is skipped, not assumed — the day the server adds one, this
+    // read must not take the whole Projetos screen down with it.
+    if (!Object.prototype.hasOwnProperty.call(counts, group)) continue;
+    Object.assign(
+      counts[group as FacetGroup] as Record<string, number>,
+      wire.groups[group],
+    );
   }
   Object.assign(counts.preset, wire.presets);
   Object.assign(counts.groupAll, wire.groupAll);
