@@ -7,6 +7,7 @@ import type { ApiFailure, ShemaSession } from "../../types/session";
 import {
   ANONYMOUS,
   apiSessionReducer,
+  personaOf,
   type ApiSessionAction,
   type ApiSessionState,
 } from "../apiSession";
@@ -83,6 +84,20 @@ describe("uma recusa devolve a pessoa à superfície de onde ela veio", () => {
     expect(typo.failure).toBe(REFUSED);
   });
 
+  it("e a sessão que o diálogo pede para reprovar continua ali atrás", () => {
+    const typo = replay(TYPO, replay([...IN, { type: "expired" }]));
+    expect(typo.signed).toEqual({ accountId: "u-1", session: SESSION });
+    expect(personaOf(typo.signed)).toEqual({
+      id: "u-1",
+      role: "coordinator",
+      regionScope: ["south-america"],
+    });
+  });
+
+  it("mas recusar a primeira entrada não deixa sessão nenhuma para trás", () => {
+    expect(replay(TYPO).signed).toBeNull();
+  });
+
   it("e a senha pode ser errada quantas vezes for", () => {
     let state = replay([...IN, { type: "expired" }]);
     for (let attempt = 1; attempt <= 3; attempt += 1) {
@@ -142,6 +157,27 @@ describe("fora de uma tentativa, o evento do token manda", () => {
     const state = replay([...IN, { type: "dropped" }]);
     expect(state.status).toBe("anonymous");
     expect(state.signed).toBeNull();
+  });
+
+  it("só o estado anônimo fica sem sessão — em toda sequência alcançável", () => {
+    const expired = replay([...IN, { type: "expired" }]);
+    const every: ApiSessionState[] = [
+      ANONYMOUS,
+      replay([{ type: "proving" }]),
+      replay(IN),
+      expired,
+      replay(TYPO),
+      replay(TYPO, expired),
+      replay(TYPO, replay(IN)),
+      replay([...IN, { type: "dropped" }]),
+      replay([...IN, { type: "left" }]),
+      replay([{ type: "proving" }, { type: "dropped" }], expired),
+    ];
+    for (const state of every) {
+      expect(state.signed === null, state.status).toBe(
+        state.status === "anonymous",
+      );
+    }
   });
 
   it("cada estado que o modelo alcança tem uma superfície, e só uma", () => {
