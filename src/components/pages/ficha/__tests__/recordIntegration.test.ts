@@ -28,7 +28,7 @@ const { mapRecord } = await import("../../../../services/api/projectRecord");
 const { TAB_COMPONENTS } = await import("../tabs");
 const { PendingWriteNote } = await import("../PendingWriteNote");
 const { SaveOutcomeNote } = await import("../SaveOutcomeNote");
-const { savedSentence } = await import("../saveReport");
+const { savedSentence, unchangedSentence } = await import("../saveReport");
 const { AuthProvider } = await import("../../../../contexts/AuthContext");
 
 /** One wire record carrying something visible for every one of the ten tabs. */
@@ -369,5 +369,16 @@ describe("a frase do salvamento separa o que foi gravado do que ficou aqui", () 
   it("sem nada pendente, a frase não promete guardar coisa nenhuma", () => {
     const sentence = savedSentence(["notas"], [], t);
     expect(sentence).not.toContain(i18n.t("record_saved_withheld", { tabs: "" }));
+  });
+
+  it("o que não saiu do navegador não é anunciado como gravado", () => {
+    const sentence = unchangedSentence(["healthEmotional"], t);
+    expect(sentence).toContain(i18n.t("record_nothing_written"));
+    expect(sentence).toContain(i18n.t("sec_health"));
+    expect(sentence).not.toContain(i18n.t("record_saved_tabs", { tabs: "" }));
+  });
+
+  it("sem nada digitado, a frase é a de que nada mudou", () => {
+    expect(unchangedSentence([], t)).toBe(i18n.t("record_no_changes"));
   });
 });

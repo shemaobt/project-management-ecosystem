@@ -505,6 +505,24 @@ function versionOf(value: unknown): number | null {
 }
 
 /**
+ * When the other person saved, read as **the reader's** day.
+ *
+ * The server stamps an instant in UTC, and slicing it keeps the UTC day: a save at
+ * 22:00 on the 11th in São Paulo travels as `...T01:00+00:00` and the banner would say
+ * Maria saved it on the 12th. That is the same off-by-a-day `LOCAL_DAY_HEADER` exists
+ * to avoid on the way out, and `formatDate` renders whatever comes out of here as if it
+ * were already local. A body that carries a bare day has no instant to convert and is
+ * kept as it is — reading it as midnight UTC would walk it a day backwards — and
+ * anything that is not a day is no day at all rather than a truncated fragment.
+ */
+function localDay(value: unknown): string | null {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}/.test(value)) return null;
+  if (value.length === 10) return value;
+  const at = new Date(value);
+  return Number.isNaN(at.getTime()) ? null : toLocalIsoDate(at);
+}
+
+/**
  * The 409's body, read into something a screen can put in a sentence.
  *
  * A key this client does not know lands in `unknownFields` rather than being dropped:
@@ -528,7 +546,7 @@ export function readConflict(body: unknown): RecordConflict {
     changedFields: changed,
     unknownFields: unknown,
     changedBy: typeof data.changedBy === "string" ? data.changedBy : "",
-    changedAt: typeof data.changedAt === "string" ? data.changedAt.slice(0, 10) : null,
+    changedAt: localDay(data.changedAt),
     detail: typeof data.detail === "string" ? data.detail : null,
   };
 }

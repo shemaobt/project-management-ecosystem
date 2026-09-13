@@ -33,3 +33,19 @@ export function savedSentence(
     .filter(Boolean)
     .join(" ");
 }
+
+/**
+ * What to say when the attempt never left the browser — and never the word *saved*.
+ *
+ * Two different silences: nothing moved at all, or the only thing somebody typed was a
+ * tab the record write does not carry yet. The second one has to name that tab, with
+ * the same sentence a real save uses for its withheld half, because the input is in
+ * this browser and nowhere else and the modal is about to stay open over it.
+ */
+export function unchangedSentence(
+  withheld: readonly RecordField[],
+  t: Translate,
+): string {
+  const kept = savedSentence([], withheld, t);
+  return kept ? `${t("record_nothing_written")} ${kept}` : t("record_no_changes");
+}
