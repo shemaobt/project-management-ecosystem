@@ -60,7 +60,12 @@ const adapter = async (config: InternalAxiosRequestConfig) => {
 
   const reply = script(url, attempt);
   if ("networkCode" in reply) {
-    throw { code: reply.networkCode, config, response: undefined };
+    throw {
+      isAxiosError: true,
+      code: reply.networkCode,
+      config,
+      response: undefined,
+    };
   }
   const response = {
     data: reply.data ?? null,
@@ -70,7 +75,7 @@ const adapter = async (config: InternalAxiosRequestConfig) => {
     config,
   };
   if (reply.status >= 200 && reply.status < 300) return response;
-  throw { code: "ERR_BAD_REQUEST", config, response };
+  throw { isAxiosError: true, code: "ERR_BAD_REQUEST", config, response };
 };
 
 http.defaults.adapter = adapter;

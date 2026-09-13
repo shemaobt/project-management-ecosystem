@@ -35,15 +35,15 @@ export const useRegionsStore = create<RegionsState>()(
   persist<RegionsState, [], [], PersistedRegions>(
     (set, get) => {
       const slot = createHydrationSlot();
-      const load = async () => {
-        set({ regions: await regionsAPI.list() });
-      };
 
       return {
         regions: [],
         changes: [],
         ...NOT_HYDRATED,
-        hydrate: () => hydrateOnce(slot, get, set, load),
+        hydrate: () =>
+          hydrateOnce(slot, get, set, async () => {
+            set({ regions: await regionsAPI.list() });
+          }),
         saveTeams: (drafts, changedBy, now = new Date()) => {
           const { regions, changes } = get();
           const fresh = diffTeams(regions, drafts, changedBy, now);

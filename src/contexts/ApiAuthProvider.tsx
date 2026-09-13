@@ -2,7 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useState,
+  useReducer,
   type ReactNode,
 } from "react";
 import {
@@ -12,13 +12,16 @@ import {
   toApiFailure,
 } from "../services/api";
 import { useRegionsStore } from "../stores/regionsStore";
-import type { ApiFailure, ShemaSession } from "../types/session";
+import {
+  ANONYMOUS,
+  apiSessionReducer,
+  type SignedSession,
+} from "./apiSession";
 import {
   AuthContext,
   scopeRegions,
   type AuthSession,
   type SessionPersona,
-  type SessionStatus,
 } from "./session";
 
 const NOBODY: SessionPersona = {
@@ -27,12 +30,7 @@ const NOBODY: SessionPersona = {
   regionScope: [],
 };
 
-interface Signed {
-  accountId: string;
-  session: ShemaSession;
-}
-
-function personaOf(signed: Signed | null): SessionPersona {
+function personaOf(signed: SignedSession | null): SessionPersona {
   if (!signed) return NOBODY;
   return {
     id: signed.accountId,
@@ -42,9 +40,10 @@ function personaOf(signed: Signed | null): SessionPersona {
 }
 
 export function ApiAuthProvider({ children }: { children: ReactNode }) {
-  const [signed, setSigned] = useState<Signed | null>(null);
-  const [status, setStatus] = useState<SessionStatus>("anonymous");
-  const [failure, setFailure] = useState<ApiFailure | null>(null);
+  const [{ status, signed, failure }, dispatch] = useReducer(
+    apiSessionReducer,
+    ANONYMOUS,
+  );
 
   const regions = useRegionsStore((state) => state.regions);
   const regionsHydrated = useRegionsStore((state) => state.hydrated);
@@ -57,35 +56,27 @@ export function ApiAuthProvider({ children }: { children: ReactNode }) {
   useEffect(
     () =>
       onSessionEvent((event) => {
-        if (event === "expired") setStatus("expired");
-        if (event === "signedOut") {
-          setSigned(null);
-          setStatus("anonymous");
-        }
+        if (event === "expired") dispatch({ type: "expired" });
+        if (event === "signedOut") dispatch({ type: "dropped" });
       }),
     [],
   );
 
   const signIn = useCallback(async (email: string, password: string) => {
-    setFailure(null);
+    dispatch({ type: "proving" });
     try {
       const account = await authAPI.signIn({ email, password });
       const session = await sessionAPI.get();
-      setSigned({ accountId: account.id, session });
-      setStatus("ready");
+      dispatch({ type: "proved", accountId: account.id, session });
     } catch (error) {
       await authAPI.signOut();
-      setSigned(null);
-      setStatus("anonymous");
-      setFailure(toApiFailure(error));
+      dispatch({ type: "refused", failure: toApiFailure(error) });
     }
   }, []);
 
   const signOut = useCallback(async () => {
     await authAPI.signOut();
-    setSigned(null);
-    setFailure(null);
-    setStatus("anonymous");
+    dispatch({ type: "left" });
   }, []);
 
   const value = useMemo<AuthSession>(() => {
