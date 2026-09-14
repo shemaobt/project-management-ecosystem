@@ -60,9 +60,22 @@ function channels(name: string): number[] {
   return paint(name).rgb;
 }
 
+// Uma cor translúcida não tem luminância própria: o que se lê é o que ela pinta
+// sobre o que está atrás. Medir o rgba declarado devolve o número de uma cor que
+// ninguém pinta — quem mede um wash é o contrastOn, com a superfície na mão.
+function opaque(name: string): number[] {
+  const { rgb, alpha } = paint(name);
+  if (alpha !== 1) {
+    throw new Error(
+      `${name} é translúcido: meça com contrastOn(…, superfície), não com contrast`,
+    );
+  }
+  return rgb;
+}
+
 function over(name: string, surface: string): number[] {
   const { rgb, alpha } = paint(name);
-  return channels(surface).map((base, index) =>
+  return opaque(surface).map((base, index) =>
     Math.round(alpha * rgb[index] + (1 - alpha) * base),
   );
 }
@@ -93,7 +106,7 @@ function luminanceOf(rgb: number[]): number {
 }
 
 function luminance(name: string): number {
-  return luminanceOf(channels(name));
+  return luminanceOf(opaque(name));
 }
 
 function ratio(one: number, other: number): number {
@@ -115,6 +128,29 @@ function contrastOn(
     luminanceOf(over(background, surface)),
   );
 }
+
+describe("uma cor translúcida se mede pelo que ela pinta, não pelo rgba declarado", () => {
+  it("contrast recusa um wash, em vez de devolver o número de uma cor que ninguém pinta", () => {
+    expect(() =>
+      contrast("color-status-good-ink", "color-status-good-bg"),
+    ).toThrow(/translúcido/u);
+  });
+
+  it("e recusa porque o número real depende do que está atrás do wash", () => {
+    const sobrePapelBranco = contrastOn(
+      "color-status-good-ink",
+      "color-status-good-bg",
+      "bg-elevated",
+    );
+    const sobreOMuted = contrastOn(
+      "color-status-good-ink",
+      "color-status-good-bg",
+      "bg-muted",
+    );
+    expect(sobrePapelBranco).toBeGreaterThan(sobreOMuted);
+    expect(sobreOMuted).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+  });
+});
 
 describe("um segundo valor de uma cor da paleta é peso de tinta, não cor nova", () => {
   const inkPairs: { ink: string; base: string }[] = [
