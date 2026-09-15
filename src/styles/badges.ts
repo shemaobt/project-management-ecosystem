@@ -10,23 +10,23 @@ import type {
 export const pillBase: string =
   "inline-flex items-center gap-1 rounded-pill px-2.5 py-1.25 text-tag font-bold tracking-button uppercase";
 
-export const goodTone: string = "bg-status-good-bg text-verde-claro";
+export const goodTone: string = "bg-status-good-bg text-status-good-ink";
 export const attentionTone: string =
-  "bg-status-attention-bg text-status-attention-fg";
-export const criticalTone: string = "bg-status-critical-bg text-telha";
+  "bg-status-attention-bg text-status-attention-ink";
+export const criticalTone: string = "bg-status-critical-bg text-accent-press";
 
 export const HEALTH_TONES: Record<OverallHealth, string> = {
   boa: goodTone,
   atencao: attentionTone,
   critica: criticalTone,
-  na: "bg-muted text-fg-subtle",
+  na: "bg-muted text-fg-muted",
 };
 
 export const HEALTH_DOT_TONES: Record<OverallHealth, string> = {
-  boa: "bg-status-good text-on-dark",
-  atencao: "bg-status-attention text-on-dark",
+  boa: "bg-verde-claro-ink text-on-dark",
+  atencao: "bg-status-attention-fg text-on-dark",
   critica: "bg-status-critical text-on-dark",
-  na: "bg-status-na text-on-light opacity-60",
+  na: "bg-status-na text-on-light",
 };
 
 export const STALE_TONES: Record<StaleStatus, string> = {

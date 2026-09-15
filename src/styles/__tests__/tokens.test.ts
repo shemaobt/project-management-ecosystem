@@ -3,12 +3,20 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { RATING_ON, RATING_TONES } from "../../constants/health";
 import { MEETING_STATES } from "../../constants/meetings";
-import { REPORTING_TONES, RHYTHM_TONES } from "../badges";
+import {
+  HEALTH_DOT_TONES,
+  HEALTH_TONES,
+  REPORTING_TONES,
+  RHYTHM_TONES,
+  STALE_TONES,
+} from "../badges";
 import {
   NEED_STATUSES,
   NEED_STATUS_TONES,
   NEED_URGENCIES,
   NEED_URGENCY_TONES,
+  OVERALL_HEALTH_STATES,
+  STALE_STATUSES,
 } from "../../constants/project";
 import {
   RECORD_TABS,
@@ -33,9 +41,43 @@ function token(name: string): string {
   return indirection ? token(indirection[1]) : value;
 }
 
+type Paint = { rgb: number[]; alpha: number };
+
+function paint(name: string): Paint {
+  const value = token(name);
+  const wash = /^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)$/u.exec(value);
+  if (wash) {
+    return { rgb: wash.slice(1, 4).map(Number), alpha: Number(wash[4]) };
+  }
+  const digits = value.slice(1);
+  return {
+    rgb: [0, 2, 4].map((start) => parseInt(digits.slice(start, start + 2), 16)),
+    alpha: 1,
+  };
+}
+
 function channels(name: string): number[] {
-  const digits = token(name).slice(1);
-  return [0, 2, 4].map((start) => parseInt(digits.slice(start, start + 2), 16));
+  return paint(name).rgb;
+}
+
+// Uma cor translúcida não tem luminância própria: o que se lê é o que ela pinta
+// sobre o que está atrás. Medir o rgba declarado devolve o número de uma cor que
+// ninguém pinta — quem mede um wash é o contrastOn, com a superfície na mão.
+function opaque(name: string): number[] {
+  const { rgb, alpha } = paint(name);
+  if (alpha !== 1) {
+    throw new Error(
+      `${name} é translúcido: meça com contrastOn(…, superfície), não com contrast`,
+    );
+  }
+  return rgb;
+}
+
+function over(name: string, surface: string): number[] {
+  const { rgb, alpha } = paint(name);
+  return opaque(surface).map((base, index) =>
+    Math.round(alpha * rgb[index] + (1 - alpha) * base),
+  );
 }
 
 function hue(name: string): number {
@@ -52,8 +94,8 @@ function hue(name: string): number {
   return (sector * 60 + 360) % 360;
 }
 
-function luminance(name: string): number {
-  const [red, green, blue] = channels(name)
+function luminanceOf(rgb: number[]): number {
+  const [red, green, blue] = rgb
     .map((value) => value / 255)
     .map((value) =>
       value <= 0.03928
@@ -63,12 +105,52 @@ function luminance(name: string): number {
   return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
 }
 
-function contrast(foreground: string, background: string): number {
-  const [lighter, darker] = [luminance(foreground), luminance(background)].sort(
-    (a, b) => b - a,
-  );
+function luminance(name: string): number {
+  return luminanceOf(opaque(name));
+}
+
+function ratio(one: number, other: number): number {
+  const [lighter, darker] = [one, other].sort((a, b) => b - a);
   return (lighter + 0.05) / (darker + 0.05);
 }
+
+function contrast(foreground: string, background: string): number {
+  return ratio(luminance(foreground), luminance(background));
+}
+
+function contrastOn(
+  foreground: string,
+  background: string,
+  surface: string,
+): number {
+  return ratio(
+    luminanceOf(over(foreground, surface)),
+    luminanceOf(over(background, surface)),
+  );
+}
+
+describe("uma cor translúcida se mede pelo que ela pinta, não pelo rgba declarado", () => {
+  it("contrast recusa um wash, em vez de devolver o número de uma cor que ninguém pinta", () => {
+    expect(() =>
+      contrast("color-status-good-ink", "color-status-good-bg"),
+    ).toThrow(/translúcido/u);
+  });
+
+  it("e recusa porque o número real depende do que está atrás do wash", () => {
+    const sobrePapelBranco = contrastOn(
+      "color-status-good-ink",
+      "color-status-good-bg",
+      "bg-elevated",
+    );
+    const sobreOMuted = contrastOn(
+      "color-status-good-ink",
+      "color-status-good-bg",
+      "bg-muted",
+    );
+    expect(sobrePapelBranco).toBeGreaterThan(sobreOMuted);
+    expect(sobreOMuted).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+  });
+});
 
 describe("um segundo valor de uma cor da paleta é peso de tinta, não cor nova", () => {
   const inkPairs: { ink: string; base: string }[] = [
@@ -77,7 +159,9 @@ describe("um segundo valor de uma cor da paleta é peso de tinta, não cor nova"
     { ink: "accent-hover", base: "shema-telha" },
     { ink: "accent-press", base: "shema-telha" },
     { ink: "status-attention-fg", base: "status-attention" },
+    { ink: "status-attention-ink", base: "status-attention" },
     { ink: "deadline-soon", base: "status-attention" },
+    { ink: "status-good-ink", base: "status-good" },
   ];
 
   for (const pair of inkPairs) {
@@ -200,6 +284,78 @@ describe("cada estado da reunião se lê no próprio selo", () => {
       ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
     });
   }
+});
+
+describe("os selos de saúde e de atualização se leem onde quer que apareçam", () => {
+  const SURFACES = ["bg-elevated", "bg", "bg-muted", "paper"] as const;
+
+  const colour = (tone: string, prefix: string): string => {
+    const found = tone
+      .split(" ")
+      .find((entry) => entry.startsWith(`${prefix}-`));
+    if (!found) throw new Error(`${prefix}: ${tone}`);
+    return `color-${found.slice(prefix.length + 1)}`;
+  };
+
+  it("os quatro estados de saúde e os três de atualização estão cobertos", () => {
+    expect(Object.keys(HEALTH_TONES).sort()).toEqual(
+      [...OVERALL_HEALTH_STATES].sort(),
+    );
+    expect(Object.keys(HEALTH_DOT_TONES).sort()).toEqual(
+      [...OVERALL_HEALTH_STATES].sort(),
+    );
+    expect(Object.keys(STALE_TONES).sort()).toEqual([...STALE_STATUSES].sort());
+  });
+
+  describe("a pílula, cujo preenchimento translúcido muda com o que está atrás", () => {
+    const pills: [string, string][] = [
+      ...Object.entries(HEALTH_TONES).map(
+        ([state, tone]): [string, string] => [`saúde ${state}`, tone],
+      ),
+      ...Object.entries(STALE_TONES).map(
+        ([state, tone]): [string, string] => [`atualização ${state}`, tone],
+      ),
+    ];
+
+    for (const [name, tone] of pills) {
+      it(`${name} carrega o rótulo de 11px sobre as quatro superfícies`, () => {
+        for (const surface of SURFACES) {
+          expect(
+            contrastOn(colour(tone, "text"), colour(tone, "bg"), surface),
+            surface,
+          ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+        }
+      });
+    }
+
+    it("a tinta anterior de cada família não bastava sobre bg-muted — por isso existe a nova", () => {
+      expect(
+        contrastOn("color-verde-claro-ink", "color-status-good-bg", "bg-muted"),
+      ).toBeLessThan(AA_SMALL_TEXT);
+      expect(
+        contrastOn(
+          "color-status-attention-fg",
+          "color-status-attention-bg",
+          "bg-muted",
+        ),
+      ).toBeLessThan(AA_SMALL_TEXT);
+    });
+  });
+
+  describe("o ponto, que é o que os cartões e a aba Saúde de fato mostram", () => {
+    for (const state of OVERALL_HEALTH_STATES) {
+      it(`${state} carrega o glifo sobre o próprio preenchimento`, () => {
+        const tone = HEALTH_DOT_TONES[state];
+        expect(
+          tone,
+          "um véu sobre o selo inteiro apaga o glifo junto com o preenchimento",
+        ).not.toMatch(/\bopacity-/u);
+        expect(
+          contrast(colour(tone, "text"), colour(tone, "bg")),
+        ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+      });
+    }
+  });
 });
 
 describe("o telha sobre o realce suave também precisa da tinta", () => {
