@@ -1,5 +1,12 @@
 import type { EtenCreditEntry, EtenYearReport } from "../types/eten";
-import type { ReceivedSubmission } from "../types/forms";
+import type {
+  IntakeForm,
+  IntakeLink,
+  IntakeLinkCreated,
+  IntakeLinkCreatePayload,
+  IntakeSubmissionPayload,
+  ReceivedSubmission,
+} from "../types/forms";
 import type { MeetingDefinition, MeetingLogEntry } from "../types/meeting";
 import type { Intercessor, PrayerRequest } from "../types/prayer";
 import type { Project } from "../types/project";
@@ -12,7 +19,14 @@ import type {
 } from "../types/projectBrowse";
 import { createEmptyProject } from "./blank";
 import { loadEtenCredits } from "./eten";
-import { loadReceivedSubmissions } from "./forms";
+import {
+  loadReceivedSubmissions,
+  mintIntakeLink,
+  listIntakeLinks,
+  readIntakeForm,
+  revokeIntakeLink,
+  submitIntake,
+} from "./forms";
 import { loadContinentOutlines } from "./geo";
 import { buildEtenReport } from "../utils/etenCredits";
 import { loadIntercessors } from "./intercessors";
@@ -115,6 +129,26 @@ export const etenAPI = {
 export const formsAPI = {
   async received(): Promise<ReceivedSubmission[]> {
     return loadReceivedSubmissions();
+  },
+  async mintIntakeLink(
+    payload: IntakeLinkCreatePayload,
+  ): Promise<IntakeLinkCreated> {
+    return mintIntakeLink(payload);
+  },
+  async listIntakeLinks(projectId?: string): Promise<IntakeLink[]> {
+    return listIntakeLinks(projectId);
+  },
+  async revokeIntakeLink(linkId: string): Promise<IntakeLink> {
+    return revokeIntakeLink(linkId);
+  },
+  async intakeForm(token: string): Promise<IntakeForm> {
+    return readIntakeForm(token);
+  },
+  async submitIntake(
+    token: string,
+    payload: IntakeSubmissionPayload,
+  ): Promise<void> {
+    return submitIntake(token, payload);
   },
 };
 
