@@ -1,18 +1,23 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { regionsAPI } from "../fixtures";
+import { regionsAPI } from "../services/api";
 import type { Region, RoleChange } from "../types/region";
 import type { SaveOutcome } from "../types/team";
 import { applyChanges, diffTeams, summarize, type TeamDrafts } from "../utils/team";
+import {
+  createHydrationSlot,
+  hydrateOnce,
+  NOT_HYDRATED,
+  type HydrationStatus,
+} from "./hydration";
 
 const REGIONS_KEY = "shema-regions-v1";
 
 export const REGIONS_VERSION = 1;
 
-interface RegionsState {
+interface RegionsState extends HydrationStatus {
   regions: Region[];
   changes: RoleChange[];
-  hydrated: boolean;
   hydrate: () => Promise<void>;
   saveTeams: (
     drafts: TeamDrafts,
@@ -29,19 +34,16 @@ type PersistedRegions = Pick<
 export const useRegionsStore = create<RegionsState>()(
   persist<RegionsState, [], [], PersistedRegions>(
     (set, get) => {
-      let pending: Promise<void> | null = null;
+      const slot = createHydrationSlot();
+
       return {
         regions: [],
         changes: [],
-        hydrated: false,
-        hydrate: () => {
-          if (get().hydrated) return Promise.resolve();
-          pending ??= regionsAPI.list().then((regions) => {
-            set({ regions, hydrated: true });
-            pending = null;
-          });
-          return pending;
-        },
+        ...NOT_HYDRATED,
+        hydrate: () =>
+          hydrateOnce(slot, get, set, async () => {
+            set({ regions: await regionsAPI.list() });
+          }),
         saveTeams: (drafts, changedBy, now = new Date()) => {
           const { regions, changes } = get();
           const fresh = diffTeams(regions, drafts, changedBy, now);

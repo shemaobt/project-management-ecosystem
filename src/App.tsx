@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
+import { SessionGate } from "./components/layout/SessionGate";
 import { AvaliacaoPage } from "./components/pages/avaliacao";
 import { DesignSystemPage } from "./components/pages/design-system/DesignSystemPage";
 import { EquipePage } from "./components/pages/equipe";
@@ -20,29 +21,31 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
-          <Routes>
-            <Route element={<AppShell />}>
-              <Route index element={<InicioPage />} />
-              <Route path="projetos" element={<ProjetosPage />} />
-              <Route path="ficha/:recordId" element={<FichaPage />} />
-              <Route path="ficha/:recordId/:tab" element={<FichaPage />} />
-              <Route path="ritmo" element={<RitmoPage />} />
-              <Route path="oracao" element={<OracaoPage />} />
-              <Route
-                path="oracao/intercessores"
-                element={<IntercessoresPage />}
-              />
-              <Route path="eten" element={<EtenPage />} />
-              <Route path="formularios" element={<FormulariosPage />} />
-              <Route
-                path="formularios/avaliacao/:projectId"
-                element={<AvaliacaoPage />}
-              />
-              <Route path="equipe" element={<EquipePage />} />
-            </Route>
-            <Route path="design-system" element={<DesignSystemPage />} />
-            <Route path="*" element={<Navigate to="/projetos" replace />} />
-          </Routes>
+          <SessionGate>
+            <Routes>
+              <Route element={<AppShell />}>
+                <Route index element={<InicioPage />} />
+                <Route path="projetos" element={<ProjetosPage />} />
+                <Route path="ficha/:recordId" element={<FichaPage />} />
+                <Route path="ficha/:recordId/:tab" element={<FichaPage />} />
+                <Route path="ritmo" element={<RitmoPage />} />
+                <Route path="oracao" element={<OracaoPage />} />
+                <Route
+                  path="oracao/intercessores"
+                  element={<IntercessoresPage />}
+                />
+                <Route path="eten" element={<EtenPage />} />
+                <Route path="formularios" element={<FormulariosPage />} />
+                <Route
+                  path="formularios/avaliacao/:projectId"
+                  element={<AvaliacaoPage />}
+                />
+                <Route path="equipe" element={<EquipePage />} />
+              </Route>
+              <Route path="design-system" element={<DesignSystemPage />} />
+              <Route path="*" element={<Navigate to="/projetos" replace />} />
+            </Routes>
+          </SessionGate>
           <Toaster />
         </BrowserRouter>
       </AuthProvider>

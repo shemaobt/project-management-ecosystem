@@ -45,11 +45,15 @@ and the route prefix are BE-01's.
 
 ## 1. What is frozen, and what is not
 
-**Frozen** — the ten type modules under `src/types/`, re-exported whole by `src/types/index.ts`.
+**Frozen** — the type modules under `src/types/`, re-exported whole by `src/types/index.ts`.
 `src/types/__tests__/contract.test.ts` fails the build when a module is left out of that index, and
-when `Project`'s required/optional split stops matching the export (§5.1). One shape that travels
-on the wire lives outside those ten and outside that test — the session's, §9.13 — and §12.3 names
-it with an owner rather than moving it here.
+when `Project`'s required/optional split stops matching the export (§5.1). There were ten when this
+document was written, and one shape that travels on the wire lived outside them and outside that
+test — the session's, §9.13 — which §12.3 named with an owner rather than moving here.
+**INT-01 closed that item**: `session.ts` is the eleventh module — `SessionRole`, `ShemaSession`,
+the account and token pair the platform's auth routes answer, and the `ApiFailure` taxonomy the
+client classifies into. That is this document being filled in rather than departed from; nothing
+already frozen moved.
 
 **Frozen** — the derivations in `src/utils/`. They are pure functions of `(record, now)` and
 `src/utils/__tests__/dataJsParity.json` pins their output over all 127 records at the reference
@@ -1152,8 +1156,25 @@ non-Latin names survive Excel; and the import refuses the export file by recogni
 ### 9.13 Sessão e autenticação — INT-01 ([OBT-406](https://linear.app/shema-obt/issue/OBT-406)) · BE-03 ([OBT-392](https://linear.app/shema-obt/issue/OBT-392))
 
 Reuse `shema-api`'s existing routes whole (§3): `POST /api/auth/login`, `/refresh`, `/logout`,
-`GET /api/auth/me`. The frontend attaches the bearer token from a single Axios instance, retries
-once on 401 after a refresh, and on refresh failure clears the tokens and redirects to `/login`.
+`GET /api/auth/me`. The frontend attaches the bearer token from a single Axios instance and retries
+once on 401 after a refresh.
+
+**Two lines of this section were written before the screen existed, and INT-01 departed from both
+(`CLAUDE.md` §8 carries the reasoning).** First, *"clears the tokens and redirects to `/login`"*: it
+clears the tokens and does **not** redirect — the gate keeps the app mounted and asks for the
+password in a dialog over it, because a redirect unmounts exactly the unsaved work the issue exists
+to protect. Second, the tokens were assumed to live in `localStorage`; **no token is written to any
+web storage**, both live in module memory, and the cost is that a page reload asks for the password
+again. ⚠️ **Closing that is a server change, not a frontend one**: `/api/auth/refresh` takes the
+refresh token in the body, so a session that survives a reload needs `shema-api` to set it as an
+httpOnly, `Secure`, `SameSite` cookie. Nobody owns that yet.
+
+**One requirement this section did not state, and the client now depends on: the wire spelling.**
+`GET /api/shema/session` answers camelCase (BE-03 aliases it), and the client does **no case
+conversion anywhere** — the frozen types in `src/types/` are the wire. **BE-05 and BE-06 must serve
+`Project` in camelCase.** The platform's own `/api/auth/*` is the single exception: it is
+pre-existing snake_case and gets one named three-field mapping. A second spelling for the record
+would put a translation table on every read, which is the defect §9.0's conventions exist to avoid.
 
 One Shemá-specific read is missing and BE-03 owns it:
 
@@ -1164,9 +1185,10 @@ GET /api/shema/session   -> { role: SessionRole, regionScope: RegionKey[] | null
 `SessionRole` is `globalStrategist | coordinator | obtLab | resourceCircle`; `regionScope: null`
 means global. **`name` is resolved from the org chart** (§5.3) — it is not a user profile field, and
 renaming a role-holder renames who the session says you are. `GET /api/auth/my-roles` cannot answer
-this today because the grant has no region (§3.1). `SessionRole` and `SessionPersona` are declared
-in `src/contexts/AuthContext.tsx` rather than under `src/types/`, which is the one gap in the
-frozen surface of §1 — §12.3 says why it is a gap and who closes it.
+this today because the grant has no region (§3.1). `SessionRole` and `SessionPersona` were declared
+in `src/contexts/AuthContext.tsx` rather than under `src/types/`, the one gap in the frozen surface
+of §1. INT-01 closed it (§12.3): they live in `src/types/session.ts` now, under the same
+`contract.test.ts` guard as the other ten, and the context re-exports them so no import moved.
 
 ---
 
@@ -1302,6 +1324,7 @@ Each of these is a real question with a named owner. None is an oversight.
 2. **How the region dimension attaches to the role grant** — BE-03. §3.1. Whatever the mechanism,
    the frontend needs exactly `{role, regionScope}` back from §9.13.
 3. **Where the session shape lives** — INT-01, with BE-03 holding the other half of it (item 2).
+   **Closed by INT-01**; the paragraph below is the record of why it was open.
    `SessionRole`, `SessionPersona` and `SessionUser` are declared in
    `src/contexts/AuthContext.tsx`, not under `src/types/`: §9.13's response body is the one shape
    on the wire that §1's frozen surface misses, and `contract.test.ts` cannot see it either,
@@ -1310,7 +1333,7 @@ Each of these is a real question with a named owner. None is an oversight.
    is the `globalStrategist` member and the persona envelope around them. Wave 1 has no second
    reader: the session is mocked in the shell, and the types are the mock's own. INT-01 is the
    issue that gives the shape a server, and that is when it becomes `src/types/session.ts`, under
-   the same guard as the other ten.
+   the same guard as the other ten — which is what INT-01 did.
 4. **Whether `team`/`ywamBase` and `sensitivity`/`sensitiveCountry` stay as two columns each** —
    BE-02. §5.1. Either way, one input writes both and one of each pair is authoritative.
 5. **Whether `approvedUnits` is migrated as-is, as zero, or flagged unverified** — BE-16, with
