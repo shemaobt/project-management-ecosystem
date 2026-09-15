@@ -320,6 +320,8 @@ describe("o que sai pela escrita", () => {
   });
 
   it("nenhum campo fora do que o PATCH aceita atravessa", () => {
+    // `needsItems` entrou no PATCH com a INT-05, quando a BE-08 ganhou a escrita em
+    // lote; `healthEmotional` e `mediaPhotos` seguem tendo endpoint próprio.
     const body = toWire(
       { healthEmotional: "boa", needsItems: [], mediaPhotos: [], notes: "ok" },
       allWritableFields().concat([
@@ -328,7 +330,7 @@ describe("o que sai pela escrita", () => {
         "mediaPhotos",
       ]),
     );
-    expect(Object.keys(body)).toEqual(["notes"]);
+    expect(Object.keys(body).sort()).toEqual(["needsItems", "notes"]);
   });
 
   it("o PATCH cita a versão lida e carimba o dia local de quem salva", async () => {

@@ -228,7 +228,7 @@ describe("cada aba escreve só o que é dela", () => {
   it("o que o PATCH ainda não aceita é separado, nunca mandado", () => {
     expect(
       withheldFields({ notes: "x", healthEmotional: "boa", needsItems: [] }),
-    ).toEqual(["healthEmotional", "needsItems"]);
+    ).toEqual(["healthEmotional"]);
   });
 
   it("o que ficou pendente é o que foi digitado, não o registro inteiro", async () => {
@@ -520,7 +520,7 @@ describe("um registro novo é filed no slug que o cliente cunhou", () => {
     );
     expect(body).not.toHaveProperty("healthEmotional");
     expect(body).not.toHaveProperty("ywamBase");
-    expect(body).not.toHaveProperty("needsItems");
+    expect(body).toHaveProperty("needsItems");
   });
 });
 

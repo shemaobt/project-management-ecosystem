@@ -341,16 +341,25 @@ uneditable for the field teams whose data is exactly this thin.
 
 ### 5.2 The sub-shapes
 
-**`NeedItem`** — `{category, urgency, status, description}` required; `estimatedValue`, `deadline`,
-`prayerShared`, `prayerAnswered`, `fulfilledBy`, `fulfilledDate`, `droppedDate`, `submittedBy`,
-`submittedAt` optional. **The lifecycle has four states, not three**: the prototype's `open`,
+**`NeedItem`** — `{category, urgency, status, description}` required; `id`, `estimatedValue`,
+`estimatedAmount`, `estimatedCurrency`, `deadline`, `prayerShared`, `prayerAnswered`, `fulfilledBy`,
+`fulfilledDate`, `droppedDate`, `submittedBy`, `submittedAt`, `acknowledgedAt`, `acknowledgedBy`,
+`acknowledged` optional. **The lifecycle has four states, not three**: the prototype's `open`,
 `in-progress`, `fulfilled` plus **`dropped`** — a request that stopped mattering must leave the open
 list without being deleted, because deleting loses the history a region is judged by. `isOpenNeed`
 (`open` or `in-progress`) is the single owner of "still outstanding"; a predicate written as
 `status !== "fulfilled"` is a bug the moment a fifth state exists. **Urgency is not health**: they
-never share a vocabulary and the health derivation never reads needs. A need carries **no id**;
-`submittedAt` plus `category` plus the project is what identifies it in a derived notification, and
-§12.6 says why a server-side id would be an improvement.
+never share a vocabulary and the health derivation never reads needs.
+
+**Resolved by INT-05 ([OBT-410](https://linear.app/shema-obt/issue/OBT-410)): a need now carries a
+server-side id.** §12's item 6 called this an open question — it no longer is. `id` is absent for a
+row this console has not saved yet (that is what tells the server *this is a new need*), and present
+once BE-08 has assigned one; a save quotes it back so the server can tell *this one moved* from *this
+is a new need*. `estimatedAmount` travels as a decimal string (`Numeric(14, 2)` on the wire, never a
+float) and only together with `estimatedCurrency` — the two convert as a pair or not at all, and
+`needMoneyError` is the client-side half of the `CHECK` the database runs on the pair.
+`acknowledgedAt` / `acknowledgedBy` are stamped by the server and never sent back; the client's only
+lever is the write-only `acknowledged` gesture, which the server turns into the stamp.
 
 **`BookProgressItem`** — `{id, name, chapters, translated, communityChecked, mentorApproved}`. The
 `id` is a Bible book key from `BIBLE_BOOKS` (`src/constants/bible.ts`): 66 books, 39 OT and 27 NT,
@@ -1338,9 +1347,9 @@ Each of these is a real question with a named owner. None is an oversight.
    BE-02. §5.1. Either way, one input writes both and one of each pair is authoritative.
 5. **Whether `approvedUnits` is migrated as-is, as zero, or flagged unverified** — BE-16, with
    BE-11 needing the answer. §6.2 and §11.1.
-6. **Whether a `NeedItem` gets a server-side id.** It has none today; a notification identifies one
-   by `(project, category, submittedAt)`. A real id would be better and would change
-   `NeedItem` — which is why it is named here rather than done quietly.
+6. ~~Whether a `NeedItem` gets a server-side id.~~ **Resolved by INT-05** ([OBT-410](https://linear.app/shema-obt/issue/OBT-410)): it does now. §5.2 has the shape; a derived notification still
+   identifies a need by `(project, category, submittedAt)` where an id is absent (an id-less draft
+   never saved, or a fixture predating the change).
 7. **Signed URLs or a gated read endpoint for media** — BE-04. §3.1 and §8.3.
 8. **Whether drafts move to the server.** They are `localStorage` today, which means a coordinator
    who fills half a record and opens a different browser has lost it. That is a real cost, it is not

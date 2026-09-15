@@ -1,8 +1,15 @@
 import { useTranslation } from "react-i18next";
 import { NEED_CATEGORIES } from "../../../../../constants/project";
 import type { NeedItem } from "../../../../../types/project";
+import { formatMoney } from "../../../../../utils/currency";
 import { formatDate } from "../../../../../utils/format";
-import { closedNeeds, openNeeds } from "../../../../../utils/needs";
+import {
+  closedNeeds,
+  daysSinceRaised,
+  isUnacknowledged,
+  openNeeds,
+  unacknowledgedNeeds,
+} from "../../../../../utils/needs";
 import { DetailItem } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { StatusBadge, UrgencyBadge } from "./NeedBadges";
@@ -11,6 +18,7 @@ function NeedCard({ need }: { need: NeedItem }) {
   const { t } = useTranslation();
   const locale = t("locale");
   const category = NEED_CATEGORIES.find((entry) => entry.id === need.category);
+  const stale = isUnacknowledged(need);
 
   return (
     <li className="rounded-[12px] border border-line bg-elevated px-4 py-3.5">
@@ -29,10 +37,20 @@ function NeedCard({ need }: { need: NeedItem }) {
       )}
 
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-micro text-fg-muted">
+        {need.estimatedAmount && need.estimatedCurrency && (
+          <span className="font-semibold text-fg">
+            {formatMoney(need.estimatedAmount, need.estimatedCurrency, locale)}
+          </span>
+        )}
         {need.estimatedValue && <span>{need.estimatedValue}</span>}
         {need.deadline && <span>{formatDate(need.deadline, locale)}</span>}
         {need.prayerShared && <span>{t("need_prayer_shared")}</span>}
         {need.prayerAnswered && <span>{t("need_prayer_answered")}</span>}
+        {need.submittedAt && (
+          <span>
+            {t("need_submitted_at")} {formatDate(need.submittedAt, locale)}
+          </span>
+        )}
         {need.submittedBy && <span>{need.submittedBy}</span>}
       </div>
 
@@ -48,6 +66,21 @@ function NeedCard({ need }: { need: NeedItem }) {
           {t("need_dropped_date")} {formatDate(need.droppedDate, locale)}
         </p>
       )}
+
+      {need.acknowledgedAt ? (
+        <p className="mt-2 text-micro text-fg-subtle">
+          {t("need_acknowledged_line", {
+            date: formatDate(need.acknowledgedAt, locale),
+            name: need.acknowledgedBy || "—",
+          })}
+        </p>
+      ) : (
+        stale && (
+          <p className="mt-2 text-micro font-semibold text-status-attention-fg">
+            {t("need_unacknowledged_badge", { days: daysSinceRaised(need) })}
+          </p>
+        )
+      )}
     </li>
   );
 }
@@ -61,6 +94,7 @@ export function NecessidadesView({ draft }: NecessidadesViewProps) {
   const needs = draft.values.needsItems ?? [];
   const open = openNeeds(needs);
   const closed = closedNeeds(needs);
+  const stale = unacknowledgedNeeds(needs).length;
 
   if (needs.length === 0) {
     return (
@@ -80,6 +114,12 @@ export function NecessidadesView({ draft }: NecessidadesViewProps) {
       <section>
         <h3 className="text-[10px] font-bold tracking-[0.14em] uppercase text-fg-muted">
           {t("needs_open_section")} · {t("needs_open_count", { count: open.length })}
+          {stale > 0 && (
+            <span className="text-status-attention-fg">
+              {" "}
+              · {t("needs_unacknowledged_count", { count: stale })}
+            </span>
+          )}
         </h3>
         {open.length === 0 ? (
           <p className="mt-2 text-micro text-fg-subtle">{t("d_no_needs")}</p>

@@ -110,11 +110,17 @@ export type MaterialKind = "text" | "audio" | "video";
 export type Coordinates = [longitude: number, latitude: number];
 
 export interface NeedItem {
+  /** The row's server address. Absent means "not saved yet" — the write creates it. */
+  id?: string;
   category: NeedCategory;
   urgency: NeedUrgency;
   status: NeedStatus;
   description: string;
   estimatedValue?: string;
+  /** The amount, exactly, as the wire carries it — a decimal string, never a float. */
+  estimatedAmount?: string;
+  /** ISO-4217. Travels with `estimatedAmount` or not at all — neither converts. */
+  estimatedCurrency?: string;
   deadline?: string;
   prayerShared?: boolean;
   prayerAnswered?: boolean;
@@ -123,6 +129,16 @@ export interface NeedItem {
   droppedDate?: string;
   submittedBy?: string;
   submittedAt?: string;
+  /** Stamped by the server. The client never sets this — see `acknowledged`. */
+  acknowledgedAt?: string;
+  /** Stamped by the server, the name as it stood then. */
+  acknowledgedBy?: string;
+  /**
+   * The write-only gesture — "somebody has seen this" — never read back and never
+   * rendered from stored data. The server turns a `true` into `acknowledgedAt` /
+   * `acknowledgedBy`; sending `false` on an already-seen need takes nothing back.
+   */
+  acknowledged?: boolean;
 }
 
 export interface BookProgressItem {

@@ -113,6 +113,9 @@ const WIRE = {
       status: "open" as const,
       description: "Um gravador para o campo",
       estimatedValue: null,
+      // INT-05 alargou `WireNeed` com a moeda e o par de reconhecimento (BE-08).
+      estimatedAmount: null,
+      estimatedCurrency: null,
       deadline: null,
       prayerShared: false,
       prayerAnswered: false,
@@ -121,6 +124,8 @@ const WIRE = {
       droppedDate: null,
       submittedBy: null,
       submittedAt: null,
+      acknowledgedAt: null,
+      acknowledgedBy: "",
     },
   ],
   needsNotes: "",
