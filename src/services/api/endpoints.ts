@@ -10,9 +10,17 @@ import type {
   ReceivedSubmission,
 } from "../../types/forms";
 import type { MeetingDefinition, MeetingLogEntry } from "../../types/meeting";
-import type { Intercessor, PrayerRequest } from "../../types/prayer";
+import type {
+  ConsentContext,
+  IntercessorCreate,
+  IntercessorDirectory,
+  IntercessorEntry,
+  IntercessorUpdatePayload,
+  PrayerRequest,
+} from "../../types/prayer";
 import type { Project } from "../../types/project";
-import type { Region, RegionKey } from "../../types/region";
+import type { Region, RegionKey, RegionTeam, RoleChange } from "../../types/region";
+import type { SaveOutcome } from "../../types/team";
 import type {
   AuthenticatedAccount,
   Credentials,
@@ -150,9 +158,46 @@ export const projectsAPI = {
   },
 };
 
+interface RegionTeamSaved {
+  outcome: SaveOutcome;
+  changes: RoleChange[];
+}
+
 export const regionsAPI = {
   async list(): Promise<Region[]> {
     const { data } = await http.get<Region[]>(`${SHEMA}/regions`);
+    return data;
+  },
+
+  /**
+   * `from`, `changedBy` and `now` go unread here: the server reads the seat
+   * it already stores and derives who/when from the authenticated caller and
+   * its own clock (`save_region_team.py`), so the client's guess never
+   * travels. The fixture implementation needs all three to simulate that
+   * same diff locally, which is why the call site still sends them — and why
+   * this side keeps the same arity rather than dropping the unused three.
+   */
+  async saveTeam(
+    regionKey: RegionKey,
+    _from: RegionTeam,
+    to: RegionTeam,
+    _changedBy: string,
+    _now: Date,
+  ): Promise<RegionTeamSaved> {
+    void _from;
+    void _changedBy;
+    void _now;
+    const { data } = await http.put<RegionTeamSaved>(
+      `${SHEMA}/regions/${encodeURIComponent(regionKey)}/team`,
+      { team: to },
+    );
+    return data;
+  },
+
+  async roleChanges(): Promise<RoleChange[]> {
+    const { data } = await http.get<RoleChange[]>(
+      `${SHEMA}/regions/role-changes`,
+    );
     return data;
   },
 };
@@ -178,10 +223,50 @@ export const prayerAPI = {
   },
 };
 
+const PEOPLE = `${SHEMA}/prayer/intercessors`;
+
 export const intercessorsAPI = {
-  async list(): Promise<Intercessor[]> {
-    const { data } = await http.get<Intercessor[]>(
-      `${SHEMA}/prayer/intercessors`,
+  async list(): Promise<IntercessorDirectory> {
+    const { data } = await http.get<IntercessorDirectory>(PEOPLE);
+    return data;
+  },
+
+  async create(payload: IntercessorCreate): Promise<IntercessorEntry> {
+    const { data } = await http.post<IntercessorEntry>(PEOPLE, payload);
+    return data;
+  },
+
+  async update(
+    id: string,
+    payload: IntercessorUpdatePayload,
+  ): Promise<IntercessorEntry> {
+    const { data } = await http.patch<IntercessorEntry>(
+      `${PEOPLE}/${encodeURIComponent(id)}`,
+      payload,
+    );
+    return data;
+  },
+
+  async remove(id: string): Promise<void> {
+    await http.delete(`${PEOPLE}/${encodeURIComponent(id)}`);
+  },
+
+  /** One person, one call, logged server-side (`reveal_intercessor_contact.py`). */
+  async contact(id: string): Promise<string> {
+    const { data } = await http.get<{ id: string; contact: string }>(
+      `${PEOPLE}/${encodeURIComponent(id)}/contact`,
+    );
+    return data.contact;
+  },
+
+  async grantConsent(
+    id: string,
+    context: ConsentContext,
+    basis: string,
+  ): Promise<IntercessorEntry> {
+    const { data } = await http.put<IntercessorEntry>(
+      `${PEOPLE}/${encodeURIComponent(id)}/consents/${context}`,
+      { basis },
     );
     return data;
   },

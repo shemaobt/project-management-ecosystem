@@ -1122,6 +1122,13 @@ save that changed nothing says so.
 name stored there is a **snapshot** and must not follow a later rename (§5.3); and **no other model
 stores a role-holder's name** — the four consumers read this one.
 
+**`role-changes` is `coordinator`-only, and the client asks for it separately from `regions`.**
+`regionsStore.hydrate()` requests `GET /regions` alone; `hydrateChanges()` — its own hydration slot,
+called only from the Equipe screen — requests the trail and swallows a 403 into the store's previous
+`changes` rather than rejecting, because a session with no coordination role (or a coordination with
+nothing recorded yet) hits that refusal by construction and must not sink the region list the other
+three consumers (Sidebar, `RolesPanel`, Ritmo) render fine without it.
+
 ### 9.11 Notificações — INT-11 ([OBT-416](https://linear.app/shema-obt/issue/OBT-416)) · BE-15 ([OBT-404](https://linear.app/shema-obt/issue/OBT-404))
 
 ```

@@ -8,11 +8,19 @@ import type {
   ReceivedSubmission,
 } from "../types/forms";
 import type { MeetingDefinition, MeetingLogEntry } from "../types/meeting";
-import type { Intercessor, PrayerRequest } from "../types/prayer";
+import type {
+  ConsentContext,
+  IntercessorCreate,
+  IntercessorDirectory,
+  IntercessorEntry,
+  IntercessorUpdatePayload,
+  PrayerRequest,
+} from "../types/prayer";
 import type { Project } from "../types/project";
 import type { LoadedRecord } from "../types/projectRecord";
 import type { RecordSaveResult } from "../services/api/projectRecord";
-import type { GeoOutline, Region } from "../types/region";
+import type { GeoOutline, Region, RegionKey, RegionTeam, RoleChange } from "../types/region";
+import type { SaveOutcome } from "../types/team";
 import type {
   ProjectBrowseQuery,
   ProjectBrowseResult,
@@ -29,7 +37,14 @@ import {
 } from "./forms";
 import { loadContinentOutlines } from "./geo";
 import { buildEtenReport } from "../utils/etenCredits";
-import { loadIntercessors } from "./intercessors";
+import {
+  createIntercessor,
+  grantConsent,
+  loadIntercessors,
+  removeIntercessor,
+  revealContact,
+  updateIntercessor,
+} from "./intercessors";
 import { loadMeetingLog, loadMeetings } from "./meetings";
 import { buildPrayerRequests } from "../utils/prayer";
 import type { AssessmentDraft } from "../types/assessment";
@@ -41,7 +56,7 @@ import {
   readRecord,
   submitAssessment,
 } from "./projectRecord";
-import { loadRegions } from "./regions";
+import { loadRegions, loadRoleChanges, saveTeam } from "./regions";
 
 export const projectsAPI = {
   async list(): Promise<Project[]> {
@@ -94,6 +109,18 @@ export const regionsAPI = {
   async list(): Promise<Region[]> {
     return loadRegions();
   },
+  async saveTeam(
+    regionKey: RegionKey,
+    from: RegionTeam,
+    to: RegionTeam,
+    changedBy: string,
+    now: Date,
+  ): Promise<{ outcome: SaveOutcome; changes: RoleChange[] }> {
+    return saveTeam(regionKey, from, to, changedBy, now);
+  },
+  async roleChanges(): Promise<RoleChange[]> {
+    return loadRoleChanges();
+  },
 };
 
 export const meetingsAPI = {
@@ -112,8 +139,30 @@ export const prayerAPI = {
 };
 
 export const intercessorsAPI = {
-  async list(): Promise<Intercessor[]> {
+  async list(): Promise<IntercessorDirectory> {
     return loadIntercessors();
+  },
+  async create(payload: IntercessorCreate): Promise<IntercessorEntry> {
+    return createIntercessor(payload);
+  },
+  async update(
+    id: string,
+    payload: IntercessorUpdatePayload,
+  ): Promise<IntercessorEntry> {
+    return updateIntercessor(id, payload);
+  },
+  async remove(id: string): Promise<void> {
+    return removeIntercessor(id);
+  },
+  async contact(id: string): Promise<string> {
+    return revealContact(id);
+  },
+  async grantConsent(
+    id: string,
+    context: ConsentContext,
+    basis: string,
+  ): Promise<IntercessorEntry> {
+    return grantConsent(id, context, basis);
   },
 };
 

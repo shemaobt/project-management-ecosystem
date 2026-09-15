@@ -20,10 +20,41 @@ export interface PrayerRequest {
 
 export type ContactChannel = "phone" | "email";
 
-export interface Intercessor {
+export type ConsentContext = "network" | "directory" | "partner-export";
+
+export interface IntercessorConsent {
+  context: ConsentContext;
+  basis: string;
+  recordedAt: string;
+}
+
+export interface IntercessorEntry {
   id: string;
   name: string;
   country: CountryCode;
-  contact: string;
+  contactChannel: ContactChannel | null;
+  contactHint: string;
+  sensitiveCountry: boolean;
   addedAt: string;
+  consents: IntercessorConsent[];
+}
+
+export interface IntercessorDirectory {
+  people: IntercessorEntry[];
+  withheldCount: number;
+}
+
+export interface IntercessorCreate {
+  name: string;
+  country: CountryCode;
+  contact: string;
+  sensitiveCountry: boolean;
+  consentBasis: string;
+}
+
+export interface IntercessorUpdatePayload {
+  name?: string;
+  country?: CountryCode;
+  contact?: string;
+  sensitiveCountry?: boolean;
 }

@@ -247,7 +247,10 @@ describe("prayer fixture", () => {
   });
 
   it("starts with no intercessor registered", async () => {
-    expect(await intercessorsAPI.list()).toEqual([]);
+    expect(await intercessorsAPI.list()).toEqual({
+      people: [],
+      withheldCount: 0,
+    });
   });
 });
 
