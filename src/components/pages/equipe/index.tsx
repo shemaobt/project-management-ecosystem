@@ -182,14 +182,16 @@ export function EquipePage() {
   const changes = useRegionsStore((state) => state.changes);
   const hydrated = useRegionsStore((state) => state.hydrated);
   const hydrateRegions = useRegionsStore((state) => state.hydrate);
+  const hydrateChanges = useRegionsStore((state) => state.hydrateChanges);
   const saveTeams = useRegionsStore((state) => state.saveTeams);
   const projects = useProjectsStore((state) => state.projects);
   const hydrateProjects = useProjectsStore((state) => state.hydrate);
 
   useEffect(() => {
     void hydrateRegions();
+    void hydrateChanges();
     void hydrateProjects();
-  }, [hydrateRegions, hydrateProjects]);
+  }, [hydrateRegions, hydrateChanges, hydrateProjects]);
 
   const visible = useMemo(
     () => regions.filter((region) => canSeeRegion(region.key)),

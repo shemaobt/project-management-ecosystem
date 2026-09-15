@@ -19,6 +19,7 @@ interface RegionsState extends HydrationStatus {
   regions: Region[];
   changes: RoleChange[];
   hydrate: () => Promise<void>;
+  hydrateChanges: () => Promise<void>;
   saveTeams: (
     drafts: TeamDrafts,
     changedBy: string,
@@ -35,6 +36,8 @@ export const useRegionsStore = create<RegionsState>()(
   persist<RegionsState, [], [], PersistedRegions>(
     (set, get) => {
       const slot = createHydrationSlot();
+      const changesSlot = createHydrationSlot();
+      let changesStatus: HydrationStatus = { ...NOT_HYDRATED };
 
       return {
         regions: [],
@@ -42,15 +45,26 @@ export const useRegionsStore = create<RegionsState>()(
         ...NOT_HYDRATED,
         hydrate: () =>
           hydrateOnce(slot, get, set, async () => {
-            const [regions, changes] = await Promise.all([
-              regionsAPI.list(),
-              // The trail is a bonus read: a role without `coordinator` (or a
-              // scope with nothing to show) refuses it, and that must not sink
-              // the screen the seats themselves render fine without.
-              regionsAPI.roleChanges().catch(() => get().changes),
-            ]);
-            set({ regions, changes });
+            set({ regions: await regionsAPI.list() });
           }),
+        // The trail is a coordinator-only route: every non-coordinator session
+        // gets a 403 on it, and that must not sink the region list the seats
+        // themselves render fine without. Its own slot means asking for it is
+        // the equipe screen's call, never `hydrate()`'s.
+        hydrateChanges: () =>
+          hydrateOnce(
+            changesSlot,
+            () => changesStatus,
+            (partial) => {
+              changesStatus = { ...changesStatus, ...partial };
+            },
+            async () => {
+              const changes = await regionsAPI
+                .roleChanges()
+                .catch(() => get().changes);
+              set({ changes });
+            },
+          ),
         saveTeams: async (drafts, changedBy, now = new Date()) => {
           const { regions, changes } = get();
           const dirty = [
