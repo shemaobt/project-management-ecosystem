@@ -1,5 +1,8 @@
 import * as fixture from "../../fixtures";
 import * as api from "./endpoints";
+import { healthAssessmentsAPI as apiHealthAssessmentsAPI } from "./healthAssessments";
+import { projectBrowseAPI as apiProjectBrowseAPI } from "./projectBrowse";
+import { projectRecordAPI as apiProjectRecordAPI } from "./projectRecord";
 import { resolveSource, type DataNamespace } from "./source";
 
 function pick<T>(namespace: DataNamespace, real: T, double: T): T {
@@ -10,6 +13,24 @@ export const projectsAPI = pick<typeof fixture.projectsAPI>(
   "projects",
   api.projectsAPI,
   fixture.projectsAPI,
+);
+
+export const projectBrowseAPI = pick<typeof fixture.projectBrowseAPI>(
+  "projectsBrowse",
+  apiProjectBrowseAPI,
+  fixture.projectBrowseAPI,
+);
+
+export const projectRecordAPI = pick<typeof fixture.projectRecordAPI>(
+  "projectRecord",
+  apiProjectRecordAPI,
+  fixture.projectRecordAPI,
+);
+
+export const healthAssessmentsAPI = pick<typeof fixture.healthAssessmentsAPI>(
+  "healthAssessments",
+  apiHealthAssessmentsAPI,
+  fixture.healthAssessmentsAPI,
 );
 
 export const regionsAPI = pick<typeof fixture.regionsAPI>(
@@ -67,3 +88,6 @@ export {
 export { hasSession, onSessionEvent } from "./tokens";
 export { resolveSource } from "./source";
 export type { DataNamespace, DataSource } from "./source";
+export type { ProjectBrowseQuery, ProjectBrowseResult } from "../../types/projectBrowse";
+export { mapRecord, readConflict, readFieldErrors, toWire } from "./projectRecord";
+export type { RecordSaveResult } from "./projectRecord";

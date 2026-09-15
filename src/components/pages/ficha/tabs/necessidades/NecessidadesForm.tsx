@@ -7,6 +7,7 @@ import {
   removeNeedAt,
   setNeedAt,
   setNeedStatus,
+  unacknowledgedNeeds,
 } from "../../../../../utils/needs";
 import { Button, Textarea } from "../../../../ui";
 import { Field } from "../../fields";
@@ -21,6 +22,8 @@ export function NecessidadesForm({ draft }: NecessidadesFormProps) {
   const { t } = useTranslation();
   const needs = draft.values.needsItems ?? [];
   const open = openNeeds(needs).length;
+  const stale = unacknowledgedNeeds(needs).length;
+  const rowErrors = draft.errorsFor("needsItems");
 
   const write = (next: NeedItem[]) => draft.set("needsItems", next);
 
@@ -36,15 +39,24 @@ export function NecessidadesForm({ draft }: NecessidadesFormProps) {
         </p>
       ) : (
         <>
-          <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-fg-muted">
-            {t("needs_open_count", { count: open })}
-          </span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-fg-muted">
+              {t("needs_open_count", { count: open })}
+            </span>
+            {stale > 0 && (
+              <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-status-attention-fg">
+                {t("needs_unacknowledged_count", { count: stale })}
+              </span>
+            )}
+          </div>
           <ul className="flex flex-col gap-3">
             {needs.map((need, index) => (
               <NeedRow
                 key={index}
                 need={need}
                 index={index}
+                sensitiveCountry={Boolean(draft.values.sensitiveCountry)}
+                errors={rowErrors.filter((error) => error.index === index)}
                 onChange={(patch) => write(setNeedAt(needs, index, patch))}
                 onStatus={(status: NeedStatus) =>
                   write(setNeedStatus(needs, index, status))

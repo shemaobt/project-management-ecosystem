@@ -351,3 +351,33 @@ describe("a anotação por dimensão é o dado; a nota corrida é uma leitura de
     expect(compileNotes(draft(), label)).toBe("");
   });
 });
+
+describe("toAssessment carrega sua própria leitura geral, e só o duplo carimba autor e versão", () => {
+  it("a entrada leva overall computado das próprias quatro notas", () => {
+    const mixed = draft({
+      ratings: {
+        emotional: "boa",
+        relational: "critica",
+        spiritual: "",
+        physical: "",
+      },
+    });
+
+    expect(toAssessment(mixed, label).overall).toBe("critica");
+  });
+
+  it("sem meta, author e questionSetVersion ficam de fora — é o que o wizard ao vivo grava", () => {
+    const entry = toAssessment(draft(), label);
+    expect(entry.author).toBeUndefined();
+    expect(entry.questionSetVersion).toBeUndefined();
+  });
+
+  it("com meta — o duplo da BE-07 — author e questionSetVersion viajam junto", () => {
+    const entry = toAssessment(draft(), label, {
+      author: "Ana",
+      questionSetVersion: 1,
+    });
+    expect(entry.author).toBe("Ana");
+    expect(entry.questionSetVersion).toBe(1);
+  });
+});

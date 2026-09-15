@@ -4,10 +4,16 @@ import { getDeadlineInfo } from "../../../../../utils/recency";
 import { Badge } from "../../../../ui";
 import { DetailItem, FieldGrid, NotesPanel, TagRow } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
-import { phaseTitle } from "./phases";
+import { isCalendarDay, phaseTitle } from "./phases";
 
 export interface ObjetivoViewProps {
   draft: DraftHandle;
+}
+
+/** The day, formatted — or the phrase, verbatim. See `isCalendarDay`. */
+function phaseWhen(value: string, locale: string): string {
+  if (!value) return "—";
+  return isCalendarDay(value) ? formatDate(value, locale) : value;
 }
 
 export function ObjetivoView({ draft }: ObjetivoViewProps) {
@@ -66,7 +72,7 @@ export function ObjetivoView({ draft }: ObjetivoViewProps) {
                   {phase.scope || "—"}
                 </span>
                 <span className="flex-none text-[13px] font-normal text-fg-muted">
-                  {phase.date ? formatDate(phase.date, locale) : "—"}
+                  {phaseWhen(phase.date, locale)}
                 </span>
               </div>
             ))}

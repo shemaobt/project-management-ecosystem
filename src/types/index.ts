@@ -1,4 +1,6 @@
 export type * from "./project";
+export type * from "./projectBrowse";
+export type * from "./projectRecord";
 export type * from "./region";
 export type * from "./role";
 export type * from "./team";

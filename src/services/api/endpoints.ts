@@ -1,7 +1,14 @@
 import { REGIONS } from "../../constants/regions";
 import { SESSION_ROLES } from "../../constants/roles";
 import type { EtenCreditEntry, EtenYearReport } from "../../types/eten";
-import type { ReceivedSubmission } from "../../types/forms";
+import type {
+  IntakeForm,
+  IntakeLink,
+  IntakeLinkCreated,
+  IntakeLinkCreatePayload,
+  IntakeSubmissionPayload,
+  ReceivedSubmission,
+} from "../../types/forms";
 import type { MeetingDefinition, MeetingLogEntry } from "../../types/meeting";
 import type {
   ConsentContext,
@@ -126,6 +133,12 @@ export const sessionAPI = {
   },
 };
 
+// `.list()` / `.get()` stay unreachable — `source.ts` keeps the "projects" namespace on
+// fixtures. BE-05 shipped `GET /shema/projects` as the browse envelope
+// (`{items, counts, …}`, see `./projectBrowse.ts`), never the plain `Project[]` this
+// method was written against before BE-05 existed, and there is no single-record read
+// yet either — that is BE-06 / INT-03's. Left in place as the shape the fixture side
+// still has to match; do not point the "projects" namespace at these before BE-06 lands.
 export const projectsAPI = {
   async list(): Promise<Project[]> {
     const { data } = await http.get<Project[]>(`${SHEMA}/projects`);
@@ -279,5 +292,45 @@ export const formsAPI = {
       `${SHEMA}/forms/submissions`,
     );
     return data;
+  },
+
+  async mintIntakeLink(
+    payload: IntakeLinkCreatePayload,
+  ): Promise<IntakeLinkCreated> {
+    const { data } = await http.post<IntakeLinkCreated>(
+      `${SHEMA}/intake-links`,
+      { projectId: payload.projectId, expiresAt: payload.expiresAt },
+    );
+    return data;
+  },
+
+  async listIntakeLinks(projectId?: string): Promise<IntakeLink[]> {
+    const { data } = await http.get<IntakeLink[]>(`${SHEMA}/intake-links`, {
+      params: projectId ? { projectId } : undefined,
+    });
+    return data;
+  },
+
+  async revokeIntakeLink(linkId: string): Promise<IntakeLink> {
+    const { data } = await http.post<IntakeLink>(
+      `${SHEMA}/intake-links/${encodeURIComponent(linkId)}/revoke`,
+    );
+    return data;
+  },
+
+  // --- the two unauthenticated routes — the leader's own phone, no session ---------
+
+  async intakeForm(token: string): Promise<IntakeForm> {
+    const { data } = await http.get<IntakeForm>(
+      `${SHEMA}/intake/${encodeURIComponent(token)}`,
+    );
+    return data;
+  },
+
+  async submitIntake(
+    token: string,
+    payload: IntakeSubmissionPayload,
+  ): Promise<void> {
+    await http.post(`${SHEMA}/intake/${encodeURIComponent(token)}`, payload);
   },
 };

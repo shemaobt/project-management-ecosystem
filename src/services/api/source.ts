@@ -1,6 +1,9 @@
 export type DataNamespace =
   | "session"
   | "projects"
+  | "projectsBrowse"
+  | "projectRecord"
+  | "healthAssessments"
   | "regions"
   | "meetings"
   | "prayer"
@@ -16,7 +19,19 @@ export const OVERRIDE_VARIABLE = "VITE_DATA_SOURCE";
 
 export const INTEGRATED_BY: Record<DataNamespace, string> = {
   session: "INT-01 · BE-03",
+  // `.list()` / `.get()` stay fixture-backed on purpose: BE-05 only ever shipped the
+  // browse envelope (`{items, counts, …}`), never the plain `Project[]` those two
+  // promise, and the screens that still call them (ficha, avaliação, dados, equipe,
+  // eten, formulários, início, oração, ritmo) read the full record shape BE-06 hasn't
+  // shipped yet. Flipping this flag would break all of them at once, ahead of their own
+  // INTs — see `projectsBrowse` for what INT-02 actually integrated.
   projects: "INT-02 · BE-05",
+  // The Projetos screen's own capability — filtered, counted, sorted, paged.
+  projectsBrowse: "INT-02 · BE-05",
+  // The ficha's own capability — one record, its version, and the writes that quote it.
+  projectRecord: "INT-03 · BE-06",
+  // The wizard's own capability — one reading filed, the record it landed on.
+  healthAssessments: "INT-04 · BE-07",
   regions: "INT-10 · BE-13",
   meetings: "INT-07 · BE-10",
   prayer: "INT-06 · BE-09",
@@ -33,12 +48,15 @@ export const INTEGRATED_BY: Record<DataNamespace, string> = {
 export const INTEGRATED: Record<DataNamespace, DataSource> = {
   session: "api",
   projects: "fixtures",
+  projectsBrowse: "api",
+  projectRecord: "api",
+  healthAssessments: "api",
   regions: "api",
   meetings: "fixtures",
   prayer: "fixtures",
   intercessors: "api",
   eten: "fixtures",
-  forms: "fixtures",
+  forms: "api",
 };
 
 export function parseOverride(raw: unknown): DataSource | null {

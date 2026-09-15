@@ -50,7 +50,7 @@ describe("detailed filters", () => {
 
   beforeAll(async () => {
     projects = await projectsAPI.list();
-    options = buildFilterOptions(projects, NOW);
+    options = buildFilterOptions(filterProjects(projects, EMPTY_FILTERS, "", NOW).counts);
   });
 
   beforeEach(() => {
@@ -252,7 +252,9 @@ describe("detailed filters", () => {
   });
 
   it("keeps the option universe stable regardless of the active filters", () => {
-    const rebuilt = buildFilterOptions(projects, NOW);
+    const rebuilt = buildFilterOptions(
+      filterProjects(projects, EMPTY_FILTERS, "", NOW).counts,
+    );
     expect(rebuilt).toEqual(options);
   });
 });

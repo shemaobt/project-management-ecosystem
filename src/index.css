@@ -220,10 +220,12 @@
   --spacing: 4px;
 
   --status-good: var(--shema-verde-claro);
+  --status-good-ink: #5b5f35;
   --status-good-bg: rgba(119, 125, 69, 0.14);
   --status-good-line: rgba(119, 125, 69, 0.3);
   --status-attention: #c98b2d;
   --status-attention-fg: #8b6018;
+  --status-attention-ink: #7e5716;
   --status-attention-bg: rgba(201, 139, 45, 0.14);
   --status-attention-line: rgba(201, 139, 45, 0.3);
   --status-critical: var(--shema-telha);
@@ -292,10 +294,12 @@
   --color-paper: var(--paper);
 
   --color-status-good: var(--status-good);
+  --color-status-good-ink: var(--status-good-ink);
   --color-status-good-bg: var(--status-good-bg);
   --color-status-good-line: var(--status-good-line);
   --color-status-attention: var(--status-attention);
   --color-status-attention-fg: var(--status-attention-fg);
+  --color-status-attention-ink: var(--status-attention-ink);
   --color-status-attention-bg: var(--status-attention-bg);
   --color-status-attention-line: var(--status-attention-line);
   --color-status-critical: var(--status-critical);

@@ -1,3 +1,5 @@
+import type { RegionKey } from "./region";
+
 export type ProjectStatus =
   | "nao-iniciado"
   | "em-andamento"
@@ -33,6 +35,16 @@ export interface HealthAssessment {
   physical: HealthRating;
   notes: string;
   dimensionNotes?: Partial<Record<HealthDimensionKey, string>>;
+  /**
+   * Which published set of guiding questions this entry answered — `null` for a row
+   * carried out of the record's flat fields before this endpoint existed, which
+   * answered no questionnaire at all (BE-07). Absent on an entry no server ever built.
+   */
+  questionSetVersion?: number | null;
+  /** Who filed the row through the platform — not always the `assessor` who read the team. */
+  author?: string;
+  /** The worst of this entry's own four, computed once by the server (BE-07) and never resent. */
+  overall?: OverallHealth;
 }
 
 export type ProjectPriority =
@@ -98,11 +110,17 @@ export type MaterialKind = "text" | "audio" | "video";
 export type Coordinates = [longitude: number, latitude: number];
 
 export interface NeedItem {
+  /** The row's server address. Absent means "not saved yet" — the write creates it. */
+  id?: string;
   category: NeedCategory;
   urgency: NeedUrgency;
   status: NeedStatus;
   description: string;
   estimatedValue?: string;
+  /** The amount, exactly, as the wire carries it — a decimal string, never a float. */
+  estimatedAmount?: string;
+  /** ISO-4217. Travels with `estimatedAmount` or not at all — neither converts. */
+  estimatedCurrency?: string;
   deadline?: string;
   prayerShared?: boolean;
   prayerAnswered?: boolean;
@@ -111,6 +129,16 @@ export interface NeedItem {
   droppedDate?: string;
   submittedBy?: string;
   submittedAt?: string;
+  /** Stamped by the server. The client never sets this — see `acknowledged`. */
+  acknowledgedAt?: string;
+  /** Stamped by the server, the name as it stood then. */
+  acknowledgedBy?: string;
+  /**
+   * The write-only gesture — "somebody has seen this" — never read back and never
+   * rendered from stored data. The server turns a `true` into `acknowledgedAt` /
+   * `acknowledgedBy`; sending `false` on an already-seen need takes nothing back.
+   */
+  acknowledged?: boolean;
 }
 
 export interface BookProgressItem {
@@ -246,6 +274,26 @@ export interface DeadlineInfo {
   days: number | null;
 }
 
+/**
+ * BE-05's `ShemaProjectDerived`, field for field — the server's answer to the nine
+ * derivations wave 1 computed client-side. Optional on `Project` because fixture-sourced
+ * records (wave 1, and every screen INT-02 does not touch) never carry it; the Projetos
+ * screen's own helpers (`components/pages/projetos/derived.ts`) fall back to the client
+ * derivation when it is absent, which is what keeps every existing render test — built
+ * against plain fixtures — passing unchanged.
+ */
+export interface ProjectDerived {
+  status: ProjectStatus;
+  health: OverallHealth;
+  stale: StaleStatus | null;
+  progress: number;
+  priority: ProjectPriority;
+  healthScore: number;
+  daysSinceUpdate: number | null;
+  lastProgressUpdate: string | null;
+  region: RegionKey;
+}
+
 export interface Project {
   id: string;
   languageName: string;
@@ -320,4 +368,5 @@ export interface Project {
   readyVesselsAudioHours?: string;
   mediaPhotos?: MediaPhoto[];
   mediaVideos?: ProjectVideo[];
+  derived?: ProjectDerived;
 }

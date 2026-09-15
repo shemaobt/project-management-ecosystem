@@ -48,7 +48,7 @@ export function Completion({ draft, onChange }: CompletionProps) {
           </h2>
           <span className="flex items-center gap-2">
             <span className="text-micro font-bold tracking-button uppercase text-fg-muted">
-              {t("hw_overall")}
+              {t("hw_overall")} · {t("hw_preview_tag")}
             </span>
             <StatusBadge
               kind="health"
@@ -57,6 +57,15 @@ export function Completion({ draft, onChange }: CompletionProps) {
             />
           </span>
         </div>
+        <p className="mt-1 text-micro leading-normal text-fg-subtle">
+          {t("hw_overall_preview_note")}
+        </p>
+
+        {overall === "critica" ? (
+          <p className="mt-3 rounded-md border border-telha bg-accent-soft px-4 py-3 text-small font-semibold leading-normal text-accent-press">
+            {t("hw_critical_notice")}
+          </p>
+        ) : null}
 
         <ul className="mt-4 flex flex-col gap-2.5">
           {HEALTH_DIMENSIONS.map((dimension) => {
@@ -198,6 +207,9 @@ export function Completion({ draft, onChange }: CompletionProps) {
             placeholder={t("hw_overall_note_placeholder")}
             onChange={(event) => onChange({ overallNote: event.target.value })}
           />
+          <p className="text-micro leading-normal text-fg-subtle">
+            {t("hw_overallnote_local_only")}
+          </p>
         </div>
       </section>
     </div>

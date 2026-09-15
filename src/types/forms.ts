@@ -57,4 +57,63 @@ export interface ReceivedSubmission {
   languageName: string;
   submittedBy: string;
   receivedAt: string;
+  definitionVersion: number;
+  appliedAt: string | null;
+}
+
+// --- the leader link and the form it serves — BE-12 (OBT-401) ---------------------
+
+export type IntakeFieldType =
+  | "text"
+  | "longText"
+  | "choice"
+  | "period"
+  | "progressRows";
+
+export interface IntakeField {
+  key: string;
+  type: IntakeFieldType;
+  required: boolean;
+  labelKey: string;
+  maxLength: number | null;
+  options: readonly string[];
+}
+
+/** What one live link grants — the whole of it, per BE-12's write-mostly rule. */
+export interface IntakeForm {
+  kind: ArchivedKind;
+  definitionVersion: number;
+  languageName: string;
+  expiresAt: string;
+  fields: readonly IntakeField[];
+}
+
+export type IntakeAnswers = Record<string, unknown>;
+
+export interface IntakeSubmissionPayload {
+  definitionVersion: number;
+  answers: IntakeAnswers;
+}
+
+export type IntakeLinkStatus = "pending" | "used" | "expired" | "revoked";
+
+export interface IntakeLink {
+  id: string;
+  projectId: string;
+  definitionVersion: number;
+  expiresAt: string;
+  status: IntakeLinkStatus;
+  createdAt: string;
+  usedAt: string | null;
+  revokedAt: string | null;
+}
+
+export interface IntakeLinkCreated extends IntakeLink {
+  token: string;
+  url: string;
+}
+
+export interface IntakeLinkCreatePayload {
+  projectId: string;
+  expiresAt?: string;
 }

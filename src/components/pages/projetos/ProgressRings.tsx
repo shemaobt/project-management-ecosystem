@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import type { Project } from "../../../types/project";
 import { cn } from "../../../utils/cn";
-import { getProgress } from "../../../utils/progress";
 import { getUnitShare } from "./card";
+import { cardProgress } from "./derived";
 
 const RINGS = [
   { radius: 38, stroke: "stroke-telha" },
@@ -17,7 +17,7 @@ export interface ProgressRingsProps {
 
 export function ProgressRings({ project, className }: ProgressRingsProps) {
   const { t } = useTranslation();
-  const progress = getProgress(project);
+  const progress = cardProgress(project);
   const shares = [
     getUnitShare(project.translatedUnits, project.totalUnits),
     getUnitShare(project.communityCheckedUnits, project.totalUnits),
