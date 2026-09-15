@@ -1,8 +1,6 @@
 import { HeartHandshake } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { AssessedProject } from "../../../../../constants/health";
 import type { OverallHealth } from "../../../../../types/project";
-import { getOverallHealth, isAssessed } from "../../../../../utils/health";
 import { cn } from "../../../../../utils/cn";
 
 const COPY_KEY: Partial<Record<OverallHealth, string>> = {
@@ -11,13 +9,20 @@ const COPY_KEY: Partial<Record<OverallHealth, string>> = {
 };
 
 export interface CareNoteProps {
-  project: AssessedProject;
+  /**
+   * The **server's** reading of the team's health — `derived.health`, never recomputed
+   * here. `"na"` is a team nobody has been heard from, which is not `boa` (§5.2); `null`
+   * is a record with no derivation yet, which says nothing rather than guessing.
+   */
+  overall: OverallHealth | null;
 }
 
-export function CareNote({ project }: CareNoteProps) {
+export function CareNote({ overall }: CareNoteProps) {
   const { t } = useTranslation();
 
-  if (!isAssessed(project)) {
+  if (overall === null) return null;
+
+  if (overall === "na") {
     return (
       <p className="rounded-[12px] border border-line-strong bg-muted px-4 py-3 text-micro leading-[1.5] text-fg">
         {t("health_never_assessed")}
@@ -25,7 +30,6 @@ export function CareNote({ project }: CareNoteProps) {
     );
   }
 
-  const overall = getOverallHealth(project);
   const key = COPY_KEY[overall];
   if (!key) return null;
 
