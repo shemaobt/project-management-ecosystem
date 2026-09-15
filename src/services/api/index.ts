@@ -1,5 +1,6 @@
 import * as fixture from "../../fixtures";
 import * as api from "./endpoints";
+import { healthAssessmentsAPI as apiHealthAssessmentsAPI } from "./healthAssessments";
 import { projectBrowseAPI as apiProjectBrowseAPI } from "./projectBrowse";
 import { projectRecordAPI as apiProjectRecordAPI } from "./projectRecord";
 import { resolveSource, type DataNamespace } from "./source";
@@ -24,6 +25,12 @@ export const projectRecordAPI = pick<typeof fixture.projectRecordAPI>(
   "projectRecord",
   apiProjectRecordAPI,
   fixture.projectRecordAPI,
+);
+
+export const healthAssessmentsAPI = pick<typeof fixture.healthAssessmentsAPI>(
+  "healthAssessments",
+  apiHealthAssessmentsAPI,
+  fixture.healthAssessmentsAPI,
 );
 
 export const regionsAPI = pick<typeof fixture.regionsAPI>(

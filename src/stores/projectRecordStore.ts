@@ -7,11 +7,13 @@ import {
   tabOf,
 } from "../constants/recordFields";
 import {
+  healthAssessmentsAPI,
   projectRecordAPI,
   toApiFailure,
   toWire,
   type RecordSaveResult,
 } from "../services/api";
+import type { AssessmentDraft } from "../types/assessment";
 import type { Project } from "../types/project";
 import type {
   LoadedRecord,
@@ -112,6 +114,16 @@ export type SaveOutcome =
   | { kind: "failed"; failure: ApiFailure }
   | { kind: "unchanged"; withheld: RecordField[] };
 
+/**
+ * What filing one health reading (BE-07 · INT-04) answered — no `"conflict"` and no
+ * `"unchanged"`: appending always changes something, and the endpoint has no version to
+ * race against (`append_assessment.py`'s own argument for skipping `If-Match`).
+ */
+export type AssessmentOutcome =
+  | { kind: "saved"; project: Project }
+  | { kind: "invalid"; errors: RecordFieldError[] }
+  | { kind: "failed"; failure: ApiFailure };
+
 interface RecordStoreState {
   id: string | null;
   record: LoadedRecord | null;
@@ -122,6 +134,10 @@ interface RecordStoreState {
   open: (id: string) => Promise<void>;
   reload: () => Promise<void>;
   save: (attempt: SaveAttempt) => Promise<SaveOutcome>;
+  submitAssessment: (
+    draft: AssessmentDraft,
+    actorName: string,
+  ) => Promise<AssessmentOutcome>;
   dismiss: () => void;
   forget: () => void;
 }
@@ -284,6 +300,35 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
     }
     set({ saving: false, outcome });
     return outcome;
+  },
+
+  /**
+   * File one reading against whatever record is currently open. Deliberately does not
+   * touch `saving`/`outcome`: those belong to the ficha's own ten-tab save, and the
+   * wizard is a different screen with its own transient state — sharing the flag would
+   * let a stale ficha refusal bleed into the wizard, or the other way round, the moment
+   * both routes have touched the same open record in one session.
+   *
+   * A success replaces `record` with the server's own — the true `overall`, `author`
+   * and `questionSetVersion` BE-07 stamped, never guessed here.
+   */
+  submitAssessment: async (draft, actorName) => {
+    const { id } = get();
+    if (!id) return { kind: "failed", failure: toApiFailure(null) };
+
+    const result = await healthAssessmentsAPI.submit(id, draft, actorName);
+    if (result.ok) {
+      set({ record: result.record });
+      return { kind: "saved", project: result.record.project };
+    }
+    if (result.reason === "invalid") {
+      return { kind: "invalid", errors: result.errors };
+    }
+    if (result.reason === "failed") {
+      return { kind: "failed", failure: result.failure };
+    }
+    // The endpoint never answers 409 (module docstring); kept only for exhaustiveness.
+    return { kind: "failed", failure: toApiFailure(null) };
   },
 
   dismiss: () => set({ outcome: null }),

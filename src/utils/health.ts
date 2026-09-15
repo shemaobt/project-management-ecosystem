@@ -94,6 +94,24 @@ export function getOverallHealth(project: AssessedProject): OverallHealth {
   return "boa";
 }
 
+/**
+ * The worst of one entry's own four ratings — a display fallback for a `HealthAssessment`
+ * BE-07 did not stamp with `overall` (an older fixture, a carried pre-history row).
+ *
+ * `getOverallHealth` already reads a `Project`'s flat fields; this is the same rule read
+ * off an entry's own shape instead of asking the caller to build a fake project around it.
+ */
+export function overallOfEntry(
+  entry: Pick<HealthAssessment, "emotional" | "relational" | "spiritual" | "physical">,
+): OverallHealth {
+  return getOverallHealth({
+    healthEmotional: entry.emotional,
+    healthRelational: entry.relational,
+    healthSpiritual: entry.spiritual,
+    healthPhysical: entry.physical,
+  });
+}
+
 export function healthScore(project: Project): number {
   return (
     HEALTH_SCORES[project.healthEmotional] +

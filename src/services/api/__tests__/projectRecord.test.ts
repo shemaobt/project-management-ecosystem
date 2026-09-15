@@ -241,6 +241,56 @@ describe("a leitura do registro", () => {
       kind: "notFound",
     });
   });
+
+  it("a história de saúde traz author, questionSetVersion e overall — não só as quatro notas", async () => {
+    script = () => ({
+      status: 200,
+      headers: { etag: '"1"' },
+      data: {
+        ...WIRE,
+        healthHistory: [
+          {
+            date: "2026-05-01",
+            assessor: "Fresia",
+            emotional: "boa",
+            relational: "atencao",
+            spiritual: null,
+            physical: null,
+            notes: "Emocional: bem",
+            dimensionNotes: { emotional: "bem" },
+            author: "Ana Coordenadora",
+            questionSetVersion: 1,
+            overall: "atencao",
+          },
+          {
+            date: "2025-11-03",
+            assessor: "Fresia",
+            emotional: "boa",
+            relational: "boa",
+            spiritual: "boa",
+            physical: "boa",
+            notes: "",
+            dimensionNotes: null,
+            author: null,
+            questionSetVersion: null,
+            overall: null,
+          },
+        ],
+      },
+    });
+    const { project } = await projectRecordAPI.read("ashaninka");
+
+    expect(project.healthHistory?.[0]).toMatchObject({
+      author: "Ana Coordenadora",
+      questionSetVersion: 1,
+      overall: "atencao",
+    });
+    // Uma entrada pré-BE-07 respondeu a nenhum questionário — `null` vira ausência,
+    // nunca `undefined` silencioso para `questionSetVersion` (que a `null` continua).
+    expect(project.healthHistory?.[1].author).toBeUndefined();
+    expect(project.healthHistory?.[1].questionSetVersion).toBeNull();
+    expect(project.healthHistory?.[1].overall).toBeUndefined();
+  });
 });
 
 describe("o que sai pela escrita", () => {

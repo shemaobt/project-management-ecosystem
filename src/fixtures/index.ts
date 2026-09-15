@@ -18,9 +18,15 @@ import { buildEtenReport } from "../utils/etenCredits";
 import { loadIntercessors } from "./intercessors";
 import { loadMeetingLog, loadMeetings } from "./meetings";
 import { buildPrayerRequests } from "../utils/prayer";
+import type { AssessmentDraft } from "../types/assessment";
 import { browseProjects } from "./projectBrowse";
 import { loadProject, loadProjects } from "./projects";
-import { createRecord, patchRecord, readRecord } from "./projectRecord";
+import {
+  createRecord,
+  patchRecord,
+  readRecord,
+  submitAssessment,
+} from "./projectRecord";
 import { loadRegions } from "./regions";
 
 export const projectsAPI = {
@@ -49,6 +55,17 @@ export const projectRecordAPI = {
     version: string,
   ): Promise<RecordSaveResult> {
     return patchRecord(id, patch, version);
+  },
+};
+
+/** The wizard's own capability — one reading filed, the record it landed on. */
+export const healthAssessmentsAPI = {
+  async submit(
+    id: string,
+    draft: AssessmentDraft,
+    actorName: string,
+  ): Promise<RecordSaveResult> {
+    return submitAssessment(id, draft, actorName);
   },
 };
 
