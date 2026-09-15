@@ -243,6 +243,7 @@ describe("todo caminho de leitura passa pelo dono da visibilidade", () => {
     "src/components/pages/ficha/tabs/saude/SaudeView.tsx",
     "src/components/pages/projetos/card.ts",
     "src/fixtures/blank.ts",
+    "src/fixtures/projectBrowse.ts",
     "src/fixtures/seeds.ts",
     "src/stores/recordStore.ts",
     "src/types/assessment.ts",

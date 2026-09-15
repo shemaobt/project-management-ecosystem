@@ -118,6 +118,12 @@ export const sessionAPI = {
   },
 };
 
+// `.list()` / `.get()` stay unreachable — `source.ts` keeps the "projects" namespace on
+// fixtures. BE-05 shipped `GET /shema/projects` as the browse envelope
+// (`{items, counts, …}`, see `./projectBrowse.ts`), never the plain `Project[]` this
+// method was written against before BE-05 existed, and there is no single-record read
+// yet either — that is BE-06 / INT-03's. Left in place as the shape the fixture side
+// still has to match; do not point the "projects" namespace at these before BE-06 lands.
 export const projectsAPI = {
   async list(): Promise<Project[]> {
     const { data } = await http.get<Project[]>(`${SHEMA}/projects`);

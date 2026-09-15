@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { HEALTH_LABEL_KEYS } from "../../../../constants/status";
-import { getOverallHealth, getPriority } from "../../../../utils/health";
-import { getStaleStatus } from "../../../../utils/recency";
+import { cardHealth, cardPriority, cardStale } from "../derived";
 import { markerRadius, type AtlasMarkerSource } from "./markers";
 import { NIGHT_MARKER_TONES } from "./nightTheme";
 
@@ -35,9 +34,9 @@ export function GlobeMarkers({
         .filter((m) => m.visible)
         .map((m) => {
           const project = m.source.project;
-          const priority = getPriority(project);
-          const stale = getStaleStatus(project);
-          const health = getOverallHealth(project);
+          const priority = cardPriority(project);
+          const stale = cardStale(project);
+          const health = cardHealth(project);
           const approximate = m.source.placement.precision === "region";
           const tone = NIGHT_MARKER_TONES[priority];
           const isHover = hoveredId === project.id;

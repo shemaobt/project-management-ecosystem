@@ -66,6 +66,21 @@ export function getCountryDisplay(project: Project): LocationDisplay {
     : { withheld: false, location: getCountry(project) };
 }
 
+/**
+ * The one place that decides which region cards exist and their order — off a totals
+ * map, whichever source computed it: `orderRegionPanel` derives the totals from raw
+ * projects, `TeamByRegion`'s `orderByCounts` from the browse response's own baseline
+ * counts. Two callers computing the same filter-and-sort separately is exactly the
+ * one-owner-per-fact split §13 warns about — this is the single owner.
+ */
+export function orderRegionsByTotals(
+  totals: Partial<Record<RegionKey, number>>,
+): RegionDefinition[] {
+  return REGIONS.filter(
+    (region) => (totals[region.key] ?? 0) > 0 || region.key === "europe",
+  ).sort((a, b) => (totals[b.key] ?? 0) - (totals[a.key] ?? 0));
+}
+
 export function orderRegionPanel(
   projects: readonly Project[],
 ): RegionDefinition[] {
@@ -74,9 +89,7 @@ export function orderRegionPanel(
     const region = getRegion(project);
     totals[region] = (totals[region] ?? 0) + 1;
   }
-  return REGIONS.filter(
-    (region) => (totals[region.key] ?? 0) > 0 || region.key === "europe",
-  ).sort((a, b) => (totals[b.key] ?? 0) - (totals[a.key] ?? 0));
+  return orderRegionsByTotals(totals);
 }
 
 export interface RegionPanelCard {

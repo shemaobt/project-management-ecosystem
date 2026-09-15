@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { CardMetaphor } from "../../../constants/metaphors";
 import { DEFAULT_TAB } from "../../../constants/recordTabs";
-import { useFiltersStore } from "../../../stores/filtersStore";
+import { DEFAULT_SORT } from "../../../constants/sorting";
+import { failureMessage } from "../../../services/api";
+import { EMPTY_FILTERS, useFiltersStore } from "../../../stores/filtersStore";
 import { usePrefsStore } from "../../../stores/prefsStore";
-import { useProjectsStore } from "../../../stores/projectsStore";
 import type { Project } from "../../../types/project";
 import { decodeView, encodeView } from "../../../utils/filterSerialisation";
-import { filterProjects } from "../../../utils/search";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button } from "../../ui";
@@ -17,26 +17,26 @@ import { JournalView } from "./Journal";
 import { LoadMore } from "./LoadMore";
 import { Sidebar } from "./Sidebar";
 import { Toolbar } from "./Toolbar";
-import { sortProjects } from "./sorting";
+import { useProjectBrowse } from "./useProjectBrowse";
 
 const PAGE_SIZE = 30;
+// BE-05's `limit` is `ge=1` — there is no "counts only, no items" request, so the
+// smallest window that still asks for a page is the closest thing to it. The
+// baseline's `items` are never read (only `.counts`, below), so this trades the whole
+// unpaged collection for one card's worth of payload without changing what the
+// sidebar, saved views or "Time por região" can see.
+const BASELINE_LIMIT = 1;
 
 interface ResultsViewProps {
   metaphor: CardMetaphor;
   projects: readonly Project[];
-  visible: readonly Project[];
   onOpen: (project: Project) => void;
 }
 
-function ResultsView({
-  metaphor,
-  projects,
-  visible,
-  onOpen,
-}: ResultsViewProps) {
+function ResultsView({ metaphor, projects, onOpen }: ResultsViewProps) {
   switch (metaphor) {
     case "diario":
-      return <JournalView projects={visible} onOpen={onOpen} />;
+      return <JournalView projects={projects} onOpen={onOpen} />;
     case "atlas":
       return <AtlasView projects={projects} onSelect={onOpen} />;
   }
@@ -45,9 +45,6 @@ function ResultsView({
 export function ProjetosPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const projects = useProjectsStore((state) => state.projects);
-  const hydrated = useProjectsStore((state) => state.hydrated);
-  const hydrate = useProjectsStore((state) => state.hydrate);
   const [params, setParams] = useSearchParams();
   const filters = useFiltersStore((state) => state.filters);
   const search = useFiltersStore((state) => state.search);
@@ -58,18 +55,6 @@ export function ProjetosPage() {
   const setSort = usePrefsStore((state) => state.setSort);
   const setMetaphor = usePrefsStore((state) => state.setMetaphor);
   const readUrl = useRef(false);
-  const [paging, setPaging] = useState({
-    count: PAGE_SIZE,
-    filters,
-    search,
-    sort,
-    metaphor,
-  });
-  const locale = t("locale");
-
-  useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
 
   useEffect(() => {
     if (readUrl.current) return;
@@ -89,29 +74,60 @@ export function ProjetosPage() {
     }
   }, [filters, search, sort, metaphor, params, setParams]);
 
-  const result = useMemo(
-    () => filterProjects(projects ?? [], filters, search),
-    [projects, filters, search],
-  );
-
-  const sorted = useMemo(
-    () => sortProjects(result.projects, sort, locale),
-    [result.projects, sort, locale],
-  );
-
+  // The requested window resets to one page the moment the query underneath it
+  // changes — the same reset-on-change-during-render pattern wave 1 used, kept because
+  // it is what makes "Mostrar mais" ask for a bigger window rather than a reset one.
+  const [paging, setPaging] = useState({ count: PAGE_SIZE, filters, search, sort, metaphor });
   const pagingIsStale =
     paging.filters !== filters ||
     paging.search !== search ||
     paging.sort !== sort ||
     paging.metaphor !== metaphor;
-
   if (pagingIsStale) {
     setPaging({ count: PAGE_SIZE, filters, search, sort, metaphor });
   }
+  const requestedCount = pagingIsStale ? PAGE_SIZE : paging.count;
+  // Atlas draws the whole matched set (the globe and its own "Mostrar mais" paginate
+  // client-side below it, per §5.1); only Diário's grid is server-paged.
+  const limit = metaphor === "atlas" ? null : requestedCount;
 
-  const visibleCount = pagingIsStale ? PAGE_SIZE : paging.count;
+  const live = useProjectBrowse({ filters, search, sort, limit, offset: 0 });
+  // The sidebar's option universe, saved-view availability and "Time por região" cards
+  // read the whole scoped collection, unfiltered — `EMPTY_FILTERS` is a stable module
+  // constant, so this fetch only ever runs once per mount.
+  const baseline = useProjectBrowse({
+    filters: EMPTY_FILTERS,
+    search: "",
+    sort: DEFAULT_SORT,
+    limit: BASELINE_LIMIT,
+    offset: 0,
+  });
 
-  if (!hydrated) {
+  const openRecord = (project: Project) => {
+    navigate(`/ficha/${project.id}/${DEFAULT_TAB}`);
+  };
+
+  const retryBoth = () => {
+    live.retry();
+    baseline.retry();
+  };
+
+  if (!live.data || !baseline.data) {
+    const failed = live.error ?? baseline.error;
+    if (failed) {
+      return (
+        <section className="flex justify-center px-8 py-24">
+          <EmptyState
+            message={failureMessage(failed, t)}
+            action={
+              <Button variant="secondary" size="sm" onClick={retryBoth}>
+                {t("net_retry")}
+              </Button>
+            }
+          />
+        </section>
+      );
+    }
     return (
       <section className="flex justify-center px-8 py-24">
         <LoadingSpinner size="lg" label={t("loading")} />
@@ -119,22 +135,37 @@ export function ProjetosPage() {
     );
   }
 
-  const visible = sorted.slice(0, visibleCount);
-  const openRecord = (project: Project) => {
-    navigate(`/ficha/${project.id}/${DEFAULT_TAB}`);
-  };
+  // Both queries have answered at least once — render the screen, keeping the last
+  // good page visible under a refetch instead of blanking it (DoD: throttled connection).
+  const data = live.data;
+  const { items, matched, total } = data;
 
   return (
     <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-8 px-8 pt-6 pb-20 lg:grid-cols-[260px_minmax(0,1fr)]">
       <Sidebar
-        projects={projects}
-        shown={result.projects.length}
-        total={result.total}
-        counts={result.counts}
+        baseline={baseline.data.counts}
+        shown={matched}
+        total={total}
+        counts={data.counts}
       />
       <div>
-        <Toolbar count={sorted.length} total={result.total} />
-        {sorted.length === 0 ? (
+        <Toolbar count={matched} total={total} />
+        {live.loading && (
+          <p className="-mt-3 mb-3 text-tag text-fg-subtle">{t("loading")}</p>
+        )}
+        {live.error && (
+          <p className="-mt-3 mb-3 text-tag text-telha">
+            {failureMessage(live.error, t)}{" "}
+            <button
+              type="button"
+              onClick={() => live.retry()}
+              className="font-semibold underline"
+            >
+              {t("net_retry")}
+            </button>
+          </p>
+        )}
+        {matched === 0 ? (
           <EmptyState
             title={t("empty_title")}
             message={
@@ -150,22 +181,14 @@ export function ProjetosPage() {
           />
         ) : (
           <>
-            <ResultsView
-              metaphor={metaphor}
-              projects={sorted}
-              visible={visible}
-              onOpen={openRecord}
-            />
-            {metaphor !== "atlas" && sorted.length > visibleCount && (
+            <ResultsView metaphor={metaphor} projects={items} onOpen={openRecord} />
+            {metaphor !== "atlas" && items.length < matched && (
               <LoadMore
-                shown={visible.length}
-                total={sorted.length}
+                shown={items.length}
+                total={matched}
                 step={PAGE_SIZE}
                 onMore={() =>
-                  setPaging((state) => ({
-                    ...state,
-                    count: state.count + PAGE_SIZE,
-                  }))
+                  setPaging((state) => ({ ...state, count: state.count + PAGE_SIZE }))
                 }
               />
             )}

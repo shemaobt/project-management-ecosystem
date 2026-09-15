@@ -5,26 +5,32 @@ import { ROLES } from "../../../../constants/roles";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { useFiltersStore } from "../../../../stores/filtersStore";
 import { useRegionsStore } from "../../../../stores/regionsStore";
-import type { Project } from "../../../../types/project";
 import type { RegionKey } from "../../../../types/region";
 import { cn } from "../../../../utils/cn";
-import { buildRegionPanel, holderName } from "../../../../utils/region";
+import {
+  holderName,
+  type RegionPanelCard,
+} from "../../../../utils/region";
+import { orderByCounts } from "./regionCards";
 
 export interface TeamByRegionProps {
-  projects: readonly Project[];
+  /** Unfiltered, whole-scope counts — decides which region cards exist and their order. */
+  baseline: Partial<Record<RegionKey, number>>;
+  /** Live, filtered counts — the badge next to each card. */
   counts: Partial<Record<RegionKey, number>>;
 }
 
-export function TeamByRegion({ projects, counts }: TeamByRegionProps) {
+export function TeamByRegion({ baseline, counts }: TeamByRegionProps) {
   const { t } = useTranslation();
   const { canSeeRegion } = useAuth();
   const regions = useRegionsStore((state) => state.regions);
   const continent = useFiltersStore((state) => state.filters.continent);
   const setFilter = useFiltersStore((state) => state.setFilter);
 
-  const cards = useMemo(
-    () => buildRegionPanel(projects, regions, canSeeRegion),
-    [projects, regions, canSeeRegion],
+  const cards: RegionPanelCard[] = useMemo(
+    () =>
+      orderByCounts(baseline, regions).filter((card) => canSeeRegion(card.key)),
+    [baseline, regions, canSeeRegion],
   );
   if (cards.length === 0) return null;
 

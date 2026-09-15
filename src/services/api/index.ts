@@ -1,5 +1,6 @@
 import * as fixture from "../../fixtures";
 import * as api from "./endpoints";
+import { projectBrowseAPI as apiProjectBrowseAPI } from "./projectBrowse";
 import { resolveSource, type DataNamespace } from "./source";
 
 function pick<T>(namespace: DataNamespace, real: T, double: T): T {
@@ -10,6 +11,12 @@ export const projectsAPI = pick<typeof fixture.projectsAPI>(
   "projects",
   api.projectsAPI,
   fixture.projectsAPI,
+);
+
+export const projectBrowseAPI = pick<typeof fixture.projectBrowseAPI>(
+  "projectsBrowse",
+  apiProjectBrowseAPI,
+  fixture.projectBrowseAPI,
 );
 
 export const regionsAPI = pick<typeof fixture.regionsAPI>(
@@ -67,3 +74,4 @@ export {
 export { hasSession, onSessionEvent } from "./tokens";
 export { resolveSource } from "./source";
 export type { DataNamespace, DataSource } from "./source";
+export type { ProjectBrowseQuery, ProjectBrowseResult } from "../../types/projectBrowse";

@@ -1,5 +1,5 @@
 import { Bookmark, Link2, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { useFiltersStore } from "../../../../stores/filtersStore";
@@ -10,29 +10,27 @@ import {
   useSavedViewsStore,
   type SavedView,
 } from "../../../../stores/savedViewsStore";
-import type { Project } from "../../../../types/project";
 import { cn } from "../../../../utils/cn";
 import {
   encodeViewToUrl,
   isEmptyView,
   type ViewState,
 } from "../../../../utils/filterSerialisation";
+import type { FacetCounts } from "../../../../utils/search";
 import { transitionColors } from "../../../../styles";
 import { toast } from "../../../ui";
 import { SavedViewRow } from "./SavedViewRow";
 import { SaveViewForm } from "./SaveViewForm";
-import {
-  applicableState,
-  datasetCounts,
-  FILTER_LABEL_KEYS,
-  findUnavailable,
-} from "./availability";
+import { applicableState, FILTER_LABEL_KEYS, findUnavailable } from "./availability";
 
 export interface SavedViewsProps {
-  projects: readonly Project[];
+  /** The unfiltered, whole-scope counts — a saved view is only as available as the
+   * options that still exist in the caller's scope, not as the options a temporary
+   * active filter happens to show right now. */
+  counts: FacetCounts;
 }
 
-export function SavedViews({ projects }: SavedViewsProps) {
+export function SavedViews({ counts }: SavedViewsProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [naming, setNaming] = useState(false);
@@ -52,7 +50,6 @@ export function SavedViews({ projects }: SavedViewsProps) {
 
   const views = selectUserViews(byUser, user.id);
   const current: ViewState = { filters, search, sort, metaphor };
-  const counts = useMemo(() => datasetCounts(projects), [projects]);
 
   const applyView = (view: SavedView) => {
     const { state, missing } = applicableState(view.state, counts);

@@ -1,3 +1,5 @@
+import type { RegionKey } from "./region";
+
 export type ProjectStatus =
   | "nao-iniciado"
   | "em-andamento"
@@ -246,6 +248,26 @@ export interface DeadlineInfo {
   days: number | null;
 }
 
+/**
+ * BE-05's `ShemaProjectDerived`, field for field — the server's answer to the nine
+ * derivations wave 1 computed client-side. Optional on `Project` because fixture-sourced
+ * records (wave 1, and every screen INT-02 does not touch) never carry it; the Projetos
+ * screen's own helpers (`components/pages/projetos/derived.ts`) fall back to the client
+ * derivation when it is absent, which is what keeps every existing render test — built
+ * against plain fixtures — passing unchanged.
+ */
+export interface ProjectDerived {
+  status: ProjectStatus;
+  health: OverallHealth;
+  stale: StaleStatus | null;
+  progress: number;
+  priority: ProjectPriority;
+  healthScore: number;
+  daysSinceUpdate: number | null;
+  lastProgressUpdate: string | null;
+  region: RegionKey;
+}
+
 export interface Project {
   id: string;
   languageName: string;
@@ -320,4 +342,5 @@ export interface Project {
   readyVesselsAudioHours?: string;
   mediaPhotos?: MediaPhoto[];
   mediaVideos?: ProjectVideo[];
+  derived?: ProjectDerived;
 }

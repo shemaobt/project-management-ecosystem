@@ -2,7 +2,6 @@ import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFiltersStore } from "../../../../../stores/filtersStore";
-import type { Project } from "../../../../../types/project";
 import { cn } from "../../../../../utils/cn";
 import type { FacetCounts } from "../../../../../utils/search";
 import { FilterSection } from "./FilterSection";
@@ -15,11 +14,11 @@ import {
 } from "./sections";
 
 export interface DetailedFiltersProps {
-  projects: readonly Project[];
+  baseline: FacetCounts;
   counts: FacetCounts;
 }
 
-export function DetailedFilters({ projects, counts }: DetailedFiltersProps) {
+export function DetailedFilters({ baseline, counts }: DetailedFiltersProps) {
   const { t } = useTranslation();
   const filters = useFiltersStore((state) => state.filters);
   const setFilter = useFiltersStore((state) => state.setFilter);
@@ -27,7 +26,7 @@ export function DetailedFilters({ projects, counts }: DetailedFiltersProps) {
     () => new Set(PRIMARY_SECTIONS.map((section) => section.id)),
   );
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const options = useMemo(() => buildFilterOptions(projects), [projects]);
+  const options = useMemo(() => buildFilterOptions(baseline), [baseline]);
 
   const toggleSection = (id: string) => {
     setExpanded((previous) => {
