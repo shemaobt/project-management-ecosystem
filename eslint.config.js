@@ -9,6 +9,13 @@ export const BRAND_INK = "text-(verde|branco|preto)(?![-a-z])";
 
 export const NOT_SHIPPED_STYLING = ["**/__tests__/**"];
 
+export const READS_THROUGH_THE_API_LAYER = [
+  "src/components/**/*.{ts,tsx}",
+  "src/contexts/**/*.{ts,tsx}",
+  "src/hooks/**/*.{ts,tsx}",
+  "src/stores/**/*.{ts,tsx}",
+];
+
 const BRAND_INK_MESSAGE =
   "Tinta sai da camada semântica, não do token de marca: text-fg, text-fg-strong, text-on-brand, text-on-dark, text-on-light. O modo escuro (§7.4) reatribui só os semânticos — um token de marca não segue a paleta quando ela chegar.";
 
@@ -185,13 +192,26 @@ export default defineConfig([
     },
   },
   {
-    files: [
-      "src/components/**/*.{ts,tsx}",
-      "src/contexts/**/*.{ts,tsx}",
-      "src/hooks/**/*.{ts,tsx}",
-      "src/stores/**/*.{ts,tsx}",
-      "src/services/**/*.{ts,tsx}",
-    ],
+    files: READS_THROUGH_THE_API_LAYER,
+    ignores: NOT_SHIPPED_STYLING,
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/fixtures", "**/fixtures/*", "**/fixtures/**"],
+              message:
+                "Telas e stores leem os namespaces de src/services/api, que serve cada um da API real ou do dublê de fixtures (CLAUDE.md §8). A camada de API é a única que importa src/fixtures.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/services/**/*.{ts,tsx}"],
+    ignores: NOT_SHIPPED_STYLING,
     rules: {
       "no-restricted-imports": [
         "error",
@@ -200,7 +220,7 @@ export default defineConfig([
             {
               group: ["**/fixtures/*", "**/fixtures/**"],
               message:
-                "As telas leem a camada de fixtures por um único módulo: importe de src/fixtures (o índice), nunca um arquivo interno.",
+                "A camada de API lê a camada de fixtures por um único módulo: importe de src/fixtures (o índice), nunca um arquivo interno.",
             },
           ],
         },
@@ -208,7 +228,11 @@ export default defineConfig([
     },
   },
   {
-    files: ["src/components/ui/**/*.tsx", "src/components/common/**/*.tsx"],
+    files: [
+      "src/components/ui/**/*.tsx",
+      "src/components/common/**/*.tsx",
+      "src/contexts/**/*.tsx",
+    ],
     rules: {
       "react-refresh/only-export-components": "off",
     },

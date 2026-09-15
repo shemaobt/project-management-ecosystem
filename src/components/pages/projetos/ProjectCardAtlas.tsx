@@ -7,11 +7,14 @@ import type {
   ProjectPriority,
 } from "../../../types/project";
 import { cn } from "../../../utils/cn";
-import { getPriority } from "../../../utils/health";
-import { getProgress } from "../../../utils/progress";
-import { getDeadlineInfo, getStaleStatus } from "../../../utils/recency";
-import { getLocationDisplay } from "../../../utils/region";
+import { getDeadlineInfo } from "../../../utils/recency";
 import { StatusDot } from "../../common/StatusBadge";
+import {
+  cardLocationDisplay,
+  cardPriority,
+  cardProgress,
+  cardStale,
+} from "./derived";
 
 const STAMP_TONES: Record<ProjectPriority, string> = {
   default: "bg-verde text-on-dark",
@@ -41,11 +44,11 @@ export interface ProjectCardAtlasProps {
 
 export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
   const { t } = useTranslation();
-  const progress = getProgress(project);
-  const priority = getPriority(project);
+  const progress = cardProgress(project);
+  const priority = cardPriority(project);
   const deadline = getDeadlineInfo(project.deadline);
-  const stale = getStaleStatus(project);
-  const location = getLocationDisplay(project);
+  const stale = cardStale(project);
+  const location = cardLocationDisplay(project);
   const locationText = location.withheld
     ? t(location.regionLabelKey)
     : project.location.split("—")[0].trim();

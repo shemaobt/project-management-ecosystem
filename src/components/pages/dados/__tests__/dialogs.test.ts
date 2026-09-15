@@ -60,19 +60,92 @@ describe("Receber Atualização não promete o que a onda 1 não entrega", () =>
   });
 });
 
-describe("o Link do líder declara escopo e validade em palavras", () => {
-  const markup = () =>
-    renderToStaticMarkup(createElement(LeaderLinkDialogBody));
+describe("o Link do líder declara escopo e validade, e agora gera de verdade", () => {
+  const base: Omit<
+    Parameters<typeof LeaderLinkDialogBody>[0],
+    "projects"
+  > = {
+    selectedProjectId: "",
+    onSelectProject: noop,
+    links: null,
+    minted: null,
+    minting: false,
+    onMint: noop,
+    onRevoke: noop,
+    error: null,
+  };
 
-  it("escopo, validade e o que ainda não existe, os três visíveis", () => {
-    expect(markup()).toContain(i18n.t("intake_desc"));
-    expect(markup()).toContain(i18n.t("intake_scope"));
-    expect(markup()).toContain(i18n.t("intake_expiry"));
-    expect(markup()).toContain(i18n.t("intake_pending"));
+  const markup = (
+    over: Partial<typeof base> & { projects: Project[] | null },
+  ) =>
+    renderToStaticMarkup(
+      createElement(LeaderLinkDialogBody, { ...base, ...over }),
+    );
+
+  it("escopo e validade aparecem em palavras", () => {
+    const out = markup({ projects: [project()] });
+
+    expect(out).toContain(i18n.t("intake_desc"));
+    expect(out).toContain(i18n.t("intake_scope"));
+    expect(out).toContain(i18n.t("intake_expiry"));
   });
 
-  it("não nomeia extensão de arquivo", () => {
-    expect(markup()).not.toMatch(FORMAT);
+  it("carregando os projetos não vira lista vazia", () => {
+    const out = markup({ projects: null });
+
+    expect(out).toContain(i18n.t("loading"));
+    expect(out).not.toContain(i18n.t("forms_no_projects"));
+  });
+
+  it("sem projeto nenhum, explica em vez de mostrar o formulário vazio", () => {
+    const out = markup({ projects: [] });
+
+    expect(out).toContain(i18n.t("forms_no_projects"));
+  });
+
+  it("o link recém-gerado avisa que só aparece uma vez, e nunca promete extensão de arquivo", () => {
+    const out = markup({
+      projects: [project()],
+      selectedProjectId: "tikuna",
+      minted: {
+        id: "link-1",
+        projectId: "tikuna",
+        definitionVersion: 1,
+        expiresAt: "2026-10-30",
+        status: "pending",
+        createdAt: "2026-09-15",
+        usedAt: null,
+        revokedAt: null,
+        token: "abc123",
+        url: "http://localhost:5173/intake/abc123",
+      },
+    });
+
+    expect(out).toContain(i18n.t("intake_link_once"));
+    expect(out).toContain("http://localhost:5173/intake/abc123");
+    expect(out).not.toMatch(FORMAT);
+  });
+
+  it("a lista de links mostra o status, nunca o token", () => {
+    const out = markup({
+      projects: [project()],
+      selectedProjectId: "tikuna",
+      links: [
+        {
+          id: "link-1",
+          projectId: "tikuna",
+          definitionVersion: 1,
+          expiresAt: "2026-10-30",
+          status: "revoked",
+          createdAt: "2026-09-01",
+          usedAt: null,
+          revokedAt: "2026-09-10",
+        },
+      ],
+    });
+
+    expect(out).toContain(i18n.t("intake_status_revoked"));
+    expect(out).not.toContain("abc123");
   });
 });
 

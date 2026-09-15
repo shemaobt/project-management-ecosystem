@@ -10,7 +10,7 @@ import { useRegionsStore } from "../../../stores/regionsStore";
 import type { Project } from "../../../types/project";
 import type { Region, RegionKey, RoleChange } from "../../../types/region";
 import type { RoleKey } from "../../../types/role";
-import type { SaveOutcome } from "../../../types/team";
+import type { SaveOutcome, TeamSaveResult } from "../../../types/team";
 import { getRegion } from "../../../utils/region";
 import { draftsFor, unassignedCount } from "../../../utils/team";
 import { EmptyState } from "../../common/EmptyState";
@@ -26,7 +26,7 @@ export interface EquipeViewProps {
   regions: readonly Region[] | null;
   projects?: readonly Project[];
   changes?: readonly RoleChange[];
-  onSave: (drafts: ReturnType<typeof draftsFor>) => SaveOutcome;
+  onSave: (drafts: ReturnType<typeof draftsFor>) => Promise<TeamSaveResult>;
 }
 
 export function EquipeView({
@@ -38,6 +38,7 @@ export function EquipeView({
   const { t } = useTranslation();
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [outcome, setOutcome] = useState<SaveOutcome | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const visible = useMemo(() => regions ?? [], [regions]);
 
@@ -142,13 +143,26 @@ export function EquipeView({
               {t("equipe_hint")}
             </p>
             <Button
-              disabled={!dirty}
+              disabled={!dirty || saving}
               onClick={() => {
-                setOutcome(onSave(drafts));
-                setEdits({});
+                setSaving(true);
+                onSave(drafts)
+                  .then(({ outcome, failedRegions }) => {
+                    setOutcome(outcome);
+                    setEdits((current) =>
+                      Object.fromEntries(
+                        Object.entries(current).filter(([key]) =>
+                          failedRegions.includes(
+                            key.slice(0, key.lastIndexOf(":")) as RegionKey,
+                          ),
+                        ),
+                      ),
+                    );
+                  })
+                  .finally(() => setSaving(false));
               }}
             >
-              {t("equipe_save")}
+              {saving ? t("equipe_saving") : t("equipe_save")}
             </Button>
           </div>
 
@@ -168,14 +182,16 @@ export function EquipePage() {
   const changes = useRegionsStore((state) => state.changes);
   const hydrated = useRegionsStore((state) => state.hydrated);
   const hydrateRegions = useRegionsStore((state) => state.hydrate);
+  const hydrateChanges = useRegionsStore((state) => state.hydrateChanges);
   const saveTeams = useRegionsStore((state) => state.saveTeams);
   const projects = useProjectsStore((state) => state.projects);
   const hydrateProjects = useProjectsStore((state) => state.hydrate);
 
   useEffect(() => {
     void hydrateRegions();
+    void hydrateChanges();
     void hydrateProjects();
-  }, [hydrateRegions, hydrateProjects]);
+  }, [hydrateRegions, hydrateChanges, hydrateProjects]);
 
   const visible = useMemo(
     () => regions.filter((region) => canSeeRegion(region.key)),

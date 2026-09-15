@@ -13,17 +13,9 @@ import {
   STATUS_LABEL_KEYS,
 } from "../../../../../constants/status";
 import type { ProgressRange } from "../../../../../stores/filtersStore";
-import {
-  EMPTY_FILTERS,
-  PROGRESS_RANGES,
-  YES_NO_VALUES,
-} from "../../../../../stores/filtersStore";
-import type {
-  HealthLevel,
-  Project,
-} from "../../../../../types/project";
+import { PROGRESS_RANGES, YES_NO_VALUES } from "../../../../../stores/filtersStore";
+import type { HealthLevel } from "../../../../../types/project";
 import type { FacetCounts, FacetGroup } from "../../../../../utils/search";
-import { filterProjects } from "../../../../../utils/search";
 
 export type FilterSectionId = Exclude<FacetGroup, "continent">;
 
@@ -116,11 +108,14 @@ function sortedByCount<V extends string>(
   );
 }
 
-export function buildFilterOptions(
-  projects: readonly Project[],
-  now: Date = new Date(),
-): FilterOptionsById {
-  const baseline = filterProjects(projects, EMPTY_FILTERS, "", now).counts;
+/**
+ * The option universe for every facet — value, sort order and label — off the
+ * *unfiltered, whole-scope* counts. A facet's live per-option numbers (whether an option
+ * is dimmed) are a separate, always-filtered `FacetCounts` read through `getOptionCount`;
+ * this one only decides which options exist and in what order, which is why an option's
+ * count staying at zero under the active filters never makes it disappear (§5.1).
+ */
+export function buildFilterOptions(baseline: FacetCounts): FilterOptionsById {
   return {
     status: sortedByCount(
       fromVocabulary(PROJECT_STATUSES, STATUS_LABEL_KEYS),

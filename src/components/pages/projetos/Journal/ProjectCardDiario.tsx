@@ -6,12 +6,8 @@ import type {
 } from "../../../../types/project";
 import { cn } from "../../../../utils/cn";
 import { formatDate } from "../../../../utils/format";
-import { getPriority } from "../../../../utils/health";
-import { getLastProgressUpdate } from "../../../../utils/recency";
-import { getLocationDisplay } from "../../../../utils/region";
 import { BrandMark } from "../../../common/BrandMark";
 import { PriorityPin, StatusDot } from "../../../common/StatusBadge";
-import { ProgressRings } from "../ProgressRings";
 import {
   getCardDateLabel,
   getCardQuote,
@@ -19,6 +15,12 @@ import {
   getSpeakerLabel,
   openableCardProps,
 } from "../card";
+import {
+  cardLastProgressUpdate,
+  cardLocationDisplay,
+  cardPriority,
+} from "../derived";
+import { ProgressRings } from "../ProgressRings";
 
 const TAPE_TONES: Record<ProjectPriority, string> = {
   critical: "bg-telha",
@@ -54,11 +56,11 @@ export function ProjectCardDiario({
 }: ProjectCardDiarioProps) {
   const { t } = useTranslation();
   const locale = t("locale");
-  const priority = getPriority(project);
+  const priority = cardPriority(project);
   const quote = getCardQuote(project);
   const dateLabel = getCardDateLabel(project, locale);
-  const lastUpdate = getLastProgressUpdate(project);
-  const location = getLocationDisplay(project);
+  const lastUpdate = cardLastProgressUpdate(project);
+  const location = cardLocationDisplay(project);
   const identity = getIdentityLabel(project);
   const healthDots: { state: OverallHealth; label: string }[] = [
     { state: project.healthEmotional || "na", label: t("d_emotional") },

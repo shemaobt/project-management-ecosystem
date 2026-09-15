@@ -15,6 +15,8 @@ export function RoleSwitcher() {
   const { t } = useTranslation();
   const { status, user, visibleRegions, switchRole } = useAuth();
 
+  if (!switchRole) return null;
+
   return (
     <aside className="fixed bottom-6 left-6 z-50 flex max-w-72 flex-col gap-2 rounded-lg bg-elevated p-4 shadow-lg">
       <span className="text-[11px] font-bold uppercase tracking-eyebrow text-fg-subtle">

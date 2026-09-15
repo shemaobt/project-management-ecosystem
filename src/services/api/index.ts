@@ -1,0 +1,93 @@
+import * as fixture from "../../fixtures";
+import * as api from "./endpoints";
+import { healthAssessmentsAPI as apiHealthAssessmentsAPI } from "./healthAssessments";
+import { projectBrowseAPI as apiProjectBrowseAPI } from "./projectBrowse";
+import { projectRecordAPI as apiProjectRecordAPI } from "./projectRecord";
+import { resolveSource, type DataNamespace } from "./source";
+
+function pick<T>(namespace: DataNamespace, real: T, double: T): T {
+  return resolveSource(namespace) === "api" ? real : double;
+}
+
+export const projectsAPI = pick<typeof fixture.projectsAPI>(
+  "projects",
+  api.projectsAPI,
+  fixture.projectsAPI,
+);
+
+export const projectBrowseAPI = pick<typeof fixture.projectBrowseAPI>(
+  "projectsBrowse",
+  apiProjectBrowseAPI,
+  fixture.projectBrowseAPI,
+);
+
+export const projectRecordAPI = pick<typeof fixture.projectRecordAPI>(
+  "projectRecord",
+  apiProjectRecordAPI,
+  fixture.projectRecordAPI,
+);
+
+export const healthAssessmentsAPI = pick<typeof fixture.healthAssessmentsAPI>(
+  "healthAssessments",
+  apiHealthAssessmentsAPI,
+  fixture.healthAssessmentsAPI,
+);
+
+export const regionsAPI = pick<typeof fixture.regionsAPI>(
+  "regions",
+  api.regionsAPI,
+  fixture.regionsAPI,
+);
+
+export const meetingsAPI = pick<typeof fixture.meetingsAPI>(
+  "meetings",
+  api.meetingsAPI,
+  fixture.meetingsAPI,
+);
+
+export const prayerAPI = pick<typeof fixture.prayerAPI>(
+  "prayer",
+  api.prayerAPI,
+  fixture.prayerAPI,
+);
+
+export const intercessorsAPI = pick<typeof fixture.intercessorsAPI>(
+  "intercessors",
+  api.intercessorsAPI,
+  fixture.intercessorsAPI,
+);
+
+export const etenAPI = pick<typeof fixture.etenAPI>(
+  "eten",
+  api.etenAPI,
+  fixture.etenAPI,
+);
+
+export const formsAPI = pick<typeof fixture.formsAPI>(
+  "forms",
+  api.formsAPI,
+  fixture.formsAPI,
+);
+
+export const geoAPI = fixture.geoAPI;
+
+export { announceFailure, failureSentence } from "./announce";
+export { authAPI, readSession, sessionAPI } from "./endpoints";
+export { API_BASE_URL, REQUEST_TIMEOUT_MS, http } from "./client";
+export {
+  FAILURE_MESSAGE_KEYS,
+  UNKNOWN_VOCABULARY,
+  failure,
+  failureMessage,
+  failureMessageKey,
+  isAnnounceable,
+  isApiFailure,
+  isRetryable,
+  toApiFailure,
+} from "./errors";
+export { hasSession, onSessionEvent } from "./tokens";
+export { resolveSource } from "./source";
+export type { DataNamespace, DataSource } from "./source";
+export type { ProjectBrowseQuery, ProjectBrowseResult } from "../../types/projectBrowse";
+export { mapRecord, readConflict, readFieldErrors, toWire } from "./projectRecord";
+export type { RecordSaveResult } from "./projectRecord";

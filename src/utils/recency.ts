@@ -7,9 +7,11 @@ import {
 import type { DeadlineInfo, Project, StaleStatus } from "../types/project";
 import { getProjectStatus } from "./progress";
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
+export const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
-function atLocalMidnight(date: string): Date {
+/** Exported so any other module reading a plain `date` string against `now` — needs'
+ * unacknowledged sweep included — reads the same local calendar day this one does. */
+export function atLocalMidnight(date: string): Date {
   return new Date(`${date}T00:00:00`);
 }
 

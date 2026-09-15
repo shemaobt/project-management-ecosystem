@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import "../../i18n";
 import { DEFAULT_TAB } from "../../constants/recordTabs";
+import { useAuth } from "../../contexts/AuthContext";
 import { NEW_RECORD } from "../../stores/recordStore";
 import { useProjectsStore } from "../../stores/projectsStore";
 import { BrandMark } from "../common/BrandMark";
@@ -53,6 +54,7 @@ export function AppHeader() {
   const lang = usePrefsStore((state) => state.lang);
   const toggleLang = usePrefsStore((state) => state.toggleLang);
   const reload = useProjectsStore((state) => state.reload);
+  const { signOut } = useAuth();
   const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
 
   const closeDialog = (open: boolean) => {
@@ -112,6 +114,15 @@ export function AppHeader() {
         >
           + {t("btn_new")}
         </button>
+        {signOut ? (
+          <button
+            type="button"
+            className={TB_BTN}
+            onClick={() => void signOut()}
+          >
+            {t("entrar_signout")}
+          </button>
+        ) : null}
       </div>
 
       <ReceiveUpdateDialog

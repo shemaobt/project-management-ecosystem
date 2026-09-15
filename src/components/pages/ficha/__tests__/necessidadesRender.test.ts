@@ -27,6 +27,7 @@ const {
   NEED_URGENCY_SYMBOLS,
 } = await import("../../../../constants/project");
 const { makeNeed } = await import("../../../../utils/needs");
+const { formatDate, toLocalIsoDate } = await import("../../../../utils/format");
 const { NecessidadesTab } = await import("../tabs/Necessidades");
 
 const noop = () => {};
@@ -40,6 +41,9 @@ const handle = (values: Values = {}) => ({
   missing: [],
   set: noop,
   update: noop,
+  typed: {},
+  errors: [],
+  errorsFor: () => [],
   discard: noop,
 });
 
@@ -184,5 +188,128 @@ describe("o pedido guarda o que a região precisa para agir", () => {
       needsNotes: "A base assumiu metade do custo.",
     });
     expect(markup).toContain("A base assumiu metade do custo.");
+  });
+});
+
+describe("moeda sempre com o valor — INT-05 (OBT-410)", () => {
+  const withAmount = {
+    ...makeNeed(),
+    category: "financial" as const,
+    estimatedAmount: "5000.00",
+    estimatedCurrency: "BRL",
+  };
+
+  it("o valor exato nunca aparece sem a moeda, no modo ver", () => {
+    const markup = tab("ver", { needsItems: [withAmount] });
+    expect(markup).toMatch(/R\$\s*5\.000,00/);
+  });
+
+  it("o formulário pede o valor e a moeda como campos próprios", () => {
+    const markup = tab("editar", { needsItems: [withAmount] });
+    expect(markup).toContain(i18n.t("need_amount_label"));
+    expect(markup).toContain(i18n.t("need_currency_label"));
+  });
+
+  it("um valor sem moeda é dito no próprio campo, antes de salvar", () => {
+    const markup = tab("editar", {
+      needsItems: [{ ...makeNeed(), estimatedAmount: "500" }],
+    });
+    expect(markup).toContain(i18n.t("need_amount_needs_currency"));
+  });
+});
+
+describe("marcar urgente notifica pessoas — INT-05 (OBT-410)", () => {
+  const urgent = {
+    ...makeNeed(),
+    urgency: "high" as const,
+    status: "open" as const,
+  };
+
+  it("diz, no ponto de marcar, que uma necessidade urgente e aberta notifica", () => {
+    const markup = tab("editar", { needsItems: [urgent] });
+    expect(markup).toContain(i18n.t("need_urgent_notifies"));
+  });
+
+  it("uma necessidade urgente mas já atendida não promete aviso nenhum", () => {
+    const markup = tab("editar", {
+      needsItems: [{ ...urgent, status: "fulfilled" as const }],
+    });
+    expect(markup).not.toContain(i18n.t("need_urgent_notifies"));
+  });
+
+  it("país sensível: o aviso soma que a localização exata não viaja, o valor sim", () => {
+    const markup = tab("editar", {
+      needsItems: [urgent],
+      sensitiveCountry: true,
+    });
+    expect(markup).toContain(i18n.t("need_urgent_notifies_sensitive"));
+  });
+
+  it("país não sensível não carrega a ressalva de localização", () => {
+    const markup = tab("editar", {
+      needsItems: [urgent],
+      sensitiveCountry: false,
+    });
+    expect(markup).not.toContain(i18n.t("need_urgent_notifies_sensitive"));
+  });
+});
+
+describe("o ciclo de vida mostra quem viu e quando — INT-05 (OBT-410)", () => {
+  it("visto carrega data e nome, no modo ver e no modo editar", () => {
+    const seen = {
+      ...makeNeed(),
+      submittedAt: "2026-06-01",
+      acknowledgedAt: "2026-06-03",
+      acknowledgedBy: "Fresia",
+    };
+    for (const mode of ["ver", "editar"] as const) {
+      const markup = tab(mode, { needsItems: [seen] });
+      expect(markup, mode).toContain(
+        i18n.t("need_acknowledged_line", {
+          date: formatDate("2026-06-03", "pt-BR"),
+          name: "Fresia",
+        }),
+      );
+    }
+  });
+
+  it("aberto, sem ninguém ter visto e velho o bastante, ganha aviso visível", () => {
+    const stale = {
+      ...makeNeed(),
+      submittedAt: "2020-01-01",
+      status: "open" as const,
+    };
+    const markup = tab("ver", { needsItems: [stale] });
+    expect(markup).toMatch(/\d+ dias sem retorno/u);
+  });
+
+  it("um pedido fresco não é acusado de esquecido", () => {
+    const fresh = { ...makeNeed(), submittedAt: toLocalIsoDate() };
+    const markup = tab("ver", { needsItems: [fresh] });
+    expect(markup).not.toMatch(/dias sem retorno/u);
+  });
+
+  it("o botão de marcar como visto só aparece para quem ainda não foi visto", () => {
+    const open = tab("editar", { needsItems: [{ ...makeNeed(), status: "open" as const }] });
+    expect(open).toContain(i18n.t("need_acknowledge"));
+
+    const seen = tab("editar", {
+      needsItems: [{ ...makeNeed(), acknowledgedAt: "2026-06-01" }],
+    });
+    expect(seen).not.toContain(i18n.t("need_acknowledge"));
+  });
+});
+
+describe("um pedido salvo não some ao clicar em remover — INT-05 (OBT-410)", () => {
+  it("sem id (rascunho novo) ainda pode ser removido localmente", () => {
+    const markup = tab("editar", { needsItems: [makeNeed()] });
+    expect(markup).toContain(i18n.t("need_remove"));
+  });
+
+  it("com id (já salvo) o X some — a saída é marcar como não é mais necessário", () => {
+    const markup = tab("editar", {
+      needsItems: [{ ...makeNeed(), id: "n1" }],
+    });
+    expect(markup).not.toContain(i18n.t("need_remove"));
   });
 });

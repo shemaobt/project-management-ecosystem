@@ -175,7 +175,7 @@ describe("trocar quem ocupa um papel é evento, não edição de texto", () => {
 
   it("salvar sem mudar nada não inventa evento", async () => {
     await saveHolder("Ana Beatriz Rocha");
-    const outcome = useRegionsStore
+    const outcome = await useRegionsStore
       .getState()
       .saveTeams(
         draftsFor(useRegionsStore.getState().regions),
@@ -183,7 +183,7 @@ describe("trocar quem ocupa um papel é evento, não edição de texto", () => {
         NOW,
       );
 
-    expect(outcome.changed).toBe(0);
+    expect(outcome.outcome.changed).toBe(0);
     expect(useRegionsStore.getState().changes).toHaveLength(1);
   });
 
@@ -191,12 +191,52 @@ describe("trocar quem ocupa um papel é evento, não edição de texto", () => {
     await saveHolder("Ana Beatriz Rocha");
     const outcome = await saveHolder("");
 
-    expect(outcome.cleared).toBe(1);
+    expect(outcome.outcome.cleared).toBe(1);
     expect(
       resolvePersonaName(
         MOCK_SESSION_PERSONAS.coordinator,
         useRegionsStore.getState().regions,
       ),
     ).toBeNull();
+  });
+});
+
+describe("uma região recusada não some com o nome digitado nas outras", () => {
+  it("a região que falhou volta em failedRegions; a que passou aplica normalmente", async () => {
+    await useRegionsStore.getState().hydrate();
+    const drafts = draftsFor(useRegionsStore.getState().regions);
+    const south = drafts["south-america"];
+    const africa = drafts.africa;
+    if (!south || !africa) throw new Error("as regiões não vieram");
+    south.coordinator = "Ana Beatriz Rocha";
+    africa.coordinator = "Josué";
+
+    const original = regionsAPI.saveTeam.bind(regionsAPI);
+    const spy = vi
+      .spyOn(regionsAPI, "saveTeam")
+      .mockImplementation((regionKey, from, to, changedBy, changedAt) => {
+        if (regionKey === "africa") {
+          return Promise.reject(new Error("network down"));
+        }
+        return original(regionKey, from, to, changedBy, changedAt);
+      });
+
+    const { outcome, failedRegions } = await useRegionsStore
+      .getState()
+      .saveTeams(drafts, "Karina Marinho", NOW);
+
+    spy.mockRestore();
+
+    expect(failedRegions).toEqual(["africa"]);
+    expect(outcome.changed).toBe(1);
+
+    const { regions } = useRegionsStore.getState();
+    expect(
+      regions.find((region) => region.key === "south-america")?.team
+        .coordinator,
+    ).toBe("Ana Beatriz Rocha");
+    expect(
+      regions.find((region) => region.key === "africa")?.team.coordinator,
+    ).toBe("");
   });
 });

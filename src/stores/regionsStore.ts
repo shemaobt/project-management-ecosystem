@@ -1,24 +1,30 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { regionsAPI } from "../fixtures";
-import type { Region, RoleChange } from "../types/region";
-import type { SaveOutcome } from "../types/team";
-import { applyChanges, diffTeams, summarize, type TeamDrafts } from "../utils/team";
+import { announceFailure, regionsAPI, toApiFailure } from "../services/api";
+import type { Region, RegionKey, RoleChange } from "../types/region";
+import type { SaveOutcome, TeamSaveResult } from "../types/team";
+import { applyChanges, diffTeams, type TeamDrafts } from "../utils/team";
+import {
+  createHydrationSlot,
+  hydrateOnce,
+  NOT_HYDRATED,
+  type HydrationStatus,
+} from "./hydration";
 
 const REGIONS_KEY = "shema-regions-v1";
 
 export const REGIONS_VERSION = 1;
 
-interface RegionsState {
+interface RegionsState extends HydrationStatus {
   regions: Region[];
   changes: RoleChange[];
-  hydrated: boolean;
   hydrate: () => Promise<void>;
+  hydrateChanges: () => Promise<void>;
   saveTeams: (
     drafts: TeamDrafts,
     changedBy: string,
     now?: Date,
-  ) => SaveOutcome;
+  ) => Promise<TeamSaveResult>;
 }
 
 type PersistedRegions = Pick<
@@ -29,29 +35,88 @@ type PersistedRegions = Pick<
 export const useRegionsStore = create<RegionsState>()(
   persist<RegionsState, [], [], PersistedRegions>(
     (set, get) => {
-      let pending: Promise<void> | null = null;
+      const slot = createHydrationSlot();
+      const changesSlot = createHydrationSlot();
+      let changesStatus: HydrationStatus = { ...NOT_HYDRATED };
+
       return {
         regions: [],
         changes: [],
-        hydrated: false,
-        hydrate: () => {
-          if (get().hydrated) return Promise.resolve();
-          pending ??= regionsAPI.list().then((regions) => {
-            set({ regions, hydrated: true });
-            pending = null;
-          });
-          return pending;
-        },
-        saveTeams: (drafts, changedBy, now = new Date()) => {
+        ...NOT_HYDRATED,
+        hydrate: () =>
+          hydrateOnce(slot, get, set, async () => {
+            set({ regions: await regionsAPI.list() });
+          }),
+        // The trail is a coordinator-only route: every non-coordinator session
+        // gets a 403 on it, and that must not sink the region list the seats
+        // themselves render fine without. Its own slot means asking for it is
+        // the equipe screen's call, never `hydrate()`'s.
+        hydrateChanges: () =>
+          hydrateOnce(
+            changesSlot,
+            () => changesStatus,
+            (partial) => {
+              changesStatus = { ...changesStatus, ...partial };
+            },
+            async () => {
+              const changes = await regionsAPI
+                .roleChanges()
+                .catch(() => get().changes);
+              set({ changes });
+            },
+          ),
+        saveTeams: async (drafts, changedBy, now = new Date()) => {
           const { regions, changes } = get();
-          const fresh = diffTeams(regions, drafts, changedBy, now);
-          if (fresh.length > 0) {
+          const dirty = [
+            ...new Set(
+              diffTeams(regions, drafts, changedBy, now).map(
+                (change) => change.regionKey,
+              ),
+            ),
+          ];
+          if (dirty.length === 0) {
+            return { outcome: { changed: 0, filled: 0, cleared: 0 }, failedRegions: [] };
+          }
+
+          const results = await Promise.allSettled(
+            dirty.map((regionKey) => {
+              const region = regions.find((entry) => entry.key === regionKey);
+              const draft = drafts[regionKey];
+              if (!region || !draft) {
+                return Promise.reject(new Error(`unknown region '${regionKey}'`));
+              }
+              return regionsAPI.saveTeam(
+                regionKey,
+                region.team,
+                draft,
+                changedBy,
+                now,
+              );
+            }),
+          );
+
+          const outcome: SaveOutcome = { changed: 0, filled: 0, cleared: 0 };
+          const won: RoleChange[] = [];
+          const failedRegions: RegionKey[] = [];
+          results.forEach((result, index) => {
+            if (result.status === "fulfilled") {
+              outcome.changed += result.value.outcome.changed;
+              outcome.filled += result.value.outcome.filled;
+              outcome.cleared += result.value.outcome.cleared;
+              won.push(...result.value.changes);
+            } else {
+              failedRegions.push(dirty[index]);
+              announceFailure(toApiFailure(result.reason));
+            }
+          });
+
+          if (won.length > 0) {
             set({
-              regions: applyChanges(regions, fresh),
-              changes: [...changes, ...fresh],
+              regions: applyChanges(regions, won),
+              changes: [...changes, ...won],
             });
           }
-          return summarize(fresh);
+          return { outcome, failedRegions };
         },
       };
     },

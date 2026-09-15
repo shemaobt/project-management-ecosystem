@@ -7,7 +7,6 @@ import {
   getProgress,
   withRolledAggregates,
 } from "../../../../../utils/progress";
-import { getDaysSinceUpdate, getStaleStatus } from "../../../../../utils/recency";
 import { Progress } from "../../../../ui";
 import { getUnitShare } from "../../../projetos/card";
 import type { DraftHandle } from "../../useDraft";
@@ -166,13 +165,28 @@ function BreakdownTable({
   );
 }
 
+/**
+ * Status and staleness are the **server's**, read off `derived` and never recomputed
+ * here — two implementations of *is this project stale* diverge, and the divergence
+ * shows as a banner that disagrees with the card the reader clicked to get here. What
+ * stays local is the arithmetic of the table on screen: the aggregates and the
+ * percentage are what *save would write*, and they have to move as somebody types.
+ *
+ * A record with no `derived` has not been saved yet, and the panel says so rather than
+ * drawing a status nothing computed.
+ */
 export function ProgressoView({ draft }: ProgressoViewProps) {
   const { t } = useTranslation();
   const project = withRolledAggregates(materializeDraft(draft.values));
 
-  const status = project.status;
-  const stale = getStaleStatus(project);
-  const days = getDaysSinceUpdate(project);
+  const derived = draft.saved?.derived ?? null;
+  const status = derived?.status ?? null;
+  const stale = derived?.stale ?? null;
+  const days = derived?.daysSinceUpdate ?? null;
+  const unsavedStatus =
+    draft.saved && project.status !== draft.saved.status
+      ? project.status
+      : null;
   const unitLabel = (project.totalUnitsType || DEFAULT_UNIT_TYPE).toLowerCase();
   const progress = Math.round(getProgress(project));
   const communityRate = Math.round(
@@ -192,15 +206,28 @@ export function ProgressoView({ draft }: ProgressoViewProps) {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="flex items-center gap-2.5 rounded-md border border-line bg-elevated px-4 py-2.5">
-        <span
-          aria-hidden
-          className={cn("size-3 rounded-pill", STATUS_BANNER_DOTS[status])}
-        />
-        <strong className="text-small font-semibold tracking-[0.02em] text-fg">
-          {t(STATUS_BANNER_LABEL_KEYS[status])}
-        </strong>
-      </div>
+      {status ? (
+        <div className="flex flex-wrap items-center gap-2.5 rounded-md border border-line bg-elevated px-4 py-2.5">
+          <span
+            aria-hidden
+            className={cn("size-3 rounded-pill", STATUS_BANNER_DOTS[status])}
+          />
+          <strong className="text-small font-semibold tracking-[0.02em] text-fg">
+            {t(STATUS_BANNER_LABEL_KEYS[status])}
+          </strong>
+          {unsavedStatus && (
+            <span className="text-micro text-fg-muted">
+              {t("record_status_unsaved", {
+                status: t(STATUS_BANNER_LABEL_KEYS[unsavedStatus]),
+              })}
+            </span>
+          )}
+        </div>
+      ) : (
+        <p className="rounded-md border border-line bg-elevated px-4 py-2.5 text-micro leading-[1.45] text-fg-muted">
+          {t("record_derived_pending")}
+        </p>
+      )}
 
       {stale && <StaleBanner stale={stale} days={days} />}
 

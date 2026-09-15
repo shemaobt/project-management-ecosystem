@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
     test: {
       environment: "node",
       include: ["src/**/*.test.ts"],
-      env: { TZ: "UTC" },
+      env: { TZ: "UTC", VITE_DATA_SOURCE: "fixtures" },
     },
   };
 });

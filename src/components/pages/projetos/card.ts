@@ -1,6 +1,6 @@
 import type { Project } from "../../../types/project";
 import { formatDayMonth, formatNumber } from "../../../utils/format";
-import { getLastProgressUpdate } from "../../../utils/recency";
+import { cardLastProgressUpdate } from "./derived";
 
 export const QUOTE_MAX_LENGTH = 140;
 
@@ -20,7 +20,7 @@ export function getCardDateLabel(
   project: Project,
   locale: string,
 ): string | null {
-  const date = getLastProgressUpdate(project);
+  const date = cardLastProgressUpdate(project);
   return date ? formatDayMonth(date, locale) : null;
 }
 

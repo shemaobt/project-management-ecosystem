@@ -4,7 +4,13 @@ import { circleControl, transitionColors } from "../../../../../styles";
 import type { ProjectPhase } from "../../../../../types/project";
 import { cn } from "../../../../../utils/cn";
 import { Button, Input } from "../../../../ui";
-import { appendPhase, patchPhase, phaseTitle, removePhase } from "./phases";
+import {
+  appendPhase,
+  isCalendarDay,
+  patchPhase,
+  phaseTitle,
+  removePhase,
+} from "./phases";
 
 export interface PhasesEditorProps {
   phases: readonly ProjectPhase[];
@@ -37,7 +43,10 @@ export function PhasesEditor({ phases, onChange }: PhasesEditorProps) {
             }
           />
           <Input
-            type="date"
+            // A stored phrase stays editable as a phrase: a date input given
+            // "2º semestre" renders empty, and a field that shows nothing where
+            // there is something is how the form starts lying about what it holds.
+            type={!phase.date || isCalendarDay(phase.date) ? "date" : "text"}
             className="w-[150px] flex-none"
             aria-label={t("f_deadline")}
             value={phase.date}

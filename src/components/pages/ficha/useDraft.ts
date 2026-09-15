@@ -7,15 +7,21 @@ import {
   type ProjectDraft,
   type RequiredField,
 } from "../../../stores/recordStore";
-import { selectProject, useProjectsStore } from "../../../stores/projectsStore";
+import { useProjectRecordStore } from "../../../stores/projectRecordStore";
 import type { Project } from "../../../types/project";
+import type { RecordField, RecordFieldError } from "../../../types/projectRecord";
 
 export interface DraftHandle {
   values: ProjectDraft;
+  /** What this coordinator actually wrote — the overlay, not the merge. */
+  typed: ProjectDraft;
   saved?: Project;
   isNew: boolean;
   hasChanges: boolean;
   missing: RequiredField[];
+  /** The server's refusals for this record, located — empty until a save is refused. */
+  errors: RecordFieldError[];
+  errorsFor: (field: RecordField) => RecordFieldError[];
   set: <K extends keyof Project>(field: K, value: Project[K]) => void;
   update: <K extends keyof Project>(
     field: K,
@@ -24,20 +30,26 @@ export interface DraftHandle {
   discard: () => void;
 }
 
+const NO_ERRORS: RecordFieldError[] = [];
+const EMPTY_DRAFT: ProjectDraft = {};
+
 export function useDraft(recordId: string): DraftHandle {
   const draft = useRecordStore((state) => state.drafts[recordId]);
   const updateDraft = useRecordStore((state) => state.updateDraft);
   const updateDraftValue = useRecordStore((state) => state.updateDraftValue);
   const discardDraft = useRecordStore((state) => state.discardDraft);
-  const projects = useProjectsStore((state) => state.projects);
+  const record = useProjectRecordStore((state) => state.record);
+  const outcome = useProjectRecordStore((state) => state.outcome);
 
   const isNew = recordId === NEW_RECORD;
-  const stored = isNew ? undefined : selectProject(projects, recordId);
+  const stored = isNew ? undefined : record?.project;
 
   const values = useMemo(
     () => ({ ...makeEmptyProject(), ...stored, ...draft }),
     [stored, draft],
   );
+
+  const errors = outcome?.kind === "invalid" ? outcome.errors : NO_ERRORS;
 
   const set = useCallback(
     <K extends keyof Project>(field: K, value: Project[K]) => {
@@ -58,6 +70,11 @@ export function useDraft(recordId: string): DraftHandle {
     [recordId, stored, updateDraftValue],
   );
 
+  const errorsFor = useCallback(
+    (field: RecordField) => errors.filter((error) => error.field === field),
+    [errors],
+  );
+
   const discard = useCallback(
     () => discardDraft(recordId),
     [recordId, discardDraft],
@@ -65,10 +82,13 @@ export function useDraft(recordId: string): DraftHandle {
 
   return {
     values,
+    typed: draft ?? EMPTY_DRAFT,
     saved: stored,
     isNew,
     hasChanges: Object.keys(draft ?? {}).length > 0,
     missing: missingRequired(values),
+    errors,
+    errorsFor,
     set,
     update,
     discard,

@@ -3,7 +3,7 @@ import {
   GLOBE_INITIAL_ROTATION,
   type GlobeFocusPoint,
 } from "../../../../constants/geo";
-import { geoAPI } from "../../../../fixtures";
+import { geoAPI } from "../../../../services/api";
 import type { Project } from "../../../../types/project";
 import type { GeoOutline } from "../../../../types/region";
 import { GlobeMarkers, type ProjectedMarker } from "./GlobeMarkers";

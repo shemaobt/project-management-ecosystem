@@ -157,7 +157,10 @@ function hasAnyMedia(project: Project): boolean {
   return hasPhotos || hasVideos;
 }
 
-function emptyCounts(): FacetCounts {
+/** The zeroed shape every `FacetCounts` starts from — exported so a server-sourced
+ * response (`services/api/projectBrowse.ts`) can be defaulted into the same shape rather
+ * than inventing a second copy of it. */
+export function emptyCounts(): FacetCounts {
   return {
     status: {},
     team: {},
