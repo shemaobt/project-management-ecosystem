@@ -17,7 +17,7 @@ import {
   orderRegionPanel,
 } from "../../../../../utils/region";
 import { filterProjects } from "../../../../../utils/search";
-import { orderByCounts } from "../TeamByRegion";
+import { orderByCounts } from "../regionCards";
 
 const NOW = new Date("2026-05-14T12:00:00Z");
 const SCOPED_ROLES = ["coordinator", "obtLab", "resourceCircle"] as const;
