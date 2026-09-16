@@ -165,6 +165,9 @@
 
   --container-max: 1200px;
   --container-wide: 1500px;
+  /* O mural de Oração tem largura própria no protótipo: app.css `.or-wrap`
+     crava 1080px, entre --container-reading (920) e --container-max (1200). */
+  --container-mural: 1080px;
   --container-reading: 920px;
   --container-narrow: 760px;
   --container-pad: clamp(20px, 4vw, 56px);

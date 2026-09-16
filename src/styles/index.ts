@@ -9,6 +9,7 @@ export {
   attentionTone,
   criticalTone,
   goodTone,
+  objectiveTagTone,
   pillBase,
 } from "./badges";
 export { photoSlotSurface, surfaceElevated, surfaceOutlined } from "./cards";

@@ -175,6 +175,17 @@ describe("nenhum estado é distinguível só por cor", () => {
     }
   });
 
+  // A tag de *objetivo* do cartão do Atlas fica na mesma linha do selo de
+  // atualização. Pintá-la com `goodTone` a deixava idêntica ao selo "boa" e a fazia
+  // repintar junto com o tom de saúde. Ela tem nome próprio desde a PR #55.
+  it("a tag de objetivo do Atlas nao toma emprestado o tom de saude", () => {
+    const card = read("src/components/pages/projetos/ProjectCardAtlas.tsx");
+    expect(card).toContain("objectiveTagTone");
+    expect(card).not.toMatch(/\bgoodTone\b/u);
+    const badges = read("src/styles/badges.ts");
+    expect(badges).toMatch(/export const objectiveTagTone/u);
+  });
+
   it("o alfinete de prioridade do Diário diz o que a cor diz", () => {
     for (const priority of PROJECT_PRIORITIES) {
       const html = markup(createElement(PriorityPin, { priority }));
@@ -190,6 +201,24 @@ describe("nenhum estado é distinguível só por cor", () => {
       i18n.t(PRIORITY_LABEL_KEYS[priority]),
     );
     expect(new Set(spoken).size).toBe(PROJECT_PRIORITIES.length);
+  });
+});
+
+describe("o rotulo visivel cabe dentro do nome acessivel", () => {
+  // WCAG 2.5.3 Label in Name (A): quem comanda por voz diz o que lê na tela.
+  // O botão de idioma mostra "EN"/"PT" e a bandeira é `aria-hidden`, então o nome
+  // vem do conteúdo. Um `aria-label` com t("lang_toggle") — "Idioma"/"Language" —
+  // trocava esse nome por um que não contém o rótulo visível, e "clicar EN" deixava
+  // de casar. O `title` continua carregando a explicação longa, como descrição.
+  // Achado do little-joao na PR #55.
+  it("o botao de idioma nao troca EN/PT por Idioma", () => {
+    const header = read("src/components/layout/AppHeader.tsx");
+    const button = header.slice(
+      header.indexOf("onClick={toggleLang}") - 400,
+      header.indexOf("onClick={toggleLang}"),
+    );
+    expect(button).toContain('title={t("lang_toggle")}');
+    expect(button).not.toContain("aria-label");
   });
 });
 
@@ -213,7 +242,21 @@ describe("a tela cabe num aparelho emprestado", () => {
     expect(offenders).toEqual([]);
   });
 
-  const CONTAINER = /\bmax-w-\(--container-(?:max|wide|reading|narrow)\)/u;
+  const CONTAINER = /\bmax-w-\(--container-(?:max|wide|reading|narrow|mural)\)/u;
+  // A largura do mural de Oração é do protótipo: `app.css` `.or-wrap` crava 1080px.
+  // Trocá-la por `--container-max` alargava a tela em 120px — mudança de layout, não
+  // de acessibilidade. Achado do little-joao na PR #55.
+  it("o mural de Oracao mantem a largura que o prototipo deu a ele", () => {
+    const page = read("src/components/pages/oracao/index.tsx");
+    expect(page).toContain("max-w-(--container-mural)");
+    const css = readFileSync(join(process.cwd(), "src/index.css"), "utf8");
+    const line = css
+      .split("\n")
+      .find((entry) => entry.trim().startsWith("--container-mural:"));
+    expect(line?.trim()).toBe("--container-mural: 1080px;");
+  });
+
+
   const RIGID_PAD = /(?:^|[\s"'`])(?:sm:|md:|lg:)?px-\d/u;
 
   it("nenhum tamanho de título é um pixel fixo", () => {
@@ -242,15 +285,35 @@ describe("a tela cabe num aparelho emprestado", () => {
     }
   });
 
+  // O Início é a única página cujo bloco de conteúdo NÃO usa `--container-pad`, e
+  // é de propósito: ele tem de alinhar com o `Hero` logo acima, e o protótipo crava
+  // o padding do hero em pixel — `app.css` `.hero { padding: 36px 32px 28px }`, e
+  // `20px` no breakpoint de celular — em vez de usar o token fluido do design
+  // system. Dar `--container-pad` ao bloco do globo e deixar o hero em `px-5
+  // sm:px-8` afastava as duas bordas em 24px a partir de ~900px. Achado do
+  // little-joao na PR #55. A isenção é do Início e de mais ninguém.
+  const HERO_ALIGNED = ["src/components/pages/inicio/index.tsx"];
+
   it("os contêineres de página respiram com a janela", () => {
     const wrappers = shipped().filter((entry) => CONTAINER.test(entry.source));
     expect(wrappers.length).toBeGreaterThan(5);
-    const rigid = wrappers.filter((entry) =>
-      entry.source
-        .split("\n")
-        .some((line) => CONTAINER.test(line) && RIGID_PAD.test(line)),
+    const rigid = wrappers.filter(
+      (entry) =>
+        !HERO_ALIGNED.includes(entry.path) &&
+        entry.source
+          .split("\n")
+          .some((line) => CONTAINER.test(line) && RIGID_PAD.test(line)),
     );
     expect(rigid.map((entry) => entry.path)).toEqual([]);
+  });
+
+  it("e o bloco isento do Início casa com o padding que o Hero carrega", () => {
+    const hero = read("src/components/pages/inicio/Hero.tsx");
+    const page = read("src/components/pages/inicio/index.tsx");
+    const pad = /px-5\b[^"]*\bsm:px-8/u;
+    expect(hero).toMatch(pad);
+    expect(page).toMatch(pad);
+    expect(page).not.toContain("px-(--container-pad)");
   });
 });
 

@@ -45,7 +45,7 @@ export function OracaoView({
       : groups.filter((group) => group.region === active);
 
   return (
-    <section className="mx-auto w-full max-w-(--container-max) px-(--container-pad) pt-8 pb-20">
+    <section className="mx-auto w-full max-w-(--container-mural) px-(--container-pad) pt-8 pb-20">
       <header className="mb-5.5">
         <p className="mb-2.5 text-[12px] leading-none font-bold tracking-[0.16em] text-telha uppercase">
           {t("oracao_eyebrow")}

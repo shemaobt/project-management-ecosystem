@@ -87,7 +87,6 @@ export function AppHeader() {
         <button
           type="button"
           className={cn(TB_BTN, "text-micro font-bold")}
-          aria-label={t("lang_toggle")}
           title={t("lang_toggle")}
           onClick={toggleLang}
         >
