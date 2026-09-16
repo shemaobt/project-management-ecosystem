@@ -6,13 +6,20 @@ import type {
 import { cn } from "../../utils/cn";
 import { divider, surfaceOutlined, transitionColors } from "../../styles";
 
-export function Table({
-  className,
-  ...props
-}: HTMLAttributes<HTMLTableElement>) {
+export interface TableProps extends HTMLAttributes<HTMLTableElement> {
+  label: string;
+}
+
+export function Table({ className, label, ...props }: TableProps) {
   return (
-    <div className={cn("overflow-x-auto rounded-md", surfaceOutlined)}>
+    <div
+      role="region"
+      aria-label={label}
+      tabIndex={0}
+      className={cn("overflow-x-auto rounded-md", surfaceOutlined)}
+    >
       <table
+        aria-label={label}
         className={cn("w-full border-collapse text-left", className)}
         {...props}
       />
