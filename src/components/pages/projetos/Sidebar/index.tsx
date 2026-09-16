@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { FacetCounts } from "../../../../utils/search";
 import { Chips } from "./Chips";
 import { DetailedFilters } from "./Filters";
@@ -17,8 +18,13 @@ export interface SidebarProps {
 }
 
 export function Sidebar({ baseline, shown, total, counts }: SidebarProps) {
+  const { t } = useTranslation();
+
   return (
-    <aside className="self-start lg:sticky lg:top-[78px] lg:max-h-[calc(100vh-90px)] lg:overflow-y-auto lg:pr-1.5">
+    <aside
+      aria-label={t("projetos_filters_label")}
+      className="self-start lg:sticky lg:top-[78px] lg:max-h-[calc(100vh-90px)] lg:overflow-y-auto lg:pr-1.5"
+    >
       <div className="sticky top-0 z-5 mb-1 bg-linear-to-b from-canvas from-80% to-transparent pb-3.5">
         <SearchBox />
         <Chips counts={counts.preset} />

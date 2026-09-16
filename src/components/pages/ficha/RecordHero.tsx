@@ -31,8 +31,10 @@ export function RecordHero({ mode, draft }: RecordHeroProps) {
           <div className="mb-2 text-[10px] font-semibold tracking-[0.18em] uppercase text-areia">
             {eyebrow}
           </div>
-          <DialogTitle className={cn(TITLE_TEXT, "truncate text-on-dark")}>
-            {name || (draft.isNew ? t("modal_new") : "—")}
+          <DialogTitle asChild>
+            <h1 className={cn(TITLE_TEXT, "truncate text-on-dark")}>
+              {name || (draft.isNew ? t("modal_new") : "—")}
+            </h1>
           </DialogTitle>
         </div>
       </div>
