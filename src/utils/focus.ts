@@ -1,6 +1,6 @@
 export const CONTENT_ANCHOR_ID = "conteudo";
 
-export interface FocusableAnchor {
+interface FocusableAnchor {
   focus: (options?: { preventScroll?: boolean }) => void;
 }
 
@@ -22,7 +22,7 @@ export function rescueFocus(host: FocusHost): boolean {
   return true;
 }
 
-export function documentHost(doc: Document): FocusHost {
+function documentHost(doc: Document): FocusHost {
   return {
     activeElement: doc.activeElement,
     body: doc.body,
