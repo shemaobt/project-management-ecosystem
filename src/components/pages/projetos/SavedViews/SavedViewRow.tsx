@@ -80,7 +80,7 @@ export function SavedViewRow({
           className={cn(
             "flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-left text-micro font-semibold text-fg",
             transitionColors,
-            "hover:bg-accent-soft hover:text-telha",
+            "hover:bg-accent-soft hover:text-accent-press",
           )}
         >
           <Bookmark size={13} strokeWidth={1.75} className="shrink-0 text-telha" />

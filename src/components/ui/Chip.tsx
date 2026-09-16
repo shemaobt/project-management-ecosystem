@@ -14,7 +14,7 @@ const chipVariants = cva(
     variants: {
       variant: {
         filter:
-          "w-full justify-between gap-1.5 rounded-sm px-2.5 py-1.5 text-micro font-medium text-fg hover:bg-telha/6 hover:text-telha data-[state=checked]:bg-inverse data-[state=checked]:font-semibold data-[state=checked]:text-on-dark",
+          "w-full justify-between gap-1.5 rounded-sm px-2.5 py-1.5 text-micro font-medium text-fg hover:bg-telha/6 hover:text-telha data-[state=checked]:bg-inverse data-[state=checked]:font-semibold data-[state=checked]:text-on-dark data-[state=checked]:hover:bg-inverse data-[state=checked]:hover:text-on-dark",
         outline: `gap-1.75 rounded-pill ${surfaceOutlined} px-3.5 py-2.25 text-[13px] leading-none font-semibold text-fg data-[state=checked]:border-telha data-[state=checked]:bg-telha data-[state=checked]:text-on-brand`,
       },
     },

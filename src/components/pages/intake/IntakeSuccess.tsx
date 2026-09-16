@@ -12,7 +12,7 @@ export function IntakeSuccessView() {
 
   return (
     <div>
-      <div className="mb-4 flex size-11 items-center justify-center rounded-pill bg-verde-claro text-on-brand">
+      <div className="mb-4 flex size-11 items-center justify-center rounded-pill bg-verde-claro-ink text-on-brand">
         <Check size={22} strokeWidth={2} aria-hidden />
       </div>
       <h1 className="font-serif text-h3 leading-snug font-normal text-fg italic">

@@ -9,9 +9,9 @@ export const badgeVariants = cva(
     variants: {
       tone: {
         neutral: "bg-muted text-fg",
-        accent: "bg-accent-soft text-telha",
+        accent: "bg-accent-soft text-accent-press",
         green: goodTone,
-        azul: "bg-azul/25 text-azul",
+        azul: "bg-azul/25 text-azul-ink",
         dark: "bg-inverse text-on-dark",
       },
       size: {

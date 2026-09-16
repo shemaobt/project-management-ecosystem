@@ -28,7 +28,7 @@ export function TabNav({ pending }: TabNavProps) {
             "text-tag font-semibold tracking-[0.04em] whitespace-nowrap text-fg normal-case",
             transitionAll,
             "hover:border-telha hover:text-telha",
-            "data-[state=active]:border-telha data-[state=active]:bg-accent-soft data-[state=active]:text-telha",
+            "data-[state=active]:border-telha data-[state=active]:bg-accent-soft data-[state=active]:text-accent-press",
           )}
         >
           <span

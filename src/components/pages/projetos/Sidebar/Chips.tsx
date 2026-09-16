@@ -106,7 +106,7 @@ export function Chips({ counts }: ChipsProps) {
               active && "border-telha bg-telha text-on-brand shadow-accent",
               locked
                 ? "opacity-70"
-                : "cursor-pointer hover:border-telha hover:bg-accent-soft hover:text-telha",
+                : "cursor-pointer hover:border-telha hover:bg-accent-soft hover:text-accent-press",
             )}
           >
             <span className="flex shrink-0 items-center justify-center">
@@ -117,7 +117,7 @@ export function Chips({ counts }: ChipsProps) {
               className={cn(
                 "shrink-0 rounded-pill bg-muted px-[7px] py-px text-[10px] font-bold text-fg-subtle",
                 active && "bg-elevated/22 text-on-brand",
-                !locked && "group-hover:bg-elevated group-hover:text-telha",
+                !locked && "group-hover:bg-elevated group-hover:text-accent-press",
               )}
             >
               {count}

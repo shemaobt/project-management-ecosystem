@@ -60,7 +60,7 @@ export function ProgressoForm({ draft }: ProgressoFormProps) {
       {drops.length > 0 && (
         <p
           role="status"
-          className="rounded-md border-l-4 border-status-attention bg-status-attention-bg px-4 py-3 text-small leading-[1.45] text-status-attention-fg"
+          className="rounded-md border-l-4 border-status-attention bg-status-attention-bg px-4 py-3 text-small leading-[1.45] text-status-attention-ink"
         >
           {t("progress_decrease_warn", {
             fields: drops.map((key) => t(COUNT_LABEL_KEYS[key])).join(", "),

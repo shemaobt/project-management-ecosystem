@@ -20,10 +20,10 @@ const STAMP_TONES: Record<ProjectPriority, string> = {
   default: "bg-verde text-on-dark",
   critical: "bg-telha text-on-brand",
   warning: "bg-stamp-warning text-on-dark",
-  completed: "bg-verde-claro text-on-brand",
+  completed: "bg-verde-claro-ink text-on-brand",
   canceled: "bg-areia text-on-light",
   paused: "bg-fg-subtle text-on-dark",
-  planned: "bg-azul text-on-brand",
+  planned: "bg-azul-ink text-on-brand",
   unknown: "bg-tone-unknown text-on-dark",
 };
 
@@ -131,14 +131,14 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
         </div>
         <div className="mt-1 flex flex-wrap gap-1">
           {types.map((type) => (
-            <span key={type} className={cn(tagPill, "bg-accent-soft text-telha")}>
+            <span key={type} className={cn(tagPill, "bg-accent-soft text-accent-press")}>
               {type}
             </span>
           ))}
           {project.objective.slice(0, 1).map((objective) => (
             <span
               key={objective}
-              className={cn(tagPill, "bg-verde-claro/18 text-verde-claro")}
+              className={cn(tagPill, "bg-verde-claro/18 text-status-good-ink")}
             >
               {objective}
             </span>
@@ -154,7 +154,7 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
             </span>
           )}
           {stale && stale !== "em-dia" && (
-            <span className="mt-0.5 rounded-pill bg-accent-soft px-[7px] py-0.5 text-[10px] font-bold tracking-button uppercase text-telha">
+            <span className="mt-0.5 rounded-pill bg-accent-soft px-[7px] py-0.5 text-[10px] font-bold tracking-button uppercase text-accent-press">
               {t(STALE_LABEL_KEYS[stale])}
             </span>
           )}

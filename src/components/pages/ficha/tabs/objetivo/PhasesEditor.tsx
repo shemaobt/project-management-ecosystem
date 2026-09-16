@@ -60,7 +60,7 @@ export function PhasesEditor({ phases, onChange }: PhasesEditorProps) {
             className={cn(
               circleControl,
               transitionColors,
-              "size-9 flex-none bg-muted text-fg-muted hover:text-telha",
+              "size-9 flex-none bg-muted text-fg-muted hover:text-accent-press",
             )}
             onClick={() => onChange(removePhase(phases, index))}
           >
