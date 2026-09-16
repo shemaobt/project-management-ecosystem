@@ -13,9 +13,13 @@ O que este deploy é, em quatro linhas:
 - O contêiner recebe o `.env` **montado** em `/run/secrets/.env`, vindo do Secret Manager do projeto
   `shemaobt-secrets`. Sem ele o `docker-entrypoint.sh` **recusa subir**.
 - **O serviço não é público.** `--no-allow-unauthenticated` no deploy, e um passo do workflow falha o job se
-  aparecer `allUsers` ou `allAuthenticatedUsers` na política de IAM do serviço. `src/__tests__/deploy.test.ts`
-  reprova `npm test` se alguém tirar qualquer um dos dois do workflow — a caixa mais dura da DoD é verificável
-  sem credencial nenhuma.
+  aparecer `allUsers` ou `allAuthenticatedUsers` na política de IAM do serviço. Esse passo roda em **todo
+  deploy** — é ele que segura a propriedade de verdade.
+  `src/__tests__/deploy.test.ts` reprova `npm test` se alguém tirar qualquer um dos dois do workflow, o que
+  torna a caixa mais dura da DoD verificável sem credencial nenhuma — mas **não é um portão de merge**:
+  o `lint.yml` roda só ESLint e `tsc -b` no `pull_request`, então a suíte só roda quando alguém a roda.
+  Na prática: **antes de mergear qualquer mudança no `deploy.yml`, rode `npm test`.** Ligar o vitest ao CI é
+  uma linha no `lint.yml`, que é dono da FE-40 e não desta issue.
 
 ## 1. A decisão de acesso — IAM, não IAP
 
