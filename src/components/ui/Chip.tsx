@@ -30,7 +30,7 @@ const countVariants = cva("rounded-pill tabular-nums", {
       filter:
         "bg-verde/8 px-1.75 py-0.5 text-[10px] font-semibold text-fg-muted group-data-[state=checked]:bg-branco/20 group-data-[state=checked]:text-on-dark",
       outline:
-        "text-[11px] font-bold text-fg-subtle group-data-[state=checked]:text-on-brand/80",
+        "text-[11px] font-bold text-fg-subtle group-data-[state=checked]:text-on-brand",
     },
   },
   defaultVariants: {

@@ -6,6 +6,7 @@ import type {
   Project,
   ProjectPriority,
 } from "../../../types/project";
+import { goodTone } from "../../../styles";
 import { cn } from "../../../utils/cn";
 import { getDeadlineInfo } from "../../../utils/recency";
 import { StatusDot } from "../../common/StatusBadge";
@@ -138,7 +139,7 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
           {project.objective.slice(0, 1).map((objective) => (
             <span
               key={objective}
-              className={cn(tagPill, "bg-verde-claro/18 text-status-good-ink")}
+              className={cn(tagPill, goodTone)}
             >
               {objective}
             </span>

@@ -77,7 +77,7 @@ export function NightStatsOverlay({ stats }: { stats: NightStats }) {
           <span className="font-sans text-lead font-black tracking-[-0.02em] text-on-dark tabular-nums max-sm:text-body">
             {item.value}
           </span>
-          <span className="mt-[3px] text-[9px] font-semibold tracking-[0.12em] uppercase text-areia">
+          <span className="mt-[3px] text-[9px] font-semibold tracking-[0.12em] uppercase text-on-dark">
             {item.label}
           </span>
         </div>
@@ -93,7 +93,7 @@ export function SensitiveNotice({ count }: { count: number }) {
     <div
       className={cn(
         overlayPill,
-        "bottom-5 left-5 flex items-center gap-2 px-3.5 py-2 text-[10px] font-semibold tracking-[0.04em] text-areia max-sm:bottom-3 max-sm:left-3",
+        "bottom-5 left-5 flex items-center gap-2 px-3.5 py-2 text-[10px] font-semibold tracking-[0.04em] text-on-dark max-sm:bottom-3 max-sm:left-3",
       )}
     >
       <EyeOff size={12} strokeWidth={1.75} aria-hidden />

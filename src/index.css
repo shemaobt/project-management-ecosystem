@@ -112,10 +112,10 @@
   --font-serif: "Merriweather", Georgia, "Times New Roman", serif;
   --font-display: "Montserrat", system-ui, sans-serif;
 
-  --fs-display: 88px;
-  --fs-h1: 56px;
-  --fs-h2: 40px;
-  --fs-h3: 28px;
+  --fs-display: clamp(44px, 9vw, 88px);
+  --fs-h1: clamp(32px, 6vw, 56px);
+  --fs-h2: clamp(26px, 4.6vw, 40px);
+  --fs-h3: clamp(22px, 3.2vw, 28px);
   --fs-h4: 22px;
   --fs-lead: 20px;
   --fs-body: 16px;

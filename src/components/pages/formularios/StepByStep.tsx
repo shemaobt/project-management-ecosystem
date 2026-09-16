@@ -56,7 +56,7 @@ export function StepByStep({ projectName, reporting }: StepByStepProps) {
                   </span>{" "}
                   {t(step.detailKey)}
                 </p>
-                <p className="mt-0.5 text-tag font-semibold tracking-button uppercase text-fg-subtle">
+                <p className="mt-0.5 text-tag font-semibold tracking-button uppercase text-fg-muted">
                   {t(STEP_ACTOR_LABEL_KEYS[step.actor])}
                 </p>
               </div>

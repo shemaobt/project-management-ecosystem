@@ -216,6 +216,32 @@ describe("a tela cabe num aparelho emprestado", () => {
   const CONTAINER = /\bmax-w-\(--container-(?:max|wide|reading|narrow)\)/u;
   const RIGID_PAD = /(?:^|[\s"'`])(?:sm:|md:|lg:)?px-\d/u;
 
+  it("nenhum tamanho de título é um pixel fixo", () => {
+    const css = readFileSync(join(process.cwd(), "src/index.css"), "utf8");
+    for (const name of ["display", "h1", "h2", "h3"]) {
+      const line = css
+        .split("\n")
+        .find((entry) => entry.trim().startsWith(`--fs-${name}:`));
+      expect(line, name).toMatch(/clamp\(/u);
+    }
+  });
+
+  it("e o teto de cada um é o valor da escala do design authority", () => {
+    const css = readFileSync(join(process.cwd(), "src/index.css"), "utf8");
+    const ceiling: Record<string, string> = {
+      display: "88px",
+      h1: "56px",
+      h2: "40px",
+      h3: "28px",
+    };
+    for (const [name, value] of Object.entries(ceiling)) {
+      const line = css
+        .split("\n")
+        .find((entry) => entry.trim().startsWith(`--fs-${name}:`));
+      expect(line, name).toContain(`${value})`);
+    }
+  });
+
   it("os contêineres de página respiram com a janela", () => {
     const wrappers = shipped().filter((entry) => CONTAINER.test(entry.source));
     expect(wrappers.length).toBeGreaterThan(5);
