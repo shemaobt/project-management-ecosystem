@@ -1,4 +1,5 @@
-DS-PROJECT/
+# pasta ou symlink: sem a barra o padrão casa os dois (um symlink não é diretório)
+DS-PROJECT
 
 logs
 *.log

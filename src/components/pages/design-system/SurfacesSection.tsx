@@ -74,7 +74,7 @@ export function SurfacesSection() {
             <TabsTrigger value="saude">Saúde</TabsTrigger>
           </TabsList>
           <TabsContent value="progresso">
-            <Table>
+            <Table label="Progresso por livro">
               <TableHead>
                 <TableRow>
                   <TableHeaderCell>Livro</TableHeaderCell>

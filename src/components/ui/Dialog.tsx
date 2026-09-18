@@ -3,6 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react";
 import type { ComponentPropsWithoutRef, HTMLAttributes } from "react";
 import { cn } from "../../utils/cn";
+import { scheduleFocusRescue } from "../../utils/focus";
 import {
   circleControl,
   footerRow,
@@ -55,6 +56,7 @@ export function DialogContent({
   children,
   closeLabel,
   size,
+  onCloseAutoFocus,
   ...props
 }: DialogContentProps) {
   return (
@@ -62,6 +64,10 @@ export function DialogContent({
       <DialogOverlay>
         <DialogPrimitive.Content
           className={cn(dialogContentVariants({ size }), className)}
+          onCloseAutoFocus={(event) => {
+            onCloseAutoFocus?.(event);
+            scheduleFocusRescue();
+          }}
           {...props}
         >
           {children}

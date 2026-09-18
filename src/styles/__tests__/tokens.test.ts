@@ -109,6 +109,20 @@ function luminance(name: string): number {
   return luminanceOf(opaque(name));
 }
 
+function walkSource(): { path: string; source: string }[] {
+  const walkAll = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const path = join(dir, entry.name);
+      return entry.isDirectory() ? walkAll(path) : [path];
+    });
+  return walkAll(join(process.cwd(), "src"))
+    .filter((path) => /\.tsx?$/u.test(path) && !/__tests__/u.test(path))
+    .map((path) => ({
+      path: path.replace(`${process.cwd()}/`, ""),
+      source: readFileSync(path, "utf8"),
+    }));
+}
+
 function ratio(one: number, other: number): number {
   const [lighter, darker] = [one, other].sort((a, b) => b - a);
   return (lighter + 0.05) / (darker + 0.05);
@@ -171,6 +185,136 @@ describe("um segundo valor de uma cor da paleta é peso de tinta, não cor nova"
       );
     });
   }
+});
+
+describe("a tinta mais quieta ainda e tinta, e por isso tem piso", () => {
+  const LIGHT_SURFACES = ["bg", "bg-elevated", "bg-muted", "paper"] as const;
+  const AUTHORITY = "#8A8970";
+
+  it("fg-subtle carrega texto pequeno em toda superficie clara que a interface pinta", () => {
+    for (const surface of LIGHT_SURFACES) {
+      expect(contrast("fg-subtle", surface), surface).toBeGreaterThanOrEqual(
+        AA_SMALL_TEXT,
+      );
+    }
+  });
+
+  it("o valor do design authority reprovava, e e por isso que esta tinta mudou", () => {
+    const authority = [0, 2, 4].map((start) =>
+      parseInt(AUTHORITY.slice(1).slice(start, start + 2), 16),
+    );
+    const onMuted = ratio(luminanceOf(authority), luminance("bg-muted"));
+    expect(onMuted).toBeLessThan(AA_SMALL_TEXT);
+    expect(contrast("fg-subtle", "bg-muted")).toBeGreaterThan(onMuted);
+  });
+
+  it("e continua sendo a mesma familia: matiz do valor que substituiu", () => {
+    const authority = [0, 2, 4].map((start) =>
+      parseInt(AUTHORITY.slice(1).slice(start, start + 2), 16),
+    );
+    const [red, green, blue] = authority.map((value) => value / 255);
+    const max = Math.max(red, green, blue);
+    const span = max - Math.min(red, green, blue);
+    const sector =
+      max === red
+        ? ((green - blue) / span) % 6
+        : max === green
+          ? (blue - red) / span + 2
+          : (red - green) / span + 4;
+    const authorityHue = (sector * 60 + 360) % 360;
+    expect(Math.abs(hue("fg-subtle") - authorityHue)).toBeLessThan(
+      HUE_TOLERANCE,
+    );
+  });
+
+  it("e mais clara que fg-muted: a hierarquia de tres pesos sobrevive ao conserto", () => {
+    expect(luminance("fg-subtle")).toBeGreaterThan(luminance("fg-muted"));
+    expect(luminance("fg-subtle")).toBeLessThan(luminance("bg-muted"));
+  });
+
+  it("o marcador pausado do globo noturno nao segue a tinta: outra superficie, outro problema", () => {
+    expect(token("night-paused")).toBe(AUTHORITY.toLowerCase());
+    expect(contrast("night-paused", "night-sky-2")).toBeGreaterThanOrEqual(
+      AA_NON_TEXT,
+    );
+  });
+});
+
+describe("o realce suave carrega o proprio rotulo, e nao e o telha que o carrega", () => {
+  it("telha reprova sobre accent-soft e accent-press passa", () => {
+    expect(contrast("shema-telha", "accent-soft")).toBeLessThan(AA_SMALL_TEXT);
+    expect(contrast("accent-press", "accent-soft")).toBeGreaterThanOrEqual(
+      AA_SMALL_TEXT,
+    );
+  });
+
+  const GLYPH_ONLY = [
+    "src/components/common/ImageUpload.tsx",
+    "src/components/common/RemoveRowButton.tsx",
+    "src/components/pages/eten/Indicators.tsx",
+    "src/components/pages/ficha/tabs/equipe/PeopleField.tsx",
+    "src/components/pages/ficha/tabs/necessidades/NeedRow.tsx",
+    "src/components/pages/intercessores/CountryGroup.tsx",
+    "src/components/pages/projetos/SavedViews/SavedViewRow.tsx",
+    "src/components/pages/ritmo/MeetingCard.tsx",
+  ];
+
+  const CLASS_STRING = /"([^"\n]*)"|`([^`]*)`/gu;
+  const UTILITY = /(?:^|\s)((?:[a-z-]+(?:\[[^\]]*\])?:)*)((?:bg|text)-[a-z][a-z0-9-]*)(?![\w/-])/gu;
+
+  const paintsTelhaOnSoft = (source: string): boolean => {
+    for (const block of source.matchAll(CLASS_STRING)) {
+      const body = block[1] ?? block[2];
+      const fills = new Set<string>();
+      const inks = new Map<string, string>();
+      for (const match of body.matchAll(UTILITY)) {
+        const [, prefix, utility] = match;
+        if (utility.startsWith("bg-")) {
+          if (utility === "bg-accent-soft") fills.add(prefix);
+        } else {
+          inks.set(prefix, utility);
+        }
+      }
+      for (const prefix of fills) {
+        if ((inks.get(prefix) ?? inks.get("")) === "text-telha") return true;
+      }
+    }
+    return false;
+  };
+
+  const painters = (): string[] =>
+    walkSource()
+      .filter((entry) => paintsTelhaOnSoft(entry.source))
+      .map((entry) => entry.path);
+
+  it("onde o par carrega um rótulo, a tinta é accent-press", () => {
+    expect(painters().filter((path) => !GLYPH_ONLY.includes(path))).toEqual([]);
+  });
+
+  it("a isenção é só para quem desenha ícone, e 3.69 basta a um objeto gráfico", () => {
+    expect(contrast("shema-telha", "accent-soft")).toBeGreaterThanOrEqual(
+      AA_NON_TEXT,
+    );
+    expect(painters().sort()).toEqual([...GLYPH_ONLY].sort());
+  });
+});
+
+describe("o branco sobre um preenchimento da marca precisa do peso certo", () => {
+  it("branco sobre o verde base reprova; sobre a tinta do verde passa", () => {
+    expect(contrast("fg-on-brand", "shema-verde-claro")).toBeLessThan(
+      AA_SMALL_TEXT,
+    );
+    expect(
+      contrast("fg-on-brand", "verde-claro-ink"),
+    ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+  });
+
+  it("branco sobre o azul base reprova ate como objeto grafico; sobre azul-ink passa", () => {
+    expect(contrast("fg-on-brand", "shema-azul")).toBeLessThan(AA_NON_TEXT);
+    expect(contrast("fg-on-brand", "azul-ink")).toBeGreaterThanOrEqual(
+      AA_SMALL_TEXT,
+    );
+  });
 });
 
 describe("o azul da paleta precisa da tinta para carregar significado", () => {

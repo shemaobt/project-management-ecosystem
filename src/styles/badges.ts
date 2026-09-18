@@ -15,6 +15,16 @@ export const attentionTone: string =
   "bg-status-attention-bg text-status-attention-ink";
 export const criticalTone: string = "bg-status-critical-bg text-accent-press";
 
+/** A tag de *objetivo* no cartão do Atlas. Carrega hoje os mesmos valores de
+ *  `HEALTH_TONES.boa` — é a mesma família do verde-claro, e o par mede 5.69:1
+ *  sobre a superfície do cartão —, mas **não é tom de saúde**: o alfinete de
+ *  saúde fica na mesma linha, e no dia em que o tom de saúde mudar esta tag não
+ *  muda junto. Achado do little-joao na PR #55.
+ *  O par anterior, `bg-verde-claro/18 text-verde-claro`, era wash composto e
+ *  reprovava; `bg-verde-claro/18 text-verde-claro-ink` também (4.19). */
+export const objectiveTagTone: string =
+  "bg-status-good-bg text-status-good-ink";
+
 export const HEALTH_TONES: Record<OverallHealth, string> = {
   boa: goodTone,
   atencao: attentionTone,

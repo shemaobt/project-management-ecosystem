@@ -1,6 +1,7 @@
 import type { MeetingState } from "../types/meeting";
 import type {
   OverallHealth,
+  ProjectPriority,
   ProjectStatus,
   StaleStatus,
 } from "../types/project";
@@ -41,6 +42,17 @@ export const RHYTHM_LABEL_KEYS: Record<MeetingState, string> = {
 
 export const PRAYER_LABEL_KEYS: Record<PrayerState, string> = {
   answered: "oracao_answered_tag",
+};
+
+export const PRIORITY_LABEL_KEYS: Record<ProjectPriority, string> = {
+  critical: "priority_critical",
+  warning: "priority_warning",
+  completed: "priority_completed",
+  planned: "priority_planned",
+  paused: "priority_paused",
+  canceled: "priority_canceled",
+  unknown: "priority_unknown",
+  default: "priority_default",
 };
 
 export const HEALTH_SYMBOLS: Record<OverallHealth, string> = {

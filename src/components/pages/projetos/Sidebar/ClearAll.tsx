@@ -16,7 +16,7 @@ export function ClearAll() {
     <button
       type="button"
       onClick={clearAll}
-      className="rounded-xs px-1.5 py-0.5 text-[10px] font-bold tracking-[0.06em] uppercase text-fg-muted transition-colors duration-fast ease-out hover:bg-accent-soft hover:text-telha"
+      className="rounded-xs px-1.5 py-0.5 text-[10px] font-bold tracking-[0.06em] uppercase text-fg-muted transition-colors duration-fast ease-out hover:bg-accent-soft hover:text-accent-press"
     >
       {t("sb_clear_all")}
     </button>

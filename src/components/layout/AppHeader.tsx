@@ -90,7 +90,8 @@ export function AppHeader() {
           title={t("lang_toggle")}
           onClick={toggleLang}
         >
-          {lang === "pt" ? "🇺🇸 EN" : "🇧🇷 PT"}
+          <span aria-hidden>{lang === "pt" ? "🇺🇸" : "🇧🇷"}</span>
+          {lang === "pt" ? "EN" : "PT"}
         </button>
         <NotificationBell className={TB_BTN} />
         {HEADER_ACTIONS.map((action) => (
@@ -101,7 +102,7 @@ export function AppHeader() {
             title={"titleKey" in action ? t(action.titleKey) : undefined}
             onClick={() => setDialog(action.key)}
           >
-            {action.glyph} {t(action.labelKey)}
+            <span aria-hidden>{action.glyph}</span> {t(action.labelKey)}
           </button>
         ))}
         <button
@@ -112,7 +113,7 @@ export function AppHeader() {
           )}
           onClick={() => navigate(`/ficha/${NEW_RECORD}/${DEFAULT_TAB}`)}
         >
-          + {t("btn_new")}
+          <span aria-hidden>+</span> {t("btn_new")}
         </button>
         {signOut ? (
           <button

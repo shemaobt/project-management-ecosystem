@@ -16,7 +16,7 @@ export function InicioView({ projects, onOpen }: InicioViewProps) {
     <>
       <Hero projects={projects} />
       {projects !== null && projects.length > 0 && (
-        <div className="mx-auto w-full max-w-[1500px] px-5 pt-6 pb-20 sm:px-8">
+        <div className="mx-auto w-full max-w-(--container-wide) px-5 pt-6 pb-20 sm:px-8">
           <Globe projects={projects} onSelect={onOpen} />
         </div>
       )}

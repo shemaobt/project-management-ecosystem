@@ -45,7 +45,7 @@ export function OracaoView({
       : groups.filter((group) => group.region === active);
 
   return (
-    <section className="mx-auto w-full max-w-[1080px] px-(--container-pad) pt-8 pb-20">
+    <section className="mx-auto w-full max-w-(--container-mural) px-(--container-pad) pt-8 pb-20">
       <header className="mb-5.5">
         <p className="mb-2.5 text-[12px] leading-none font-bold tracking-[0.16em] text-telha uppercase">
           {t("oracao_eyebrow")}
@@ -79,7 +79,7 @@ export function OracaoView({
                 <h2 className="mb-3.5 text-eyebrow text-fg-muted uppercase">
                   {t(group.labelKey)}
                 </h2>
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3.5">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(min(320px,100%),1fr))] gap-3.5">
                   {group.requests.map((request) => (
                     <RequestCard key={request.id} request={request} />
                   ))}

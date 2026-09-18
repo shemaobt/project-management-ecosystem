@@ -42,7 +42,7 @@ export function FilterChip({
           active
             ? "bg-on-dark/20 text-on-dark"
             : critical
-              ? "bg-accent-soft text-telha"
+              ? "bg-accent-soft text-accent-press"
               : "bg-verde/8 text-fg-muted",
         )}
       >

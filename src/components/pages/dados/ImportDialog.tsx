@@ -66,7 +66,7 @@ export function ImportDialogBody({
           <>
             <p
               role="status"
-              className="rounded-md border-l-4 border-status-attention bg-status-attention-bg px-4 py-3 text-small leading-[1.45] text-status-attention-fg"
+              className="rounded-md border-l-4 border-status-attention bg-status-attention-bg px-4 py-3 text-small leading-[1.45] text-status-attention-ink"
             >
               {t(pick.result.error.key, { ...pick.result.error })}
             </p>

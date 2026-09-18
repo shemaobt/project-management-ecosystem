@@ -51,7 +51,7 @@ export function CreditTable({ report }: CreditTableProps) {
   const { t } = useTranslation();
 
   return (
-    <Table>
+    <Table label={t("eten_table_label")}>
       <TableHead>
         <TableRow>
           <TableHeaderCell>{t("eten_col_project")}</TableHeaderCell>

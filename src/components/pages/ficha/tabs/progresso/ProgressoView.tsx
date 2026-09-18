@@ -71,8 +71,8 @@ function StaleBanner({
       className={cn(
         "flex gap-3.5 rounded-md border-l-4 px-4.5 py-3.5 text-small leading-[1.45]",
         critical
-          ? "border-telha bg-accent-soft text-telha"
-          : "border-status-attention bg-status-attention-bg text-status-attention-fg",
+          ? "border-telha bg-accent-soft text-accent-press"
+          : "border-status-attention bg-status-attention-bg text-status-attention-ink",
       )}
     >
       <span aria-hidden className="text-h4 leading-none">

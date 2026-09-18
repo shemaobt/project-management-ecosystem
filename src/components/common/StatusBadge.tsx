@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import {
   HEALTH_LABEL_KEYS,
   HEALTH_SYMBOLS,
+  PRIORITY_LABEL_KEYS,
   type PrayerState,
 } from "../../constants/status";
 import {
@@ -141,7 +142,14 @@ export interface PriorityPinProps {
 }
 
 export function PriorityPin({ priority, className }: PriorityPinProps) {
+  const { t } = useTranslation();
+  const spoken = t(PRIORITY_LABEL_KEYS[priority]);
   return (
-    <span aria-hidden className={cn(priorityPinVariants({ priority }), className)} />
+    <span
+      title={spoken}
+      className={cn(priorityPinVariants({ priority }), className)}
+    >
+      <span className="sr-only">{spoken}</span>
+    </span>
   );
 }

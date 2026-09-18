@@ -93,7 +93,7 @@
   --fg: var(--shema-verde);
   --fg-strong: var(--shema-preto);
   --fg-muted: #5a5a3e;
-  --fg-subtle: #8a8970;
+  --fg-subtle: #6a6956;
   --fg-on-brand: var(--shema-branco);
   --fg-on-dark: var(--shema-branco);
   --fg-on-light: var(--shema-verde);
@@ -112,10 +112,10 @@
   --font-serif: "Merriweather", Georgia, "Times New Roman", serif;
   --font-display: "Montserrat", system-ui, sans-serif;
 
-  --fs-display: 88px;
-  --fs-h1: 56px;
-  --fs-h2: 40px;
-  --fs-h3: 28px;
+  --fs-display: clamp(44px, 9vw, 88px);
+  --fs-h1: clamp(32px, 6vw, 56px);
+  --fs-h2: clamp(26px, 4.6vw, 40px);
+  --fs-h3: clamp(22px, 3.2vw, 28px);
   --fs-h4: 22px;
   --fs-lead: 20px;
   --fs-body: 16px;
@@ -164,6 +164,10 @@
   --transition-duration-slow: var(--duration-slow);
 
   --container-max: 1200px;
+  --container-wide: 1500px;
+  /* O mural de Oração tem largura própria no protótipo: app.css `.or-wrap`
+     crava 1080px, entre --container-reading (920) e --container-max (1200). */
+  --container-mural: 1080px;
   --container-reading: 920px;
   --container-narrow: 760px;
   --container-pad: clamp(20px, 4vw, 56px);
@@ -256,7 +260,7 @@
   --night-warning: #e0a24a;
   --night-critical: #ff6620;
   --night-canceled: #5a5a3e;
-  --night-paused: var(--fg-subtle);
+  --night-paused: #8a8970;
   --night-planned: var(--shema-azul);
   --night-shine: #ffe3cc;
   --night-rim: #a8a484;

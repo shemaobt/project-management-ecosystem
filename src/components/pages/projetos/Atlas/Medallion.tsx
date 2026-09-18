@@ -91,7 +91,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
       )}
 
       {project.portion && (
-        <div className="mb-2 w-full rounded-[6px] bg-accent-soft px-2 py-1 text-center font-serif text-tag leading-[1.3] italic text-telha">
+        <div className="mb-2 w-full rounded-[6px] bg-accent-soft px-2 py-1 text-center font-serif text-tag leading-[1.3] italic text-accent-press">
           📖 {project.portion}
         </div>
       )}

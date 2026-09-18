@@ -9,6 +9,7 @@ export {
   attentionTone,
   criticalTone,
   goodTone,
+  objectiveTagTone,
   pillBase,
 } from "./badges";
 export { photoSlotSurface, surfaceElevated, surfaceOutlined } from "./cards";
@@ -18,6 +19,7 @@ export {
   divider,
   footerRow,
   headerRow,
+  skipLink,
   titleText,
 } from "./layout";
 export { disabledControl, transitionAll, transitionColors } from "./states";

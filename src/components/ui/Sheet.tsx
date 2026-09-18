@@ -3,6 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "lucide-react";
 import type { ComponentPropsWithoutRef, HTMLAttributes } from "react";
 import { cn } from "../../utils/cn";
+import { scheduleFocusRescue } from "../../utils/focus";
 import {
   circleControl,
   divider,
@@ -40,6 +41,7 @@ export function SheetContent({
   children,
   side,
   closeLabel,
+  onCloseAutoFocus,
   ...props
 }: SheetContentProps) {
   return (
@@ -47,6 +49,10 @@ export function SheetContent({
       <DialogPrimitive.Overlay className="fixed inset-0 z-50 animate-fade-in bg-preto/55 backdrop-blur-[6px]" />
       <DialogPrimitive.Content
         className={cn(sheetVariants({ side }), className)}
+        onCloseAutoFocus={(event) => {
+          onCloseAutoFocus?.(event);
+          scheduleFocusRescue();
+        }}
         {...props}
       >
         {children}

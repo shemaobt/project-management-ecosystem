@@ -17,7 +17,7 @@ export function Hero({ projects }: HeroProps) {
       >
         שמע
       </div>
-      <div className="relative mx-auto grid w-full max-w-[1500px] grid-cols-1 items-end gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.6fr)] lg:gap-12">
+      <div className="relative mx-auto grid w-full max-w-(--container-wide) grid-cols-1 items-end gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.6fr)] lg:gap-12">
         <div className="flex flex-col gap-1.5">
           <p className="text-[11px] font-bold tracking-[0.18em] text-telha uppercase">
             {t("headline_eyebrow")}

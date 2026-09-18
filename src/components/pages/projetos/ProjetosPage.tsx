@@ -116,7 +116,7 @@ export function ProjetosPage() {
     const failed = live.error ?? baseline.error;
     if (failed) {
       return (
-        <section className="flex justify-center px-8 py-24">
+        <section className="flex justify-center px-(--container-pad) py-24">
           <EmptyState
             message={failureMessage(failed, t)}
             action={
@@ -129,7 +129,7 @@ export function ProjetosPage() {
       );
     }
     return (
-      <section className="flex justify-center px-8 py-24">
+      <section className="flex justify-center px-(--container-pad) py-24">
         <LoadingSpinner size="lg" label={t("loading")} />
       </section>
     );
@@ -141,14 +141,15 @@ export function ProjetosPage() {
   const { items, matched, total } = data;
 
   return (
-    <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-8 px-8 pt-6 pb-20 lg:grid-cols-[260px_minmax(0,1fr)]">
+    <div className="mx-auto grid w-full max-w-(--container-wide) grid-cols-1 gap-8 px-(--container-pad) pt-6 pb-20 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
+      <h1 className="sr-only">{t("projetos_title")}</h1>
       <Sidebar
         baseline={baseline.data.counts}
         shown={matched}
         total={total}
         counts={data.counts}
       />
-      <div>
+      <section aria-label={t("projetos_results_label")}>
         <Toolbar count={matched} total={total} />
         {live.loading && (
           <p className="-mt-3 mb-3 text-tag text-fg-subtle">{t("loading")}</p>
@@ -194,7 +195,7 @@ export function ProjetosPage() {
             )}
           </>
         )}
-      </div>
+      </section>
     </div>
   );
 }
