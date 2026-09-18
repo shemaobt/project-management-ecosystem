@@ -1,0 +1,163 @@
+name: Deploy (Cloud Run)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Tag já existente no Artifact Registry para redeploy (rollback). Vazio = constrói o commit atual."
+        required: false
+        default: ""
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  GAR_REPO: project-management-ecosystem
+  FRONTEND_SERVICE: project-management-ecosystem
+  SECRETS_PROJECT: shemaobt-secrets
+  SECRET_NAME: project_management_ecosystem_env
+  SECRET_MOUNT_PATH: /run/secrets/.env
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-project-management-ecosystem
+      cancel-in-progress: false
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check required secrets
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          RUNTIME_SA: ${{ vars.CLOUD_RUN_RUNTIME_SA }}
+        run: |
+          if [ -z "${GCP_PROJECT_ID}" ]; then echo "::error::GCP_PROJECT_ID is not set. gh secret set GCP_PROJECT_ID"; exit 1; fi
+          if [ -z "${GCP_SA_KEY}" ]; then echo "::error::GCP_SA_KEY is not set. gh secret set GCP_SA_KEY < chave.json"; exit 1; fi
+          if [ -z "${RUNTIME_SA}" ]; then echo "::error::CLOUD_RUN_RUNTIME_SA is not set. gh variable set CLOUD_RUN_RUNTIME_SA --body <sa>@<project>.iam.gserviceaccount.com — see docs/deploy.md"; exit 1; fi
+          echo "Required secrets and variables are set."
+
+      - name: Resolve target image
+        id: target
+        env:
+          REQUESTED_TAG: ${{ github.event.inputs.image_tag }}
+        run: |
+          TAG="${REQUESTED_TAG}"
+          if [ -z "${TAG}" ]; then
+            TAG="${GITHUB_SHA}"
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          else
+            case "${TAG}" in
+              *[!A-Za-z0-9._-]*) echo "::error::image_tag '${TAG}' has characters an Artifact Registry tag cannot carry."; exit 1 ;;
+            esac
+            if [ "${TAG}" = "latest" ]; then
+              echo "::error::A rollback names an immutable tag, never 'latest' — otherwise what is running stops being answerable from the service description. Pick a commit SHA: gcloud artifacts docker images list ... --include-tags"
+              exit 1
+            fi
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "image=${REGION}-docker.pkg.dev/${PROJECT_ID}/${GAR_REPO}/frontend:${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Target tag: ${TAG}"
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker Auth
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build frontend image
+        if: steps.target.outputs.build == 'true'
+        env:
+          IMAGE: ${{ steps.target.outputs.image }}
+        run: |
+          docker build \
+            -t "${IMAGE}" \
+            -t "${REGION}-docker.pkg.dev/${PROJECT_ID}/${GAR_REPO}/frontend:latest" \
+            .
+
+      - name: Push frontend image
+        if: steps.target.outputs.build == 'true'
+        env:
+          IMAGE: ${{ steps.target.outputs.image }}
+        run: |
+          docker push "${IMAGE}"
+          docker push "${REGION}-docker.pkg.dev/${PROJECT_ID}/${GAR_REPO}/frontend:latest"
+
+      - name: Verify requested image exists
+        if: steps.target.outputs.build == 'false'
+        env:
+          IMAGE: ${{ steps.target.outputs.image }}
+        run: |
+          if ! gcloud artifacts docker images describe "${IMAGE}" --project "${PROJECT_ID}" >/dev/null; then
+            echo "::error::${IMAGE} could not be confirmed in Artifact Registry — it does not exist, or the deploy service account cannot see it. A rollback redeploys an existing tag, it never rebuilds."
+            exit 1
+          fi
+          echo "Rollback target found in Artifact Registry."
+
+      - name: Deploy to Cloud Run
+        env:
+          IMAGE: ${{ steps.target.outputs.image }}
+          RUNTIME_SA: ${{ vars.CLOUD_RUN_RUNTIME_SA }}
+          SECRETS_PROJECT_REF: ${{ vars.GCP_SECRETS_PROJECT_REF }}
+        run: |
+          SECRETS_REF="${SECRETS_PROJECT_REF:-${SECRETS_PROJECT}}"
+          gcloud run deploy "${FRONTEND_SERVICE}" \
+            --image "${IMAGE}" \
+            --project "${PROJECT_ID}" \
+            --region "${REGION}" \
+            --platform managed \
+            --port 8080 \
+            --no-allow-unauthenticated \
+            --service-account "${RUNTIME_SA}" \
+            --set-secrets "${SECRET_MOUNT_PATH}=projects/${SECRETS_REF}/secrets/${SECRET_NAME}:latest" \
+            --memory 256Mi \
+            --cpu 1 \
+            --concurrency 80 \
+            --timeout 60
+
+      - name: Assert the service is not publicly reachable
+        run: |
+          MEMBERS=$(gcloud run services get-iam-policy "${FRONTEND_SERVICE}" \
+            --project "${PROJECT_ID}" \
+            --region "${REGION}" \
+            --flatten="bindings[].members" \
+            --format="value(bindings.members)")
+          case "${MEMBERS}" in
+            *allUsers*|*allAuthenticatedUsers*)
+              echo "::error::${FRONTEND_SERVICE} carries allUsers/allAuthenticatedUsers — this deploy shows real projects, real teams and real countries and must never be public. See docs/deploy.md."
+              exit 1
+              ;;
+          esac
+          echo "Service is private: no allUsers, no allAuthenticatedUsers."
+
+      - name: Show deployment URL
+        env:
+          TAG: ${{ steps.target.outputs.tag }}
+        run: |
+          URL=$(gcloud run services describe "${FRONTEND_SERVICE}" \
+            --project "${PROJECT_ID}" \
+            --region "${REGION}" \
+            --format="value(status.url)")
+          echo "Deployed to: ${URL}"
+          {
+            echo "### Deploy"
+            echo ""
+            echo "- Serviço: \`${FRONTEND_SERVICE}\` (${REGION})"
+            echo "- Tag: \`${TAG}\`"
+            echo "- URL: ${URL}"
+            echo "- Acesso: privado (IAM · \`roles/run.invoker\`). Abrir com \`gcloud run services proxy ${FRONTEND_SERVICE} --region ${REGION}\`."
+          } >> "$GITHUB_STEP_SUMMARY"

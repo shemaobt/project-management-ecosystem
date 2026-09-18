@@ -65,6 +65,16 @@ docker run --rm -p 8080:8080 -e BACKEND_URL=http://host.docker.internal:8000 pro
 
 **Nenhum segredo entra na imagem.** O Vite inlina no bundle tudo o que vê em build (`VITE_*`), então qualquer valor `VITE_*` é público por definição. A imagem final não carrega `node_modules` nem fonte — só o `dist/`, o `nginx.conf` e o entrypoint. Segredos de verdade chegam em runtime, pelo `.env` montado, e nunca por `ARG`/`ENV` no `Dockerfile`.
 
+## Deploy
+
+Um merge na `main` dispara [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): a imagem da seção acima é construída, empurrada para o **Artifact Registry** em `us-central1` e entregue ao Cloud Run como o serviço `project-management-ecosystem`. A tag é **o SHA do commit** (e `latest` junto, por conveniência) — o deploy sempre aponta para uma tag imutável, nunca para `latest`, e por isso um rollback é redeploy de uma tag conhecida: **Actions → Deploy (Cloud Run) → Run workflow** com o campo `image_tag` preenchido pula build e push e só redeploya.
+
+**O serviço não é público.** Sobe com `--no-allow-unauthenticated`, o acesso é `roles/run.invoker` para contas nomeadas, e um passo do workflow falha o job se `allUsers` ou `allAuthenticatedUsers` aparecerem na política de IAM. Não é zelo genérico: esta URL mostra 127 projetos reais, equipes reais e países reais, alguns deles `sensitiveCountry`. Para abrir o app, `gcloud run services proxy project-management-ecosystem --region us-central1`.
+
+`BACKEND_URL` chega pelo `.env` **montado** em `/run/secrets/.env`, a partir de um segredo do projeto `shemaobt-secrets` concedido **por segredo** à service account de runtime — é o caminho que o entrypoint da seção anterior já lê, e é o que mantém o valor fora da definição do serviço.
+
+O resto — setup único, secrets do GitHub, primeiro deploy, rollback passo a passo, modos de falha e como conceder ou revogar acesso — está em [`docs/deploy.md`](docs/deploy.md).
+
 ## Convenções
 
 Leia o [`CLAUDE.md`](CLAUDE.md) antes de escrever código: ele é normativo para stack, estrutura, design system, regras de domínio, privacidade e fluxo de PRs.
