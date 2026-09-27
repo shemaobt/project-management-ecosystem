@@ -59,7 +59,6 @@ import {
 import { loadRegions, loadRoleChanges, saveTeam } from "./regions";
 
 export {
-  DEFAULT_MOCK_ROLE,
   MOCK_SESSION_KEY,
   MOCK_SESSION_PERSONAS,
   readMockRole,

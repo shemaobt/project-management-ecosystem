@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { SESSION_ROLE_LABEL_KEYS } from "../../../contexts/AuthContext";
 import { ROLE_DEFINITIONS } from "../../../constants/roles";
 
-/** Why the place, the base and the contacts are closed to this reader — the roles named by their owners. */
 export function CoordinationOnlyNote() {
   const { t } = useTranslation();
 

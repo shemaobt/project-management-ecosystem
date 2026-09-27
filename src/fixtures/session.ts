@@ -38,9 +38,8 @@ export const MOCK_SESSION_PERSONAS: Record<MockRole, MockPersona> = {
 
 export const MOCK_SESSION_KEY = "shema-session-v1";
 
-export const DEFAULT_MOCK_ROLE: MockRole = "globalStrategist";
+const DEFAULT_MOCK_ROLE: MockRole = "globalStrategist";
 
-/** The mock role the provider last wrote — the default where storage is absent or refuses. */
 export function readMockRole(): MockRole {
   try {
     const stored =

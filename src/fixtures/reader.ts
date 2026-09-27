@@ -26,7 +26,6 @@ export function readerOf(persona: SessionPersona, region: RegionKey): ReadAs {
   return "other";
 }
 
-/** Who a collection's withheld notice is addressed to — `coordinates_anything`. */
 export function coordinatesAnything(persona: SessionPersona): boolean {
   if (coordinatesEverywhere(persona)) return true;
   return (
@@ -52,7 +51,6 @@ export function withhold(project: Project): Project {
   };
 }
 
-/** A project as the double hands it to `persona`: stamped with `readAs`, reduced when read as `other`. */
 export function asReadBy(project: Project, persona: SessionPersona): Project {
   const readAs = readerOf(persona, project.derived?.region ?? getRegion(project));
   const read = { ...project, readAs };

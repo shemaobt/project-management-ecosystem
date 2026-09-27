@@ -26,7 +26,7 @@ export function getCountry(project: Located): string {
 
 const REGION_KEYS: ReadonlySet<string> = new Set(REGIONS.map((region) => region.key));
 
-export function isRegionKey(value: string): value is RegionKey {
+function isRegionKey(value: string): value is RegionKey {
   return REGION_KEYS.has(value);
 }
 

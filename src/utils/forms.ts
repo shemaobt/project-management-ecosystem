@@ -90,7 +90,6 @@ export function formReadiness(
   };
 }
 
-/** A project as a picker names it — language and base, the base only where the reader may see it. */
 export function projectOptionLabel(project: Project): string {
   const { base } = getLocationDisplay(project);
   return base ? `${project.languageName} · ${base}` : project.languageName;
