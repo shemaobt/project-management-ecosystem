@@ -18,7 +18,7 @@ import type {
   IntercessorUpdatePayload,
   PrayerRequest,
 } from "../../types/prayer";
-import type { Project } from "../../types/project";
+import type { Project, ProjectMember, ProjectRef } from "../../types/project";
 import type { Region, RegionKey, RegionTeam, RoleChange } from "../../types/region";
 import type { SaveOutcome } from "../../types/team";
 import type {
@@ -339,5 +339,35 @@ export const formsAPI = {
     payload: IntakeSubmissionPayload,
   ): Promise<void> {
     await http.post(`${SHEMA}/intake/${encodeURIComponent(token)}`, payload);
+  },
+};
+
+// --- membros do projeto — BE-18 (OBT-524), data-contracts §9.14 ---------------------------
+
+const members = (projectId: string) =>
+  `${SHEMA}/projects/${encodeURIComponent(projectId)}/members`;
+
+export const membersAPI = {
+  /** Who is on the project's team now, in the order they joined. */
+  async list(projectId: string): Promise<ProjectMember[]> {
+    const { data } = await http.get<ProjectMember[]>(members(projectId));
+    return data;
+  },
+
+  /** The Admin puts an account on the team — 409 if it is already a live member. */
+  async add(projectId: string, userId: string): Promise<ProjectMember> {
+    const { data } = await http.post<ProjectMember>(members(projectId), { userId });
+    return data;
+  },
+
+  /** The Admin takes an account off the team; the server marks the row and keeps it. */
+  async remove(projectId: string, userId: string): Promise<void> {
+    await http.delete(`${members(projectId)}/${encodeURIComponent(userId)}`);
+  },
+
+  /** The projects the signed-in account is a live member of. */
+  async mine(): Promise<ProjectRef[]> {
+    const { data } = await http.get<ProjectRef[]>(`${SHEMA}/me/projects`);
+    return data;
   },
 };

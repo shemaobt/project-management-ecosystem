@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { splitPeople } from "../../../../../utils/people";
 import { DetailItem, FieldGrid } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
+import { ProjectMembers } from "./ProjectMembers";
 import { RegionalRoles } from "./RegionalRoles";
 import { SensitiveContacts } from "./SensitiveContacts";
 
@@ -30,6 +31,8 @@ export interface EquipeViewProps {
 export function EquipeView({ draft }: EquipeViewProps) {
   const { t } = useTranslation();
   const values = draft.values;
+  // The saved record's id: a project that does not exist yet has nobody on it.
+  const projectId = draft.saved?.id;
 
   return (
     <div className="flex flex-col gap-5">
@@ -70,6 +73,8 @@ export function EquipeView({ draft }: EquipeViewProps) {
       {values.sensitiveCountry && <SensitiveContacts />}
 
       <RegionalRoles location={values.location ?? ""} />
+
+      {projectId && <ProjectMembers key={projectId} projectId={projectId} />}
     </div>
   );
 }

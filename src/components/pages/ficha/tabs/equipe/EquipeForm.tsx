@@ -4,6 +4,7 @@ import { Input } from "../../../../ui";
 import { Field, FieldGrid } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { PeopleField } from "./PeopleField";
+import { ProjectMembers } from "./ProjectMembers";
 import { RegionalRoles } from "./RegionalRoles";
 import { SensitiveContacts } from "./SensitiveContacts";
 
@@ -15,6 +16,8 @@ export function EquipeForm({ draft }: EquipeFormProps) {
   const { t } = useTranslation();
   const [touched, setTouched] = useState(false);
   const values = draft.values;
+  // The saved record's id: a project that does not exist yet has nobody on it.
+  const projectId = draft.saved?.id;
 
   const teamError =
     touched && !values.team?.trim() ? t("f_required") : undefined;
@@ -160,6 +163,8 @@ export function EquipeForm({ draft }: EquipeFormProps) {
       {values.sensitiveCountry && <SensitiveContacts />}
 
       <RegionalRoles location={values.location ?? ""} />
+
+      {projectId && <ProjectMembers key={projectId} projectId={projectId} />}
     </div>
   );
 }

@@ -128,7 +128,7 @@ describe("GET /api/shema/session, como a BE-17 responde", () => {
     }
   });
 
-  it("equipe é vocabulário reservado: a lista que o traz é aceita", () => {
+  it("equipe, que o vínculo do projeto põe na sessão (OBT-524): a lista que o traz é aceita", () => {
     expect(
       readSession({ role: "equipe", roles: ["equipe"], regionScope: [] }).roles,
     ).toEqual(["equipe"]);

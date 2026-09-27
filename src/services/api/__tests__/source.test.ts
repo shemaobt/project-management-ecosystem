@@ -38,6 +38,7 @@ const PAIRS = [
   ],
   ["eten", api.etenAPI, fixture.etenAPI, resolved.etenAPI],
   ["forms", api.formsAPI, fixture.formsAPI, resolved.formsAPI],
+  ["members", api.membersAPI, fixture.membersAPI, resolved.membersAPI],
 ] as const;
 
 type Namespace = Record<string, (...args: never[]) => unknown>;
