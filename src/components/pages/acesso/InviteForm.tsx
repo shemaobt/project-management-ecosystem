@@ -27,17 +27,17 @@ export function InviteForm({
   const fieldId = useId();
   const [email, setEmail] = useState(initialEmail);
   const [app, setApp] = useState<AccessAppKey>(SHEMA_APP);
-  const [role, setRole] = useState<SessionRole>(invitableRoles(SHEMA_APP)[0]);
+  const [role, setRole] = useState<SessionRole | null>(null);
   const [regions, setRegions] = useState<RegionKey[]>([]);
 
   const offered = invitableRoles(app);
-  const ready = email.trim() !== "" && canSubmitRegions(role, regions);
+  const ready = email.trim() !== "" && role !== null && canSubmitRegions(role, regions);
 
   const pickApp = (next: string) => {
     const chosen = ACCESS_APPS.find((key) => key === next);
     if (!chosen) return;
     setApp(chosen);
-    setRole(invitableRoles(chosen)[0]);
+    setRole(null);
     setRegions([]);
   };
 
@@ -91,7 +91,7 @@ export function InviteForm({
         </span>
         <RadioGroup
           aria-labelledby={`${fieldId}-role`}
-          value={role}
+          value={role ?? ""}
           onValueChange={pickRole}
           className="flex-col gap-2"
         >
@@ -109,7 +109,7 @@ export function InviteForm({
         </p>
       </div>
 
-      {isRegionalRole(role) ? (
+      {role !== null && isRegionalRole(role) ? (
         <RegionPicker
           legend={t("acesso_regions_legend", { role: t(SESSION_ROLE_LABEL_KEYS[role]) })}
           selected={regions}

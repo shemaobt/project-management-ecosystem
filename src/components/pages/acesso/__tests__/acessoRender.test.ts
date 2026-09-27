@@ -264,6 +264,21 @@ describe("o convite", () => {
     expect(out).not.toContain(`>${i18n.t("role_admin")}<`);
     expect(out).toContain(i18n.t("acesso_invite_no_admin"));
   });
+
+  it("com o e-mail já preenchido, nenhum papel vem marcado e o envio fica travado", () => {
+    const out = render(
+      createElement(InviteForm, {
+        initialEmail: "pessoa@exemplo.org",
+        sending: false,
+        refusal: null,
+        onSubmit: noop,
+      }),
+    );
+    const roles = out.match(/<button[^>]*id="[^"]*-role-[^"]*"[^>]*>/gu) ?? [];
+    expect(roles.length).toBeGreaterThan(0);
+    for (const radio of roles) expect(radio).toContain('aria-checked="false"');
+    expect(out).toMatch(/<button[^>]*type="submit"[^>]*disabled=""/u);
+  });
 });
 
 const CHANGE: GrantChange = {
