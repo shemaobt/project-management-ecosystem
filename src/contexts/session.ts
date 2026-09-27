@@ -1,15 +1,19 @@
 import { createContext, useContext } from "react";
 import { ROLE_DEFINITIONS } from "../constants/roles";
 import type { Region, RegionKey } from "../types/region";
+import type { RoleKey } from "../types/role";
 import type { ApiFailure, SessionRole } from "../types/session";
 
 export type { SessionRole };
+
+export type MockRole = "globalStrategist" | RoleKey;
 
 export type SessionStatus = "loading" | "anonymous" | "ready" | "expired";
 
 export interface SessionPersona {
   id: string;
   role: SessionRole;
+  roles: SessionRole[];
   regionScope: RegionKey[] | null;
 }
 
@@ -24,7 +28,7 @@ export interface AuthSession {
   canSeeRegion: (key: RegionKey) => boolean;
   signIn: ((email: string, password: string) => Promise<void>) | null;
   signOut: (() => Promise<void>) | null;
-  switchRole: ((role: SessionRole) => void) | null;
+  switchRole: ((role: MockRole) => void) | null;
   failure: ApiFailure | null;
 }
 
@@ -35,6 +39,10 @@ export const SESSION_ROLE_LABEL_KEYS: Record<SessionRole, string> = {
   coordinator: ROLE_DEFINITIONS.coordinator.labelKey,
   obtLab: ROLE_DEFINITIONS.obtLab.labelKey,
   resourceCircle: ROLE_DEFINITIONS.resourceCircle.labelKey,
+  admin: "role_admin",
+  gestor: "role_gestor",
+  mesa: "role_mesa",
+  equipe: "role_equipe",
 };
 
 export function scopeRegions(

@@ -80,6 +80,18 @@ describe("catalogues", () => {
     expect(ptBR.equipe_global).toBe("Estrategista Global");
     expect(en.equipe_global).toBe("Global Strategist");
   });
+
+  it("names the four access roles, the Admin as the platform's and not the coordinator's", () => {
+    expect(ptBR.role_admin).toBe("Admin da plataforma");
+    expect(en.role_admin).toBe("Platform admin");
+    expect(ptBR.role_admin).not.toBe(ptBR.role_coordinator);
+    expect(ptBR.role_gestor).toBe("Gestor dos Projetos");
+    expect(en.role_gestor).toBe("Projects Manager");
+    expect(ptBR.role_mesa).toBe("Mesa · Círculo de Recursos");
+    expect(en.role_mesa).toBe("Board · Resource Circle");
+    expect(ptBR.role_equipe).toBe("Equipe do projeto");
+    expect(en.role_equipe).toBe("Project team");
+  });
 });
 
 describe("language toggle", () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SESSION_ROLES } from "../../../constants/roles";
 import { http } from "../client";
 import { authAPI, projectsAPI, sessionAPI } from "../endpoints";
 import { toApiFailure } from "../errors";
@@ -35,10 +36,14 @@ describe.skipIf(!BASE)("contra o shema-api rodando (SHEMA_LIVE_API)", () => {
     expect(accessToken()).toBeTruthy();
 
     const session = await sessionAPI.get();
-    expect(Object.keys(session).sort()).toEqual(["name", "regionScope", "role"]);
-    expect(["globalStrategist", "coordinator", "obtLab", "resourceCircle"]).toContain(
-      session.role,
-    );
+    expect(Object.keys(session).sort()).toEqual([
+      "name",
+      "regionScope",
+      "role",
+      "roles",
+    ]);
+    expect(SESSION_ROLES).toContain(session.role);
+    expect(session.roles[0]).toBe(session.role);
   });
 
   it("um endpoint que a onda 2 ainda não escreveu é notFound, não queda", async () => {

@@ -31,6 +31,7 @@ export const ANONYMOUS: ApiSessionState = {
 const NOBODY: SessionPersona = {
   id: "",
   role: "globalStrategist",
+  roles: [],
   regionScope: [],
 };
 
@@ -39,6 +40,7 @@ export function personaOf(signed: SignedSession | null): SessionPersona {
   return {
     id: signed.accountId,
     role: signed.session.role,
+    roles: signed.session.roles,
     regionScope: signed.session.regionScope,
   };
 }

@@ -5,8 +5,8 @@ import {
   AuthContext,
   scopeRegions,
   type AuthSession,
+  type MockRole,
   type SessionPersona,
-  type SessionRole,
   type SessionUser,
 } from "./session";
 
@@ -14,31 +14,39 @@ const SESSION_KEY = "shema-session-v1";
 
 const GLOBAL_STRATEGIST_NAME = "Karina Marinho";
 
-export const MOCK_SESSION_PERSONAS: Record<SessionRole, SessionPersona> = {
+interface MockPersona extends SessionPersona {
+  role: MockRole;
+}
+
+export const MOCK_SESSION_PERSONAS: Record<MockRole, MockPersona> = {
   globalStrategist: {
     id: "mock-global-strategist",
     role: "globalStrategist",
+    roles: ["globalStrategist"],
     regionScope: null,
   },
   coordinator: {
     id: "mock-coordinator",
     role: "coordinator",
+    roles: ["coordinator"],
     regionScope: ["south-america"],
   },
   obtLab: {
     id: "mock-obt-lab",
     role: "obtLab",
+    roles: ["obtLab"],
     regionScope: ["africa"],
   },
   resourceCircle: {
     id: "mock-resource-circle",
     role: "resourceCircle",
+    roles: ["resourceCircle"],
     regionScope: ["oceania"],
   },
 };
 
 export function resolvePersonaName(
-  persona: SessionPersona,
+  persona: MockPersona,
   regions: Region[],
 ): string | null {
   if (persona.role === "globalStrategist") return GLOBAL_STRATEGIST_NAME;
@@ -51,15 +59,15 @@ export function resolvePersonaName(
   return null;
 }
 
-function loadStoredRole(): SessionRole {
+function loadStoredRole(): MockRole {
   const stored = localStorage.getItem(SESSION_KEY);
   return stored && stored in MOCK_SESSION_PERSONAS
-    ? (stored as SessionRole)
+    ? (stored as MockRole)
     : "globalStrategist";
 }
 
 export function MockAuthProvider({ children }: { children: ReactNode }) {
-  const [role, setRole] = useState<SessionRole>(loadStoredRole);
+  const [role, setRole] = useState<MockRole>(loadStoredRole);
   const regions = useRegionsStore((state) => state.regions);
   const hydrated = useRegionsStore((state) => state.hydrated);
   const hydrate = useRegionsStore((state) => state.hydrate);

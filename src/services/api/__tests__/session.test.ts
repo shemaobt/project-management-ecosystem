@@ -19,7 +19,8 @@ vi.stubGlobal("window", { localStorage: memoryStorage });
 
 const { http } = await import("../client");
 const { authAPI, readSession, sessionAPI } = await import("../endpoints");
-const { UNKNOWN_VOCABULARY } = await import("../errors");
+const { toApiFailure, UNKNOWN_VOCABULARY } = await import("../errors");
+const { SESSION_ROLES } = await import("../../../constants/roles");
 const { accessToken, forgetTokens, onSessionEvent, refreshToken } =
   await import("../tokens");
 
@@ -93,70 +94,118 @@ beforeEach(() => {
   script = () => ({ status: 200 });
 });
 
-describe("GET /api/shema/session, como a BE-03 responde", () => {
-  it("lê os três campos que o contrato congelou", () => {
+function refusal(payload: unknown): unknown {
+  try {
+    readSession(payload);
+  } catch (error) {
+    return error;
+  }
+  throw new Error("readSession aceitou uma sessão que devia recusar");
+}
+
+describe("GET /api/shema/session, como a BE-17 responde", () => {
+  it("lê os quatro campos da sessão, e a lista na ordem em que o servidor mandou", () => {
     expect(
       readSession({
         role: "coordinator",
+        roles: ["coordinator", "admin", "mesa"],
         regionScope: ["south-america"],
         name: "Nome do Organograma",
       }),
     ).toEqual({
       role: "coordinator",
+      roles: ["coordinator", "admin", "mesa"],
       regionScope: ["south-america"],
       name: "Nome do Organograma",
     });
   });
 
-  it("null em regionScope é global, e lista vazia não é a mesma coisa", () => {
-    expect(
-      readSession({ role: "globalStrategist", regionScope: null }),
-    ).toMatchObject({ regionScope: null });
-    expect(readSession({ role: "coordinator", regionScope: [] })).toMatchObject(
-      {
-        regionScope: [],
-      },
-    );
-  });
-
-  it("uma conta sem nome no organograma responde null, não string vazia", () => {
-    expect(
-      readSession({ role: "obtLab", regionScope: [], name: "" }).name,
-    ).toBeNull();
-    expect(readSession({ role: "obtLab", regionScope: [] }).name).toBeNull();
-  });
-
-  it("um papel que este painel não conhece é recusa, não escopo estreitado", () => {
-    expect(() =>
-      readSession({ role: "articulador", regionScope: [] }),
-    ).toThrow();
-    try {
-      readSession({ role: null, regionScope: null });
-    } catch (error) {
-      expect(error).toMatchObject({
-        kind: "invalid",
-        code: UNKNOWN_VOCABULARY,
-      });
+  it("uma conta só com mesa, gestor ou admin passa, sem escopo regional", () => {
+    for (const role of ["mesa", "gestor", "admin"]) {
+      expect(
+        readSession({ role, roles: [role], regionScope: [], name: null }),
+      ).toMatchObject({ role, roles: [role], regionScope: [] });
     }
   });
 
-  it("uma região que este painel não conhece também", () => {
-    expect(() =>
-      readSession({ role: "coordinator", regionScope: ["antarctica"] }),
-    ).toThrow();
-    expect(() =>
-      readSession({ role: "coordinator", regionScope: "south-america" }),
-    ).toThrow();
+  it("equipe é vocabulário reservado: a lista que o traz é aceita", () => {
+    expect(
+      readSession({ role: "equipe", roles: ["equipe"], regionScope: [] }).roles,
+    ).toEqual(["equipe"]);
   });
 
-  it("as sete regiões e os quatro papéis do contrato passam", () => {
-    for (const role of [
-      "globalStrategist",
-      "coordinator",
-      "obtLab",
-      "resourceCircle",
-    ]) {
-      expect(readSession({ role, regionScope: null }).role).toBe(role);
+  it("null em regionScope é global, e lista vazia não é a mesma coisa", () => {
+    expect(
+      readSession({
+        role: "globalStrategist",
+        roles: ["globalStrategist"],
+        regionScope: null,
+      }),
+    ).toMatchObject({ regionScope: null });
+    expect(
+      readSession({
+        role: "coordinator",
+        roles: ["coordinator"],
+        regionScope: [],
+      }),
+    ).toMatchObject({ regionScope: [] });
+  });
+
+  it("uma conta sem nome no organograma responde null, não string vazia", () => {
+    const obtLab = { role: "obtLab", roles: ["obtLab"], regionScope: [] };
+    expect(readSession({ ...obtLab, name: "" }).name).toBeNull();
+    expect(readSession(obtLab).name).toBeNull();
+  });
+
+  it("um papel que este painel não conhece é recusa, não escopo estreitado", () => {
+    expect(
+      refusal({ role: "articulador", roles: ["articulador"], regionScope: [] }),
+    ).toMatchObject({ kind: "invalid", code: UNKNOWN_VOCABULARY });
+    expect(
+      refusal({ role: null, roles: ["coordinator"], regionScope: null }),
+    ).toMatchObject({ kind: "invalid", code: UNKNOWN_VOCABULARY });
+  });
+
+  it("um papel desconhecido na lista recusa a sessão inteira, nunca é descartado", () => {
+    expect(
+      refusal({
+        role: "coordinator",
+        roles: ["coordinator", "lider"],
+        regionScope: ["africa"],
+      }),
+    ).toMatchObject({ kind: "invalid", code: UNKNOWN_VOCABULARY });
+  });
+
+  it("lista vazia é conta sem papel: a mesma recusa do 403", () => {
+    expect(
+      refusal({ role: null, roles: [], regionScope: null }),
+    ).toMatchObject({ kind: "forbidden" });
+  });
+
+  it("uma resposta sem a lista é de servidor anterior à BE-17: recusa de vocabulário", () => {
+    expect(
+      refusal({ role: "coordinator", regionScope: ["africa"] }),
+    ).toMatchObject({ kind: "invalid", code: UNKNOWN_VOCABULARY });
+    expect(
+      refusal({ role: "coordinator", roles: "coordinator", regionScope: [] }),
+    ).toMatchObject({ kind: "invalid", code: UNKNOWN_VOCABULARY });
+  });
+
+  it("uma região que este painel não conhece também", () => {
+    const coordinator = { role: "coordinator", roles: ["coordinator"] };
+    expect(
+      refusal({ ...coordinator, regionScope: ["antarctica"] }),
+    ).toMatchObject({ code: UNKNOWN_VOCABULARY });
+    expect(
+      refusal({ ...coordinator, regionScope: "south-america" }),
+    ).toMatchObject({ code: UNKNOWN_VOCABULARY });
+  });
+
+  it("os oito papéis do vocabulário e as sete regiões passam", () => {
+    for (const role of SESSION_ROLES) {
+      expect(readSession({ role, roles: [role], regionScope: null }).role).toBe(
+        role,
+      );
     }
     const every = [
       "south-america",
@@ -168,7 +217,11 @@ describe("GET /api/shema/session, como a BE-03 responde", () => {
       "other",
     ];
     expect(
-      readSession({ role: "coordinator", regionScope: every }).regionScope,
+      readSession({
+        role: "coordinator",
+        roles: ["coordinator"],
+        regionScope: every,
+      }).regionScope,
     ).toEqual(every);
   });
 });
@@ -220,14 +273,53 @@ describe("entrar e sair", () => {
         ? { status: 200, data: LOGIN_BODY }
         : {
             status: 200,
-            data: { role: "obtLab", regionScope: ["africa"], name: "Ana" },
+            data: {
+              role: "obtLab",
+              roles: ["obtLab"],
+              regionScope: ["africa"],
+              name: "Ana",
+            },
           };
     await authAPI.signIn({ email: "a@b.co", password: "12345678" });
     await expect(sessionAPI.get()).resolves.toEqual({
       role: "obtLab",
+      roles: ["obtLab"],
       regionScope: ["africa"],
       name: "Ana",
     });
+  });
+
+  it("uma conta só mesa passa pela porta e lê a própria sessão", async () => {
+    script = (url) =>
+      url.includes("/auth/login")
+        ? { status: 200, data: LOGIN_BODY }
+        : {
+            status: 200,
+            data: { role: "mesa", roles: ["mesa"], regionScope: [], name: null },
+          };
+    await authAPI.signIn({ email: "a@b.co", password: "12345678" });
+    await expect(sessionAPI.get()).resolves.toMatchObject({
+      role: "mesa",
+      roles: ["mesa"],
+    });
+  });
+
+  it("o 403 do servidor e a lista vazia chegam à entrada como a mesma recusa", async () => {
+    script = (url) =>
+      url.includes("/auth/login")
+        ? { status: 200, data: LOGIN_BODY }
+        : { status: 403, data: { detail: "no access" } };
+    await authAPI.signIn({ email: "a@b.co", password: "12345678" });
+    const refusedByServer = await sessionAPI.get().catch(toApiFailure);
+
+    script = () => ({
+      status: 200,
+      data: { role: null, roles: [], regionScope: null, name: null },
+    });
+    const refusedHere = await sessionAPI.get().catch(toApiFailure);
+
+    expect(refusedByServer).toMatchObject({ kind: "forbidden" });
+    expect(refusedHere).toMatchObject({ kind: "forbidden" });
   });
 });
 
