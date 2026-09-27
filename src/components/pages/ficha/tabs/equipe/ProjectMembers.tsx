@@ -12,7 +12,6 @@ export interface MembersPanelProps {
   members: readonly ProjectMember[] | null;
   /** The failure sentence, when the read failed. */
   error: string | null;
-  /** The closing line; the record's own talks about the names above it. */
   hint?: string;
 }
 

@@ -390,8 +390,6 @@ export const membersAPI = {
   },
 };
 
-// --- acesso — BE-22 (OBT-543), FE-52 (OBT-546), data-contracts §9.15 --------------------
-
 const ACCESS = `${SHEMA}/access`;
 
 const INVITE_STATUSES: readonly InviteStatus[] = [
@@ -497,7 +495,6 @@ const guest = (path: string) => `${API_BASE_URL}${path}`;
 const GUEST_HEADERS = { Accept: "application/json" };
 
 export const accessAPI = {
-  /** One account by exact e-mail — a 404 when nobody has it. */
   async person(email: string): Promise<AccountGrants> {
     const { data } = await http.get<unknown>(`${ACCESS}/people`, {
       params: { email },
@@ -538,8 +535,6 @@ export const accessAPI = {
     const { data } = await http.get<GrantChange[]>(`${ACCESS}/changes`);
     return data;
   },
-
-  // --- the invitee, who has no session yet ------------------------------------------
 
   async describeInvite(token: string): Promise<InviteDescription> {
     const { data } = await http.get<WireInviteDescription>(
