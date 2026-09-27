@@ -10,6 +10,11 @@ import {
 import { useProjectRecordStore } from "../../../stores/projectRecordStore";
 import type { Project } from "../../../types/project";
 import type { RecordField, RecordFieldError } from "../../../types/projectRecord";
+import {
+  mayWrite,
+  recordAccess,
+  type RecordAccess,
+} from "../../../utils/recordAccess";
 
 export interface DraftHandle {
   values: ProjectDraft;
@@ -19,6 +24,8 @@ export interface DraftHandle {
   isNew: boolean;
   hasChanges: boolean;
   missing: RequiredField[];
+  /** What this reader may see and write of the place — from the server's `readAs` (OBT-532). */
+  place: RecordAccess;
   /** The server's refusals for this record, located — empty until a save is refused. */
   errors: RecordFieldError[];
   errorsFor: (field: RecordField) => RecordFieldError[];
@@ -33,6 +40,19 @@ export interface DraftHandle {
 const NO_ERRORS: RecordFieldError[] = [];
 const EMPTY_DRAFT: ProjectDraft = {};
 
+function writableDraft(
+  draft: ProjectDraft | undefined,
+  place: RecordAccess,
+): ProjectDraft {
+  if (!draft) return EMPTY_DRAFT;
+  const kept = Object.entries(draft).filter(
+    ([field]) => field !== "readAs" && mayWrite(place, field as RecordField),
+  );
+  return kept.length === Object.keys(draft).length
+    ? draft
+    : (Object.fromEntries(kept) as ProjectDraft);
+}
+
 export function useDraft(recordId: string): DraftHandle {
   const draft = useRecordStore((state) => state.drafts[recordId]);
   const updateDraft = useRecordStore((state) => state.updateDraft);
@@ -44,9 +64,20 @@ export function useDraft(recordId: string): DraftHandle {
   const isNew = recordId === NEW_RECORD;
   const stored = isNew ? undefined : record?.project;
 
+  const place = useMemo(() => recordAccess(stored, isNew), [stored, isNew]);
+
+  // A draft is kept per record, not per person: what somebody else typed into a field
+  // this reader may not write is neither shown nor sent nor counted as a change.
+  const writable = useMemo(() => writableDraft(draft, place), [draft, place]);
+
   const values = useMemo(
-    () => ({ ...makeEmptyProject(), ...stored, ...draft }),
-    [stored, draft],
+    () => ({
+      ...makeEmptyProject(),
+      ...stored,
+      ...writable,
+      readAs: isNew ? ("coordination" as const) : stored?.readAs,
+    }),
+    [stored, writable, isNew],
   );
 
   const errors = outcome?.kind === "invalid" ? outcome.errors : NO_ERRORS;
@@ -82,11 +113,12 @@ export function useDraft(recordId: string): DraftHandle {
 
   return {
     values,
-    typed: draft ?? EMPTY_DRAFT,
+    typed: writable,
     saved: stored,
     isNew,
-    hasChanges: Object.keys(draft ?? {}).length > 0,
-    missing: missingRequired(values),
+    hasChanges: Object.keys(writable).length > 0,
+    missing: missingRequired(values, place),
+    place,
     errors,
     errorsFor,
     set,
