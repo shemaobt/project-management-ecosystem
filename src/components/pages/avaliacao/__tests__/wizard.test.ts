@@ -255,6 +255,18 @@ describe("o pedido de oração passa pelo consentimento da FE-25, sem segundo ca
     expect(step("A equipe pediu oração pela chuva.")).toContain(consent);
   });
 
+  it("o nível rede avisa que o enviado não pode ser recolhido — PT e EN", async () => {
+    expect(step("A equipe pediu oração pela chuva.")).toContain(
+      "Depois que um pedido é enviado à rede, ele não pode ser recolhido.",
+    );
+
+    const { default: en } = await import("../../../../i18n/locales/en.json");
+    await i18n.changeLanguage("en");
+    const english = step("A equipe pediu oração pela chuva.");
+    await i18n.changeLanguage("pt");
+    expect(english).toContain(en.prayer_vis_network_no_recall);
+  });
+
   it("sem pedido escrito, não há consentimento a dar", () => {
     expect(step("")).not.toContain(i18n.t("prayer_vis_label"));
     expect(step("")).toContain(i18n.t("hw_prayer_optional"));
