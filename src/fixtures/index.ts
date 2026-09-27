@@ -58,6 +58,14 @@ import {
 } from "./projectRecord";
 import { loadRegions, loadRoleChanges, saveTeam } from "./regions";
 
+export {
+  DEFAULT_MOCK_ROLE,
+  MOCK_SESSION_KEY,
+  MOCK_SESSION_PERSONAS,
+  readMockRole,
+  type MockPersona,
+} from "./session";
+
 export const projectsAPI = {
   async list(): Promise<Project[]> {
     return loadProjects();

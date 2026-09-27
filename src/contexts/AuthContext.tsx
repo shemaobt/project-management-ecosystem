@@ -3,7 +3,8 @@ import { resolveSource } from "../services/api";
 import { ApiAuthProvider } from "./ApiAuthProvider";
 import { MockAuthProvider } from "./MockAuthProvider";
 
-export { MOCK_SESSION_PERSONAS, resolvePersonaName } from "./MockAuthProvider";
+export { MOCK_SESSION_PERSONAS } from "../services/api";
+export { resolvePersonaName } from "./MockAuthProvider";
 
 export {
   SESSION_ROLE_LABEL_KEYS,

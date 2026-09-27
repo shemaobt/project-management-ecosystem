@@ -71,6 +71,14 @@ export const formsAPI = pick<typeof fixture.formsAPI>(
 
 export const geoAPI = fixture.geoAPI;
 
+/** The mocked session's personas — fixture data, because the doubles build for them too (OBT-532). */
+export {
+  MOCK_SESSION_KEY,
+  MOCK_SESSION_PERSONAS,
+  readMockRole,
+  type MockPersona,
+} from "../../fixtures";
+
 export { announceFailure, failureSentence } from "./announce";
 export { authAPI, readSession, sessionAPI } from "./endpoints";
 export { API_BASE_URL, REQUEST_TIMEOUT_MS, http } from "./client";

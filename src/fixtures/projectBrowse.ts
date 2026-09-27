@@ -1,4 +1,3 @@
-import { REGION_CENTROIDS } from "../constants/geo";
 import type { Project } from "../types/project";
 import type {
   ProjectBrowseQuery,
@@ -7,9 +6,12 @@ import type {
 import { healthScore } from "../utils/health";
 import { getProgress } from "../utils/progress";
 import { computeDerived } from "../utils/projectDerived";
+import { withheldNotice } from "../utils/region";
 import { filterProjects } from "../utils/search";
 import { loadProjects } from "./projects";
 import { applyRecordOverlay } from "./projectRecord";
+import { asReadBy, coordinatesAnything } from "./reader";
+import { mockPersona } from "./session";
 
 export type { ProjectBrowseQuery, ProjectBrowseResult };
 
@@ -58,25 +60,6 @@ function comparatorFor(
 }
 
 /**
- * Redacts exactly what `LeavingShape` redacts server-side — coords to the region
- * centroid, location and team to the region key / empty — so a fixture-sourced browse
- * result and an API-sourced one need no special-casing downstream
- * (`components/pages/projetos/derived.ts` trusts both equally).
- */
-function withheld(project: Project): Project {
-  if (!project.sensitiveCountry) return project;
-  const region = project.derived?.region ?? "other";
-  return {
-    ...project,
-    location: region,
-    location2: undefined,
-    team: "",
-    ywamBase: "",
-    coords: REGION_CENTROIDS[region],
-  };
-}
-
-/**
  * The three fields `utils/prayer.ts` gates behind consent — absent from
  * `ShemaProjectCard` on purpose, because a bulk list read is not the coordination
  * surface §6.2 carves the exception for. Cleared on every item here too, not only a
@@ -92,31 +75,36 @@ function withoutPrayerFields(project: Project): Project {
   };
 }
 
+/**
+ * Each card is built for the mock persona the way the server builds it for its reader
+ * (OBT-528) — coordination reads the truth of a sensitive place, everybody else the region
+ * — **before** the filter, the counts and the sort, because the server's search and facets
+ * read the card the reader was given. `derived` is computed first, off the truth, so the
+ * region a reduced card names is the true one.
+ */
 export async function browseProjects(
   query: ProjectBrowseQuery,
 ): Promise<ProjectBrowseResult> {
+  const persona = mockPersona();
   // Anything the record double has been told, applied on top: inside one session the
   // list and the record read the same collection, exactly as they do against the API.
-  const projects = applyRecordOverlay(loadProjects());
-  const result = filterProjects(projects, query.filters, query.search);
+  const cards = applyRecordOverlay(loadProjects()).map((project) =>
+    withoutPrayerFields(
+      asReadBy({ ...project, derived: computeDerived(project) }, persona),
+    ),
+  );
+  const result = filterProjects(cards, query.filters, query.search);
   const sorted = [...result.projects].sort(comparatorFor(query.sort));
 
   const start = query.offset;
   const stop = query.limit === null ? undefined : start + query.limit;
-  const items = sorted.slice(start, stop).map((project) => {
-    const derived = computeDerived(project);
-    return withoutPrayerFields(withheld({ ...project, derived }));
-  });
-
-  const locationsWithheld = items.filter(
-    (project) => project.sensitiveCountry,
-  ).length;
+  const items = sorted.slice(start, stop);
 
   return {
     items,
     counts: result.counts,
     matched: result.projects.length,
     total: result.total,
-    locationsWithheld: locationsWithheld > 0 ? locationsWithheld : null,
+    locationsWithheld: withheldNotice(items, coordinatesAnything(persona)),
   };
 }

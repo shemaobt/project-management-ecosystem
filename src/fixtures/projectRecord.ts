@@ -9,7 +9,10 @@ import { applyAssessment } from "../utils/assessment";
 import { toLocalIsoDate } from "../utils/format";
 import { applyProgressUpdate } from "../utils/progress";
 import { computeDerived } from "../utils/projectDerived";
+import { mayWrite, recordAccess } from "../utils/recordAccess";
 import { loadProject, loadProjects } from "./projects";
+import { asReadBy } from "./reader";
+import { mockPersona } from "./session";
 
 /**
  * The record endpoint's test double — and, unlike wave 1's fixtures, it remembers.
@@ -33,6 +36,15 @@ const clone = (project: Project): Project => structuredClone(project);
 
 function withDerived(project: Project): Project {
   return { ...clone(project), derived: computeDerived(project) };
+}
+
+/**
+ * The record as the server answers it to its reader (OBT-528): stamped with `readAs` for
+ * the mock persona and reduced when read as `other`. Only what is **handed out** is read
+ * this way — the overlay keeps the truth, so a reduced record can never be written back.
+ */
+function asAnswered(project: Project): Project {
+  return asReadBy(withDerived(project), mockPersona());
 }
 
 function held(id: string): { project: Project; version: number } | null {
@@ -73,7 +85,7 @@ export function readRecord(id: string): LoadedRecord {
     };
     throw absent;
   }
-  return { project: withDerived(kept.project), version: `"${kept.version}"` };
+  return { project: asAnswered(kept.project), version: `"${kept.version}"` };
 }
 
 const versionOf = (etag: string): number =>
@@ -81,7 +93,7 @@ const versionOf = (etag: string): number =>
 
 function store(project: Project, version: number): LoadedRecord {
   overlay.set(project.id, { project: clone(project), version });
-  return { project: withDerived(project), version: `"${version}"` };
+  return { project: asAnswered(project), version: `"${version}"` };
 }
 
 export function createRecord(project: Project): RecordSaveResult {
@@ -138,6 +150,22 @@ export function patchRecord(
         detail: null,
       },
     };
+  }
+
+  // The server's refusal (OBT-528): a reader who is not coordination writes neither the
+  // place nor the flag, and on a withheld record neither the base nor the contacts.
+  const access = recordAccess(asAnswered(kept.project), false);
+  const refused = Object.keys(patch).filter(
+    (field) => !mayWrite(access, field as keyof Project),
+  );
+  if (refused.length > 0) {
+    const forbidden: ApiFailure = {
+      kind: "forbidden",
+      status: 403,
+      code: null,
+      detail: `refused: ${refused.join(", ")}`,
+    };
+    return { ok: false, reason: "failed", failure: forbidden };
   }
 
   const merged = { ...clone(kept.project) } as Project;

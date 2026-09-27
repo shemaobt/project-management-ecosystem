@@ -18,6 +18,7 @@ import type {
 import { encodeView } from "../../utils/filterSerialisation";
 import { emptyCounts, type FacetCounts, type FacetGroup } from "../../utils/search";
 import { http } from "./client";
+import { readReadAs } from "./projectRecord";
 
 const SHEMA = "/shema";
 
@@ -75,6 +76,8 @@ interface WireProjectCard {
   derived: ProjectDerived | null;
   coords: [number, number];
   locationWithheld: boolean;
+  /** OBT-528, additive: who this card was built for. */
+  readAs?: string;
 }
 
 interface WireFacetCounts {
@@ -165,6 +168,7 @@ function mapCard(wire: WireProjectCard): Project {
     // the same answer client-side whether or not this project ever had one saved.
     status: derived?.status ?? "desconhecido",
     sensitiveCountry: wire.locationWithheld,
+    readAs: readReadAs(wire.readAs),
     statusComments: wire.statusComments,
     statusGoal: wire.statusGoal,
     orgRole: wire.orgRole,
