@@ -49,10 +49,7 @@ export function PrayerConsent({ value, onChange }: PrayerConsentProps) {
                 size={16}
                 strokeWidth={1.75}
                 aria-hidden
-                className={cn(
-                  "mt-px shrink-0",
-                  on ? "text-telha" : "text-fg-muted",
-                )}
+                className={cn("mt-px shrink-0", on ? "text-telha" : "text-fg-muted")}
               />
               <span className="min-w-0 flex-1">
                 <span
