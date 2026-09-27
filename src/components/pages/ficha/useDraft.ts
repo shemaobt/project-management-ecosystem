@@ -40,7 +40,7 @@ export interface DraftHandle {
 const NO_ERRORS: RecordFieldError[] = [];
 const EMPTY_DRAFT: ProjectDraft = {};
 
-function writableDraft(
+export function writableDraft(
   draft: ProjectDraft | undefined,
   place: RecordAccess,
 ): ProjectDraft {

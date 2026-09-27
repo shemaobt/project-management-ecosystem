@@ -146,6 +146,31 @@ describe("a leitura do registro", () => {
     expect(loaded.project.bookProgress[0].mentorApproved).toBe(4);
   });
 
+  it("readAs vem do servidor; ausente ou desconhecido lê como retido (OBT-532)", async () => {
+    const readAs = async (value: unknown) => {
+      script = () => ({
+        status: 200,
+        data: { ...WIRE, readAs: value },
+        headers: { etag: '"1"' },
+      });
+      return (await projectRecordAPI.read("ashaninka")).project.readAs;
+    };
+    expect(await readAs("coordination")).toBe("coordination");
+    expect(await readAs("other")).toBe("other");
+    expect(await readAs(undefined)).toBeUndefined();
+    expect(await readAs("admin")).toBeUndefined();
+  });
+
+  it("locationWithheld liga a marcação, mesmo com o flag desligado (fail-closed)", async () => {
+    script = () => ({
+      status: 200,
+      data: { ...WIRE, sensitiveCountry: false, locationWithheld: true },
+      headers: { etag: '"1"' },
+    });
+    const { project } = await projectRecordAPI.read("ashaninka");
+    expect(project.sensitiveCountry).toBe(true);
+  });
+
   it("o bloco derived do servidor chega inteiro, sem recálculo", async () => {
     script = () => ({ status: 200, data: WIRE, headers: { etag: '"1"' } });
     const { project } = await projectRecordAPI.read("ashaninka");
