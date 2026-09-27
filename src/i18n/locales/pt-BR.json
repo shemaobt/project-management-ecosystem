@@ -1012,9 +1012,6 @@
   "intake_minting": "Gerando…",
   "intake_link_ready": "Link gerado",
   "intake_link_once": "Copie agora — por segurança, este endereço só aparece aqui uma vez.",
-  "intake_copy": "Copiar",
-  "intake_copied": "Copiado",
-  "intake_copy_failed": "Não deu para copiar. Selecione o endereço e copie manualmente.",
   "intake_expires_on": "Vale até {{date}}.",
   "intake_links_title": "Links deste projeto",
   "intake_links_empty": "Nenhum link gerado ainda para este projeto.",
@@ -1124,5 +1121,8 @@
   "priority_paused": "Pausado",
   "priority_canceled": "Cancelado",
   "priority_unknown": "Sem informação",
-  "priority_default": "Em andamento"
+  "priority_default": "Em andamento",
+  "link_copy": "Copiar",
+  "link_copied": "Copiado",
+  "link_copy_failed": "Não deu para copiar. Selecione o endereço e copie manualmente."
 }

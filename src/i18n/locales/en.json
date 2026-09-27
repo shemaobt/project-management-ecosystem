@@ -1012,9 +1012,6 @@
   "intake_minting": "Generating…",
   "intake_link_ready": "Link generated",
   "intake_link_once": "Copy it now — for safety, this address is shown here only once.",
-  "intake_copy": "Copy",
-  "intake_copied": "Copied",
-  "intake_copy_failed": "Could not copy it. Select the address and copy it by hand.",
   "intake_expires_on": "Valid until {{date}}.",
   "intake_links_title": "Links for this project",
   "intake_links_empty": "No link generated for this project yet.",
@@ -1124,5 +1121,8 @@
   "priority_paused": "Paused",
   "priority_canceled": "Canceled",
   "priority_unknown": "No info",
-  "priority_default": "In progress"
+  "priority_default": "In progress",
+  "link_copy": "Copy",
+  "link_copied": "Copied",
+  "link_copy_failed": "Could not copy it. Select the address and copy it by hand."
 }
