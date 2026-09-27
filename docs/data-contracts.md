@@ -227,6 +227,11 @@ the migration, not after. The optional eighteen are the fields wave 1's screens 
 `mentorContact`, `objectiveNotes`, `financialNotes`, `financialOtherDetails`, `otherProgress`,
 `storiesTranslated`, `readyVesselsAudioHours`, `mediaPhotos`, `mediaVideos`.
 
+> **A nineteenth, `readAs`, arrived with FE-48 ([OBT-532](https://linear.app/shema-obt/issue/OBT-532)),
+> and it is not an export key either:** who the server built the card or the record for,
+> `"coordination"` or `"other"` (OBT-528). It is absent on a project no server read for anybody —
+> the fixture list — and absent reads withheld (§8.1).
+
 **Server requirement:** every one of the 18 is nullable in the schema, and absent means absent —
 not an empty default. `healthPhysical` is the clearest case: the export has three health dimensions
 and the product has four, so a migrated record is *three-quarters assessed at most*, and
@@ -751,15 +756,17 @@ The test that proves the whole section is the one the delivery plan already name
 unauthorized prayer request is absent from all four output paths** — the prayer wall, exports, the
 ETEN report and notifications.
 
-**Where redaction lives, stated once, because the types already encode it.** A project read by
-someone allowed to open it is a *coordination* surface and carries the truth: `Project.location` is
-a plain string and the console applies the display rule when it draws a card, a tooltip or a
-marker. Every shape that *leaves* coordination carries the redaction **in its own type** —
+**Where redaction lives, stated once, because the types already encode it.** ~~A project read by
+someone allowed to open it is a *coordination* surface and carries the truth.~~ **Since OBT-528 /
+FE-48 the card and the record are built for their reader:** coordination (`globalStrategist`, the
+`coordinator` of the project's region) reads the truth of a sensitive place and everybody else its
+region, and the payload says which with `readAs`. The console reads that answer
+(`getLocationDisplay`) and never evaluates a role. Every shape that *leaves* coordination carries the redaction **in its own type** —
 `PrayerRequest.locationWithheld`, `EtenYearSnapshot.country: LocationDisplay`,
 `AppNotification.locationWithheld`, `ExportedProject.locationWithheld` — so a renderer downstream
 cannot leak what the payload does not hold. **That split is the rule**: redact in the payload on
-every path that leaves, and never on the project read itself, where hiding the country from its own
-author is data loss rather than privacy (§8.1, rule 5).
+every path that leaves, and on the console's reads for every reader who is not coordination (§8.1,
+rule 5).
 
 ### 8.1 Sensitive countries
 
@@ -771,26 +778,29 @@ same rule while rendering, through the same single owner (`getLocationDisplay` /
 rules 1 to 3 below are what both sides implement, and the server is the one that must hold.
 
 1. **The location is replaced by the region name, never the country or the place.** The frontend's
-   single owner is `getLocationDisplay`; its shape is `{withheld: true, regionLabelKey}` or
-   `{withheld: false, location}` — **the redaction travels in the shape**, so a renderer cannot leak
+   single owner is `getLocationDisplay` (the console's reads, by `readAs`) beside `getLeavingLocation`
+   (what leaves, by the flag); since FE-48 both return a `PlaceDisplay` —
+   `{withheld: true, regionLabelKey, base: ""}` or `{withheld: false, location, base}` — **the
+   redaction travels in the shape**, so a renderer cannot leak
    what the payload does not hold. Reproduce that: return the withheld marker, not an empty string.
 2. **Coordinates are the region centroid, never the true position** — `REGION_CENTROIDS` in
-   `src/constants/geo.ts`. The marker carries a dashed "approximate" ring and the map announces, in
-   a visible overlay, **how many projects are being withheld**: a silently incomplete map is its own
-   hazard, so the reduction is always announced. Reduced precision was chosen over omission because
+   `src/constants/geo.ts` — for **every** reader, coordination included. The marker carries a dashed
+   "approximate" ring and the map announces, in a visible overlay, **how many projects are being
+   withheld** — to coordination only since GATE-04 (1.3): the overlay mounts when the collection's
+   `locationsWithheld` is a number, and the server sends `null` to everybody else. Reduced precision was chosen over omission because
    the map must show exactly what the filters return.
 3. **The base name goes with the location in any file that leaves.** Both flagged seed records have
    a base that names a place — `YWAM Egypt`, `YWAM Morelia` — so a file that withholds `Egypt`
    while printing `YWAM Egypt` one column over has redacted nothing. In the export the base is
-   emptied for a withheld record; **in-console surfaces still render it verbatim**, which is an open
-   gap §11.4 owns.
+   emptied for a withheld record, and since FE-48 so is every in-console surface: the base travels
+   in `PlaceDisplay`, shown only to a payload read as coordination (§11.4, answered).
 4. **Media of a flagged project never reaches a public audience**, however it was authorized. §8.3.
-5. **The record itself is not redacted.** The coordinator filling it is the person who needs the
-   real country, so the Identity tab renders `location` verbatim with a badge. Redaction belongs to
-   output paths; an editing surface that hides the data from its own author is not privacy, it is
-   data loss. The same holds for `teamLeaderContact`, `mentorContact` and `teamContact` — personal
-   data that may belong to someone in a sensitive country, shown on the record and **gated on every
-   output the same way `location` is**.
+5. ~~The record itself is not redacted.~~ **The record is built for its reader (OBT-528, FE-48).**
+   Coordination reads the real place with a badge and edits it; everybody else reads the region
+   (`location` holds the region **key**), with `location2`, the base, the three contacts and
+   `sensitivity` empty and the coordinates at the centroid. The server refuses location, coordinates,
+   flag and reason from anybody but coordination on every record, and on a withheld one the base and
+   contacts too (a 403); the Identity and Team tabs disable exactly those fields for that reader.
 
 ### 8.2 Consent — prayer requests and needs
 
@@ -853,13 +863,15 @@ sensitive human context in the record.
 **allowlist** (`ExportedProject`, 24 fields), which means a field added to `Project` later stays out
 of the file until someone puts it in. Personal contacts, people's names, media and materials are not
 in the allowlist at all; `sharedPrayerRequests` comes through `buildPrayerRequests`, so the raw
-columns are never read; `location` comes through `getLocationDisplay`; `notes` is asked of
+columns are never read; `location` and `base` come through `getLeavingLocation`, withheld by the flag
+whoever exports; `notes` is asked of
 `canExportNotes` under an audience of `publico`, which answers no.
 
 **Server requirement (BE-14): the export is generated server-side by an allowlist, and so is the
 file's header** — what it contains, when it was generated, that it is confidential, and **how many
-locations were withheld**. A file with no sensitive projects gets no withheld note rather than a
-"0 withheld" line.
+locations were withheld** — a line addressed to coordination only (GATE-04, 1.3): the client export
+prints it only when its rows were read for coordination (`withheldNotice`). A file with no sensitive
+projects gets no withheld note rather than a "0 withheld" line.
 
 **Server requirement: the export is not an import.** The redacted file is recognised and refused on
 import, because importing the report would replace full records with reduced ones. Import validates
@@ -915,8 +927,8 @@ it picks, the paths below keep their shape.
   `MediaAuthorization.at` are the same.
 - **Every response is already scoped, and every *leaving* shape is already redacted.** A response
   never carries a project the caller may not see, and never carries a raw prayer column (§8). The
-  project read itself carries the true `location` — it is a coordination surface, and §8 states the
-  split once.
+  card and the record carry the truth of a sensitive place only to coordination, and say so with
+  `readAs` (§8.1, rule 5).
 - Errors are the repository's own envelope; the frontend surfaces the message and nothing else.
 - **No endpoint returns a vocabulary the frontend already has** (Appendix A), with one exception
   named in §9.7.
@@ -947,11 +959,20 @@ client-computed counts is the defect this note exists to prevent.
 
 The Atlas reads the same response. `geoAPI.outlines()` stays a bundled asset (§6.3).
 
+> **What BE-05 and OBT-528 actually serve** is an envelope, not `Project[]`
+> (`{items, counts, matched, total, locationsWithheld}`), with each card built for its reader:
+> `readAs` (additive) says whether it carries the truth, and `locationsWithheld` is how many items are
+> withheld, addressed to coordination and `null` for anybody else. The console maps
+> `locationWithheld` onto `sensitiveCountry` and `readAs` onto the project, and the globe mounts its
+> overlay from `locationsWithheld` (FE-48).
+
 ### 9.2 Início — FE-30, no endpoint of its own
 
 The six indicators are derived from `GET /api/shema/projects` through the same `filterProjects` the
 destination uses, so **the count is by construction what the link returns**. An `/indicators`
-endpoint would be a second owner of that relation and is explicitly not wanted.
+endpoint would be a second owner of that relation and is explicitly not wanted. The globe below the
+band reads the fixture list, which no server read for anybody, so it announces no withheld count
+until the list integrates (FE-48); "Bases" counts only the bases the reader may see.
 
 ### 9.3 Ficha do projeto — INT-03 ([OBT-408](https://linear.app/shema-obt/issue/OBT-408)) · BE-06 ([OBT-395](https://linear.app/shema-obt/issue/OBT-395))
 
@@ -962,6 +983,13 @@ PATCH  /api/shema/projects/{id}     {Partial<Project>} -> Project
 ```
 
 `projectsStore.saveProject` is an upsert and splits at this seam by whether the id is new.
+
+**The record is built for its reader (OBT-528).** Two additive keys travel with it: `readAs`
+(`"coordination"` · `"other"`) and `locationWithheld` (the flag, for every reader). The console reads
+`readAs` closed — anything else, absence included, is no answer and reads withheld — and folds
+`locationWithheld` onto `sensitiveCountry`. A reader who is not coordination gets a **403** for
+`location`, `location2`, `coords`, `sensitiveCountry` or `sensitivity` on any record, and for the base
+or the three contacts on a withheld one; the console never sends them (FE-48).
 
 **Server requirements on the write:**
 
@@ -1351,11 +1379,12 @@ belongs in the file more than the format does.
 ### 11.4 The fourth gate, which has no issue: what *devida cautela* means per output
 
 `CLAUDE.md` §6.1 marks it and BE-04 ([OBT-393](https://linear.app/shema-obt/issue/OBT-393)) is
-scheduled before anything that emits data. One concrete question is already open and named in §8.1:
-**the base name.** The export file empties it for a withheld record; the console's cards, tooltips
-and prayer wall still render it verbatim, and both flagged records carry a base that names a place.
-Redacting it everywhere is a second rule and it belongs to this gate — **do not invent it surface
-by surface.**
+scheduled before anything that emits data. One concrete question was open and named in §8.1:
+**the base name.** ~~Redacting it everywhere is a second rule and it belongs to this gate.~~ **GATE-04
+answered it** (Karina 22/sep, Daniel 23/sep): the base is hidden from everything that leaves and from
+every reader who is not coordination. OBT-528 built the server half, FE-48 the console's — one owner,
+`PlaceDisplay.base`, not surface by surface. The gate stays open only for the list of sensitive
+countries.
 
 ---
 
