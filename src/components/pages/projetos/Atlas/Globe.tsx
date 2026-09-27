@@ -33,7 +33,6 @@ interface Rotation {
 
 export interface GlobeProps {
   projects: readonly Project[];
-  /** The collection's withheld count as it came — coordination's, `null` for everybody else. */
   locationsWithheld: number | null;
   onSelect?: (project: Project) => void;
 }

@@ -61,8 +61,6 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
   const code = values.languageCode ?? "";
   const locked = !draft.place.placeWritable;
   const place = draft.saved ? getLocationDisplay(draft.saved) : null;
-  // Decided here, at render: a reduced record never shows its region key as a place nor
-  // its centroid as coordinates, whatever the local state holds.
   const withheld = draft.place.withheld && place?.withheld === true;
   const shownLocation = withheld && place?.withheld
     ? t(place.regionLabelKey)
