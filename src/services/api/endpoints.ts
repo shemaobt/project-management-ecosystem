@@ -270,6 +270,26 @@ export const intercessorsAPI = {
     );
     return data;
   },
+
+  /** "Revisado" — the one-year review (OBT-531). The answer is the entry, flag cleared. */
+  async review(id: string): Promise<IntercessorEntry> {
+    const { data } = await http.post<IntercessorEntry>(
+      `${PEOPLE}/${encodeURIComponent(id)}/review`,
+    );
+    return data;
+  },
+
+  // --- the exit link's two routes — the person's own phone, no session ---------------
+
+  /** Whether the link still lets somebody leave. 204 and nothing else; changes nothing. */
+  async exitLink(token: string): Promise<void> {
+    await http.get(`${SHEMA}/intercessors/leave/${encodeURIComponent(token)}`);
+  },
+
+  /** Leave the network: the person, their consents and their links are erased. */
+  async leave(token: string): Promise<void> {
+    await http.post(`${SHEMA}/intercessors/leave/${encodeURIComponent(token)}`);
+  },
 };
 
 export const etenAPI = {

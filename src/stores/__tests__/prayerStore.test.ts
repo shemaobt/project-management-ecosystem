@@ -45,7 +45,12 @@ const JOAO = {
 const reset = () => {
   storage.clear();
   resetIntercessorNetwork();
-  usePrayerStore.setState({ intercessors: [], withheldCount: 0, hydrated: true });
+  usePrayerStore.setState({
+    intercessors: [],
+    withheldCount: 0,
+    withheldReviewDueCount: 0,
+    hydrated: true,
+  });
 };
 
 const network = () => usePrayerStore.getState().intercessors;
@@ -203,5 +208,40 @@ describe("remover apaga o contato, não o esconde", () => {
       false,
     );
     expect(network()).toHaveLength(2);
+  });
+});
+
+describe("a revisão depois de um ano (OBT-531)", () => {
+  beforeEach(async () => {
+    reset();
+    await usePrayerStore.getState().addIntercessor(ANA);
+  });
+
+  it("Revisado troca a entrada pela do servidor e tira o destaque", async () => {
+    const [ana] = network();
+    // Stand in for a list the server answered a year later: the flag is set on the entry.
+    usePrayerStore.setState({ intercessors: [{ ...ana, reviewDue: true }] });
+
+    expect(await usePrayerStore.getState().reviewIntercessor(ana.id)).toBe(true);
+
+    expect(network()[0].reviewDue).toBe(false);
+    expect(network()[0].reviewedAt).not.toBeNull();
+  });
+
+  it("revisar quem não existe não mexe em ninguém", async () => {
+    expect(await usePrayerStore.getState().reviewIntercessor("nope")).toBe(false);
+    expect(network()).toHaveLength(1);
+  });
+
+  it("a página busca a rede de novo mesmo já hidratada — o destaque é o de hoje", async () => {
+    const [ana] = network();
+    // A cache from before: hydrated, and showing nobody. `hydrate` trusts it; `reload` does not.
+    usePrayerStore.setState({ intercessors: [], hydrated: true });
+
+    await usePrayerStore.getState().hydrate();
+    expect(network()).toEqual([]);
+
+    await usePrayerStore.getState().reload();
+    expect(network().map((person) => person.id)).toEqual([ana.id]);
   });
 });

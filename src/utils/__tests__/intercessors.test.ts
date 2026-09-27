@@ -32,6 +32,9 @@ const entry = (over: Partial<IntercessorEntry> = {}): IntercessorEntry => ({
   contactHint: "an…@exemplo.org",
   sensitiveCountry: false,
   addedAt: "2026-08-14",
+  reviewedAt: null,
+  lastSentAt: null,
+  reviewDue: false,
   consents: [
     { context: "network", basis: "verbal", recordedAt: "2026-08-14" },
     { context: "directory", basis: "verbal", recordedAt: "2026-08-14" },
@@ -256,7 +259,10 @@ describe("a rede não é o papel da plataforma", () => {
       "contactHint",
       "country",
       "id",
+      "lastSentAt",
       "name",
+      "reviewDue",
+      "reviewedAt",
       "sensitiveCountry",
     ]);
     for (const forbidden of ["contact", "role", "roleKey", "region", "regionKey", "userId"]) {
