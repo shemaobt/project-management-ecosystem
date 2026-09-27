@@ -1,6 +1,6 @@
 import { useId, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { ADMIN_ROLE, SHEMA_APP } from "../../../constants/access";
+import { ADMIN_ROLE, APP_LABEL_KEYS, SHEMA_APP } from "../../../constants/access";
 import { SESSION_ROLE_LABEL_KEYS } from "../../../contexts/AuthContext";
 import { toApiFailure, type AccessAPI } from "../../../services/api";
 import type { AccessAppKey, AccountGrants } from "../../../types/access";
@@ -11,7 +11,6 @@ import {
   revokesLastRegional,
   rolesHeld,
 } from "../../../utils/access";
-import { APP_LABEL_KEYS } from "../../../constants/access";
 import { ConfirmDialog } from "../../common/ConfirmDialog";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
