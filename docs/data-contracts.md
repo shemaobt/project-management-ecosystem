@@ -1211,7 +1211,8 @@ the Admin today is also `globalStrategist` and `gestor`), so the session carries
   apps and **not** the installation's `is_platform_admin`), `gestor`, `mesa` (the form's two
   privileged seats), and `equipe`, **reserved**: OBT-524 makes it a project membership and
   nothing emits it yet. `SESSION_ROLES` in `src/constants/roles.ts` is the list, and
-  `shema-api`'s `ROLE_PRECEDENCE` is the same tuple, pinned by a test on each side.
+  `shema-api`'s `ROLE_PRECEDENCE` is the same tuple, pinned in order by a test on each side
+  (`tests/test_shema/test_access.py` there, `session.test.ts` here).
 - **`roles` is every role held, highest precedence first; `role` is its first entry and is
   transitional** — kept so no screen that reads one role breaks. Every account that reached the
   console before keeps its `role`; new consumers read `roles`.
@@ -1222,7 +1223,8 @@ the Admin today is also `globalStrategist` and `gestor`), so the session carries
 - **`readSession` fails closed on the list.** `roles` is required; an empty list is the same
   refusal as the `403` (`forbidden`, *no role*); a key outside `SESSION_ROLES` refuses the whole
   session (`UNKNOWN_VOCABULARY`) and is never dropped, because a shortened list would lie about
-  who the person is. A response without `roles` comes from a server older than this contract
+  who the person is; and a `role` that is not the list's first entry refuses it too, because every
+  screen still reads `role` and the persona must not carry a role the person does not hold. A response without `roles` comes from a server older than this contract
   and is refused the same way: `shema-api` ships first.
 
 **`name` is resolved from the org chart** (§5.3) — it is not a user profile field, and

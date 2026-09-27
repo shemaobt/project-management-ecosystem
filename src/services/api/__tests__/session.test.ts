@@ -176,6 +176,32 @@ describe("GET /api/shema/session, como a BE-17 responde", () => {
     ).toMatchObject({ kind: "invalid", code: UNKNOWN_VOCABULARY });
   });
 
+  it("o papel transitório é o primeiro da lista, ou a sessão é recusada", () => {
+    expect(
+      refusal({ role: "coordinator", roles: ["admin", "mesa"], regionScope: [] }),
+    ).toMatchObject({ kind: "invalid", code: UNKNOWN_VOCABULARY });
+    expect(
+      refusal({
+        role: "mesa",
+        roles: ["coordinator", "mesa"],
+        regionScope: ["africa"],
+      }),
+    ).toMatchObject({ kind: "invalid", code: UNKNOWN_VOCABULARY });
+  });
+
+  it("o vocabulário é o do servidor, na mesma ordem de precedência", () => {
+    expect(SESSION_ROLES).toEqual([
+      "globalStrategist",
+      "coordinator",
+      "obtLab",
+      "resourceCircle",
+      "admin",
+      "gestor",
+      "mesa",
+      "equipe",
+    ]);
+  });
+
   it("lista vazia é conta sem papel: a mesma recusa do 403", () => {
     expect(
       refusal({ role: null, roles: [], regionScope: null }),

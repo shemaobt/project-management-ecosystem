@@ -72,6 +72,7 @@ export function readSession(payload: unknown): ShemaSession {
   if (listed.length === 0) throw failure("forbidden");
   const roles = listed.map(knownRole);
   const role = knownRole(body.role);
+  if (role !== roles[0]) throw failure("invalid", null, UNKNOWN_VOCABULARY);
 
   const scope = body.regionScope;
   if (scope !== null && scope !== undefined && !Array.isArray(scope)) {
