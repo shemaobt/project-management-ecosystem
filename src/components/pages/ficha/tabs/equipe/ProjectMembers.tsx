@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { failureMessage, membersAPI, toApiFailure } from "../../../../../services/api";
 import type { ProjectMember } from "../../../../../types/project";
+import type { ApiFailure } from "../../../../../types/session";
 import { formatDate } from "../../../../../utils/format";
 import { LoadingSpinner } from "../../../../common/LoadingSpinner";
 
@@ -36,7 +37,7 @@ export function MembersPanel({ members, error }: MembersPanelProps) {
       {error ? (
         <p
           role="alert"
-          className="mt-3 inline-flex items-center gap-1.5 text-micro font-semibold text-telha"
+          className="mt-3 inline-flex items-center gap-1.5 text-micro font-semibold text-accent-press"
         >
           <AlertTriangle size={14} strokeWidth={1.75} aria-hidden />
           {error}
@@ -77,15 +78,16 @@ export interface ProjectMembersProps {
 }
 
 /**
- * Reads the roster once per mount. The parent keys it by `projectId`, so moving to another
- * record remounts it with a fresh `null` instead of resetting state inside the effect — which
- * `react-hooks/set-state-in-effect` refuses, and which would flash the previous project's team.
- * The state is only set from the promise's callbacks, and a late answer after unmount is dropped.
+ * Reads the roster once per mount. `EquipeTab` owns it above the ver/editar switch and keys it by
+ * `projectId`, so toggling the mode keeps it mounted and moving to another record remounts it with
+ * a fresh `null` — no reset inside the effect, which `react-hooks/set-state-in-effect` refuses.
+ * The failure is kept raw and worded at render, so switching the language rewords it without
+ * reading the roster again.
  */
 export function ProjectMembers({ projectId }: ProjectMembersProps) {
   const { t } = useTranslation();
   const [members, setMembers] = useState<readonly ProjectMember[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<ApiFailure | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,12 +97,14 @@ export function ProjectMembers({ projectId }: ProjectMembersProps) {
         if (!cancelled) setMembers(result);
       })
       .catch((raw: unknown) => {
-        if (!cancelled) setError(failureMessage(toApiFailure(raw), t));
+        if (!cancelled) setFailure(toApiFailure(raw));
       });
     return () => {
       cancelled = true;
     };
-  }, [projectId, t]);
+  }, [projectId]);
 
-  return <MembersPanel members={members} error={error} />;
+  return (
+    <MembersPanel members={members} error={failure ? failureMessage(failure, t) : null} />
+  );
 }

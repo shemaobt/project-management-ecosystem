@@ -44,8 +44,6 @@ export const INTEGRATED_BY: Record<DataNamespace, string> = {
   intercessors: "INT-10 · BE-13",
   eten: "INT-08 · BE-11",
   forms: "INT-09 · BE-12",
-  // The project's roster and the account's own projects — the link that says who a
-  // project's team is. Read by the ficha's Equipe tab; written by the Admin (OBT-546).
   members: "BE-18 · OBT-524",
 };
 
