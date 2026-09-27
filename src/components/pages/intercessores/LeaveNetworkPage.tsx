@@ -129,7 +129,6 @@ export function LeaveNetworkPage() {
   }, [token, fail]);
 
   useEffect(() => {
-    // `status` already starts at "loading"; `check` only sets state from its callbacks.
     check();
   }, [check]);
 

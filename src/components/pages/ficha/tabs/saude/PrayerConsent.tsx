@@ -49,7 +49,10 @@ export function PrayerConsent({ value, onChange }: PrayerConsentProps) {
                 size={16}
                 strokeWidth={1.75}
                 aria-hidden
-                className={cn("mt-px shrink-0", on ? "text-telha" : "text-fg-muted")}
+                className={cn(
+                  "mt-px shrink-0",
+                  on ? "text-telha" : "text-fg-muted",
+                )}
               />
               <span className="min-w-0 flex-1">
                 <span
@@ -64,9 +67,6 @@ export function PrayerConsent({ value, onChange }: PrayerConsentProps) {
                   {t(PRAYER_VISIBILITY_HINT_KEYS[option])}
                 </span>
                 {option === "rede" ? (
-                  // Karina, 22/sep (3.3): what reached the network cannot be taken back, and
-                  // the team has to know it before choosing — so it shows whether or not
-                  // this option is the one marked.
                   <span className="mt-1.5 block text-micro leading-[1.45] font-semibold text-fg-strong">
                     {t("prayer_vis_network_no_recall")}
                   </span>

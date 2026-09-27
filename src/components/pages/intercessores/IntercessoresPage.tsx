@@ -19,19 +19,12 @@ import { countryName } from "../../../utils/countries";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { SubNav } from "../oracao/SubNav";
-import {
-  Button,
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Input,
-} from "../../ui";
+import { Input } from "../../ui";
 import { CountryGroup } from "./CountryGroup";
 import { EditIntercessorDialog } from "./EditIntercessorDialog";
 import { IntercessorForm } from "./IntercessorForm";
+import { NetworkNotices } from "./NetworkNotices";
+import { RemoveIntercessorDialog } from "./RemoveIntercessorDialog";
 
 export interface IntercessoresViewProps {
   people: readonly IntercessorEntry[] | null;
@@ -212,25 +205,11 @@ export function IntercessoresView({
             </div>
           </div>
 
-          {reviewDueCount > 0 ? (
-            <p className="mb-4 rounded-md border border-line-strong bg-elevated px-4 py-3 text-small leading-normal text-fg">
-              {t("int_review_due_count", { count: reviewDueCount })}
-            </p>
-          ) : null}
-
-          {withheldCount > 0 ? (
-            <p className="mb-4 rounded-md border border-line bg-muted px-4 py-3 text-small leading-normal text-fg-muted">
-              {t("int_withheld_count", { count: withheldCount })}
-              {withheldReviewDueCount > 0 ? (
-                <>
-                  {" "}
-                  {t("int_withheld_review_due", {
-                    count: withheldReviewDueCount,
-                  })}
-                </>
-              ) : null}
-            </p>
-          ) : null}
+          <NetworkNotices
+            reviewDueCount={reviewDueCount}
+            withheldCount={withheldCount}
+            withheldReviewDueCount={withheldReviewDueCount}
+          />
 
           {groups.length === 0 ? (
             <EmptyState
@@ -267,37 +246,11 @@ export function IntercessoresView({
         onClose={closeEdit}
       />
 
-      <Dialog
-        open={removing !== null}
-        onOpenChange={(open) => {
-          if (!open) setRemoving(null);
-        }}
-      >
-        <DialogContent size="narrow" closeLabel={t("btn_close")}>
-          <DialogHeader>
-            <DialogTitle>{t("int_remove")}</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <p className="text-small leading-normal text-fg">
-              {t("int_remove_confirm", { name: removing?.name ?? "" })}
-            </p>
-          </DialogBody>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setRemoving(null)}>
-              {t("btn_cancel")}
-            </Button>
-            <Button
-              variant="danger"
-              onClick={async () => {
-                if (removing) await onRemove(removing.id);
-                setRemoving(null);
-              }}
-            >
-              {t("btn_delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RemoveIntercessorDialog
+        removing={removing}
+        onClose={() => setRemoving(null)}
+        onConfirm={onRemove}
+      />
     </section>
   );
 }
