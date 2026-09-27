@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
 import { SessionGate } from "./components/layout/SessionGate";
+import { AcessoPage } from "./components/pages/acesso";
 import { AvaliacaoPage } from "./components/pages/avaliacao";
 import { DesignSystemPage } from "./components/pages/design-system/DesignSystemPage";
 import { EquipePage } from "./components/pages/equipe";
@@ -16,6 +17,7 @@ import { RitmoPage } from "./components/pages/ritmo/RitmoPage";
 import { Toaster } from "./components/ui";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { accessAPI } from "./services/api";
 
 export default function App() {
   return (
@@ -55,6 +57,12 @@ export default function App() {
                         element={<AvaliacaoPage />}
                       />
                       <Route path="equipe" element={<EquipePage />} />
+                      {accessAPI ? (
+                        <Route
+                          path="acesso"
+                          element={<AcessoPage api={accessAPI} />}
+                        />
+                      ) : null}
                     </Route>
                     <Route
                       path="design-system"

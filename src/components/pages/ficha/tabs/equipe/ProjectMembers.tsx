@@ -12,6 +12,8 @@ export interface MembersPanelProps {
   members: readonly ProjectMember[] | null;
   /** The failure sentence, when the read failed. */
   error: string | null;
+  /** The closing line; the record's own talks about the names above it. */
+  hint?: string;
 }
 
 /**
@@ -23,7 +25,7 @@ export interface MembersPanelProps {
  * linked to the project on the server; the free-text people above stay the record's own, and
  * nothing here writes them.
  */
-export function MembersPanel({ members, error }: MembersPanelProps) {
+export function MembersPanel({ members, error, hint }: MembersPanelProps) {
   const { t } = useTranslation();
   const locale = t("locale");
 
@@ -67,7 +69,7 @@ export function MembersPanel({ members, error }: MembersPanelProps) {
       )}
 
       <p className="mt-3 text-micro leading-[1.45] text-fg-subtle">
-        {t("f_members_hint")}
+        {hint ?? t("f_members_hint")}
       </p>
     </section>
   );

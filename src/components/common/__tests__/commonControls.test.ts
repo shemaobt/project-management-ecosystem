@@ -33,7 +33,11 @@ const NOTE = "Os papéis regionais só valem com região.";
 
 function tooltip(defaultOpen: boolean): string {
   return renderToStaticMarkup(
-    createElement(InfoTooltip, { label: "Sobre papéis regionais", defaultOpen }, NOTE),
+    createElement(InfoTooltip, {
+      label: "Sobre papéis regionais",
+      defaultOpen,
+      children: NOTE,
+    }),
   );
 }
 
