@@ -16,7 +16,6 @@ export interface RemoveIntercessorDialogProps {
   onConfirm: (id: string) => Promise<unknown>;
 }
 
-/** The one confirmation before erasing a person — reached by the × and by "Remover". */
 export function RemoveIntercessorDialog({
   removing,
   onClose,

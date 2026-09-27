@@ -6,11 +6,6 @@ export interface NetworkNoticesProps {
   withheldReviewDueCount: number;
 }
 
-/**
- * What the list above the rows owes its reader: how many listed people are past their
- * year, and how many people it is not showing — and of those, how many are past theirs.
- * Counts, never names; a silently incomplete list is its own hazard (§8.1 rule 2).
- */
 export function NetworkNotices({
   reviewDueCount,
   withheldCount,

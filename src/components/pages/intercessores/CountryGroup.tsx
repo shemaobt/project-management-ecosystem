@@ -21,11 +21,6 @@ export interface IntercessorRowProps {
   onReview: () => void;
 }
 
-/**
- * One person. When the server says their year has passed (`reviewDue`, OBT-531) the row
- * carries the question and its two answers — "Revisado" keeps them and starts the year
- * again, "Remover" opens the same confirmation the × does. The flag is read, never computed.
- */
 export function IntercessorRow({
   person,
   contacting,
