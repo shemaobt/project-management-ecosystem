@@ -1209,8 +1209,9 @@ the Admin today is also `globalStrategist` and `gestor`), so the session carries
   `globalStrategist`, `coordinator`, `obtLab`, `resourceCircle` — the four personas the screens
   were drawn for — then `admin` (OBT-522's Admin, *"Admin da plataforma"*, one role for both
   apps and **not** the installation's `is_platform_admin`), `gestor`, `mesa` (the form's two
-  privileged seats), and `equipe`, **reserved**: OBT-524 makes it a project membership and
-  nothing emits it yet. `SESSION_ROLES` in `src/constants/roles.ts` is the list, and
+  privileged seats), and `equipe`, which since OBT-524 is a **project membership**: the server
+  answers it for an account that is a live member of at least one project (§9.14), and that is
+  what lets a member with no role anywhere through the door. `SESSION_ROLES` in `src/constants/roles.ts` is the list, and
   `shema-api`'s `ROLE_PRECEDENCE` is the same tuple, pinned in order by a test on each side
   (`tests/test_shema/test_access.py` there, `session.test.ts` here).
 - **`roles` is every role held, highest precedence first; `role` is its first entry and is
@@ -1233,6 +1234,49 @@ this today because the grant has no region (§3.1). `SessionRole` and `SessionPe
 in `src/contexts/AuthContext.tsx` rather than under `src/types/`, the one gap in the frozen surface
 of §1. INT-01 closed it (§12.3): they live in `src/types/session.ts` now, under the same
 `contract.test.ts` guard as the other ten, and the context re-exports them so no import moved.
+
+### 9.14 Membros do projeto — BE-18 ([OBT-524](https://linear.app/shema-obt/issue/OBT-524)), 27/sep/2026
+
+```
+GET    /api/shema/projects/{id}/members            -> ProjectMember[]   # behind the PME's door
+POST   /api/shema/projects/{id}/members {userId}   -> ProjectMember     # Admin only · 201
+DELETE /api/shema/projects/{id}/members/{userId}   -> 204               # Admin only · marks the row
+GET    /api/shema/me/projects                      -> ProjectRef[]      # behind the PME's door
+```
+
+`ProjectMember` is `{userId, name, role: "equipe", addedAt}` and `ProjectRef` is
+`{id, languageName}` (`src/types/project.ts`). `name` is the account's display name, else its
+e-mail; `addedAt` is the UTC day the membership began, `YYYY-MM-DD` (§9.0). The roster is in the
+order people joined.
+
+The link from an account to the projects whose team it is on — what "a equipe" means since
+OBT-522 (22 and 25/sep), and what the form (OBT-520), *Solicitar recurso* (OBT-544) and the
+Admin's access screen (OBT-546) read. The free-text people on the record (`teamLeader`, `mentor`,
+`translators`, … §5.1) are untouched: the client has not replaced them and the Notion export
+carries them.
+
+**Server requirements:**
+- **Only the Admin writes** (`admin` in the `shema` app, not the installation's
+  `is_platform_admin`): every other role — the four personas, `mesa`, `gestor`, and a member of
+  the project — is a 403. A live duplicate is a 409; an account that does not exist is a 422.
+- **Removal marks, it never deletes.** The row keeps `removed_at`/`removed_by`, because a request
+  a member sent stays the project's after they leave; adding the same account later makes a new
+  row. One live membership per account and project.
+- **A roster is read by three people:** whoever reaches the project's region, the project's own
+  live members, and the Admin. Anybody else gets the 404 of a project that does not exist (§8).
+  The roster is a coordination surface and redacts nothing — it names people, not places.
+- **A live membership is the session's `equipe`** (§9.13), so a member holding no role anywhere
+  passes the door to these two reads and to nothing else. It is **not** a region: a member reaches
+  no other project. What else a member sees of their own project is OBT-544's.
+- `/me/projects` answers **403, not `[]`**, to an account holding no role of the door's vocabulary
+  and no live membership — the door refuses it before the list is read. A `mesa` or a `gestor`
+  with no membership gets `[]`.
+
+**In the console:** the ficha's Equipe tab lists the roster read-only (`ProjectMembers.tsx`), in
+both modes and only for a saved record; `membersAPI.add`, `.remove` and `.mine` are in the client,
+unused by a screen until OBT-546 and OBT-544 arrive. In fixtures mode the double answers empty
+lists and refuses both writes with `forbidden` — the fixtures carry no accounts, and none of the
+four mocked personas is the Admin.
 
 ---
 
