@@ -1130,7 +1130,7 @@
   "acesso_title": "Access",
   "acesso_lead": "Who enters the console and the form, with which role and in which regions — and who is on each project's team.",
   "acesso_denied_title": "This area belongs to the Platform admin",
-  "acesso_denied_body": "Your account enters the console with another role. Granting and revoking access belongs to the Platform admin alone.",
+  "acesso_denied_body": "This screen belongs to the Platform admin: it is where the admin grants and revokes the console's and the form's roles. Your account enters the console with another role.",
   "acesso_denied_back": "Back to the projects",
   "acesso_search_title": "Person",
   "acesso_search_hint": "The search matches the exact e-mail, never part of it — so it never points at the wrong person.",

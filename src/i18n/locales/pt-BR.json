@@ -1130,7 +1130,7 @@
   "acesso_title": "Acesso",
   "acesso_lead": "Quem entra no console e no formulário, com qual papel e em quais regiões — e quem está na equipe de cada projeto.",
   "acesso_denied_title": "Esta área é do Admin da plataforma",
-  "acesso_denied_body": "Sua conta entra no console com outro papel. Conceder e revogar acessos é só do Admin da plataforma.",
+  "acesso_denied_body": "Esta tela é do Admin da plataforma: é nela que ele concede e revoga os papéis do console e do formulário. Sua conta entra no console com outro papel.",
   "acesso_denied_back": "Voltar para os projetos",
   "acesso_search_title": "Pessoa",
   "acesso_search_hint": "A busca é pelo e-mail exato, nunca por parte dele — assim ela não aponta para a pessoa errada.",

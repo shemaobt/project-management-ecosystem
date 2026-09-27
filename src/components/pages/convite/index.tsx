@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import type { InviteDescription } from "../../../types/access";
+import type { ApiFailure } from "../../../types/session";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { toast } from "../../ui";
 import { IntakeShell } from "../intake/IntakeShell";
@@ -26,7 +27,7 @@ import {
 type Phase =
   | { kind: "loading" }
   | { kind: "closed"; reason: ClosedReason }
-  | { kind: "network"; message: string }
+  | { kind: "network"; failure: ApiFailure }
   | { kind: "open"; invite: InviteDescription };
 
 export interface ConvitePageProps {
@@ -56,10 +57,10 @@ export function ConvitePage({ api }: ConvitePageProps) {
         setPhase(
           refused.kind === "notFound"
             ? { kind: "closed", reason: "notFound" }
-            : { kind: "network", message: failureMessage(refused, t) },
+            : { kind: "network", failure: refused },
         );
       });
-  }, [api, token, t]);
+  }, [api, token]);
 
   useEffect(() => {
     load();
@@ -106,7 +107,10 @@ export function ConvitePage({ api }: ConvitePageProps) {
           <LoadingSpinner size="lg" label={t("convite_loading")} />
         </div>
       ) : phase.kind === "network" ? (
-        <InvitationUnreachable message={phase.message} onRetry={retry} />
+        <InvitationUnreachable
+          message={failureMessage(phase.failure, t)}
+          onRetry={retry}
+        />
       ) : phase.kind === "closed" ? (
         <InvitationClosed reason={phase.reason} />
       ) : reading && !reading.open ? (

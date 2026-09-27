@@ -4,7 +4,7 @@ import { GLOBAL_STRATEGIST_ROLE, ROLES, SESSION_ROLES } from "./roles";
 
 export const SHEMA_APP: AccessAppKey = "shema";
 
-export const FORM_APP: AccessAppKey = "resource-request-form";
+const FORM_APP: AccessAppKey = "resource-request-form";
 
 export const ACCESS_APPS: readonly AccessAppKey[] = [SHEMA_APP, FORM_APP];
 

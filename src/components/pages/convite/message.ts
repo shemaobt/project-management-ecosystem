@@ -1,7 +1,5 @@
-import { failureMessage } from "../../../services/api";
+import { failureMessage, type Translate } from "../../../services/api";
 import type { JoinFailure } from "./invitation";
-
-type Translate = (key: string, params?: Record<string, unknown>) => string;
 
 export function joinMessage({ stage, failure }: JoinFailure, t: Translate): string {
   if (stage === "auth" && failure.kind === "unauthorized") {

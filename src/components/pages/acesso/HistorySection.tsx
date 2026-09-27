@@ -15,7 +15,7 @@ import { LoadMore } from "../projetos/LoadMore";
 import { changeSentence } from "./labels";
 import { Panel } from "./Panel";
 
-export const HISTORY_STEP = 30;
+const HISTORY_STEP = 30;
 
 export interface HistoryListProps {
   changes: readonly GrantChange[] | null;

@@ -46,7 +46,6 @@ export const INTEGRATED_BY: Record<DataNamespace, string> = {
   eten: "INT-08 · BE-11",
   forms: "INT-09 · BE-12",
   members: "BE-18 · OBT-524",
-  // No fixture double: in fixtures the Admin's screen and /convite are not drawn at all.
   access: "BE-22 · FE-52",
 };
 

@@ -99,6 +99,7 @@ export { hasSession, onSessionEvent } from "./tokens";
 export { resolveSource } from "./source";
 export type { DataNamespace, DataSource } from "./source";
 export type { AccessAPI } from "./endpoints";
+export type { Translate } from "./errors";
 export type { ProjectBrowseQuery, ProjectBrowseResult } from "../../types/projectBrowse";
 export { mapRecord, readConflict, readFieldErrors, toWire } from "./projectRecord";
 export type { RecordSaveResult } from "./projectRecord";

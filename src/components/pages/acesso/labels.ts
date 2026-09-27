@@ -2,9 +2,8 @@ import { ACCESS_APPS, APP_LABEL_KEYS } from "../../../constants/access";
 import { REGIONS } from "../../../constants/regions";
 import { SESSION_ROLES } from "../../../constants/roles";
 import { SESSION_ROLE_LABEL_KEYS } from "../../../contexts/session";
+import type { Translate } from "../../../services/api";
 import type { GrantAction, GrantChange } from "../../../types/access";
-
-type Translate = (key: string, params?: Record<string, unknown>) => string;
 
 export function roleLabel(role: string, t: Translate): string {
   const known = SESSION_ROLES.find((key) => key === role);

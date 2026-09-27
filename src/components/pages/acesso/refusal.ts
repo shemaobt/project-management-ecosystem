@@ -2,10 +2,9 @@ import {
   UNKNOWN_VOCABULARY,
   failureMessage,
   serverSentence,
+  type Translate,
 } from "../../../services/api";
 import type { ApiFailure } from "../../../types/session";
-
-type Translate = (key: string, params?: Record<string, unknown>) => string;
 
 export type AccessRefusal =
   | { from: "server"; sentence: string }
