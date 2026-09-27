@@ -92,6 +92,8 @@ describe("as rotas no App", () => {
   const gate = app.indexOf("<SessionGate>");
   const shell = app.indexOf("<Route element={<AppShell />}>");
   const acesso = app.indexOf('path="acesso"');
+  const convite = app.indexOf('path="convite"');
+  const intake = app.indexOf('path="intake/:token"');
 
   it("/acesso fica dentro do gate e do shell, e só existe com a API de acesso", () => {
     expect(gate).toBeGreaterThan(-1);
@@ -99,6 +101,13 @@ describe("as rotas no App", () => {
     expect(shell).toBeGreaterThan(gate);
     expect(app.slice(acesso - 160, acesso)).toContain("accessAPI ? (");
     expect(app).toContain("<AcessoPage api={accessAPI} />");
+  });
+
+  it("/convite fica fora do gate — quem chega não tem sessão — e acima do intake", () => {
+    expect(convite).toBeGreaterThan(-1);
+    expect(convite).toBeLessThan(gate);
+    expect(convite).toBeLessThan(intake);
+    expect(app.slice(convite - 80, convite)).toContain("accessAPI ? (");
   });
 
   it("o link do cabeçalho usa o mesmo critério que a guarda — link morto nenhum", () => {

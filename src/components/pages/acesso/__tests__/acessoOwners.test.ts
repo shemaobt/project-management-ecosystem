@@ -18,7 +18,10 @@ const flat = (text: string) => text.replace(/\s+/gu, "");
 
 const posix = (path: string) => relative(ROOT, join(ROOT, path)).split("\\").join("/");
 
-const NEW_SURFACES = ["src/components/pages/acesso"];
+const NEW_SURFACES = [
+  "src/components/pages/acesso",
+  "src/components/pages/convite",
+];
 
 const shipped = NEW_SURFACES.flatMap(walk)
   .map(posix)
@@ -34,8 +37,9 @@ const everywhere = ["src/components", "src/stores", "src/contexts", "src/hooks"]
   .filter((path) => /\.tsx?$/u.test(path) && !TEST_FILE.test(path));
 
 describe("o corpus das varreduras", () => {
-  it("enxerga a página e deixa os testes de fora", () => {
+  it("enxerga as duas páginas e deixa os testes de fora", () => {
     expect(shipped).toContain("src/components/pages/acesso/index.tsx");
+    expect(shipped).toContain("src/components/pages/convite/index.tsx");
     expect(shipped.some((path) => TEST_FILE.test(path))).toBe(false);
     expect(tests).toContain("src/components/pages/acesso/__tests__/acessoOwners.test.ts");
   });
