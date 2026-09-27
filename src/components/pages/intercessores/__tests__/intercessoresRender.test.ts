@@ -256,6 +256,15 @@ describe("a revisão depois de um ano: o servidor marca, a lista destaca (OBT-53
     );
   });
 
+  it("a contagem é da rede inteira, e a frase não promete linhas que a busca pode esconder", () => {
+    for (const key of ["int_review_due_count_one", "int_review_due_count_other"] as const) {
+      expect(ptBR[key]).toContain("da rede");
+      expect(ptBR[key]).not.toMatch(/abaixo/u);
+      expect(en[key]).toContain("in the network");
+      expect(en[key]).not.toMatch(/below/u);
+    }
+  });
+
   it("sem retidos vencidos, a frase deles não aparece", () => {
     const markup = view([ANA], 3, 0);
     expect(markup).toContain(i18n.t("int_withheld_count", { count: 3 }));
