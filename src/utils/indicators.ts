@@ -6,6 +6,7 @@ import { DEFAULT_SORT, type SortKey } from "../constants/sorting";
 import { EMPTY_FILTERS, type ProjectFilters } from "../stores/filtersStore";
 import type { Project } from "../types/project";
 import { encodeViewToUrl, type ViewState } from "./filterSerialisation";
+import { getLocationDisplay } from "./region";
 import { filterProjects } from "./search";
 
 export type IndicatorId =
@@ -103,7 +104,8 @@ export function indicatorHref(
 function countBases(projects: readonly Project[]): number {
   const bases = new Set<string>();
   for (const project of projects) {
-    if (project.team) bases.add(project.team);
+    const { base } = getLocationDisplay(project);
+    if (base) bases.add(base);
   }
   return bases.size;
 }

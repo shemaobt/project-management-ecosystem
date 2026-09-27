@@ -23,7 +23,7 @@ import { hasOpenNeeds } from "./needs";
 import { matchesPreset } from "./presets";
 import { getProgress, getProjectStatus } from "./progress";
 import { getStaleStatus, staleFilterMatches } from "./recency";
-import { getCountry, getRegion } from "./region";
+import { getCountry, getLocationDisplay, getRegion } from "./region";
 
 const APOSTROPHES = /[‘’ʼ]/g;
 
@@ -37,7 +37,7 @@ export function normalizeSearchText(value: string): string {
 }
 
 function searchHaystack(project: Project): string {
-  return [project.languageName, project.team, project.ywamBase, project.partnerOrg]
+  return [project.languageName, getLocationDisplay(project).base, project.partnerOrg]
     .filter(Boolean)
     .join(" ");
 }
@@ -201,6 +201,7 @@ export function filterProjects(
     const stale = getStaleStatus(project, now);
     const country = getCountry(project);
     const region = getRegion(project);
+    const base = getLocationDisplay(project).base;
     const presetMatch: Record<PresetId, boolean> = {
       attention: matchesPreset(project, "attention", now),
       prayer: matchesPreset(project, "prayer", now),
@@ -211,7 +212,7 @@ export function filterProjects(
     const passes: Record<FilterGroup, boolean> = {
       search:
         !needle || normalizeSearchText(searchHaystack(project)).includes(needle),
-      team: !filters.team || project.team === filters.team,
+      team: !filters.team || base === filters.team,
       objective:
         !filters.objective || project.objective.includes(filters.objective),
       status: !filters.status || status === filters.status,
@@ -271,8 +272,8 @@ export function filterProjects(
     if (countsFor("status")) {
       counts.status[status] = (counts.status[status] ?? 0) + 1;
     }
-    if (countsFor("team") && project.team) {
-      counts.team[project.team] = (counts.team[project.team] ?? 0) + 1;
+    if (countsFor("team") && base) {
+      counts.team[base] = (counts.team[base] ?? 0) + 1;
     }
     if (countsFor("health")) {
       counts.health[health] += 1;

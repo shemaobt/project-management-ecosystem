@@ -294,6 +294,14 @@ export interface ProjectDerived {
   region: RegionKey;
 }
 
+/**
+ * Who the server built a console payload for — `readAs` on the card and on the record
+ * (OBT-528). `coordination` carries the truth of a sensitive place; `other` its region.
+ * Absent when no server read the project for anybody (the fixture list), which reads as
+ * withheld.
+ */
+export type ReadAs = "coordination" | "other";
+
 export interface Project {
   id: string;
   languageName: string;
@@ -356,6 +364,7 @@ export interface Project {
   prayerRequestsAudio?: string;
   pastoralInterventionWhen?: string;
   location2?: string;
+  readAs?: ReadAs;
   portion?: string;
   facilitator?: string;
   teamLeaderContact?: string;

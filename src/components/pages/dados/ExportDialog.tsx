@@ -10,10 +10,8 @@ import {
   serializeExport,
   type ExportFormat,
 } from "../../../utils/export";
-import {
-  countWithheldLocations,
-  redactProjectsForExport,
-} from "../../../utils/privacy";
+import { redactProjectsForExport } from "../../../utils/privacy";
+import { withheldNotice } from "../../../utils/region";
 import {
   Button,
   Dialog,
@@ -38,7 +36,7 @@ export function ExportDialogBody({
   const { t } = useTranslation();
   const records =
     projects === null ? null : redactProjectsForExport(projects, t);
-  const withheld = records === null ? 0 : countWithheldLocations(records);
+  const withheld = projects === null ? null : withheldNotice(projects);
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -53,7 +51,7 @@ export function ExportDialogBody({
           <p className="text-small text-fg-muted">
             {t("export_count", { count: records.length })}
           </p>
-          {withheld > 0 && (
+          {withheld !== null && (
             <p className="text-small leading-body text-fg-muted">
               {t("export_withheld_count", { count: withheld })}
             </p>

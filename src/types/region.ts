@@ -41,3 +41,8 @@ export type GeoOutline = Coordinates[];
 export type LocationDisplay =
   | { withheld: false; location: string }
   | { withheld: true; regionLabelKey: string };
+
+/** A place as a surface shows it — the base travels with the location, `""` when withheld. */
+export type PlaceDisplay =
+  | { withheld: false; location: string; base: string }
+  | { withheld: true; regionLabelKey: string; base: "" };

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { DEFAULT_TAB } from "../../../constants/recordTabs";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { Project } from "../../../types/project";
+import { withheldNotice } from "../../../utils/region";
 import { Globe } from "../projetos/Atlas/Globe";
 import { Hero } from "./Hero";
 
@@ -17,7 +18,11 @@ export function InicioView({ projects, onOpen }: InicioViewProps) {
       <Hero projects={projects} />
       {projects !== null && projects.length > 0 && (
         <div className="mx-auto w-full max-w-(--container-wide) px-5 pt-6 pb-20 sm:px-8">
-          <Globe projects={projects} onSelect={onOpen} />
+          <Globe
+            projects={projects}
+            locationsWithheld={withheldNotice(projects)}
+            onSelect={onOpen}
+          />
         </div>
       )}
     </>

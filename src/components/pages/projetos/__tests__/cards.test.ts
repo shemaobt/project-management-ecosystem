@@ -47,7 +47,11 @@ describe("país sensível nunca aparece com a localização real no cartão", ()
     const project = await findFixture("afrikaans-kaaps");
     const display = getLocationDisplay(project);
 
-    expect(display).toEqual({ withheld: false, location: "South Africa" });
+    expect(display).toEqual({
+      withheld: false,
+      location: "South Africa",
+      base: project.team || project.ywamBase,
+    });
   });
 });
 

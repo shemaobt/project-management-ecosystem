@@ -12,7 +12,7 @@ import { openNeeds } from "./needs";
 import { canExportNotes } from "./notes";
 import { buildPrayerRequests } from "./prayer";
 import { getProjectStatus } from "./progress";
-import { getLocationDisplay } from "./region";
+import { getLeavingLocation } from "./region";
 
 export const EXPORT_AUDIENCE: MediaAudience = "publico";
 
@@ -47,7 +47,7 @@ export function redactProjectForExport(
   project: Project,
   t: TFunction,
 ): ExportedProject {
-  const display = getLocationDisplay(project);
+  const display = getLeavingLocation(project);
   return {
     id: project.id,
     languageName: project.languageName,
@@ -55,7 +55,7 @@ export function redactProjectForExport(
     bridgeLanguage: project.bridgeLanguage,
     vitalityStatus: project.vitalityStatus,
     speakerCount: project.speakerCount,
-    base: display.withheld ? "" : project.team || project.ywamBase,
+    base: display.base,
     location: display.withheld ? t(display.regionLabelKey) : display.location,
     locationWithheld: display.withheld,
     sensitiveCountry: project.sensitiveCountry,
@@ -85,8 +85,3 @@ export function redactProjectsForExport(
   return projects.map((project) => redactProjectForExport(project, t));
 }
 
-export function countWithheldLocations(
-  records: readonly ExportedProject[],
-): number {
-  return records.filter((record) => record.locationWithheld).length;
-}

@@ -15,11 +15,8 @@ import {
   getSpeakerLabel,
   openableCardProps,
 } from "../card";
-import {
-  cardLastProgressUpdate,
-  cardLocationDisplay,
-  cardPriority,
-} from "../derived";
+import { getLocationDisplay } from "../../../../utils/region";
+import { cardLastProgressUpdate, cardPriority } from "../derived";
 import { ProgressRings } from "../ProgressRings";
 
 const TAPE_TONES: Record<ProjectPriority, string> = {
@@ -60,7 +57,7 @@ export function ProjectCardDiario({
   const quote = getCardQuote(project);
   const dateLabel = getCardDateLabel(project, locale);
   const lastUpdate = cardLastProgressUpdate(project);
-  const location = cardLocationDisplay(project);
+  const location = getLocationDisplay(project);
   const identity = getIdentityLabel(project);
   const healthDots: { state: OverallHealth; label: string }[] = [
     { state: project.healthEmotional || "na", label: t("d_emotional") },
@@ -118,7 +115,7 @@ export function ProjectCardDiario({
 
       <div className={line}>
         <span className={lineLabel}>{t("d_facilitators")}</span>
-        <span className={lineValue}>{project.team || "—"}</span>
+        <span className={lineValue}>{location.base || "—"}</span>
       </div>
       <div className={line}>
         <span className={lineLabel}>{t("d_mentor")}</span>

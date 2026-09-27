@@ -10,6 +10,7 @@ import type { Coordinates, Project } from "../types/project";
 import { hasPlottableCoords } from "./identity";
 import type {
   LocationDisplay,
+  PlaceDisplay,
   Region,
   RegionDefinition,
   RegionKey,
@@ -23,8 +24,26 @@ export function getCountry(project: Located): string {
   return project.location.split(",")[0].trim();
 }
 
+const REGION_KEYS: ReadonlySet<string> = new Set(REGIONS.map((region) => region.key));
+
+export function isRegionKey(value: string): value is RegionKey {
+  return REGION_KEYS.has(value);
+}
+
+/**
+ * A reduced payload (OBT-528) carries the region **key** where the location was, so the
+ * key reads as its own region instead of an unknown country falling back to `other`.
+ */
 export function getRegion(project: Located): RegionKey {
-  return COUNTRY_REGION[getCountry(project)] ?? FALLBACK_REGION;
+  const country = getCountry(project);
+  return (
+    COUNTRY_REGION[country] ??
+    (isRegionKey(country) ? country : FALLBACK_REGION)
+  );
+}
+
+function regionOf(project: Project): RegionKey {
+  return project.derived?.region ?? getRegion(project);
 }
 
 export function getRegionLabelKey(region: RegionKey): string {
@@ -41,29 +60,69 @@ export interface MapPlacement {
   precision: MapPrecision;
 }
 
+/** Position is redacted by the flag for every reader — the map is the console's own output (§6.4). */
 export function getMapPlacement(project: Project): MapPlacement {
   if (project.sensitiveCountry || !hasPlottableCoords(project.coords)) {
-    const [lng, lat] = REGION_CENTROIDS[getRegion(project)];
+    const [lng, lat] = REGION_CENTROIDS[regionOf(project)];
     return { coords: [lng, lat], precision: "region" };
   }
   return { coords: project.coords, precision: "exact" };
 }
 
-export function getLocationDisplay(project: Project): LocationDisplay {
-  if (project.sensitiveCountry) {
+function placeDisplay(project: Project, withheld: boolean): PlaceDisplay {
+  if (withheld) {
     return {
       withheld: true,
-      regionLabelKey: getRegionLabelKey(getRegion(project)),
+      regionLabelKey: getRegionLabelKey(regionOf(project)),
+      base: "",
     };
   }
-  return { withheld: false, location: project.location };
+  return {
+    withheld: false,
+    location: project.location,
+    base: project.team || project.ywamBase,
+  };
+}
+
+/**
+ * The console's reading of a project's place and base: what the server built for this
+ * reader (`readAs`). Only a payload read as coordination shows a sensitive place; one no
+ * server read for anybody is withheld.
+ */
+export function getLocationDisplay(project: Project): PlaceDisplay {
+  return placeDisplay(
+    project,
+    project.sensitiveCountry && project.readAs !== "coordination",
+  );
+}
+
+/** What leaves the system — export, prayer wall, notifications, ETEN: withheld by the flag, whoever reads. */
+export function getLeavingLocation(project: Project): PlaceDisplay {
+  return placeDisplay(project, project.sensitiveCountry);
 }
 
 export function getCountryDisplay(project: Project): LocationDisplay {
-  const display = getLocationDisplay(project);
+  const display = getLeavingLocation(project);
   return display.withheld
-    ? display
+    ? { withheld: true, regionLabelKey: display.regionLabelKey }
     : { withheld: false, location: getCountry(project) };
+}
+
+/**
+ * The collection's withheld notice as the server's `withheld_note` spells it: how many
+ * leave withheld, addressed to coordination only, and never 0. `addressed` defaults to the
+ * rows' own answer — a list somebody read as coordination.
+ */
+export function withheldNotice(
+  projects: readonly Project[],
+  addressed: boolean = projects.some(
+    (project) => project.readAs === "coordination",
+  ),
+): number | null {
+  const count = projects.filter(
+    (project) => getLeavingLocation(project).withheld,
+  ).length;
+  return addressed && count > 0 ? count : null;
 }
 
 /**

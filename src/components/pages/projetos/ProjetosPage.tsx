@@ -30,15 +30,27 @@ const BASELINE_LIMIT = 1;
 interface ResultsViewProps {
   metaphor: CardMetaphor;
   projects: readonly Project[];
+  locationsWithheld: number | null;
   onOpen: (project: Project) => void;
 }
 
-function ResultsView({ metaphor, projects, onOpen }: ResultsViewProps) {
+function ResultsView({
+  metaphor,
+  projects,
+  locationsWithheld,
+  onOpen,
+}: ResultsViewProps) {
   switch (metaphor) {
     case "diario":
       return <JournalView projects={projects} onOpen={onOpen} />;
     case "atlas":
-      return <AtlasView projects={projects} onSelect={onOpen} />;
+      return (
+        <AtlasView
+          projects={projects}
+          locationsWithheld={locationsWithheld}
+          onSelect={onOpen}
+        />
+      );
   }
 }
 
@@ -138,7 +150,7 @@ export function ProjetosPage() {
   // Both queries have answered at least once — render the screen, keeping the last
   // good page visible under a refetch instead of blanking it (DoD: throttled connection).
   const data = live.data;
-  const { items, matched, total } = data;
+  const { items, matched, total, locationsWithheld } = data;
 
   return (
     <div className="mx-auto grid w-full max-w-(--container-wide) grid-cols-1 gap-8 px-(--container-pad) pt-6 pb-20 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
@@ -182,7 +194,12 @@ export function ProjetosPage() {
           />
         ) : (
           <>
-            <ResultsView metaphor={metaphor} projects={items} onOpen={openRecord} />
+            <ResultsView
+            metaphor={metaphor}
+            projects={items}
+            locationsWithheld={locationsWithheld}
+            onOpen={openRecord}
+          />
             {metaphor !== "atlas" && items.length < matched && (
               <LoadMore
                 shown={items.length}

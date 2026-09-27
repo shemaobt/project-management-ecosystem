@@ -5,18 +5,16 @@ import { HEALTH_LABEL_KEYS, STATUS_LABEL_KEYS } from "../constants/status";
 import { createEmptyProject } from "../fixtures/blank";
 import type { Project } from "../types/project";
 import { toLocalIsoDate } from "./format";
-import {
-  countWithheldLocations,
-  redactProjectsForExport,
-  type ExportedProject,
-} from "./privacy";
+import { redactProjectsForExport, type ExportedProject } from "./privacy";
+import { withheldNotice } from "./region";
 
 export interface ProjectsExport {
   contains: string;
   confidential: string;
   generatedAt: string;
   projectCount: number;
-  locationsWithheld: number;
+  /** Addressed to coordination only, as the server's `withheld_note` — `null` for anybody else. */
+  locationsWithheld: number | null;
   withheldNote: string | null;
   records: ExportedProject[];
 }
@@ -35,7 +33,7 @@ export function buildProjectsExport(
   now: Date = new Date(),
 ): ProjectsExport {
   const records = redactProjectsForExport(projects, t);
-  const withheld = countWithheldLocations(records);
+  const withheld = withheldNotice(projects);
   return {
     contains: t("export_contains"),
     confidential: t("export_confidential"),
@@ -43,7 +41,9 @@ export function buildProjectsExport(
     projectCount: records.length,
     locationsWithheld: withheld,
     withheldNote:
-      withheld > 0 ? t("export_withheld_count", { count: withheld }) : null,
+      withheld === null
+        ? null
+        : t("export_withheld_count", { count: withheld }),
     records,
   };
 }

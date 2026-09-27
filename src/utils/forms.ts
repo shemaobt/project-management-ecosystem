@@ -10,7 +10,7 @@ import type {
 import type { Project } from "../types/project";
 import { formatIsoDate, parseIsoDate, periodEnd, toCalendarDate } from "./cadence";
 import { isAssessed } from "./health";
-import { getRegion, getRegionLabelKey } from "./region";
+import { getLocationDisplay, getRegion, getRegionLabelKey } from "./region";
 import { hasReported } from "./rhythm";
 
 export function formOf(kind: FormKind): FormDefinition {
@@ -88,6 +88,12 @@ export function formReadiness(
     periodEnd: formatIsoDate(periodEnd(form.cadence, today)),
     pending,
   };
+}
+
+/** A project as a picker names it — language and base, the base only where the reader may see it. */
+export function projectOptionLabel(project: Project): string {
+  const { base } = getLocationDisplay(project);
+  return base ? `${project.languageName} · ${base}` : project.languageName;
 }
 
 export function selectableProjects(projects: readonly Project[]): Project[] {
