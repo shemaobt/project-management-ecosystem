@@ -263,7 +263,11 @@ describe("a revisão depois de um ano: o servidor marca, a lista destaca (OBT-53
   });
 
   it("a tela lê o destaque do servidor — não conta dias", () => {
-    const sources = ["IntercessoresPage.tsx", "CountryGroup.tsx"].map((file) =>
+    const sources = [
+      "IntercessoresPage.tsx",
+      "CountryGroup.tsx",
+      "NetworkNotices.tsx",
+    ].map((file) =>
       readFileSync(
         join(process.cwd(), "src/components/pages/intercessores", file),
         "utf8",
