@@ -16,7 +16,6 @@ export function EquipeForm({ draft }: EquipeFormProps) {
   const { t } = useTranslation();
   const [touched, setTouched] = useState(false);
   const values = draft.values;
-  // The saved record's id: a project that does not exist yet has nobody on it.
   const projectId = draft.saved?.id;
 
   const teamError =

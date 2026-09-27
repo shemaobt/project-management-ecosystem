@@ -31,7 +31,6 @@ export interface EquipeViewProps {
 export function EquipeView({ draft }: EquipeViewProps) {
   const { t } = useTranslation();
   const values = draft.values;
-  // The saved record's id: a project that does not exist yet has nobody on it.
   const projectId = draft.saved?.id;
 
   return (
