@@ -40,4 +40,14 @@ describe("as regiões atravessam fusos, o período não", () => {
     expect(east).toBe(west);
     expect(west).toBe("2026-Q4");
   });
+
+  it("1º de março em UTC−3 cai em B2, e não no bimestre de janeiro", () => {
+    expect(naivePeriod("2026-03-01")).toBe("2026-02");
+    expect(periodKey("bimonthly", on("2026-03-01"))).toBe("2026-B2");
+  });
+
+  it("1º de julho em UTC−3 cai em H2, e não no primeiro semestre", () => {
+    expect(naivePeriod("2026-07-01")).toBe("2026-06");
+    expect(periodKey("semiannual", on("2026-07-01"))).toBe("2026-H2");
+  });
 });

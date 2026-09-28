@@ -7,11 +7,12 @@ import type {
   ProjectReporting,
   ReportingState,
 } from "../types/forms";
+import type { ReceivedSubmission } from "../types/forms";
 import type { Project } from "../types/project";
 import { formatIsoDate, parseIsoDate, periodEnd, toCalendarDate } from "./cadence";
 import { isAssessed } from "./health";
 import { getLocationDisplay, getRegion, getRegionLabelKey } from "./region";
-import { hasReported } from "./rhythm";
+import { hasReported, indexPulses, type PulseIndex } from "./rhythm";
 
 export function formOf(kind: FormKind): FormDefinition {
   const form = FIELD_FORMS.find((candidate) => candidate.kind === kind);
@@ -19,9 +20,14 @@ export function formOf(kind: FormKind): FormDefinition {
   return form;
 }
 
-function lastReportDate(kind: FormKind, project: Project): string | null {
+function lastReportDate(
+  kind: FormKind,
+  project: Project,
+  pulses: PulseIndex,
+): string | null {
   if (kind === "pulso") {
-    return parseIsoDate(project.lastUpdated) ? project.lastUpdated : null;
+    const latest = pulses.get(project.id)?.find((day) => parseIsoDate(day));
+    return latest ?? null;
   }
   if (!isAssessed(project)) return null;
   return parseIsoDate(project.healthAssessmentDate)
@@ -32,15 +38,18 @@ function lastReportDate(kind: FormKind, project: Project): string | null {
 export function reportingFor(
   form: FormDefinition,
   project: Project,
+  submissions: readonly ReceivedSubmission[],
   now: Date = new Date(),
 ): ProjectReporting {
   const today = toCalendarDate(now);
-  const lastDate = lastReportDate(form.kind, project);
+  const pulses = indexPulses(submissions);
+  const lastDate = lastReportDate(form.kind, project, pulses);
   const state: ReportingState = hasReported(
     form.kind,
     project,
     form.cadence,
     today,
+    pulses,
   )
     ? "reported"
     : lastDate === null
@@ -69,16 +78,21 @@ function silentFirst(a: PendingProject, b: PendingProject): number {
 export function formReadiness(
   form: FormDefinition,
   projects: readonly Project[],
+  submissions: readonly ReceivedSubmission[],
   now: Date = new Date(),
 ): FormReadiness {
   const today = toCalendarDate(now);
+  const pulses = indexPulses(submissions);
   const pending = projects
-    .filter((project) => !hasReported(form.kind, project, form.cadence, today))
+    .filter(
+      (project) =>
+        !hasReported(form.kind, project, form.cadence, today, pulses),
+    )
     .map((project) => ({
       id: project.id,
       languageName: project.languageName,
       regionLabelKey: getRegionLabelKey(getRegion(project)),
-      lastDate: lastReportDate(form.kind, project),
+      lastDate: lastReportDate(form.kind, project, pulses),
     }))
     .sort(silentFirst);
 
