@@ -55,7 +55,7 @@ const returned = (projectId: string, receivedAt: string) => ({
 
 const view = (
   projects: Project[] | null,
-  submissions: ReturnType<typeof returned>[] = [],
+  submissions: ReturnType<typeof returned>[] | null = [],
 ) =>
   renderToStaticMarkup(
     createElement(
@@ -267,5 +267,21 @@ describe("a tela não promete o que a onda 1 não entrega", () => {
 
     expect(markup).toContain(i18n.t("forms_no_projects"));
     expect(markup).not.toContain(i18n.t("forms_pulse_title"));
+  });
+});
+
+/**
+ * Desde a FE-49 o Pulso só conta como devolvido quando uma submissão chega. Um arquivo que não
+ * foi lido — carregando ou com a leitura falhando — não pode virar *ninguém reportou*
+ * (revisão da PR #62).
+ */
+describe("sem os Pulsos lidos, a tela não afirma que ninguém reportou", () => {
+  it("troca a contagem e a lista de pendentes por uma frase", () => {
+    const markup = view([project()], null);
+
+    expect(markup).toContain(i18n.t("forms_pulses_unread"));
+    expect(markup).not.toContain(
+      i18n.t("forms_pending_title", { form: i18n.t("forms_pulse_title") }),
+    );
   });
 });

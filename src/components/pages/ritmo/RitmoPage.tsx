@@ -80,6 +80,7 @@ export function RitmoPage() {
   const undoMeeting = useRhythmStore((state) => state.undoMeeting);
   const submissions = useFormsStore((state) => state.submissions);
   const hydrateForms = useFormsStore((state) => state.hydrate);
+  const pulsesRead = useFormsStore((state) => state.hydrated);
 
   const [editing, setEditing] = useState<Editing | null>(null);
 
@@ -163,7 +164,7 @@ export function RitmoPage() {
         </div>
       ) : null}
 
-      {hydrated ? <PulseCard rows={pulseRows} /> : null}
+      {hydrated ? <PulseCard rows={pulseRows} read={pulsesRead} /> : null}
 
       {hydrated
         ? agenda.map(({ meeting, rows }) => (

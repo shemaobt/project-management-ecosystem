@@ -67,7 +67,17 @@ export interface PulseReadinessRow {
  * Forms hub reads, over the same received submissions, so the two screens cannot disagree about
  * the same team (`forms.test.ts` pins it).
  */
-export function PulseCard({ rows }: { rows: readonly PulseReadinessRow[] }) {
+export interface PulseCardProps {
+  rows: readonly PulseReadinessRow[];
+  /**
+   * Whether the received Pulses were read. An unread archive is **not** an empty one: a count
+   * of `0/N` would say *nobody sent it back* when the truth is *we do not know yet* (PR #62
+   * review), so the rows carry no count and a sentence says why.
+   */
+  read: boolean;
+}
+
+export function PulseCard({ rows, read }: PulseCardProps) {
   const { t } = useTranslation();
 
   return (
@@ -77,7 +87,11 @@ export function PulseCard({ rows }: { rows: readonly PulseReadinessRow[] }) {
       descriptionKey="ritmo_pulso_desc"
       cadence="monthly"
     >
-      {rows.length > 0 ? (
+      {!read ? (
+        <p className="mt-4.5 border-t border-line pt-4 text-micro leading-[1.45] text-fg-muted">
+          {t("ritmo_pulso_unread")}
+        </p>
+      ) : rows.length > 0 ? (
         <ul className="mt-4.5 flex list-none flex-col gap-1.5 border-t border-line pt-4">
           {rows.map(({ scope, readiness }) => (
             <li
