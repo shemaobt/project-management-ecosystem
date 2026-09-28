@@ -552,6 +552,20 @@ Built in FE-39 ([OBT-381](https://linear.app/shema-obt/issue/OBT-381)), 15/aug/2
 
 ---
 
+### 5.11 Acesso entre o PME e o Formulário de Solicitação de Recursos
+
+**The PME becomes the door to the form, and this section is the pointer, not the detail** (FE-54, [OBT-545](https://linear.app/shema-obt/issue/OBT-545), 28/set/2026). The decisions are recorded with author and date in [OBT-522](https://linear.app/shema-obt/issue/OBT-522) and argued in full in the 25/set document *"Acesso PME ↔ Formulário e respostas da Karina"*; each implementation issue writes its own detail here when it lands.
+
+- **The form has no login.** Everyone reaches it from the PME with a single-use **pass code** (BE-21, [OBT-527](https://linear.app/shema-obt/issue/OBT-527)), or by a **link the platform issues** — reunião de 22/set.
+- **Roles are managed in the PME, on one screen, for both apps**, and only the **Admin** grants and revokes (BE-22 · [OBT-543](https://linear.app/shema-obt/issue/OBT-543), FE-52 · [OBT-546](https://linear.app/shema-obt/issue/OBT-546)); the form's own `/access` retires. The Gestor sees every stage at the mesa's level and administers no roles — Daniel, 23/set.
+- **The session carries several roles** (BE-17 · [OBT-523](https://linear.app/shema-obt/issue/OBT-523)), and the PME's door accepts the form's roles.
+- **A team is the project's members in the PME** (BE-18 · [OBT-524](https://linear.app/shema-obt/issue/OBT-524)); someone outside the PME requests through a link the Admin issues — *"os dois, tanto quem já tem conta no PME quanto quem ainda não tem pode fazer uma solicitação"*, Karina, 25/set.
+- **The base leader has no account** and endorses by a link with a code sent to the e-mail the team gave — reunião de 22/set.
+- **The mesa's approval registers the project and its members in the PME**, with the Admin checking first — Karina, 25/set (BE-23 · [OBT-547](https://linear.app/shema-obt/issue/OBT-547)).
+- **Inside the PME** the form appears as *Solicitar recurso* and a status on the record (FE-53 · [OBT-544](https://linear.app/shema-obt/issue/OBT-544)), and its notices ring the PME's bell (BE-21 · [OBT-541](https://linear.app/shema-obt/issue/OBT-541)).
+
+⚠️ **Attribution is the part to keep.** Only the lines marked *Karina* are hers; the rest is the 22/set meeting (OBT, Karina, Daniel, Levi) or Daniel's own decisions of 23 and 25/set, and OBT-522 says which is which. The codes collide across the two projects (this FE-52 is not the form's FE-52): always carry the `OBT-###`.
+
 ## 6. Domain rules
 
 Ported from `DS-PROJECT/data.js` — these are the canonical enums and derivations.
@@ -818,16 +832,16 @@ Team `OBT`. Every issue follows: **Goal / Read these first / Context & specs / S
 - **Watch the shared files.** `src/components/ui/**`, the i18n catalogues, and on the backend the Alembic chain, are where two people collide.
 - **Do not skip the Definition of Done checkboxes.** Several encode the actual product guarantee — the byte-identical archive round trip, the double-import no-op, the unauthorized prayer request absent from all four output paths. Those tests *are* the requirement.
 
-### ⚠️ Open client gates
+### ⚠️ Client gates
 
-Do not freeze the corresponding contracts before these are answered. They cost about a day of team effort but an unknown number of weeks of someone else's calendar — send them early.
+Do not freeze the corresponding contracts before these are answered. They cost about a day of team effort but an unknown number of weeks of someone else's calendar — send them early. **Two closed on 25/set/2026**, from Karina's answers of 22/set; the answer lives in each gate's closing comment and in the issue that implements it (FE-54, [OBT-545](https://linear.app/shema-obt/issue/OBT-545)).
 
-| Gate | Issue | Blocks |
-|---|---|---|
-| ETEN credit counting method (Youngshin) | GATE-01 · [OBT-387](https://linear.app/shema-obt/issue/OBT-387) | BE-11, INT-08 |
-| Final meeting set — Prayer Pulse vs. Governance | GATE-02 · [OBT-388](https://linear.app/shema-obt/issue/OBT-388) | BE-10, FE-31 |
-| Monthly Pulse file format (`.html` / `.json`) | GATE-03 · [OBT-389](https://linear.app/shema-obt/issue/OBT-389) | the Pulse epic — the riskiest work |
-| What "devida cautela" means per output | — | BE-04 and every output surface |
+| Gate | Issue | State | Where the answer went |
+|---|---|---|---|
+| ETEN credit counting method | GATE-01 · [OBT-387](https://linear.app/shema-obt/issue/OBT-387) | **Closed 25/set.** One credit per defined scope completed, in approved chapters; every partner gets the whole credit; the period is ETEN's **fiscal year, August to July**, cut on 31/07. Karina answered for Youngshin and confirmed that suffices. Open, not blocking: the report's format (*"vou providenciar"*). | FE-51 · [OBT-530](https://linear.app/shema-obt/issue/OBT-530), BE-11 · [OBT-400](https://linear.app/shema-obt/issue/OBT-400), INT-08 · [OBT-413](https://linear.app/shema-obt/issue/OBT-413) |
+| Final meeting set | GATE-02 · [OBT-388](https://linear.app/shema-obt/issue/OBT-388) | **Closed 25/set.** One set for all seven regions: bimonthly International Projects × field team, quarterly International Projects × bridge people, semiannual Member Care debriefing; the Monthly Pulse is a form and the annual Celebration a report, not meetings; Prayer Pulse, Governance and Repasse are not meetings. Open, not blocking: who the bridge people are, and whether the Health Assessment moves to the bimonthly. | FE-49 · [OBT-529](https://linear.app/shema-obt/issue/OBT-529), BE-10 · [OBT-399](https://linear.app/shema-obt/issue/OBT-399), INT-07 · [OBT-412](https://linear.app/shema-obt/issue/OBT-412), FE-50 · [OBT-533](https://linear.app/shema-obt/issue/OBT-533) |
+| Monthly Pulse file format | GATE-03 · [OBT-389](https://linear.app/shema-obt/issue/OBT-389) | **Open only for the format**, which is ours to choose (*"só colocar o mais simples possível"*) and waits on a field test with a leader Karina will name. Answered 22/set: the Prayer Pulse goes to the intercessor network only; returned Pulses are kept forever; nothing sent can be withdrawn, and teams must be told before. | BE-09 · [OBT-398](https://linear.app/shema-obt/issue/OBT-398) |
+| What "devida cautela" means per output | GATE-04 · [OBT-486](https://linear.app/shema-obt/issue/OBT-486) | **Open only for the list of sensitive countries** (*"estamos definindo ainda"*). Answered 22/set, completed by Daniel on 23/set: the base name is always hidden outside the system; only coordination (`globalStrategist`, and `coordinator` in its own region) reads the real country, the rest read the region, the record included; the withheld notice is coordination's alone; the ETEN report and the public link carry language, region and progress, no base. | BE-19 · [OBT-528](https://linear.app/shema-obt/issue/OBT-528), FE-48 · [OBT-532](https://linear.app/shema-obt/issue/OBT-532) |
 
 ### Stale references you will encounter
 
