@@ -77,6 +77,7 @@ export function EquipeView({ draft }: EquipeViewProps) {
       )}
 
       <RegionalRoles location={values.location ?? ""} />
+
     </div>
   );
 }

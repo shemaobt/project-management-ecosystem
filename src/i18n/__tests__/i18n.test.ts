@@ -70,6 +70,15 @@ describe("catalogues", () => {
     }
   });
 
+  it("sends a reader who lacks a role to the Platform admin, the only one who grants since OBT-522", () => {
+    for (const catalogue of [ptBR, en]) {
+      for (const key of ["entrar_no_role", "net_forbidden"] as const) {
+        expect(catalogue[key], key).toContain(catalogue.role_admin);
+        expect(catalogue[key], key).not.toContain(catalogue.equipe_global);
+      }
+    }
+  });
+
   it("names the roles with the approved vocabulary in both languages", () => {
     expect(ptBR.role_coordinator).toBe("Administrador");
     expect(en.role_coordinator).toBe("Administrator");

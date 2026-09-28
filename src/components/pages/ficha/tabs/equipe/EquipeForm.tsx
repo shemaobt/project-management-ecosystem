@@ -172,6 +172,7 @@ export function EquipeForm({ draft }: EquipeFormProps) {
       )}
 
       <RegionalRoles location={values.location ?? ""} />
+
     </div>
   );
 }
