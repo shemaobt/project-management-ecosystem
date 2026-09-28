@@ -440,7 +440,7 @@ Five meetings, each with a cadence, a scope and the roles that attend (`ritmo.js
 
 Each meeting+region+period has a status: `done` / `pending` / `overdue` / `new`. Registering a meeting recalculates the next occurrence and appends to the history.
 
-> ⚠️ The final meeting set (Prayer Pulse vs. Governance) is a **client gate** — GATE-02 ([OBT-388](https://linear.app/shema-obt/issue/OBT-388)).
+> ⚠️ The final meeting set (Prayer Pulse vs. Governance) is a **client gate** — GATE-02 ([OBT-388](https://linear.app/shema-obt/issue/OBT-388)). **Closed on 25/set/2026 — see §10**; the table above is the wave-1 set until [OBT-529](https://linear.app/shema-obt/issue/OBT-529) rewrites this section.
 
 **Built in FE-31 ([OBT-373](https://linear.app/shema-obt/issue/OBT-373)), 14/aug/2026 — Daniel Oliveira.** The area is `src/components/pages/ritmo/`. Six rules:
 
@@ -472,7 +472,7 @@ Prayer wall compiled from every project's shared requests, with indicators and c
 
 Annual credit report: yearly snapshot, credit calculation from the **delta** between snapshots, report by year, Shemá-branded PDF + CSV export, and the ETEN page (year selector, indicators, table, outputs).
 
-> ⚠️ The credit counting method is a **client gate** (Youngshin) — GATE-01 ([OBT-387](https://linear.app/shema-obt/issue/OBT-387)). Do not implement a calculation before it is fixed.
+> ⚠️ The credit counting method is a **client gate** (Youngshin) — GATE-01 ([OBT-387](https://linear.app/shema-obt/issue/OBT-387)). Do not implement a calculation before it is fixed. **Closed on 25/set/2026 — see §10**; the rule below stands, and [OBT-530](https://linear.app/shema-obt/issue/OBT-530) moves it to the fiscal year and rewrites this section.
 
 **Built in FE-34 ([OBT-376](https://linear.app/shema-obt/issue/OBT-376)), 14/aug/2026 — Daniel Oliveira**, against a counting rule the client stated during the work. The rule is **not** the prototype's, and it is **not yet formally confirmed with Youngshin** — GATE-01 stays open, and the screen says so in plain words rather than presenting a guess as fact.
 
