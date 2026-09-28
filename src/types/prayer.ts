@@ -36,12 +36,23 @@ export interface IntercessorEntry {
   contactHint: string;
   sensitiveCountry: boolean;
   addedAt: string;
+  /** Last time the Resource Circle confirmed this person still belongs. `null` until then. */
+  reviewedAt: string | null;
+  /** Last time the network sent this person anything (BE-09 writes it). `null`: never. */
+  lastSentAt: string | null;
+  /**
+   * More than a year since the latest of entry, review and send — computed by the server
+   * (OBT-531), never here: the screen highlights, it does not count days.
+   */
+  reviewDue: boolean;
   consents: IntercessorConsent[];
 }
 
 export interface IntercessorDirectory {
   people: IntercessorEntry[];
   withheldCount: number;
+  /** Of the people not listed, how many are past their year — a number, never a name. */
+  withheldReviewDueCount: number;
 }
 
 export interface IntercessorCreate {

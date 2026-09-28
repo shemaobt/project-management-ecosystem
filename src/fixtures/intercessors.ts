@@ -6,6 +6,7 @@ import type {
   IntercessorEntry,
   IntercessorUpdatePayload,
 } from "../types/prayer";
+import { failure } from "../services/api/errors";
 import { contactChannel, hasConsent } from "../utils/intercessors";
 import { toLocalIsoDate } from "../utils/format";
 
@@ -24,9 +25,11 @@ function hint(contact: string): string {
 export async function loadIntercessors(): Promise<IntercessorDirectory> {
   const all = [...PEOPLE.values()];
   const visible = all.filter((person) => hasConsent(person, "directory"));
+  const withheld = all.filter((person) => !hasConsent(person, "directory"));
   return {
     people: visible.map((person) => ({ ...person })),
-    withheldCount: all.length - visible.length,
+    withheldCount: withheld.length,
+    withheldReviewDueCount: withheld.filter((person) => person.reviewDue).length,
   };
 }
 
@@ -42,6 +45,10 @@ export async function createIntercessor(
     contactHint: hint(payload.contact),
     sensitiveCountry: payload.sensitiveCountry,
     addedAt: toLocalIsoDate(now),
+    reviewedAt: null,
+    lastSentAt: null,
+    // The server's to compute; a contact entered today is never due.
+    reviewDue: false,
     consents: [
       { context: "network", basis: payload.consentBasis, recordedAt: toLocalIsoDate(now) },
     ],
@@ -107,4 +114,36 @@ export async function grantConsent(
   };
   PEOPLE.set(id, updated);
   return { ...updated };
+}
+
+/** "Revisado" — the fixture's answer to `review_intercessor.py`: stamp today, clear the flag. */
+export async function reviewIntercessor(
+  id: string,
+  now: Date = new Date(),
+): Promise<IntercessorEntry> {
+  const current = PEOPLE.get(id);
+  if (!current) throw new Error(`no intercessor with id '${id}'`);
+
+  const updated: IntercessorEntry = {
+    ...current,
+    reviewedAt: toLocalIsoDate(now),
+    reviewDue: false,
+  };
+  PEOPLE.set(id, updated);
+  return { ...updated };
+}
+
+/**
+ * The exit link is minted by the server for each send (BE-09), and the fixture sends
+ * nothing — so no token it could be asked about was ever issued, and every one reads as
+ * the server's one answer to a link that opens nothing.
+ */
+export async function openExitLink(token: string): Promise<void> {
+  void token;
+  throw failure("notFound", "This link is no longer active.");
+}
+
+export async function leaveThroughExitLink(token: string): Promise<void> {
+  void token;
+  throw failure("notFound", "This link is no longer active.");
 }

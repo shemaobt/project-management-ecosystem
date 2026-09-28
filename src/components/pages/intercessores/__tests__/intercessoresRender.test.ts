@@ -41,6 +41,9 @@ const ANA: IntercessorEntry = {
   contactHint: "an…@exemplo.org",
   sensitiveCountry: false,
   addedAt: "2026-08-14",
+  reviewedAt: null,
+  lastSentAt: null,
+  reviewDue: false,
   consents: [
     { context: "network", basis: "verbal", recordedAt: "2026-08-14" },
     { context: "directory", basis: "verbal", recordedAt: "2026-08-14" },
@@ -55,13 +58,20 @@ const JOAO: IntercessorEntry = {
   contactHint: "…5678",
   sensitiveCountry: true,
   addedAt: "2026-08-10",
+  reviewedAt: null,
+  lastSentAt: null,
+  reviewDue: false,
   consents: [
     { context: "network", basis: "verbal", recordedAt: "2026-08-10" },
     { context: "directory", basis: "verbal", recordedAt: "2026-08-10" },
   ],
 };
 
-const view = (people: IntercessorEntry[] | null, withheldCount = 0) =>
+const view = (
+  people: IntercessorEntry[] | null,
+  withheldCount = 0,
+  withheldReviewDueCount = 0,
+) =>
   renderToStaticMarkup(
     createElement(
       MemoryRouter,
@@ -69,10 +79,12 @@ const view = (people: IntercessorEntry[] | null, withheldCount = 0) =>
       createElement(IntercessoresView, {
         people,
         withheldCount,
+        withheldReviewDueCount,
         onAdd: refuseAsync,
         onUpdate: refuseAsync,
         onRemove: refuseAsync,
         onRevealContact: async () => null,
+        onReview: refuseAsync,
       }),
     ),
   );
@@ -193,6 +205,86 @@ describe("a página diz o que guarda e o que ainda não faz", () => {
 
   it("não promete o envio que a onda 1 não entrega", () => {
     expect(view([])).toContain(i18n.t("int_send_pending"));
+  });
+});
+
+describe("a revisão depois de um ano: o servidor marca, a lista destaca (OBT-531)", () => {
+  const DUE: IntercessorEntry = {
+    ...ANA,
+    id: "i3",
+    name: "Carla Antiga",
+    addedAt: "2024-05-02",
+    reviewDue: true,
+  };
+
+  it("o contato vencido aparece destacado, com Revisado e Remover", () => {
+    const markup = view([DUE, JOAO]);
+    expect(markup).toContain(i18n.t("int_review_due_badge"));
+    expect(markup).toContain(i18n.t("int_review_due_hint"));
+    expect(markup).toContain(i18n.t("int_review_done"));
+    expect(markup).toContain(i18n.t("int_review_remove"));
+  });
+
+  it("e em inglês também", async () => {
+    await i18n.changeLanguage("en");
+    const markup = view([DUE]);
+    expect(markup).toContain(en.int_review_due_badge);
+    expect(markup).toContain(en.int_review_done);
+    expect(markup).toContain(en.int_review_remove);
+    expect(markup).not.toContain(ptBR.int_review_due_hint);
+    await i18n.changeLanguage("pt");
+  });
+
+  it("o contato em dia não carrega destaque nem os botões", () => {
+    const markup = view([ANA, JOAO]);
+    expect(markup).not.toContain(i18n.t("int_review_due_badge"));
+    expect(markup).not.toContain(i18n.t("int_review_done"));
+    expect(markup).not.toContain(i18n.t("int_review_due_count", { count: 1 }));
+  });
+
+  it("quem já foi revisado mostra a data da revisão", () => {
+    const markup = view([{ ...ANA, reviewedAt: "2026-09-01" }]);
+    expect(markup).toContain(i18n.t("int_reviewed_on"));
+  });
+
+  it("as contagens de vencidos aparecem acima da lista — os retidos só como número", () => {
+    const markup = view([DUE, ANA], 3, 2);
+    expect(markup).toContain(i18n.t("int_review_due_count", { count: 1 }));
+    expect(markup).toContain(i18n.t("int_withheld_review_due", { count: 2 }));
+    expect(markup.indexOf(i18n.t("int_review_due_count", { count: 1 }))).toBeLessThan(
+      markup.indexOf("Carla Antiga"),
+    );
+  });
+
+  it("a contagem é da rede inteira, e a frase não promete linhas que a busca pode esconder", () => {
+    for (const key of ["int_review_due_count_one", "int_review_due_count_other"] as const) {
+      expect(ptBR[key]).toContain("da rede");
+      expect(ptBR[key]).not.toMatch(/abaixo/u);
+      expect(en[key]).toContain("in the network");
+      expect(en[key]).not.toMatch(/below/u);
+    }
+  });
+
+  it("sem retidos vencidos, a frase deles não aparece", () => {
+    const markup = view([ANA], 3, 0);
+    expect(markup).toContain(i18n.t("int_withheld_count", { count: 3 }));
+    expect(markup).not.toContain(i18n.t("int_withheld_review_due", { count: 0 }));
+  });
+
+  it("a tela lê o destaque do servidor — não conta dias", () => {
+    const sources = [
+      "IntercessoresPage.tsx",
+      "CountryGroup.tsx",
+      "NetworkNotices.tsx",
+    ].map((file) =>
+      readFileSync(
+        join(process.cwd(), "src/components/pages/intercessores", file),
+        "utf8",
+      ),
+    );
+    for (const source of sources) {
+      expect(source).not.toMatch(/365|reviewedAt\s*[<>]|lastSentAt\s*[<>]/u);
+    }
   });
 });
 

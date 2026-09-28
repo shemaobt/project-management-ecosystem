@@ -19,36 +19,34 @@ import { countryName } from "../../../utils/countries";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { SubNav } from "../oracao/SubNav";
-import {
-  Button,
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Input,
-} from "../../ui";
+import { Input } from "../../ui";
 import { CountryGroup } from "./CountryGroup";
 import { EditIntercessorDialog } from "./EditIntercessorDialog";
 import { IntercessorForm } from "./IntercessorForm";
+import { NetworkNotices } from "./NetworkNotices";
+import { RemoveIntercessorDialog } from "./RemoveIntercessorDialog";
 
 export interface IntercessoresViewProps {
   people: readonly IntercessorEntry[] | null;
   withheldCount: number;
+  /** Of the withheld, how many are past their year — a number the server counted. */
+  withheldReviewDueCount: number;
   onAdd: (draft: IntercessorCreateDraft) => Promise<boolean>;
   onUpdate: (id: string, draft: IntercessorEditDraft) => Promise<boolean>;
   onRemove: (id: string) => Promise<boolean>;
   onRevealContact: (id: string) => Promise<string | null>;
+  onReview: (id: string) => Promise<boolean>;
 }
 
 export function IntercessoresView({
   people,
   withheldCount,
+  withheldReviewDueCount,
   onAdd,
   onUpdate,
   onRemove,
   onRevealContact,
+  onReview,
 }: IntercessoresViewProps) {
   const { t } = useTranslation();
   const [createDraft, setCreateDraft] =
@@ -58,13 +56,12 @@ export function IntercessoresView({
   );
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState<IntercessorEditDraft | null>(
-    null,
-  );
+  const [editDraft, setEditDraft] = useState<IntercessorEditDraft | null>(null);
   const [editShowing, setEditShowing] = useState<readonly EditField[]>([]);
   const [revealing, setRevealing] = useState(false);
 
   const [contactingId, setContactingId] = useState<string | null>(null);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [removing, setRemoving] = useState<IntercessorEntry | null>(null);
   const [query, setQuery] = useState("");
 
@@ -127,10 +124,22 @@ export function IntercessoresView({
     setContactingId(null);
     if (!contact) return;
     window.location.href =
-      person.contactChannel === "email" ? `mailto:${contact}` : `tel:${contact}`;
+      person.contactChannel === "email"
+        ? `mailto:${contact}`
+        : `tel:${contact}`;
+  };
+
+  const handleReview = async (person: IntercessorEntry) => {
+    setReviewingId(person.id);
+    await onReview(person.id);
+    setReviewingId(null);
   };
 
   const total = people?.length ?? 0;
+  // Over the whole network rather than the search: a filter must not hide that a review is owed.
+  const reviewDueCount = (people ?? []).filter(
+    (person) => person.reviewDue,
+  ).length;
 
   return (
     <section className="mx-auto w-full max-w-(--container-reading) px-(--container-pad) pt-8 pb-20">
@@ -165,7 +174,10 @@ export function IntercessoresView({
             <p className="text-small font-semibold text-fg-muted">
               {t("int_count", { count: visible.length })}
               {visible.length !== total ? (
-                <> {t("results_of")} {total}</>
+                <>
+                  {" "}
+                  {t("results_of")} {total}
+                </>
               ) : null}
             </p>
             <div className="relative">
@@ -193,23 +205,27 @@ export function IntercessoresView({
             </div>
           </div>
 
-          {withheldCount > 0 ? (
-            <p className="mb-4 rounded-md border border-line bg-muted px-4 py-3 text-small leading-normal text-fg-muted">
-              {t("int_withheld_count", { count: withheldCount })}
-            </p>
-          ) : null}
+          <NetworkNotices
+            reviewDueCount={reviewDueCount}
+            withheldCount={withheldCount}
+            withheldReviewDueCount={withheldReviewDueCount}
+          />
 
           {groups.length === 0 ? (
-            <EmptyState message={total === 0 ? t("int_empty") : t("int_search_empty")} />
+            <EmptyState
+              message={total === 0 ? t("int_empty") : t("int_search_empty")}
+            />
           ) : (
             groups.map((group) => (
               <CountryGroup
                 key={group.code}
                 group={group}
                 contactingId={contactingId}
+                reviewingId={reviewingId}
                 onEdit={startEdit}
                 onRemove={setRemoving}
                 onContact={handleContact}
+                onReview={handleReview}
               />
             ))
           )}
@@ -230,37 +246,11 @@ export function IntercessoresView({
         onClose={closeEdit}
       />
 
-      <Dialog
-        open={removing !== null}
-        onOpenChange={(open) => {
-          if (!open) setRemoving(null);
-        }}
-      >
-        <DialogContent size="narrow" closeLabel={t("btn_close")}>
-          <DialogHeader>
-            <DialogTitle>{t("int_remove")}</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <p className="text-small leading-normal text-fg">
-              {t("int_remove_confirm", { name: removing?.name ?? "" })}
-            </p>
-          </DialogBody>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setRemoving(null)}>
-              {t("btn_cancel")}
-            </Button>
-            <Button
-              variant="danger"
-              onClick={async () => {
-                if (removing) await onRemove(removing.id);
-                setRemoving(null);
-              }}
-            >
-              {t("btn_delete")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RemoveIntercessorDialog
+        removing={removing}
+        onClose={() => setRemoving(null)}
+        onConfirm={onRemove}
+      />
     </section>
   );
 }
@@ -268,25 +258,34 @@ export function IntercessoresView({
 export function IntercessoresPage() {
   const intercessors = usePrayerStore((state) => state.intercessors);
   const withheldCount = usePrayerStore((state) => state.withheldCount);
+  const withheldReviewDueCount = usePrayerStore(
+    (state) => state.withheldReviewDueCount,
+  );
   const hydrated = usePrayerStore((state) => state.hydrated);
-  const hydrate = usePrayerStore((state) => state.hydrate);
+  const reload = usePrayerStore((state) => state.reload);
   const addIntercessor = usePrayerStore((state) => state.addIntercessor);
   const updateIntercessor = usePrayerStore((state) => state.updateIntercessor);
   const removeIntercessor = usePrayerStore((state) => state.removeIntercessor);
   const revealContact = usePrayerStore((state) => state.revealContact);
+  const reviewIntercessor = usePrayerStore((state) => state.reviewIntercessor);
 
+  // Always fetched on arrival, cache or not: `reviewDue` is the server's answer for today,
+  // and a list kept from last week would show last week's. The cache stays on screen
+  // until the answer replaces it.
   useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+    void reload();
+  }, [reload]);
 
   return (
     <IntercessoresView
       people={hydrated ? intercessors : null}
       withheldCount={withheldCount}
+      withheldReviewDueCount={withheldReviewDueCount}
       onAdd={addIntercessor}
       onUpdate={updateIntercessor}
       onRemove={removeIntercessor}
       onRevealContact={revealContact}
+      onReview={reviewIntercessor}
     />
   );
 }

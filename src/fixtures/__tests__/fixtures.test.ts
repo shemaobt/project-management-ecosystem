@@ -244,6 +244,7 @@ describe("prayer fixture", () => {
     expect(await intercessorsAPI.list()).toEqual({
       people: [],
       withheldCount: 0,
+      withheldReviewDueCount: 0,
     });
   });
 });

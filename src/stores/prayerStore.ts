@@ -17,22 +17,33 @@ import {
 
 const INTERCESSORS_KEY = "shema-intercessors-v1";
 
-export const INTERCESSORS_VERSION = 2;
+// 3: entries carry the one-year review (`reviewDue`, `reviewedAt`, `lastSentAt`) and the
+// directory the count of withheld people past their year — an older cache has neither.
+export const INTERCESSORS_VERSION = 3;
 
 interface PrayerState extends HydrationStatus {
   intercessors: IntercessorEntry[];
   /** People the network holds who withheld `directory` consent — a count, never a name (§8.1 rule 2's precedent). */
   withheldCount: number;
+  /** Of those, how many are past their year (OBT-531) — a count, never a name. */
+  withheldReviewDueCount: number;
   hydrate: () => Promise<void>;
+  /**
+   * Fetch the network again even when a cache is on screen. The review flag is computed by
+   * the server against today, so a list kept from a week ago says nothing true about it.
+   */
+  reload: () => Promise<void>;
   addIntercessor: (draft: IntercessorCreateDraft) => Promise<boolean>;
   updateIntercessor: (id: string, draft: IntercessorEditDraft) => Promise<boolean>;
   removeIntercessor: (id: string) => Promise<boolean>;
   revealContact: (id: string) => Promise<string | null>;
+  /** "Revisado": the server stamps the review and answers the entry without the flag. */
+  reviewIntercessor: (id: string) => Promise<boolean>;
 }
 
 type PersistedPrayer = Pick<
   PrayerState,
-  "intercessors" | "withheldCount" | "hydrated"
+  "intercessors" | "withheldCount" | "withheldReviewDueCount" | "hydrated"
 >;
 
 async function safely<T>(action: () => Promise<T>): Promise<T | null> {
@@ -48,19 +59,22 @@ export const usePrayerStore = create<PrayerState>()(
   persist<PrayerState, [], [], PersistedPrayer>(
     (set, get) => {
       const slot = createHydrationSlot();
+      const load = async () => {
+        const directory = await intercessorsAPI.list();
+        set({
+          intercessors: directory.people,
+          withheldCount: directory.withheldCount,
+          withheldReviewDueCount: directory.withheldReviewDueCount,
+        });
+      };
 
       return {
         intercessors: [],
         withheldCount: 0,
+        withheldReviewDueCount: 0,
         ...NOT_HYDRATED,
-        hydrate: () =>
-          hydrateOnce(slot, get, set, async () => {
-            const directory = await intercessorsAPI.list();
-            set({
-              intercessors: directory.people,
-              withheldCount: directory.withheldCount,
-            });
-          }),
+        hydrate: () => hydrateOnce(slot, get, set, load),
+        reload: () => hydrateOnce(slot, get, set, load, true),
         addIntercessor: async (draft) => {
           const payload = makeIntercessorCreate(draft);
           if (!payload) return false;
@@ -114,15 +128,32 @@ export const usePrayerStore = create<PrayerState>()(
           return true;
         },
         revealContact: (id) => safely(() => intercessorsAPI.contact(id)),
+        reviewIntercessor: async (id) => {
+          const reviewed = await safely(() => intercessorsAPI.review(id));
+          if (!reviewed) return false;
+
+          set((state) => ({
+            intercessors: state.intercessors.map((person) =>
+              person.id === id ? reviewed : person,
+            ),
+          }));
+          return true;
+        },
       };
     },
     {
       name: INTERCESSORS_KEY,
       version: INTERCESSORS_VERSION,
-      migrate: () => ({ intercessors: [], withheldCount: 0, hydrated: false }),
+      migrate: () => ({
+        intercessors: [],
+        withheldCount: 0,
+        withheldReviewDueCount: 0,
+        hydrated: false,
+      }),
       partialize: (state) => ({
         intercessors: state.intercessors,
         withheldCount: state.withheldCount,
+        withheldReviewDueCount: state.withheldReviewDueCount,
         hydrated: state.hydrated,
       }),
     },

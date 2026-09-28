@@ -40,9 +40,12 @@ import { buildEtenReport } from "../utils/etenCredits";
 import {
   createIntercessor,
   grantConsent,
+  leaveThroughExitLink,
   loadIntercessors,
+  openExitLink,
   removeIntercessor,
   revealContact,
+  reviewIntercessor,
   updateIntercessor,
 } from "./intercessors";
 import { loadMeetingLog, loadMeetings } from "./meetings";
@@ -171,6 +174,15 @@ export const intercessorsAPI = {
     basis: string,
   ): Promise<IntercessorEntry> {
     return grantConsent(id, context, basis);
+  },
+  async review(id: string): Promise<IntercessorEntry> {
+    return reviewIntercessor(id);
+  },
+  async exitLink(token: string): Promise<void> {
+    return openExitLink(token);
+  },
+  async leave(token: string): Promise<void> {
+    return leaveThroughExitLink(token);
   },
 };
 

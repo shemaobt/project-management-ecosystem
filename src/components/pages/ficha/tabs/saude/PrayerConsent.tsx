@@ -63,6 +63,11 @@ export function PrayerConsent({ value, onChange }: PrayerConsentProps) {
                 <span className="mt-1 block text-micro leading-[1.45] text-fg">
                   {t(PRAYER_VISIBILITY_HINT_KEYS[option])}
                 </span>
+                {option === "rede" ? (
+                  <span className="mt-1.5 block text-micro leading-[1.45] font-semibold text-fg-strong">
+                    {t("prayer_vis_network_no_recall")}
+                  </span>
+                ) : null}
               </span>
             </RadioButton>
           );

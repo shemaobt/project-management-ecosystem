@@ -209,6 +209,19 @@ describe("o consentimento é escolha explícita no formulário", () => {
     expect(form).toContain(i18n.t("prayer_vis_default_note"));
   });
 
+  it("o nível rede avisa que o enviado não pode ser recolhido — PT e EN", async () => {
+    const form = tab("editar", { prayerRequests: "Orem pela equipe." });
+    expect(form).toContain(
+      "Depois que um pedido é enviado à rede, ele não pode ser recolhido.",
+    );
+
+    const { default: en } = await import("../../../../i18n/locales/en.json");
+    await i18n.changeLanguage("en");
+    const english = tab("editar", { prayerRequests: "Orem pela equipe." });
+    await i18n.changeLanguage("pt");
+    expect(english).toContain(en.prayer_vis_network_no_recall);
+  });
+
   it("sem escolha, a opção marcada é só a coordenação", () => {
     const form = tab("editar", { prayerRequests: "Orem pela equipe." });
     const radios = (form.match(/<input[^>]*type="radio"[^>]*>/gu) ?? []).filter(

@@ -12,6 +12,7 @@ import { FormulariosPage } from "./components/pages/formularios";
 import { InicioPage } from "./components/pages/inicio";
 import { IntakePage } from "./components/pages/intake";
 import { IntercessoresPage } from "./components/pages/intercessores/IntercessoresPage";
+import { LeaveNetworkPage } from "./components/pages/intercessores/LeaveNetworkPage";
 import { OracaoPage } from "./components/pages/oracao";
 import { ProjetosPage } from "./components/pages/projetos/ProjetosPage";
 import { RitmoPage } from "./components/pages/ritmo/RitmoPage";
@@ -33,6 +34,9 @@ export default function App() {
             {/* No session, no console: the leader link's whole page (§8, §9.13 —
                 the leader has no account, so this route must not reach SessionGate). */}
             <Route path="intake/:token" element={<IntakePage />} />
+            {/* No session either: the intercessor's exit link (OBT-531). The person has no
+                account and never will — the token is the guard, and the server's. */}
+            <Route path="leave/:token" element={<LeaveNetworkPage />} />
             <Route
               path="*"
               element={

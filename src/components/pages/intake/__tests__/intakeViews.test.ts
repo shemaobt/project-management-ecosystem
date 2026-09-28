@@ -184,3 +184,19 @@ describe("o sucesso é uma confirmação clara, e não devolve nada do que foi d
     expect(markup).toContain(i18n.t("intake_success_body"));
   });
 });
+
+describe("o consentimento do pedido no formulário do líder (OBT-531)", () => {
+  it("o nível rede avisa que o enviado não pode ser recolhido — PT e EN", async () => {
+    const markup = () =>
+      renderToStaticMarkup(createElement(IntakeFormView, baseProps));
+    expect(markup()).toContain(
+      "Depois que um pedido é enviado à rede, ele não pode ser recolhido.",
+    );
+
+    const { default: en } = await import("../../../../i18n/locales/en.json");
+    await i18n.changeLanguage("en");
+    const english = markup();
+    await i18n.changeLanguage("pt");
+    expect(english).toContain(en.prayer_vis_network_no_recall);
+  });
+});
