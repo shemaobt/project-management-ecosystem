@@ -4,7 +4,7 @@ import type {
   EtenYearReport,
 } from "../types/eten";
 import type { Project } from "../types/project";
-import { parseIsoDate } from "./cadence";
+import { parseIsoDate, toCalendarDate, type CalendarDate } from "./cadence";
 import { getCountryDisplay } from "./region";
 
 export const CREDIT_UNIT = "approvedUnits" as const;
@@ -27,6 +27,36 @@ export type CountedProject = Pick<
   "id" | "status" | "totalUnits" | "approvedUnits" | "progressHistory"
 >;
 
+/**
+ * ETEN's fiscal year closes on 31 July (GATE-01, OBT-387, Karina, 22/set/2026; the cut on
+ * 31/07 is Daniel's, 25/set). `year` is the fiscal year that **ends** on 31/07/`year`, so
+ * 2026 runs from 01/08/2025 to 31/07/2026 — the same reading `shema-api`'s BE-11 takes
+ * (`fiscal_year_of`, `FISCAL_YEAR_CLOSE`).
+ */
+export const FISCAL_YEAR_CLOSE = { month: 7, day: 31 } as const;
+
+/**
+ * The fiscal year a calendar day belongs to, compared **by field** and never through a `Date`:
+ * 31 July closes one year and 1 August opens the next, in every timezone.
+ */
+export function fiscalYearOf(date: CalendarDate): number {
+  const { month, day } = FISCAL_YEAR_CLOSE;
+  const onOrBeforeClose =
+    date.month < month || (date.month === month && date.day <= day);
+  return onOrBeforeClose ? date.year : date.year + 1;
+}
+
+/** The last day a fiscal year covers, as ISO: `2026` → `2026-07-31`. */
+export function fiscalYearEnd(year: number): string {
+  const { month, day } = FISCAL_YEAR_CLOSE;
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+/** How a fiscal year is written on screen: `2026` → `2025/26`. */
+export function fiscalYearSpan(year: number): string {
+  return `${year - 1}/${String(year % 100).padStart(2, "0")}`;
+}
+
 export function approvedAtYearEnd(
   project: CountedProject,
   year: number,
@@ -34,13 +64,13 @@ export function approvedAtYearEnd(
 ): number | null {
   const upTo = project.progressHistory
     .map((entry) => ({ entry, date: parseIsoDate(entry.date) }))
-    .filter((item) => item.date !== null && item.date.year <= year)
+    .filter((item) => item.date !== null && fiscalYearOf(item.date) <= year)
     .sort((a, b) => a.entry.date.localeCompare(b.entry.date));
 
   if (upTo.length > 0) {
     return upTo[upTo.length - 1].entry.approvedUnits;
   }
-  if (year >= now.getFullYear()) return project.approvedUnits;
+  if (year >= fiscalYearOf(toCalendarDate(now))) return project.approvedUnits;
   return null;
 }
 
@@ -128,11 +158,17 @@ export function buildEtenReport(
 
 export const REPORT_YEARS = 4;
 
+/** The fiscal year still open today — the report can be read, not yet sent. */
+export function currentFiscalYear(now: Date = new Date()): number {
+  return fiscalYearOf(toCalendarDate(now));
+}
+
 export function reportYears(now: Date = new Date()): number[] {
-  const latest = now.getFullYear();
+  const latest = currentFiscalYear(now);
   return Array.from({ length: REPORT_YEARS }, (_, step) => latest - step);
 }
 
+/** The last fiscal year that closed: in September 2026, the 2025/26 that closed on 31/07/2026. */
 export function defaultReportYear(now: Date = new Date()): number {
-  return now.getFullYear() - 1;
+  return currentFiscalYear(now) - 1;
 }
