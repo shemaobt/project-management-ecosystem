@@ -323,6 +323,19 @@ export interface Project {
   startDate: string;
   deadline: string;
   status: ProjectStatus;
+  /**
+   * The day the project moved into `concluido` — `shema-api` stamps it on that move (BE-11,
+   * GATE-01 25/set/2026: *"só daqui para frente"*). Absent on every record that finished
+   * before the stamp existed, and in fixture mode, so a finished project with no date is a
+   * normal state and not an error.
+   *
+   * ⚠️ **The server does not send it yet.** BE-11 stores the column but keeps it out of the
+   * record, because FE-44 froze the record at 73 keys (`app/models/shema_record.py`). Until
+   * the contract gains this key — INT-08, OBT-413 — it is `undefined` in `api` mode too, and
+   * the annual report counts every `concluido` as undated. The spelling is the one the
+   * record's camelCase alias generator would produce.
+   */
+  completedDate?: string;
   sensitivity: string;
   sensitiveCountry: boolean;
   statusComments: string;
