@@ -12,10 +12,25 @@ const MONTH_LENGTHS: readonly number[] = [
   31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
 ];
 
-const PERIOD_MONTHS: Record<MeetingCadence, number> = {
+/**
+ * Every cadence is a number of months that divides twelve, which is why a period is always a
+ * block of calendar months inside one year and never crosses a new year. `shema-api` holds the
+ * same table (`PERIOD_MONTHS` in `app/utils/shema_derivations.py`) and derives a log's period
+ * from it, so the two must agree letter for letter.
+ */
+export const PERIOD_MONTHS: Record<MeetingCadence, number> = {
   monthly: 1,
+  bimonthly: 2,
   quarterly: 3,
+  semiannual: 6,
   annual: 12,
+};
+
+/** The letter a numbered period carries in its key: `2026-B2`, `2026-Q1`, `2026-H2`. */
+const PERIOD_LETTER: Partial<Record<MeetingCadence, string>> = {
+  bimonthly: "B",
+  quarterly: "Q",
+  semiannual: "H",
 };
 
 export function isLeapYear(year: number): boolean {
@@ -27,8 +42,12 @@ export function daysInMonth(year: number, month: number): number {
   return MONTH_LENGTHS[month - 1];
 }
 
+export function periodNumber(cadence: MeetingCadence, month: number): number {
+  return Math.floor((month - 1) / PERIOD_MONTHS[cadence]) + 1;
+}
+
 export function quarterOf(month: number): number {
-  return Math.floor((month - 1) / 3) + 1;
+  return periodNumber("quarterly", month);
 }
 
 function pad(value: number, size: number): string {
@@ -70,11 +89,12 @@ export function periodStart(
   cadence: MeetingCadence,
   date: CalendarDate,
 ): CalendarDate {
-  if (cadence === "monthly") return { ...date, day: 1 };
-  if (cadence === "quarterly") {
-    return { year: date.year, month: (quarterOf(date.month) - 1) * 3 + 1, day: 1 };
-  }
-  return { year: date.year, month: 1, day: 1 };
+  const months = PERIOD_MONTHS[cadence];
+  return {
+    year: date.year,
+    month: (periodNumber(cadence, date.month) - 1) * months + 1,
+    day: 1,
+  };
 }
 
 export function shiftPeriods(
@@ -99,8 +119,9 @@ export function periodKey(
   date: CalendarDate,
 ): string {
   if (cadence === "monthly") return `${pad(date.year, 4)}-${pad(date.month, 2)}`;
-  if (cadence === "quarterly") {
-    return `${pad(date.year, 4)}-Q${quarterOf(date.month)}`;
+  const letter = PERIOD_LETTER[cadence];
+  if (letter) {
+    return `${pad(date.year, 4)}-${letter}${periodNumber(cadence, date.month)}`;
   }
   return pad(date.year, 4);
 }
