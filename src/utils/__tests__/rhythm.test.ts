@@ -283,9 +283,9 @@ describe("quem participa vem do organograma, por referência", () => {
       "oceania",
       regionsWith("oceania", { obtLab: "Ana Ribeiro" }),
     );
-    const leadership = roles.find((person) => person.key === "leadership");
-    expect(leadership?.fromOrgChart).toBe(false);
-    expect(leadership?.holder).toBeNull();
+    const team = roles.find((person) => person.key === "internationalProjects");
+    expect(team?.fromOrgChart).toBe(false);
+    expect(team?.holder).toBeNull();
   });
 
   it("o escopo global não tem organograma regional para ler", () => {

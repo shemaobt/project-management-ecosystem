@@ -111,6 +111,21 @@ describe("o conjunto do GATE-02", () => {
   });
 });
 
+/**
+ * `ritmo_role_leadership` é também o nome do corpo de liderança na Equipe (`constants/team.ts`).
+ * O time de Projetos Internacionais tem chave própria, ou a Equipe passaria a ter dois corpos
+ * com o mesmo nome (revisão da PR #62).
+ */
+describe("o time de Projetos Internacionais não empresta o nome da liderança da Equipe", () => {
+  it("as duas chaves dizem coisas diferentes, nas duas línguas", () => {
+    for (const lng of ["pt", "en"]) {
+      expect(i18n.t("ritmo_role_international_projects", { lng }), lng).not.toBe(
+        i18n.t("ritmo_role_leadership", { lng }),
+      );
+    }
+  });
+});
+
 describe("a cascata abre a página como índice dos encontros", () => {
   const markup = () =>
     renderToStaticMarkup(createElement(Cascade, { encounters: RITMO_ENCOUNTERS }));
@@ -179,7 +194,7 @@ describe("o cartão da reunião diz cadência, quem participa e o que a alimenta
 
   it("traz os papéis que participam", () => {
     expect(markup).toContain(i18n.t("role_obtlab"));
-    expect(markup).toContain(i18n.t("ritmo_role_leadership"));
+    expect(markup).toContain(i18n.t("ritmo_role_international_projects"));
   });
 
   /**
@@ -288,9 +303,9 @@ describe("quem participa chega por referência ao organograma", () => {
 });
 
 describe("o que não é reunião não se registra como reunião", () => {
-  const pulse = (rows: Parameters<typeof PulseCard>[0]["rows"]) =>
+  const pulse = (rows: Parameters<typeof PulseCard>[0]["rows"], read = true) =>
     renderToStaticMarkup(
-      createElement(MemoryRouter, null, createElement(PulseCard, { rows })),
+      createElement(MemoryRouter, null, createElement(PulseCard, { rows, read })),
     );
 
   it("o Pulso Mensal conta quem devolveu por região, e não oferece registrar", () => {
@@ -299,6 +314,16 @@ describe("o que não é reunião não se registra como reunião", () => {
     expect(markup).toContain("3/36");
     expect(markup).toContain(i18n.t("ritmo_reported"));
     expect(markup).not.toContain(i18n.t("ritmo_register"));
+  });
+
+  /**
+   * Um arquivo não lido não é um arquivo vazio: `0/36` diria *ninguém devolveu* quando a
+   * verdade é *ainda não sabemos* (revisão da PR #62).
+   */
+  it("sem os Pulsos lidos, não mostra contagem nenhuma e diz por quê", () => {
+    const markup = pulse([{ scope, readiness: { ready: 0, total: 36 } }], false);
+    expect(markup).not.toContain("0/36");
+    expect(markup).toContain(i18n.t("ritmo_pulso_unread"));
   });
 
   it("e aponta para Formulários, onde está quem falta projeto a projeto", () => {

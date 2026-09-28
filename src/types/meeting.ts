@@ -24,7 +24,7 @@ export type MeetingScope = "region" | "global";
 
 export type MeetingAttendee =
   | RoleKey
-  | "leadership"
+  | "internationalProjects"
   | "teams"
   | "memberCare"
   | "projectLeader";
