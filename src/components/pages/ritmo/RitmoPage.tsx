@@ -3,8 +3,10 @@ import { useTranslation } from "react-i18next";
 import {
   GLOBAL_SCOPE_LABEL_KEY,
   LISTENING_FLOW,
+  RITMO_ENCOUNTERS,
   RITMO_MEETINGS,
 } from "../../../constants/meetings";
+import { useFormsStore } from "../../../stores/formsStore";
 import { draftKey, useRhythmStore } from "../../../stores/rhythmStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import { useRegionsStore } from "../../../stores/regionsStore";
@@ -12,7 +14,7 @@ import type { MeetingCadence, MeetingDefinition } from "../../../types/meeting";
 import {
   formatIsoDate,
   periodKey,
-  quarterOf,
+  periodNumber,
   toCalendarDate,
   type CalendarDate,
 } from "../../../utils/cadence";
@@ -26,11 +28,13 @@ import {
   meetingStatus,
   nextOccurrence,
   resolveMeetingParticipants,
+  rhythmScopes,
   scopesFor,
   type RhythmScope,
 } from "../../../utils/rhythm";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Cascade, ListeningFlow } from "./Cascade";
+import { CelebrationCard, PulseCard } from "./EncounterCards";
 import { LogMeetingDialog } from "./LogMeetingDialog";
 import { MeetingCard } from "./MeetingCard";
 import { MeetingRow } from "./MeetingRow";
@@ -48,13 +52,17 @@ function periodLabel(
   t: Translate,
 ): string {
   if (cadence === "annual") return String(date.year);
-  if (cadence === "quarterly") {
-    return t("ritmo_period_quarter", {
-      quarter: quarterOf(date.month),
-      year: date.year,
-    });
+  if (cadence === "monthly") {
+    return `${formatMonthName(date.year, date.month)} · ${date.year}`;
   }
-  return `${formatMonthName(date.year, date.month)} · ${date.year}`;
+  const n = periodNumber(cadence, date.month);
+  if (cadence === "quarterly") {
+    return t("ritmo_period_quarter", { quarter: n, year: date.year });
+  }
+  if (cadence === "bimonthly") {
+    return t("ritmo_period_bimester", { n, year: date.year });
+  }
+  return t("ritmo_period_semester", { n, year: date.year });
 }
 
 export function RitmoPage() {
@@ -70,6 +78,8 @@ export function RitmoPage() {
   const setDraft = useRhythmStore((state) => state.setDraft);
   const logMeeting = useRhythmStore((state) => state.logMeeting);
   const undoMeeting = useRhythmStore((state) => state.undoMeeting);
+  const submissions = useFormsStore((state) => state.submissions);
+  const hydrateForms = useFormsStore((state) => state.hydrate);
 
   const [editing, setEditing] = useState<Editing | null>(null);
 
@@ -77,7 +87,8 @@ export function RitmoPage() {
     void hydrateProjects();
     void hydrateRegions();
     void hydrateRhythm();
-  }, [hydrateProjects, hydrateRegions, hydrateRhythm]);
+    void hydrateForms();
+  }, [hydrateProjects, hydrateRegions, hydrateRhythm, hydrateForms]);
 
   const todayIso = toLocalIsoDate();
   const today = toCalendarDate(new Date(`${todayIso}T00:00:00`));
@@ -102,6 +113,7 @@ export function RitmoPage() {
                 meeting.cadence,
                 projects,
                 scope.key,
+                submissions,
                 now,
               )
             : null,
@@ -109,7 +121,15 @@ export function RitmoPage() {
         };
       }),
     }));
-  }, [todayIso, projects, log, regions, t]);
+  }, [todayIso, projects, log, regions, submissions, t]);
+
+  const pulseRows = useMemo(() => {
+    const now = new Date(`${todayIso}T00:00:00`);
+    return rhythmScopes(projects).map((scope) => ({
+      scope,
+      readiness: meetingReadiness("pulso", "monthly", projects, scope.key, submissions, now),
+    }));
+  }, [todayIso, projects, submissions]);
 
   const editingKey = editing
     ? draftKey(editing.meeting.id, editing.scope.key)
@@ -130,7 +150,7 @@ export function RitmoPage() {
         </p>
       </header>
 
-      <Cascade meetings={RITMO_MEETINGS} />
+      <Cascade encounters={RITMO_ENCOUNTERS} />
       <ListeningFlow tiers={LISTENING_FLOW} />
 
       <h2 className="mb-2.5 text-eyebrow font-semibold tracking-eyebrow uppercase text-fg-muted">
@@ -142,6 +162,8 @@ export function RitmoPage() {
           <LoadingSpinner size="lg" label={t("loading")} />
         </div>
       ) : null}
+
+      {hydrated ? <PulseCard rows={pulseRows} /> : null}
 
       {hydrated
         ? agenda.map(({ meeting, rows }) => (
@@ -174,6 +196,8 @@ export function RitmoPage() {
             </MeetingCard>
           ))
         : null}
+
+      {hydrated ? <CelebrationCard /> : null}
 
       {editing ? (
         <LogMeetingDialog

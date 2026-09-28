@@ -1,8 +1,10 @@
 import type {
+  Encounter,
   MeetingAttendee,
   MeetingCadence,
   MeetingDefinition,
   MeetingFeed,
+  MeetingId,
   MeetingState,
 } from "../types/meeting";
 import { ROLE_DEFINITIONS } from "./roles";
@@ -25,7 +27,9 @@ export const MEETING_STATE_SYMBOLS: Record<MeetingState, string> = {
 
 export const MEETING_CADENCE_LABEL_KEYS: Record<MeetingCadence, string> = {
   monthly: "ritmo_monthly",
+  bimonthly: "ritmo_bimonthly",
   quarterly: "ritmo_quarterly",
+  semiannual: "ritmo_semiannual",
   annual: "ritmo_annual",
 };
 
@@ -37,24 +41,19 @@ export const MEETING_STATE_LABEL_KEYS: Record<MeetingState, string> = {
 };
 
 export const MEETING_FEED_LABEL_KEYS: Record<MeetingFeed, string> = {
-  pulso: "ritmo_feed_pulso",
-  prayer: "ritmo_feed_prayer",
-  health: "ritmo_feed_health",
+  fieldCheck: "ritmo_feed_field_check",
   trends: "ritmo_feed_trends",
-  rollup: "ritmo_feed_rollup",
-  year: "ritmo_feed_year",
-  resources: "ritmo_feed_resources",
+  memberCare: "ritmo_feed_member_care",
 };
 
 export const MEETING_ATTENDEE_LABEL_KEYS: Record<MeetingAttendee, string> = {
   coordinator: ROLE_DEFINITIONS.coordinator.labelKey,
   obtLab: ROLE_DEFINITIONS.obtLab.labelKey,
   resourceCircle: ROLE_DEFINITIONS.resourceCircle.labelKey,
-  supervisor: "ritmo_role_supervisor",
   leadership: "ritmo_role_leadership",
   teams: "ritmo_role_teams",
-  everyone: "ritmo_role_everyone",
-  resourcesTable: "ritmo_role_resourcecircle",
+  memberCare: "ritmo_role_member_care",
+  projectLeader: "ritmo_role_project_leader",
 };
 
 export interface ListeningTier {
@@ -64,90 +63,115 @@ export interface ListeningTier {
   whatKey: string;
 }
 
+/**
+ * How listening flows, one tier per encounter of GATE-02 (OBT-388, 22/set/2026), in the order
+ * the cadences widen: from the field every month to the whole year. The celebration has no
+ * attendee list because GATE-02 gave it none — it is a report, not a meeting.
+ */
 export const LISTENING_FLOW: readonly ListeningTier[] = [
   {
-    key: "field",
-    levelKey: "ritmo_flow_field",
-    attendees: ["teams"],
-    whatKey: "ritmo_flow_field_what",
+    key: "pulso_mensal",
+    levelKey: "ritmo_monthly",
+    attendees: ["projectLeader"],
+    whatKey: "ritmo_flow_pulso_what",
   },
   {
-    key: "region",
-    levelKey: "ritmo_flow_region",
-    attendees: ["obtLab"],
-    whatKey: "ritmo_flow_region_what",
+    key: "bimestral_pi_campo",
+    levelKey: "ritmo_bimonthly",
+    attendees: ["leadership", "teams"],
+    whatKey: "ritmo_flow_bimestral_what",
   },
   {
-    key: "regional-team",
-    levelKey: "ritmo_flow_regional_team",
-    attendees: ["coordinator", "resourceCircle"],
-    whatKey: "ritmo_flow_regional_team_what",
+    key: "trimestral_pi_pontes",
+    levelKey: "ritmo_quarterly",
+    attendees: ["leadership", "coordinator", "obtLab", "resourceCircle"],
+    whatKey: "ritmo_flow_trimestral_what",
   },
   {
-    key: "articulation",
-    levelKey: "ritmo_flow_articulation",
-    attendees: ["supervisor"],
-    whatKey: "ritmo_flow_articulation_what",
+    key: "semestral_member_care",
+    levelKey: "ritmo_semiannual",
+    attendees: ["memberCare", "teams"],
+    whatKey: "ritmo_flow_semestral_what",
   },
   {
-    key: "governance",
-    levelKey: "ritmo_flow_governance",
-    attendees: ["leadership"],
-    whatKey: "ritmo_flow_governance_what",
+    key: "celebracao_anual",
+    levelKey: "ritmo_annual",
+    attendees: [],
+    whatKey: "ritmo_flow_celebracao_what",
   },
 ];
 
+/**
+ * The three meetings the log records — GATE-02's answer (OBT-388, Karina, 22/set/2026), with
+ * the ids and cadences `shema-api` enforces (`MEETING_CADENCES`, BE-10). **The same set in the
+ * seven regions**, so every meeting is held per region and none is `global`.
+ *
+ * The bimonthly's Health readiness and the quarterly's bridge people are **our reading**:
+ * GATE-02 left both open, and `ourReading` is what makes the card say so.
+ */
 export const RITMO_MEETINGS: readonly MeetingDefinition[] = [
   {
-    id: "monthly_regional",
-    cadence: "monthly",
-    scope: "region",
-    icon: "pulse",
-    roles: ["obtLab", "teams"],
-    feeds: "pulso",
-    readiness: "pulso",
-    titleKey: "ritmo_m1_title",
-    descriptionKey: "ritmo_m1_desc",
-  },
-  {
-    id: "monthly_prayer",
-    cadence: "monthly",
-    scope: "region",
-    icon: "prayer",
-    roles: ["resourceCircle"],
-    feeds: "prayer",
-    titleKey: "ritmo_m6_title",
-    descriptionKey: "ritmo_m6_desc",
-  },
-  {
-    id: "obtlab_team",
-    cadence: "quarterly",
+    id: "bimestral_pi_campo",
+    cadence: "bimonthly",
     scope: "region",
     icon: "heart",
-    roles: ["obtLab", "teams"],
-    feeds: "health",
+    roles: ["leadership", "teams"],
+    feeds: "fieldCheck",
     readiness: "health",
-    titleKey: "ritmo_m2_title",
-    descriptionKey: "ritmo_m2_desc",
+    ourReading: true,
+    titleKey: "ritmo_bimestral_title",
+    descriptionKey: "ritmo_bimestral_desc",
   },
   {
-    id: "quarterly_regional",
+    id: "trimestral_pi_pontes",
     cadence: "quarterly",
     scope: "region",
     icon: "users",
-    roles: ["supervisor", "obtLab", "coordinator"],
+    roles: ["leadership", "coordinator", "obtLab", "resourceCircle"],
     feeds: "trends",
-    titleKey: "ritmo_m3_title",
-    descriptionKey: "ritmo_m3_desc",
+    ourReading: true,
+    titleKey: "ritmo_trimestral_title",
+    descriptionKey: "ritmo_trimestral_desc",
   },
   {
-    id: "annual_celebration",
+    id: "semestral_member_care",
+    cadence: "semiannual",
+    scope: "region",
+    icon: "care",
+    roles: ["memberCare", "teams"],
+    feeds: "memberCare",
+    titleKey: "ritmo_semestral_title",
+    descriptionKey: "ritmo_semestral_desc",
+  },
+];
+
+export const MEETING_IDS: ReadonlySet<MeetingId> = new Set(
+  RITMO_MEETINGS.map((meeting) => meeting.id),
+);
+
+/**
+ * The listening cascade's index: the five encounters in cadence order, of which the log
+ * records only the three meetings.
+ */
+export const RITMO_ENCOUNTERS: readonly Encounter[] = [
+  {
+    key: "pulso_mensal",
+    kind: "form",
+    cadence: "monthly",
+    titleKey: "ritmo_pulso_title",
+  },
+  ...RITMO_MEETINGS.map(
+    (meeting): Encounter => ({
+      key: meeting.id,
+      kind: "meeting",
+      cadence: meeting.cadence,
+      titleKey: meeting.titleKey,
+    }),
+  ),
+  {
+    key: "celebracao_anual",
+    kind: "report",
     cadence: "annual",
-    scope: "global",
-    icon: "spark",
-    roles: ["everyone"],
-    feeds: "year",
-    titleKey: "ritmo_m5_title",
-    descriptionKey: "ritmo_m5_desc",
+    titleKey: "ritmo_celebracao_title",
   },
 ];

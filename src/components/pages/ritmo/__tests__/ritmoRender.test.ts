@@ -21,9 +21,9 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
 const { default: i18n } = await import("../../../../i18n");
-const { LISTENING_FLOW, MEETING_STATE_SYMBOLS, RITMO_MEETINGS } = await import(
-  "../../../../constants/meetings"
-);
+const { LISTENING_FLOW, MEETING_STATE_SYMBOLS, RITMO_ENCOUNTERS, RITMO_MEETINGS } =
+  await import("../../../../constants/meetings");
+const { MemoryRouter } = await import("react-router-dom");
 const { EMPTY_REGION_TEAM, REGIONS } = await import(
   "../../../../constants/regions"
 );
@@ -31,6 +31,7 @@ const { resolveMeetingParticipants } = await import("../../../../utils/rhythm");
 const { Cascade, ListeningFlow } = await import("../Cascade");
 const { MeetingCard } = await import("../MeetingCard");
 const { MeetingRow } = await import("../MeetingRow");
+const { CelebrationCard, PulseCard } = await import("../EncounterCards");
 
 type Region = (typeof REGIONS)[number] & { team: typeof EMPTY_REGION_TEAM };
 
@@ -45,7 +46,14 @@ const regionsWith = (holder: string): Region[] =>
         : { ...EMPTY_REGION_TEAM },
   }));
 
-const meeting = RITMO_MEETINGS[0];
+const byId = (id: (typeof RITMO_MEETINGS)[number]["id"]) => {
+  const found = RITMO_MEETINGS.find((item) => item.id === id);
+  if (!found) throw new Error(id);
+  return found;
+};
+
+/** The quarterly is the one whose attendees are org-chart roles, so it carries a holder. */
+const meeting = byId("trimestral_pi_pontes");
 const scope = { key: "oceania" as const, labelKey: "continent_oceania", count: 36 };
 
 const row = (
@@ -69,20 +77,59 @@ beforeEach(async () => {
   await i18n.changeLanguage("pt");
 });
 
-describe("a cascata abre a página como índice das reuniões", () => {
-  it("lista as cinco, numeradas e com a cadência", () => {
-    const markup = renderToStaticMarkup(
-      createElement(Cascade, { meetings: RITMO_MEETINGS }),
-    );
+/**
+ * GATE-02 (OBT-388, Karina, 22/set/2026): cinco encontros, dos quais só três são reuniões. Os
+ * ids e as cadências das três são os que o `shema-api` aceita (BE-10); uma grafia diferente
+ * deixaria o cartão pendente para sempre, sem erro.
+ */
+describe("o conjunto do GATE-02", () => {
+  it("são três reuniões, com os ids e as cadências do servidor", () => {
+    expect(RITMO_MEETINGS.map((item) => [item.id, item.cadence])).toEqual([
+      ["bimestral_pi_campo", "bimonthly"],
+      ["trimestral_pi_pontes", "quarterly"],
+      ["semestral_member_care", "semiannual"],
+    ]);
+    expect(RITMO_MEETINGS.every((item) => item.scope === "region")).toBe(true);
+  });
 
-    expect(RITMO_MEETINGS).toHaveLength(5);
-    for (const [index, item] of RITMO_MEETINGS.entries()) {
-      expect(markup, item.id).toContain(i18n.t(item.titleKey));
-      expect(markup, item.id).toContain(String(index + 1).padStart(2, "0"));
+  it("o Pulso e a Celebração entram na cascata, e não no log de reuniões", () => {
+    expect(RITMO_ENCOUNTERS.map((item) => [item.key, item.kind])).toEqual([
+      ["pulso_mensal", "form"],
+      ["bimestral_pi_campo", "meeting"],
+      ["trimestral_pi_pontes", "meeting"],
+      ["semestral_member_care", "meeting"],
+      ["celebracao_anual", "report"],
+    ]);
+  });
+
+  it("as chaves da onda 1 que o GATE-02 aposentou saíram dos dois catálogos", () => {
+    for (const lang of ["pt", "en"]) {
+      for (const key of ["ritmo_m4_title", "ritmo_m6_title", "ritmo_m7_title"]) {
+        expect(i18n.exists(key, { lng: lang }), `${lang}:${key}`).toBe(false);
+      }
     }
-    expect(markup).toContain(i18n.t("ritmo_monthly"));
-    expect(markup).toContain(i18n.t("ritmo_quarterly"));
-    expect(markup).toContain(i18n.t("ritmo_annual"));
+  });
+});
+
+describe("a cascata abre a página como índice dos encontros", () => {
+  const markup = () =>
+    renderToStaticMarkup(createElement(Cascade, { encounters: RITMO_ENCOUNTERS }));
+
+  it("lista os cinco, numerados e com a cadência", () => {
+    const cascade = markup();
+    for (const [index, item] of RITMO_ENCOUNTERS.entries()) {
+      expect(cascade, item.key).toContain(i18n.t(item.titleKey));
+      expect(cascade, item.key).toContain(String(index + 1).padStart(2, "0"));
+    }
+    for (const cadence of ["monthly", "bimonthly", "quarterly", "semiannual", "annual"]) {
+      expect(cascade, cadence).toContain(i18n.t(`ritmo_${cadence}`));
+    }
+  });
+
+  it("diz quais dois não são reunião, para o índice não prometer cinco cartões", () => {
+    const cascade = markup();
+    expect(cascade).toContain(i18n.t("ritmo_kind_form"));
+    expect(cascade).toContain(i18n.t("ritmo_kind_report"));
   });
 });
 
@@ -92,7 +139,7 @@ describe("a escuta que sobe e o cuidado que desce cabem numa imagem", () => {
       createElement(ListeningFlow, { tiers: LISTENING_FLOW }),
     );
 
-  it("mostra os cinco degraus, do campo à governança", () => {
+  it("mostra os cinco degraus, do Pulso à Celebração", () => {
     const flow = markup();
     expect(LISTENING_FLOW).toHaveLength(5);
     for (const tier of LISTENING_FLOW) {
@@ -122,17 +169,37 @@ describe("o cartão da reunião diz cadência, quem participa e o que a alimenta
   it("traz título, cadência e descrição", () => {
     expect(markup).toContain(i18n.t(meeting.titleKey));
     expect(markup).toContain(i18n.t(meeting.descriptionKey));
-    expect(markup).toContain(i18n.t("ritmo_monthly"));
+    expect(markup).toContain(i18n.t("ritmo_quarterly"));
   });
 
   it("traz o que alimenta a reunião", () => {
     expect(markup).toContain(i18n.t("ritmo_feeds"));
-    expect(markup).toContain(i18n.t("ritmo_feed_pulso"));
+    expect(markup).toContain(i18n.t("ritmo_feed_trends"));
   });
 
   it("traz os papéis que participam", () => {
     expect(markup).toContain(i18n.t("role_obtlab"));
-    expect(markup).toContain(i18n.t("ritmo_role_teams"));
+    expect(markup).toContain(i18n.t("ritmo_role_leadership"));
+  });
+
+  /**
+   * GATE-02 deixou em aberto quem são as pessoas-ponte e se a Avaliação de Saúde passa para a
+   * bimestral. O que está nos dois cartões é leitura nossa, e o cartão diz isso.
+   */
+  it("a bimestral e a trimestral dizem que os participantes são leitura provisória", () => {
+    for (const id of ["bimestral_pi_campo", "trimestral_pi_pontes"] as const) {
+      const card = renderToStaticMarkup(
+        createElement(MeetingCard, { meeting: byId(id), children: null }),
+      );
+      expect(card, id).toContain(i18n.t("ritmo_participants_pending"));
+    }
+  });
+
+  it("a semestral não carrega o aviso, porque ninguém deixou nada em aberto nela", () => {
+    const card = renderToStaticMarkup(
+      createElement(MeetingCard, { meeting: byId("semestral_member_care"), children: null }),
+    );
+    expect(card).not.toContain(i18n.t("ritmo_participants_pending"));
   });
 });
 
@@ -217,5 +284,33 @@ describe("quem participa chega por referência ao organograma", () => {
 
   it("sem titular, a linha diz a definir em vez de ficar muda", () => {
     expect(row()).toContain(i18n.t("sb_no_coordinator"));
+  });
+});
+
+describe("o que não é reunião não se registra como reunião", () => {
+  const pulse = (rows: Parameters<typeof PulseCard>[0]["rows"]) =>
+    renderToStaticMarkup(
+      createElement(MemoryRouter, null, createElement(PulseCard, { rows })),
+    );
+
+  it("o Pulso Mensal conta quem devolveu por região, e não oferece registrar", () => {
+    const markup = pulse([{ scope, readiness: { ready: 3, total: 36 } }]);
+    expect(markup).toContain(i18n.t("ritmo_pulso_title"));
+    expect(markup).toContain("3/36");
+    expect(markup).toContain(i18n.t("ritmo_reported"));
+    expect(markup).not.toContain(i18n.t("ritmo_register"));
+  });
+
+  it("e aponta para Formulários, onde está quem falta projeto a projeto", () => {
+    const markup = pulse([]);
+    expect(markup).toContain('href="/formularios"');
+    expect(markup).toContain(i18n.t("ritmo_pulso_where"));
+  });
+
+  it("a Celebração anual diz que é relatório, sem botão nenhum", () => {
+    const markup = renderToStaticMarkup(createElement(CelebrationCard));
+    expect(markup).toContain(i18n.t("ritmo_celebracao_title"));
+    expect(markup).toContain(i18n.t("ritmo_celebracao_desc"));
+    expect(markup).not.toContain("<button");
   });
 });
