@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyProject } from "../../fixtures/blank";
 import type { Project } from "../../types/project";
-import { annualReportYears, buildAnnualReport, defaultAnnualYear } from "../annualReport";
+import {
+  annualReportYears,
+  buildAnnualReport,
+  defaultAnnualYear,
+  offeredYear,
+} from "../annualReport";
 
 const project = (id: string, over: Partial<Project> = {}): Project => ({
   ...createEmptyProject(id),
@@ -97,5 +102,14 @@ describe("o seletor olha para trás", () => {
 
   it("oferece quatro anos, do corrente para trás", () => {
     expect(annualReportYears(SEPTEMBER)).toEqual([2026, 2025, 2024, 2023]);
+  });
+
+  /** Um link antigo não pode abrir um ano que o seletor não oferece (revisão da PR #64). */
+  it("um ano que o seletor não oferece não abre a página", () => {
+    expect(offeredYear("2025", SEPTEMBER)).toBe(2025);
+    expect(offeredYear("1999", SEPTEMBER)).toBeNull();
+    expect(offeredYear("2027", SEPTEMBER)).toBeNull();
+    expect(offeredYear("25", SEPTEMBER)).toBeNull();
+    expect(offeredYear(undefined, SEPTEMBER)).toBeNull();
   });
 });

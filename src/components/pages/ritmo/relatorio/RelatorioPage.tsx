@@ -8,6 +8,7 @@ import {
   annualReportYears,
   buildAnnualReport,
   defaultAnnualYear,
+  offeredYear,
   type AnnualRegion,
   type ReportedProject,
 } from "../../../../utils/annualReport";
@@ -188,8 +189,8 @@ export function RelatorioPage() {
     void hydrate();
   }, [hydrate]);
 
-  const year = Number(param);
-  if (!param || !Number.isInteger(year) || !/^\d{4}$/u.test(param)) {
+  const year = offeredYear(param);
+  if (year === null) {
     return <Navigate to={`/ritmo/relatorio/${defaultAnnualYear()}`} replace />;
   }
 

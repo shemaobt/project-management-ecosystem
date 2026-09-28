@@ -116,3 +116,17 @@ export function annualReportYears(now: Date = new Date()): number[] {
   const latest = toCalendarDate(now).year;
   return Array.from({ length: ANNUAL_REPORT_YEARS }, (_, step) => latest - step);
 }
+
+/**
+ * The year an address asks for, or `null` when the selector does not offer it — an old shared
+ * link, a typo. The page redirects on `null`: titling it with a year the `Select` has no item
+ * for leaves the trigger empty (PR #64 review).
+ */
+export function offeredYear(
+  param: string | undefined,
+  now: Date = new Date(),
+): number | null {
+  if (!param || !/^\d{4}$/u.test(param)) return null;
+  const year = Number(param);
+  return annualReportYears(now).includes(year) ? year : null;
+}
