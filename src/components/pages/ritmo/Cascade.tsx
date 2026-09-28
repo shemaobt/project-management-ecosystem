@@ -4,30 +4,44 @@ import {
   MEETING_CADENCE_LABEL_KEYS,
   type ListeningTier,
 } from "../../../constants/meetings";
-import type { MeetingDefinition } from "../../../types/meeting";
+import type { Encounter, EncounterKind } from "../../../types/meeting";
+
+const KIND_LABEL_KEYS: Record<Exclude<EncounterKind, "meeting">, string> = {
+  form: "ritmo_kind_form",
+  report: "ritmo_kind_report",
+};
 
 export interface CascadeProps {
-  meetings: readonly MeetingDefinition[];
+  encounters: readonly Encounter[];
 }
 
-export function Cascade({ meetings }: CascadeProps) {
+/**
+ * The cascade's index: GATE-02's five encounters in cadence order. Two of them are not
+ * meetings, and the pill says which, so the numbered row does not promise five cards below.
+ */
+export function Cascade({ encounters }: CascadeProps) {
   const { t } = useTranslation();
 
   return (
     <ol className="mb-9 flex list-none flex-wrap gap-2 rounded-md bg-muted p-4">
-      {meetings.map((meeting, index) => (
+      {encounters.map((encounter, index) => (
         <li
-          key={meeting.id}
+          key={encounter.key}
           className="flex min-w-0 flex-auto items-center gap-2 rounded-pill border border-line bg-elevated px-3.5 py-2"
         >
           <span className="text-tag font-black text-telha">
             {String(index + 1).padStart(2, "0")}
           </span>
           <span className="truncate text-micro leading-snug font-semibold text-fg-strong">
-            {t(meeting.titleKey)}
+            {t(encounter.titleKey)}
           </span>
+          {encounter.kind !== "meeting" ? (
+            <span className="shrink-0 rounded-pill bg-muted px-2 py-0.5 text-[10px] font-semibold text-fg-muted">
+              {t(KIND_LABEL_KEYS[encounter.kind])}
+            </span>
+          ) : null}
           <span className="ml-auto shrink-0 text-[10px] font-semibold tracking-[0.06em] uppercase text-fg-muted">
-            {t(MEETING_CADENCE_LABEL_KEYS[meeting.cadence])}
+            {t(MEETING_CADENCE_LABEL_KEYS[encounter.cadence])}
           </span>
         </li>
       ))}
@@ -58,7 +72,9 @@ export function ListeningFlow({ tiers }: ListeningFlowProps) {
               {t(tier.levelKey)}
             </p>
             <p className="mb-1 text-micro leading-snug font-bold text-fg-strong">
-              {tier.attendees.map((who) => t(MEETING_ATTENDEE_LABEL_KEYS[who])).join(" + ")}
+              {tier.attendees.length === 0
+                ? "—"
+                : tier.attendees.map((who) => t(MEETING_ATTENDEE_LABEL_KEYS[who])).join(" + ")}
             </p>
             <p className="text-[10px] leading-[1.3] text-fg-muted">
               {t(tier.whatKey)}
