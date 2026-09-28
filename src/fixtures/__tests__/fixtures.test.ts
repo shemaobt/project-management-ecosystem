@@ -279,13 +279,13 @@ describe("eten fixture", () => {
       translatedUnits: 40,
       progressHistory: [
         {
-          date: "2024-12-31",
+          date: "2024-07-31",
           translatedUnits: 20,
           communityCheckedUnits: 16,
           approvedUnits: 12,
         },
         {
-          date: "2025-12-31",
+          date: "2025-07-31",
           translatedUnits: 60,
           communityCheckedUnits: 50,
           approvedUnits: 40,

@@ -10,7 +10,9 @@ import { CreditTable } from "./CreditTable";
 import { Indicators } from "./Indicators";
 import {
   buildEtenReport,
+  currentFiscalYear,
   defaultReportYear,
+  fiscalYearSpan,
   reportYears,
 } from "../../../utils/etenCredits";
 import { YearSelector } from "./YearSelector";
@@ -49,7 +51,12 @@ export function EtenView({
             {t("eten_lead")}
           </p>
         </div>
-        <YearSelector years={years} value={year} onChange={setYear} />
+        <YearSelector
+          years={years}
+          value={year}
+          onChange={setYear}
+          openYear={currentFiscalYear(now)}
+        />
       </header>
 
       {projects === null ? (
@@ -66,7 +73,7 @@ export function EtenView({
             <>
               {report.hasData ? null : (
                 <p className="mb-3.5 rounded-md border border-line bg-muted px-4 py-3 text-small leading-normal text-fg-muted">
-                  {t("eten_year_no_data", { year })}
+                  {t("eten_year_no_data", { year: fiscalYearSpan(year) })}
                 </p>
               )}
               <CreditTable report={report} />
@@ -75,8 +82,6 @@ export function EtenView({
 
           <div className="mt-4.5 flex flex-col gap-1.5 text-micro leading-normal text-fg-subtle">
             <p className="max-w-[80ch]">{t("eten_footnote")}</p>
-            <p className="max-w-[80ch]">{t("eten_carryover_open")}</p>
-            <p className="max-w-[80ch]">{t("eten_rule_pending")}</p>
             <p className="max-w-[80ch]">{t("eten_export_pending")}</p>
           </div>
         </>
