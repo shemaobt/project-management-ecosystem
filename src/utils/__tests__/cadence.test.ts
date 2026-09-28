@@ -16,6 +16,7 @@ import {
   toCalendarDate,
   type CalendarDate,
 } from "../cadence";
+import type { MeetingCadence } from "../../types/meeting";
 
 const on = (iso: string): CalendarDate => {
   const parsed = parseIsoDate(iso);
@@ -23,10 +24,10 @@ const on = (iso: string): CalendarDate => {
   return parsed;
 };
 
-const endOf = (cadence: "monthly" | "quarterly" | "annual", iso: string) =>
+const endOf = (cadence: MeetingCadence, iso: string) =>
   formatIsoDate(periodEnd(cadence, on(iso)));
 
-const nextOf = (cadence: "monthly" | "quarterly" | "annual", iso: string) =>
+const nextOf = (cadence: MeetingCadence, iso: string) =>
   formatIsoDate(nextDeadline(cadence, on(iso)));
 
 describe("uma data ISO vale a mesma coisa em qualquer fuso", () => {
@@ -102,6 +103,50 @@ describe("o trimestral contado a partir de 30 de novembro", () => {
       "2026-10-01",
     );
     expect(endOf("quarterly", "2026-02-15")).toBe("2026-03-31");
+  });
+});
+
+/**
+ * GATE-02 (OBT-388, 22/set/2026) trouxe duas cadências que o protótipo não tinha. As chaves são
+ * as mesmas que o `shema-api` deriva (`2026-B2`, `2026-H2`): o cartão compara o período do log
+ * com o dele como texto, e uma grafia diferente o deixaria pendente para sempre, sem erro.
+ */
+describe("o bimestral e o semestral do GATE-02", () => {
+  it("o bimestre é um bloco de dois meses: B1 é jan–fev, B6 é nov–dez", () => {
+    expect(periodKey("bimonthly", on("2026-01-31"))).toBe("2026-B1");
+    expect(periodKey("bimonthly", on("2026-02-28"))).toBe("2026-B1");
+    expect(periodKey("bimonthly", on("2026-03-01"))).toBe("2026-B2");
+    expect(periodKey("bimonthly", on("2026-12-31"))).toBe("2026-B6");
+  });
+
+  it("o bimestre começa e fecha na fronteira, fevereiro bissexto incluído", () => {
+    expect(formatIsoDate(periodStart("bimonthly", on("2024-02-10")))).toBe("2024-01-01");
+    expect(endOf("bimonthly", "2024-01-10")).toBe("2024-02-29");
+    expect(endOf("bimonthly", "2026-01-10")).toBe("2026-02-28");
+  });
+
+  it("o bimestre seguinte a B6 atravessa o ano, e o anterior a B1 também", () => {
+    expect(nextOf("bimonthly", "2026-11-15")).toBe("2027-02-28");
+    expect(previousPeriodKey("bimonthly", on("2026-01-15"))).toBe("2025-B6");
+  });
+
+  it("o semestre é H1 jan–jun e H2 jul–dez", () => {
+    expect(periodKey("semiannual", on("2026-06-30"))).toBe("2026-H1");
+    expect(periodKey("semiannual", on("2026-07-01"))).toBe("2026-H2");
+    expect(formatIsoDate(periodStart("semiannual", on("2026-09-28")))).toBe("2026-07-01");
+    expect(endOf("semiannual", "2026-02-01")).toBe("2026-06-30");
+  });
+
+  it("o semestre anterior a H1 é H2 do ano passado, e o próximo a H2 fecha em junho", () => {
+    expect(previousPeriodKey("semiannual", on("2026-03-01"))).toBe("2025-H2");
+    expect(nextOf("semiannual", "2026-08-01")).toBe("2027-06-30");
+  });
+
+  it("cobrir o período vale para os dois", () => {
+    expect(coversPeriod("bimonthly", "2026-09-01", on("2026-10-31"))).toBe(true);
+    expect(coversPeriod("bimonthly", "2026-08-31", on("2026-10-31"))).toBe(false);
+    expect(coversPeriod("semiannual", "2026-07-01", on("2026-12-31"))).toBe(true);
+    expect(coversPeriod("semiannual", "2026-06-30", on("2026-12-31"))).toBe(false);
   });
 });
 
