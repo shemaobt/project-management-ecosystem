@@ -12,7 +12,7 @@ import type { Project } from "../types/project";
 import { formatIsoDate, parseIsoDate, periodEnd, toCalendarDate } from "./cadence";
 import { isAssessed } from "./health";
 import { getRegion, getRegionLabelKey } from "./region";
-import { hasReported, pulsesOf } from "./rhythm";
+import { hasReported, indexPulses, type PulseIndex } from "./rhythm";
 
 export function formOf(kind: FormKind): FormDefinition {
   const form = FIELD_FORMS.find((candidate) => candidate.kind === kind);
@@ -23,11 +23,11 @@ export function formOf(kind: FormKind): FormDefinition {
 function lastReportDate(
   kind: FormKind,
   project: Project,
-  submissions: readonly ReceivedSubmission[],
+  pulses: PulseIndex,
 ): string | null {
   if (kind === "pulso") {
-    const latest = pulsesOf(project, submissions)[0];
-    return latest && parseIsoDate(latest.receivedAt) ? latest.receivedAt : null;
+    const latest = pulses.get(project.id)?.find((day) => parseIsoDate(day));
+    return latest ?? null;
   }
   if (!isAssessed(project)) return null;
   return parseIsoDate(project.healthAssessmentDate)
@@ -42,13 +42,14 @@ export function reportingFor(
   now: Date = new Date(),
 ): ProjectReporting {
   const today = toCalendarDate(now);
-  const lastDate = lastReportDate(form.kind, project, submissions);
+  const pulses = indexPulses(submissions);
+  const lastDate = lastReportDate(form.kind, project, pulses);
   const state: ReportingState = hasReported(
     form.kind,
     project,
     form.cadence,
     today,
-    submissions,
+    pulses,
   )
     ? "reported"
     : lastDate === null
@@ -81,16 +82,17 @@ export function formReadiness(
   now: Date = new Date(),
 ): FormReadiness {
   const today = toCalendarDate(now);
+  const pulses = indexPulses(submissions);
   const pending = projects
     .filter(
       (project) =>
-        !hasReported(form.kind, project, form.cadence, today, submissions),
+        !hasReported(form.kind, project, form.cadence, today, pulses),
     )
     .map((project) => ({
       id: project.id,
       languageName: project.languageName,
       regionLabelKey: getRegionLabelKey(getRegion(project)),
-      lastDate: lastReportDate(form.kind, project, submissions),
+      lastDate: lastReportDate(form.kind, project, pulses),
     }))
     .sort(silentFirst);
 

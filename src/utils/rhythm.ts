@@ -84,20 +84,30 @@ export function nextOccurrence(
 }
 
 /**
- * The Pulses that came back for one project, most recent first.
+ * The days each project's Pulses arrived on, most recent first — built **once** per reading.
  *
  * **A returned Pulse is a received submission, not a fresh `lastUpdated`** (FE-49, OBT-529).
  * GATE-02 made the Monthly Pulse a form whose record is what arrives, and BE-12 archives each
  * arrival; reading `lastUpdated` counted any edit to the record as *the team reported*. In
  * fixture mode the archive is empty, so the count is `0/N` — which is the truth.
+ *
+ * An index and not a filter per project (PR #62 review): the readiness walks every project of
+ * every region, and the archive only grows.
  */
-export function pulsesOf(
-  project: Pick<Project, "id">,
+export type PulseIndex = ReadonlyMap<string, readonly string[]>;
+
+export function indexPulses(
   submissions: readonly ReceivedSubmission[],
-): ReceivedSubmission[] {
-  return submissions
-    .filter((entry) => entry.kind === "pulso" && entry.projectId === project.id)
-    .sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
+): PulseIndex {
+  const byProject = new Map<string, string[]>();
+  for (const entry of submissions) {
+    if (entry.kind !== "pulso") continue;
+    const days = byProject.get(entry.projectId) ?? [];
+    days.push(entry.receivedAt);
+    byProject.set(entry.projectId, days);
+  }
+  for (const days of byProject.values()) days.sort((a, b) => b.localeCompare(a));
+  return byProject;
 }
 
 export function hasReported(
@@ -105,11 +115,11 @@ export function hasReported(
   project: Project,
   cadence: MeetingCadence,
   today: CalendarDate,
-  submissions: readonly ReceivedSubmission[],
+  pulses: PulseIndex,
 ): boolean {
   if (kind === "pulso") {
-    return pulsesOf(project, submissions).some((entry) =>
-      coversPeriod(cadence, entry.receivedAt, today),
+    return (pulses.get(project.id) ?? []).some((day) =>
+      coversPeriod(cadence, day, today),
     );
   }
   return (
@@ -133,9 +143,10 @@ export function meetingReadiness(
   if (inScope.length === 0) return null;
 
   const today = toCalendarDate(now);
+  const pulses = indexPulses(submissions);
   return {
     ready: inScope.filter((project) =>
-      hasReported(kind, project, cadence, today, submissions),
+      hasReported(kind, project, cadence, today, pulses),
     ).length,
     total: inScope.length,
   };
