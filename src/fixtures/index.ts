@@ -16,7 +16,7 @@ import type {
   IntercessorUpdatePayload,
   PrayerRequest,
 } from "../types/prayer";
-import type { Project } from "../types/project";
+import type { Project, ProjectMember, ProjectRef } from "../types/project";
 import type { LoadedRecord } from "../types/projectRecord";
 import type { RecordSaveResult } from "../services/api/projectRecord";
 import type { GeoOutline, Region, RegionKey, RegionTeam, RoleChange } from "../types/region";
@@ -46,6 +46,7 @@ import {
   updateIntercessor,
 } from "./intercessors";
 import { loadMeetingLog, loadMeetings } from "./meetings";
+import { listMembers, myProjects, refuseRosterWrite } from "./members";
 import { buildPrayerRequests } from "../utils/prayer";
 import type { AssessmentDraft } from "../types/assessment";
 import { browseProjects } from "./projectBrowse";
@@ -198,6 +199,22 @@ export const formsAPI = {
     payload: IntakeSubmissionPayload,
   ): Promise<void> {
     return submitIntake(token, payload);
+  },
+};
+
+/** The project's roster and the account's own projects — see `fixtures/members.ts`. */
+export const membersAPI = {
+  async list(projectId: string): Promise<ProjectMember[]> {
+    return listMembers(projectId);
+  },
+  async add(projectId: string, userId: string): Promise<ProjectMember> {
+    return refuseRosterWrite(projectId, userId);
+  },
+  async remove(projectId: string, userId: string): Promise<void> {
+    return refuseRosterWrite(projectId, userId);
+  },
+  async mine(): Promise<ProjectRef[]> {
+    return myProjects();
   },
 };
 

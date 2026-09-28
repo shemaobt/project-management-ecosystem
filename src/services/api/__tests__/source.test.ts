@@ -38,6 +38,7 @@ const PAIRS = [
   ],
   ["eten", api.etenAPI, fixture.etenAPI, resolved.etenAPI],
   ["forms", api.formsAPI, fixture.formsAPI, resolved.formsAPI],
+  ["members", api.membersAPI, fixture.membersAPI, resolved.membersAPI],
 ] as const;
 
 type Namespace = Record<string, (...args: never[]) => unknown>;
@@ -105,6 +106,13 @@ describe("as fixtures como test doubles", () => {
     for (const namespace of [...NAMESPACES, "session" as const]) {
       expect(resolveSource(namespace), namespace).toBe("fixtures");
     }
+  });
+
+  it("a tela de acesso não tem dublê: em fixture o namespace resolve para nada", () => {
+    expect(INTEGRATED.access).toBe("api");
+    expect(resolveSource("access")).toBe("fixtures");
+    expect(resolved.accessAPI).toBeNull();
+    expect(fixture).not.toHaveProperty("accessAPI");
   });
 
   it("e é a fixture, o mesmo objeto, que cada namespace resolvido serve", () => {

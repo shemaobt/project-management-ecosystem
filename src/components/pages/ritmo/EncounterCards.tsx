@@ -120,13 +120,25 @@ export function PulseCard({ rows, read }: PulseCardProps) {
   );
 }
 
+/** The Celebration's way into the annual report (FE-50, OBT-533). */
 export function CelebrationCard() {
+  const { t } = useTranslation();
+
   return (
     <EncounterFrame
       icon="spark"
       titleKey="ritmo_celebracao_title"
       descriptionKey="ritmo_celebracao_desc"
       cadence="annual"
-    />
+    >
+      <p className="mt-3 text-micro leading-[1.45] text-fg-muted">
+        <Link
+          to="/ritmo/relatorio"
+          className="font-semibold text-telha underline-offset-2 hover:underline"
+        >
+          {t("ritmo_celebracao_open")}
+        </Link>
+      </p>
+    </EncounterFrame>
   );
 }

@@ -339,6 +339,14 @@ describe("routeNotifications", () => {
     expect(kinds(routed)).toEqual(["health", "health"]);
   });
 
+  it("um papel fora da tabela de audiências não recebe nada, nem com escopo global", () => {
+    for (const role of ["admin", "gestor", "mesa", "equipe"] as const) {
+      expect(routeNotifications(entries, { role, regions: null }), role).toEqual(
+        [],
+      );
+    }
+  });
+
   it("papel regional só vê a própria região", () => {
     const routed = routeNotifications(entries, {
       role: "coordinator",

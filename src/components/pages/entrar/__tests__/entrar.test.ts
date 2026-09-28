@@ -48,7 +48,13 @@ const noop = async () => undefined;
 
 const session = (over: Partial<NonNullable<AuthSession>>): AuthSession => ({
   status: "ready",
-  user: { id: "u", role: "coordinator", regionScope: [], name: null },
+  user: {
+    id: "u",
+    role: "coordinator",
+    roles: ["coordinator"],
+    regionScope: [],
+    name: null,
+  },
   visibleRegions: [],
   canSeeRegion: () => false,
   signIn: noop,
@@ -131,6 +137,15 @@ describe("a leitura da recusa na entrada", () => {
   it("403 diz a quem pedir o papel e a região", () => {
     expect(signInMessage(failure("forbidden"), t)).toBe(
       i18n.t("entrar_no_role"),
+    );
+  });
+
+  it("conta sem papel que o servidor deixou passar lê como o 403", () => {
+    expect(signInMessage(failure("forbidden"), t)).toBe(
+      i18n.t("entrar_no_role"),
+    );
+    expect(signInMessage(failure("forbidden"), t)).not.toBe(
+      i18n.t("entrar_unknown_vocabulary"),
     );
   });
 

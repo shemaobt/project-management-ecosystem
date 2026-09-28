@@ -70,6 +70,7 @@ export function EquipeView({ draft }: EquipeViewProps) {
       {values.sensitiveCountry && <SensitiveContacts />}
 
       <RegionalRoles location={values.location ?? ""} />
+
     </div>
   );
 }
