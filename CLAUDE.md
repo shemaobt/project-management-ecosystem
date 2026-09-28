@@ -128,7 +128,7 @@ FE-01 pinned the whole stack in `package.json` so no later wave-1 issue has to c
 
 #### Where the module lives — `dev`, not `main`
 
-The module is on **`origin/dev`** and **not yet on `main`**: the junction `dev → main` is BE-22 ([OBT-526](https://linear.app/shema-obt/issue/OBT-526)). An earlier revision of this section said the module had been *"scaffolded by commit `dd6bac4`"*; that is not where it came from and is not what `dev` holds. It arrived through the B1 pull requests, among them:
+The module is on **`origin/dev`** and **not yet on `main`**: the junction `dev → main` is [OBT-526](https://linear.app/shema-obt/issue/OBT-526). An earlier revision of this section said the module had been *"scaffolded by commit `dd6bac4`"*; that is not where it came from and is not what `dev` holds. It arrived through the B1 pull requests, among them:
 
 | PR | Issue | What it laid down |
 |---|---|---|
@@ -556,15 +556,15 @@ Built in FE-39 ([OBT-381](https://linear.app/shema-obt/issue/OBT-381)), 15/aug/2
 
 **The PME becomes the door to the form, and this section is the pointer, not the detail** (FE-54, [OBT-545](https://linear.app/shema-obt/issue/OBT-545), 28/set/2026). The decisions are recorded with author and date in [OBT-522](https://linear.app/shema-obt/issue/OBT-522) and argued in full in the 25/set document *"Acesso PME ↔ Formulário e respostas da Karina"*; each implementation issue writes its own detail here when it lands.
 
-- **The form has no login.** Everyone reaches it from the PME with a single-use **pass code** (BE-21, [OBT-527](https://linear.app/shema-obt/issue/OBT-527)), or by a **link the platform issues** — reunião de 22/set.
-- **Roles are managed in the PME, on one screen, for both apps**, and only the **Admin** grants and revokes (BE-22 · [OBT-543](https://linear.app/shema-obt/issue/OBT-543), FE-52 · [OBT-546](https://linear.app/shema-obt/issue/OBT-546)); the form's own `/access` retires. The Gestor sees every stage at the mesa's level and administers no roles — Daniel, 23/set.
-- **The session carries several roles** (BE-17 · [OBT-523](https://linear.app/shema-obt/issue/OBT-523)), and the PME's door accepts the form's roles.
-- **A team is the project's members in the PME** (BE-18 · [OBT-524](https://linear.app/shema-obt/issue/OBT-524)); someone outside the PME requests through a link the Admin issues — *"os dois, tanto quem já tem conta no PME quanto quem ainda não tem pode fazer uma solicitação"*, Karina, 25/set.
+- **The form has no login.** Everyone reaches it from the PME with a single-use **pass code** ([OBT-527](https://linear.app/shema-obt/issue/OBT-527)), or by a **link the platform issues** — reunião de 22/set.
+- **Roles are managed in the PME, on one screen, for both apps**, and only the **Admin** grants and revokes ([OBT-543](https://linear.app/shema-obt/issue/OBT-543), [OBT-546](https://linear.app/shema-obt/issue/OBT-546)); the form's own `/access` retires. The Gestor sees every stage at the mesa's level and administers no roles — Daniel, 23/set.
+- **The session carries several roles** ([OBT-523](https://linear.app/shema-obt/issue/OBT-523)), and the PME's door accepts the form's roles.
+- **A team is the project's members in the PME** ([OBT-524](https://linear.app/shema-obt/issue/OBT-524)); someone outside the PME requests through a link the Admin issues — *"os dois, tanto quem já tem conta no PME quanto quem ainda não tem pode fazer uma solicitação"*, Karina, 25/set.
 - **The base leader has no account** and endorses by a link with a code sent to the e-mail the team gave — reunião de 22/set.
-- **The mesa's approval registers the project and its members in the PME**, with the Admin checking first — Karina, 25/set (BE-23 · [OBT-547](https://linear.app/shema-obt/issue/OBT-547)).
-- **Inside the PME** the form appears as *Solicitar recurso* and a status on the record (FE-53 · [OBT-544](https://linear.app/shema-obt/issue/OBT-544)), and its notices ring the PME's bell (BE-21 · [OBT-541](https://linear.app/shema-obt/issue/OBT-541)).
+- **The mesa's approval registers the project and its members in the PME**, with the Admin checking first — Karina, 25/set ([OBT-547](https://linear.app/shema-obt/issue/OBT-547)).
+- **Inside the PME** the form appears as *Solicitar recurso* and a status on the record ([OBT-544](https://linear.app/shema-obt/issue/OBT-544)), and its notices ring the PME's bell ([OBT-541](https://linear.app/shema-obt/issue/OBT-541)).
 
-⚠️ **Attribution is the part to keep.** Only the lines marked *Karina* are hers; the rest is the 22/set meeting (OBT, Karina, Daniel, Levi) or Daniel's own decisions of 23 and 25/set, and OBT-522 says which is which. The codes collide across the two projects (this FE-52 is not the form's FE-52): always carry the `OBT-###`.
+⚠️ **Attribution is the part to keep.** Only the lines marked *Karina* are hers; the rest is the 22/set meeting (OBT, Karina, Daniel, Levi) or Daniel's own decisions of 23 and 25/set, and OBT-522 says which is which. This section names issues by `OBT-###` only, on purpose: the new front's `FE-*`/`BE-*` codes collide with each other and with the older ones (two `BE-21`, two `BE-22`), so the code alone does not say which issue is meant.
 
 ## 6. Domain rules
 
@@ -852,7 +852,7 @@ The Linear project description body, the B1 milestone description and the *"Work
 | repo `shema-console` | this repo, `shemaobt/project-management-ecosystem` |
 | repo `shema-backend`, "FastAPI scaffold", "build the backend" | the **existing** `shemaobt/shema-api`; Shemá is a module inside it, on `origin/dev` |
 | repo `tripod-api`; "scaffolded by commit `dd6bac4`" | the same repository, renamed `shema-api`; the module arrived through the B1 PRs on `dev` (§3.2) |
-| epics `SHM-01…13`, issues `OBT-266`…`OBT-346` | `FE-*` / `BE-*` / `INT-*` / `GATE-*`, issues `OBT-348`…`OBT-417` |
+| epics `SHM-01…13`, issues `OBT-266`…`OBT-346` | `FE-*` / `BE-*` / `INT-*` / `GATE-*`, issues from `OBT-348` on — including `OBT-486` and the access front `OBT-522`…`OBT-549` |
 | milestones "1 Fundação … 5 Prestação de contas" | F1…F5 (wave 1), B1…B2 (wave 2) |
 | `cards.jsx` implements `CardCoral`, and `app.jsx` switches `metaphor` across three values | the product ships **two** views; Coral's rings live in the Diário's footer (§5.1, FE-17). The prototype was not updated — it is the client's file, and FE-15's scope forbids touching `DS-PROJECT/` |
 
