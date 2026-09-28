@@ -1,4 +1,4 @@
-import { Check, Copy, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formsAPI, toApiFailure, failureMessage } from "../../../services/api";
@@ -17,25 +17,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  toast,
 } from "../../ui";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { OneTimeLink } from "../../common/OneTimeLink";
+import {
+  LINK_STATUS_LABEL_KEYS,
+  LINK_STATUS_TONES,
+} from "../../../constants/linkStatus";
 import { ProjectSelector } from "../formularios/ProjectSelector";
 import type { HeaderDialogProps } from "./ExportDialog";
-
-const STATUS_LABEL_KEYS: Record<IntakeLink["status"], string> = {
-  pending: "intake_status_pending",
-  used: "intake_status_used",
-  expired: "intake_status_expired",
-  revoked: "intake_status_revoked",
-};
-
-const STATUS_TONES: Record<IntakeLink["status"], "accent" | "green" | "neutral"> = {
-  pending: "accent",
-  used: "green",
-  expired: "neutral",
-  revoked: "neutral",
-};
 
 export interface LeaderLinkDialogBodyProps {
   projects: readonly Project[] | null;
@@ -61,19 +51,7 @@ export function LeaderLinkDialogBody({
   error,
 }: LeaderLinkDialogBodyProps) {
   const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
   const sorted = projects ? selectableProjects(projects) : [];
-
-  const copyLink = async () => {
-    if (!minted) return;
-    try {
-      await navigator.clipboard.writeText(minted.url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error(t("intake_copy_failed"));
-    }
-  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -109,35 +87,16 @@ export function LeaderLinkDialogBody({
           ) : null}
 
           {minted ? (
-            <div className="flex flex-col gap-2 rounded-md border border-line bg-muted p-3.5">
-              <p className="text-micro font-bold tracking-button uppercase text-fg-muted">
-                {t("intake_link_ready")}
-              </p>
-              <p className="text-small leading-body text-fg">
-                {t("intake_link_once")}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <code className="min-w-0 flex-1 truncate rounded-sm bg-elevated px-2.5 py-1.5 text-tag text-fg-strong">
-                  {minted.url}
-                </code>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  onClick={copyLink}
-                >
-                  {copied ? (
-                    <Check size={14} strokeWidth={1.75} aria-hidden />
-                  ) : (
-                    <Copy size={14} strokeWidth={1.75} aria-hidden />
-                  )}
-                  {copied ? t("intake_copied") : t("intake_copy")}
-                </Button>
-              </div>
-              <p className="text-tag text-fg-subtle">
-                {t("intake_expires_on", { date: formatDate(minted.expiresAt) })}
-              </p>
-            </div>
+            <OneTimeLink
+              url={minted.url}
+              heading={t("intake_link_ready")}
+              note={t("intake_link_once")}
+              footer={
+                <p className="text-tag text-fg-subtle">
+                  {t("intake_expires_on", { date: formatDate(minted.expiresAt) })}
+                </p>
+              }
+            />
           ) : null}
 
           <div className="flex flex-col gap-2">
@@ -158,8 +117,8 @@ export function LeaderLinkDialogBody({
                     className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-line px-3 py-2"
                   >
                     <div className="flex items-center gap-2">
-                      <Badge tone={STATUS_TONES[link.status]} size="sm" uppercase>
-                        {t(STATUS_LABEL_KEYS[link.status])}
+                      <Badge tone={LINK_STATUS_TONES[link.status]} size="sm" uppercase>
+                        {t(LINK_STATUS_LABEL_KEYS[link.status])}
                       </Badge>
                       <span className="text-tag text-fg-subtle">
                         {t("intake_expires_on", {

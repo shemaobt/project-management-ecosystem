@@ -75,6 +75,9 @@ export const membersAPI = pick<typeof fixture.membersAPI>(
   fixture.membersAPI,
 );
 
+export const accessAPI: api.AccessAPI | null =
+  resolveSource("access") === "api" ? api.accessAPI : null;
+
 export const geoAPI = fixture.geoAPI;
 
 export { announceFailure, failureSentence } from "./announce";
@@ -89,11 +92,14 @@ export {
   isAnnounceable,
   isApiFailure,
   isRetryable,
+  serverSentence,
   toApiFailure,
 } from "./errors";
 export { hasSession, onSessionEvent } from "./tokens";
 export { resolveSource } from "./source";
 export type { DataNamespace, DataSource } from "./source";
+export type { AccessAPI } from "./endpoints";
+export type { Translate } from "./errors";
 export type { ProjectBrowseQuery, ProjectBrowseResult } from "../../types/projectBrowse";
 export { mapRecord, readConflict, readFieldErrors, toWire } from "./projectRecord";
 export type { RecordSaveResult } from "./projectRecord";

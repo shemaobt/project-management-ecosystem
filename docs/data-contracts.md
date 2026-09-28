@@ -1273,10 +1273,61 @@ carries them.
   with no membership gets `[]`.
 
 **In the console:** the ficha's Equipe tab lists the roster read-only (`ProjectMembers.tsx`), in
-both modes and only for a saved record; `membersAPI.add`, `.remove` and `.mine` are in the client,
-unused by a screen until OBT-546 and OBT-544 arrive. In fixtures mode the double answers empty
+both modes and only for a saved record; `membersAPI.add` and `.remove` are called by the Admin's
+access screen (§9.15, OBT-546); `.mine` waits for OBT-544. In fixtures mode the double answers empty
 lists and refuses both writes with `forbidden` — the fixtures carry no accounts, and none of the
 four mocked personas is the Admin.
+
+### 9.15 Acesso — FE-52 ([OBT-546](https://linear.app/shema-obt/issue/OBT-546)) · BE-22 ([OBT-543](https://linear.app/shema-obt/issue/OBT-543)), 27/sep/2026
+
+```
+GET  /api/shema/access/people?email=      -> AccountGrants             # exact e-mail, case aside; 404 when none
+POST /api/shema/access/grants             {userId, appKey, roleKey, regionKeys} -> AccountGrants
+POST /api/shema/access/grants/revoke      {userId, appKey, roleKey}             -> AccountGrants
+POST /api/shema/access/invites            {email, appKey, roleKey, regionKeys}  -> 201 SentInvite
+POST /api/shema/access/invites/revoke     {inviteId}                            -> OpenInvite
+GET  /api/shema/access/invites            -> OpenInvite[]              # not accepted, newest first, ≤ 200
+GET  /api/shema/access/changes            -> GrantChange[]             # roles and regions, newest first, ≤ 200
+```
+
+All seven are the Admin's (`admin` in the `shema` app): every other role is a `403`. The shapes are
+`src/types/access.ts`. `AccountGrants` is `{userId, email, displayName, isActive, apps: [{appKey,
+roles}], regions: [{regionKey, grantedBy, grantedAt}], regionScope}` — `regions` are the stored rows
+the Admin edits, `regionScope` what they reach (`null` = every region). `SentInvite` is `OpenInvite`
+plus `inviteUrl` and `emailSent`, and it is the **only** shape that carries the link: the list never
+does. `GrantChange` is `{action, at, appKey, roleKey | null, regionKey | null, userId, userEmail,
+userName, actorId, actorEmail, actorName}`, exactly one of `roleKey`/`regionKey` set.
+
+**Server requirements** (`shema-api` `docs/shema.md` §6.8 owns the full list and every refusal
+sentence): the grantable vocabulary is the four Shemá personas and `admin` for `shema`, `admin`,
+`gestor` and `mesa` for the form (`GRANTABLE_ROLES`, `src/constants/access.ts`, pinned to it);
+`admin` is one role for both apps and is never granted by link; a regional role comes with at least
+one region and `regionKeys` is the account's whole scope; mesa and Gestor never share an account;
+nobody grants, revokes or invites themselves; every refusal is `{detail, code}` with the status the
+table there gives, and the console shows `detail` verbatim.
+
+**The invitee's three routes are not in this module yet:**
+
+```
+GET  /api/resource-requests/access/invites/{token}          -> {status, email, app_name, role_key, role_label, account_exists, region_keys}   # anonymous
+POST /api/resource-requests/access/invites/{token}/accept   # signed in with the invited e-mail
+POST /api/auth/signup  {email, password, display_name}      -> {user, tokens}    # the platform's own
+```
+
+They answer snake_case, and `accessAPI` maps them once (`describeInvite`, `join`) — the second
+named mapping after `/api/auth/*` (§9.13). OBT-549 moves the first two into `/api/shema`; then only
+that mapping changes. They are the other exceptions to §9.0's bearer rule: the lookup is anonymous
+and sign-up has no session to show. The console reads the invitation's `role_key` through its own
+catalogue and never renders `role_label` or `app_name`, per this document's "keys, never labels".
+
+**Dates.** These routes answer datetimes (`grantedAt`, `createdAt`, `expiresAt`, `at`), against
+§9.0's day-only rule; they are moments of an administrative act, which the history orders by. The
+console shows the UTC day, read by field (`utcDay`).
+
+**In the console:** `/acesso` for `admin` only, `/convite?token=` outside the session gate; the
+lookup does not list the person's memberships (the server does not answer it), so the screen reads
+rosters project by project through §9.14. `accessAPI` has **no fixture double**: it is `null` in
+fixtures, and both routes are registered only when it exists.
 
 ---
 
@@ -1465,6 +1516,8 @@ rejects data the console can produce.
 | `PrayerVisibility` | `coordenacao`, `rede` | none; default `coordenacao` |
 | `RegionKey` | `south-america`, `north-america`, `africa`, `asia`, `oceania`, `europe`, `other` | derived from `location` |
 | `RoleKey` | `coordinator`, `obtLab`, `resourceCircle` | none |
+| `AccessAppKey` | `shema`, `resource-request-form` | none |
+| One-time link state (`IntakeLinkStatus` = `InviteStatus`) | `pending`, `used`, `expired`, `revoked` | none |
 | `MaterialKind` | `text`, `audio`, `video` | none |
 | `StoryRecordStatus` | `planned`, `recording`, `recorded` | none |
 | `MeetingState` | `done`, `pending`, `overdue`, `new` | derived |

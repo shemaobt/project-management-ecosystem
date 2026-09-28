@@ -108,6 +108,13 @@ describe("as fixtures como test doubles", () => {
     }
   });
 
+  it("a tela de acesso não tem dublê: em fixture o namespace resolve para nada", () => {
+    expect(INTEGRATED.access).toBe("api");
+    expect(resolveSource("access")).toBe("fixtures");
+    expect(resolved.accessAPI).toBeNull();
+    expect(fixture).not.toHaveProperty("accessAPI");
+  });
+
   it("e é a fixture, o mesmo objeto, que cada namespace resolvido serve", () => {
     for (const [name, , double, served] of PAIRS) {
       expect(served, name).toBe(double);

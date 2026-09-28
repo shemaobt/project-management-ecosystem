@@ -1,29 +1,23 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { KeyRound } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import "../../i18n";
 import { DEFAULT_TAB } from "../../constants/recordTabs";
 import { useAuth } from "../../contexts/AuthContext";
+import { accessAPI } from "../../services/api";
 import { NEW_RECORD } from "../../stores/recordStore";
 import { useProjectsStore } from "../../stores/projectsStore";
 import { BrandMark } from "../common/BrandMark";
+import { ConfirmDialog } from "../common/ConfirmDialog";
 import { NotificationBell } from "./NotificationBell";
 import { ExportDialog } from "../pages/dados/ExportDialog";
 import { ImportDialog } from "../pages/dados/ImportDialog";
 import { LeaderLinkDialog } from "../pages/dados/LeaderLinkDialog";
 import { ReceiveUpdateDialog } from "../pages/dados/ReceiveUpdateDialog";
-import {
-  Button,
-  Dialog,
-  DialogBody,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  toast,
-} from "../ui";
+import { toast } from "../ui";
 import { usePrefsStore } from "../../stores/prefsStore";
+import { canAdministerAccess } from "../../utils/access";
 import { cn } from "../../utils/cn";
 
 const TB_BTN = cn(
@@ -54,7 +48,7 @@ export function AppHeader() {
   const lang = usePrefsStore((state) => state.lang);
   const toggleLang = usePrefsStore((state) => state.toggleLang);
   const reload = useProjectsStore((state) => state.reload);
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
 
   const closeDialog = (open: boolean) => {
@@ -93,6 +87,12 @@ export function AppHeader() {
           <span aria-hidden>{lang === "pt" ? "🇺🇸" : "🇧🇷"}</span>
           {lang === "pt" ? "EN" : "PT"}
         </button>
+        {accessAPI && canAdministerAccess(user) ? (
+          <Link to="/acesso" className={TB_BTN}>
+            <KeyRound size={14} strokeWidth={1.75} aria-hidden />
+            {t("acesso_nav")}
+          </Link>
+        ) : null}
         <NotificationBell className={TB_BTN} />
         {HEADER_ACTIONS.map((action) => (
           <button
@@ -133,33 +133,16 @@ export function AppHeader() {
       <ExportDialog open={dialog === "export"} onOpenChange={closeDialog} />
       <ImportDialog open={dialog === "import"} onOpenChange={closeDialog} />
       <LeaderLinkDialog open={dialog === "intake"} onOpenChange={closeDialog} />
-      <Dialog open={dialog === "reload"} onOpenChange={closeDialog}>
-        <DialogContent size="narrow" closeLabel={t("btn_close")}>
-          <DialogHeader>
-            <div className="min-w-0">
-              <DialogTitle>{t("btn_reload")}</DialogTitle>
-              <DialogDescription>{t("btn_reload_title")}</DialogDescription>
-            </div>
-          </DialogHeader>
-          <DialogBody>
-            <p className="text-small leading-body text-fg">
-              {t("confirm_reload")}
-            </p>
-          </DialogBody>
-          <DialogFooter>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setDialog(null)}
-            >
-              {t("btn_cancel")}
-            </Button>
-            <Button size="sm" onClick={() => void handleReload()}>
-              {t("btn_reload")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={dialog === "reload"}
+        onOpenChange={closeDialog}
+        title={t("btn_reload")}
+        description={t("btn_reload_title")}
+        confirmLabel={t("btn_reload")}
+        onConfirm={() => void handleReload()}
+      >
+        <p className="text-small leading-body text-fg">{t("confirm_reload")}</p>
+      </ConfirmDialog>
     </header>
   );
 }

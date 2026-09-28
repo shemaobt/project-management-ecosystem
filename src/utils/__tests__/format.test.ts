@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDuration } from "../format";
+import { formatDuration, utcDay } from "../format";
 
 describe("formatDuration", () => {
   it("renders minutes and seconds under an hour", () => {
@@ -20,5 +20,18 @@ describe("formatDuration", () => {
   it("rounds fractions and never renders a negative duration", () => {
     expect(formatDuration(4.6)).toBe("0:05");
     expect(formatDuration(-30)).toBe("0:00");
+  });
+});
+
+describe("utcDay", () => {
+  it("reads the day the server wrote, field by field, with no timezone", () => {
+    expect(utcDay("2026-09-27T23:30:00Z")).toBe("2026-09-27");
+    expect(utcDay("2026-12-31T23:59:59+00:00")).toBe("2026-12-31");
+    expect(utcDay("2026-01-01")).toBe("2026-01-01");
+  });
+
+  it("answers nothing for a value that is not an ISO moment", () => {
+    expect(utcDay("")).toBe("");
+    expect(utcDay("27/09/2026")).toBe("");
   });
 });
