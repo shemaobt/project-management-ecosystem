@@ -1,10 +1,17 @@
 import type { RegionKey } from "./region";
 import type { RoleKey } from "./role";
 
-export type SessionRole = "globalStrategist" | RoleKey;
+export type SessionRole =
+  | "globalStrategist"
+  | RoleKey
+  | "admin"
+  | "gestor"
+  | "mesa"
+  | "equipe";
 
 export interface ShemaSession {
   role: SessionRole;
+  roles: SessionRole[];
   regionScope: RegionKey[] | null;
   name: string | null;
 }

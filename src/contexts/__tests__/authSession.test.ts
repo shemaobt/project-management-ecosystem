@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ROLES } from "../../constants/roles";
+import { ROLES, SESSION_ROLES } from "../../constants/roles";
 import { regionsAPI } from "../../fixtures";
 import en from "../../i18n/locales/en.json";
 import ptBR from "../../i18n/locales/pt-BR.json";
@@ -13,7 +13,7 @@ import {
 
 const SCOPED_ROLES = ["coordinator", "obtLab", "resourceCircle"] as const;
 
-const SESSION_ROLES = Object.values(MOCK_SESSION_PERSONAS).map(
+const PERSONA_ROLES = Object.values(MOCK_SESSION_PERSONAS).map(
   (persona) => persona.role,
 );
 
@@ -78,7 +78,7 @@ describe("mocked session", () => {
 
 describe("session role vocabulary", () => {
   it("names every persona with a key both catalogues carry", () => {
-    for (const role of SESSION_ROLES) {
+    for (const role of PERSONA_ROLES) {
       const key = SESSION_ROLE_LABEL_KEYS[role];
       expect(Object.keys(ptBR), role).toContain(key);
       expect(Object.keys(en), role).toContain(key);
@@ -94,5 +94,24 @@ describe("session role vocabulary", () => {
   it("says 'no holder yet' through the catalogue in both languages", () => {
     expect(Object.keys(ptBR)).toContain(UNASSIGNED_HOLDER_KEY);
     expect(en[UNASSIGNED_HOLDER_KEY]).not.toBe(ptBR[UNASSIGNED_HOLDER_KEY]);
+  });
+});
+
+describe("o vocabulário da sessão", () => {
+  it("o painel lê exatamente os papéis que sabe nomear, nas duas línguas", () => {
+    expect(Object.keys(SESSION_ROLE_LABEL_KEYS).sort()).toEqual(
+      [...SESSION_ROLES].sort(),
+    );
+    for (const role of SESSION_ROLES) {
+      const key = SESSION_ROLE_LABEL_KEYS[role];
+      expect(Object.keys(ptBR), role).toContain(key);
+      expect(Object.keys(en), role).toContain(key);
+    }
+  });
+
+  it("cada persona mockada tem só o próprio papel na lista", () => {
+    for (const persona of Object.values(MOCK_SESSION_PERSONAS)) {
+      expect(persona.roles, persona.role).toEqual([persona.role]);
+    }
   });
 });

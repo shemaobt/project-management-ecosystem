@@ -146,8 +146,8 @@ exactly those three channels and the screen states in words that delivery is wav
 
 **Roles have no region.** The grant is `user_app_roles (user_id, app_id, role_id)` and
 `require_role(app_key, role_key)` answers a global yes/no per app. Shemá's authorization is
-**by role and by region** — `SessionPersona` is `{role, regionScope}` and a regional holder sees
-and edits their region. `organizations` is the only existing scoping dimension and it is the wrong
+**by role and by region** — `SessionPersona` is `{role, roles, regionScope}` (the list since
+OBT-523, §9.13) and a regional holder sees and edits their region. `organizations` is the only existing scoping dimension and it is the wrong
 one: a region is one of seven fixed keys (§5.3), not a tenant with members and a manager. BE-03
 either adds a region dimension to the Shemá grant or maps the seven regions onto organization
 rows; it is a schema decision, not a wiring one, and §12.2 states what the frontend needs back
@@ -1195,11 +1195,39 @@ would put a translation table on every read, which is the defect §9.0's convent
 One Shemá-specific read is missing and BE-03 owns it:
 
 ```
-GET /api/shema/session   -> { role: SessionRole, regionScope: RegionKey[] | null, name: string | null }
+GET /api/shema/session   -> { role: SessionRole, roles: SessionRole[],
+                              regionScope: RegionKey[] | null, name: string | null }
 ```
 
-`SessionRole` is `globalStrategist | coordinator | obtLab | resourceCircle`; `regionScope: null`
-means global. **`name` is resolved from the org chart** (§5.3) — it is not a user profile field, and
+`regionScope: null` means global.
+
+**The roles list — BE-17 of the PME ([OBT-523](https://linear.app/shema-obt/issue/OBT-523)),
+27/sep/2026.** A person can hold several roles across the two apps the PME serves (OBT-522:
+the Admin today is also `globalStrategist` and `gestor`), so the session carries the whole set:
+
+- **`SessionRole` is a closed vocabulary of eight keys, in the server's precedence order:**
+  `globalStrategist`, `coordinator`, `obtLab`, `resourceCircle` — the four personas the screens
+  were drawn for — then `admin` (OBT-522's Admin, *"Admin da plataforma"*, one role for both
+  apps and **not** the installation's `is_platform_admin`), `gestor`, `mesa` (the form's two
+  privileged seats), and `equipe`, **reserved**: OBT-524 makes it a project membership and
+  nothing emits it yet. `SESSION_ROLES` in `src/constants/roles.ts` is the list, and
+  `shema-api`'s `ROLE_PRECEDENCE` is the same tuple, pinned in order by a test on each side
+  (`tests/test_shema/test_access.py` there, `session.test.ts` here).
+- **`roles` is every role held, highest precedence first; `role` is its first entry and is
+  transitional** — kept so no screen that reads one role breaks. Every account that reached the
+  console before keeps its `role`; new consumers read `roles`.
+- **The door.** The server answers this route to an account holding a Shemá role, the `admin`
+  role in `shema`, or `gestor`/`mesa` in `resource-request-form`; it refuses (`403`) an account
+  holding none — the form's `equipe` and `lider` included — and every other `/api/shema` route
+  still needs a Shemá role. `admin`, `gestor` and `mesa` carry no region (`regionScope: []`).
+- **`readSession` fails closed on the list.** `roles` is required; an empty list is the same
+  refusal as the `403` (`forbidden`, *no role*); a key outside `SESSION_ROLES` refuses the whole
+  session (`UNKNOWN_VOCABULARY`) and is never dropped, because a shortened list would lie about
+  who the person is; and a `role` that is not the list's first entry refuses it too, because every
+  screen still reads `role` and the persona must not carry a role the person does not hold. A response without `roles` comes from a server older than this contract
+  and is refused the same way: `shema-api` ships first.
+
+**`name` is resolved from the org chart** (§5.3) — it is not a user profile field, and
 renaming a role-holder renames who the session says you are. `GET /api/auth/my-roles` cannot answer
 this today because the grant has no region (§3.1). `SessionRole` and `SessionPersona` were declared
 in `src/contexts/AuthContext.tsx` rather than under `src/types/`, the one gap in the frozen surface
@@ -1338,7 +1366,8 @@ Each of these is a real question with a named owner. None is an oversight.
 1. **The module's name, route prefix, service package and table names** — BE-01. §3.2 records the
    per-directory naming evidence so the decision is made once.
 2. **How the region dimension attaches to the role grant** — BE-03. §3.1. Whatever the mechanism,
-   the frontend needs exactly `{role, regionScope}` back from §9.13.
+   the frontend needs exactly `{role, regionScope}` back from §9.13 — and, since OBT-523, the
+   `roles` list beside them.
 3. **Where the session shape lives** — INT-01, with BE-03 holding the other half of it (item 2).
    **Closed by INT-01**; the paragraph below is the record of why it was open.
    `SessionRole`, `SessionPersona` and `SessionUser` are declared in

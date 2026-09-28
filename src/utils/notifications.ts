@@ -162,7 +162,7 @@ export function routeNotifications(
   return entries.filter(
     (entry) =>
       (route.role === "globalStrategist" ||
-        entry.audience.includes(route.role)) &&
+        entry.audience.some((key) => key === route.role)) &&
       (route.regions === null || route.regions.includes(entry.region)),
   );
 }

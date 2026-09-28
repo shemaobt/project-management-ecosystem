@@ -51,8 +51,6 @@ interface WireAuthResponse {
 
 const REGION_KEYS = new Set<string>(REGIONS.map((region) => region.key));
 
-const ROLE_KEYS = new Set<string>(SESSION_ROLES);
-
 function account(wire: WireAccount): AuthenticatedAccount {
   return {
     id: wire.id,
@@ -61,12 +59,20 @@ function account(wire: WireAccount): AuthenticatedAccount {
   };
 }
 
+function knownRole(value: unknown): SessionRole {
+  const role = SESSION_ROLES.find((key) => key === value);
+  if (role === undefined) throw failure("invalid", null, UNKNOWN_VOCABULARY);
+  return role;
+}
+
 export function readSession(payload: unknown): ShemaSession {
   const body = (payload ?? {}) as Record<string, unknown>;
-  const role = body.role;
-  if (typeof role !== "string" || !ROLE_KEYS.has(role)) {
-    throw failure("invalid", null, UNKNOWN_VOCABULARY);
-  }
+  const listed = body.roles;
+  if (!Array.isArray(listed)) throw failure("invalid", null, UNKNOWN_VOCABULARY);
+  if (listed.length === 0) throw failure("forbidden");
+  const roles = listed.map(knownRole);
+  const role = knownRole(body.role);
+  if (role !== roles[0]) throw failure("invalid", null, UNKNOWN_VOCABULARY);
 
   const scope = body.regionScope;
   if (scope !== null && scope !== undefined && !Array.isArray(scope)) {
@@ -85,7 +91,8 @@ export function readSession(payload: unknown): ShemaSession {
 
   const name = body.name;
   return {
-    role: role as SessionRole,
+    role,
+    roles,
     regionScope,
     name: typeof name === "string" && name ? name : null,
   };
