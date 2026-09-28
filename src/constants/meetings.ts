@@ -59,7 +59,10 @@ export const MEETING_ATTENDEE_LABEL_KEYS: Record<MeetingAttendee, string> = {
 /**
  * The bridge people of `trimestral_pi_pontes` are **not defined yet** (Karina, 28/set/2026), and
  * the meeting has to work without specific names — so it is held by role, and the regional roles
- * stand in for them. When the answer comes, this is the one edit: `roles`, and `defined: true`.
+ * stand in for them. While the answer names roles, this is the one edit: `roles`, and
+ * `defined: true`. If it names people instead, `MeetingAttendee` has no member for them: that is
+ * a new attendee with its label keys in both catalogues, and a way to resolve it, because
+ * `resolveMeetingParticipants` only reads org-chart seats.
  * If the answer keeps `resourceCircle`, the server is the other half: that role is refused the
  * meeting log today (`_meeting_log.py`, BE-10).
  */
