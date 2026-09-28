@@ -519,7 +519,7 @@
   "ritmo_role_project_leader": "Project leader",
   "ritmo_feed_field_check": "The period’s forms and the Health Assessment",
   "ritmo_feed_member_care": "Care for the team over the half-year",
-  "ritmo_participants_pending": "Who attends and what feeds this meeting are a provisional reading, still to be confirmed.",
+  "ritmo_participants_pending": "The bridge people have not been defined yet. For now, the meeting is organized by the roles above, with no list of names.",
   "ritmo_period_bimester": "Bimester {{n}} · {{year}}",
   "ritmo_period_semester": "Half {{n}} · {{year}}",
   "ritmo_flow_pulso_what": "The Monthly Pulse sent back",

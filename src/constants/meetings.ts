@@ -56,6 +56,21 @@ export const MEETING_ATTENDEE_LABEL_KEYS: Record<MeetingAttendee, string> = {
   projectLeader: "ritmo_role_project_leader",
 };
 
+/**
+ * The bridge people of `trimestral_pi_pontes` are **not defined yet** (Karina, 28/set/2026), and
+ * the meeting has to work without specific names — so it is held by role, and the regional roles
+ * stand in for them. When the answer comes, this is the one edit: `roles`, and `defined: true`.
+ * If the answer keeps `resourceCircle`, the server is the other half: that role is refused the
+ * meeting log today (`_meeting_log.py`, BE-10).
+ */
+export const BRIDGE_PEOPLE: {
+  readonly defined: boolean;
+  readonly roles: readonly MeetingAttendee[];
+} = {
+  defined: false,
+  roles: ["coordinator", "obtLab", "resourceCircle"],
+};
+
 export interface ListeningTier {
   key: string;
   levelKey: string;
@@ -84,7 +99,7 @@ export const LISTENING_FLOW: readonly ListeningTier[] = [
   {
     key: "trimestral_pi_pontes",
     levelKey: "ritmo_quarterly",
-    attendees: ["internationalProjects", "coordinator", "obtLab", "resourceCircle"],
+    attendees: ["internationalProjects", ...BRIDGE_PEOPLE.roles],
     whatKey: "ritmo_flow_trimestral_what",
   },
   {
@@ -106,8 +121,9 @@ export const LISTENING_FLOW: readonly ListeningTier[] = [
  * the ids and cadences `shema-api` enforces (`MEETING_CADENCES`, BE-10). **The same set in the
  * seven regions**, so every meeting is held per region and none is `global`.
  *
- * The bimonthly's Health readiness and the quarterly's bridge people are **our reading**:
- * GATE-02 left both open, and `ourReading` is what makes the card say so.
+ * The bimonthly carries the Health readiness — confirmed by Karina on 28/set/2026. The
+ * quarterly's attendees come from `BRIDGE_PEOPLE`, which is not defined yet, and
+ * `participantsPending` is what makes that card say so.
  */
 export const RITMO_MEETINGS: readonly MeetingDefinition[] = [
   {
@@ -118,7 +134,6 @@ export const RITMO_MEETINGS: readonly MeetingDefinition[] = [
     roles: ["internationalProjects", "teams"],
     feeds: "fieldCheck",
     readiness: "health",
-    ourReading: true,
     titleKey: "ritmo_bimestral_title",
     descriptionKey: "ritmo_bimestral_desc",
   },
@@ -127,9 +142,9 @@ export const RITMO_MEETINGS: readonly MeetingDefinition[] = [
     cadence: "quarterly",
     scope: "region",
     icon: "users",
-    roles: ["internationalProjects", "coordinator", "obtLab", "resourceCircle"],
+    roles: ["internationalProjects", ...BRIDGE_PEOPLE.roles],
     feeds: "trends",
-    ourReading: true,
+    participantsPending: !BRIDGE_PEOPLE.defined,
     titleKey: "ritmo_trimestral_title",
     descriptionKey: "ritmo_trimestral_desc",
   },
