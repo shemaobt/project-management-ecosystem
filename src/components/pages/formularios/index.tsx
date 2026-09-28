@@ -41,8 +41,14 @@ export function FormulariosView({
   const pulse = formOf("pulso");
 
   const readiness = useMemo(
-    () => formReadiness(pulse, sorted, new Date(`${todayIso}T00:00:00`)),
-    [pulse, sorted, todayIso],
+    () =>
+      formReadiness(
+        pulse,
+        sorted,
+        submissions,
+        new Date(`${todayIso}T00:00:00`),
+      ),
+    [pulse, sorted, submissions, todayIso],
   );
 
   const reporting = useMemo(() => {
@@ -50,9 +56,9 @@ export function FormulariosView({
     const at = new Date(`${todayIso}T00:00:00`);
     return FIELD_FORMS.map((form) => ({
       form,
-      state: reportingFor(form, project, at),
+      state: reportingFor(form, project, submissions, at),
     }));
-  }, [project, todayIso]);
+  }, [project, submissions, todayIso]);
 
   const pulseState =
     reporting?.find(({ form }) => form.kind === pulse.kind)?.state ?? null;

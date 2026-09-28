@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { RITMO_MEETINGS } from "../../constants/meetings";
 import { EMPTY_REGION_TEAM, REGIONS } from "../../constants/regions";
+import type { ReceivedSubmission } from "../../types/forms";
 import type { MeetingLogEntry } from "../../types/meeting";
 import type { Region, RegionTeam } from "../../types/region";
 import { formatIsoDate } from "../cadence";
@@ -16,14 +17,30 @@ import { makeProject } from "./factory";
 
 const MAY = new Date(2026, 4, 14);
 
-const monthly = { id: "monthly_regional", cadence: "monthly" } as const;
-const quarterly = { id: "obtlab_team", cadence: "quarterly" } as const;
-const annual = { id: "annual_celebration", cadence: "annual" } as const;
+/**
+ * `meetingStatus` and `nextOccurrence` read only the id and the cadence, so these pair a real
+ * id with each cadence to exercise the rule — the set's own cadences are pinned in
+ * `ritmoRender.test.ts` and `fixtures.test.ts`.
+ */
+const monthly = { id: "bimestral_pi_campo", cadence: "monthly" } as const;
+const quarterly = { id: "trimestral_pi_pontes", cadence: "quarterly" } as const;
+const annual = { id: "semestral_member_care", cadence: "annual" } as const;
+
+const returned = (projectId: string, receivedAt: string): ReceivedSubmission => ({
+  id: `${projectId}-${receivedAt}`,
+  kind: "pulso",
+  projectId,
+  languageName: "",
+  submittedBy: "",
+  receivedAt,
+  definitionVersion: 1,
+  appliedAt: null,
+});
 
 const entry = (
   overrides: Partial<MeetingLogEntry> & Pick<MeetingLogEntry, "period" | "date">,
 ): MeetingLogEntry => ({
-  meetingId: "monthly_regional",
+  meetingId: "bimestral_pi_campo",
   scopeKey: "oceania",
   notes: "",
   ...overrides,
@@ -87,14 +104,14 @@ describe("o estado de uma reunião sai do que já foi registrado", () => {
 
   it("o registro de uma reunião não conta para outra", () => {
     const log = [
-      entry({ meetingId: "monthly_prayer", period: "2026-05", date: "2026-05-04" }),
+      entry({ meetingId: "trimestral_pi_pontes", period: "2026-05", date: "2026-05-04" }),
     ];
     expect(meetingStatus(log, monthly, "oceania", MAY).state).toBe("new");
   });
 
   it("o trimestral lê trimestres, não meses", () => {
     const log = [
-      entry({ meetingId: "obtlab_team", period: "2026-Q2", date: "2026-04-02" }),
+      entry({ meetingId: "trimestral_pi_pontes", period: "2026-Q2", date: "2026-04-02" }),
     ];
     expect(meetingStatus(log, quarterly, "oceania", MAY)).toEqual({
       state: "done",
@@ -121,7 +138,7 @@ describe("registrar recalcula a próxima ocorrência", () => {
 
   it("o trimestral feito em T2 aponta para o fim de T3", () => {
     const log = [
-      entry({ meetingId: "obtlab_team", period: "2026-Q2", date: "2026-04-02" }),
+      entry({ meetingId: "trimestral_pi_pontes", period: "2026-Q2", date: "2026-04-02" }),
     ];
     const status = meetingStatus(log, quarterly, "oceania", MAY);
     expect(formatIsoDate(nextOccurrence(quarterly, status, MAY))).toBe(
@@ -132,7 +149,7 @@ describe("registrar recalcula a próxima ocorrência", () => {
   it("o anual feito em 2026 aponta para 31 de dezembro de 2027", () => {
     const log = [
       entry({
-        meetingId: "annual_celebration",
+        meetingId: "semestral_member_care",
         scopeKey: "global",
         period: "2026",
         date: "2026-03-01",
@@ -146,37 +163,40 @@ describe("registrar recalcula a próxima ocorrência", () => {
 });
 
 describe("o que alimenta a reunião é contagem viva, não legenda", () => {
-  const reported = makeProject({
-    id: "reported",
-    location: "Fiji",
-    lastUpdated: "2026-05-02",
-  });
+  const reported = makeProject({ id: "reported", location: "Fiji" });
   const silent = makeProject({
     id: "silent",
     location: "Fiji",
-    lastUpdated: "2026-03-02",
+    lastUpdated: "2026-05-10",
   });
-  const elsewhere = makeProject({
-    id: "elsewhere",
-    location: "Uganda",
-    lastUpdated: "2026-05-02",
+  const elsewhere = makeProject({ id: "elsewhere", location: "Uganda" });
+  const archive = [
+    returned("reported", "2026-05-02"),
+    returned("silent", "2026-03-02"),
+    returned("elsewhere", "2026-05-02"),
+  ];
+
+  it("conta quem devolveu o Pulso no período contra o total da região", () => {
+    expect(
+      meetingReadiness("pulso", "monthly", [reported, silent, elsewhere], "oceania", archive, MAY),
+    ).toEqual({ ready: 1, total: 2 });
   });
 
-  it("conta quem reportou no período contra o total da região", () => {
+  it("atualizar a ficha não é devolver o Pulso", () => {
     expect(
-      meetingReadiness("pulso", "monthly", [reported, silent, elsewhere], "oceania", MAY),
-    ).toEqual({ ready: 1, total: 2 });
+      meetingReadiness("pulso", "monthly", [silent], "oceania", [], MAY),
+    ).toEqual({ ready: 0, total: 1 });
   });
 
   it("uma região sem projetos não recebe contagem nenhuma", () => {
     expect(
-      meetingReadiness("pulso", "monthly", [reported], "europe", MAY),
+      meetingReadiness("pulso", "monthly", [reported], "europe", archive, MAY),
     ).toBeNull();
   });
 
   it("o escopo global conta o ecossistema inteiro", () => {
     expect(
-      meetingReadiness("pulso", "monthly", [reported, silent, elsewhere], "global", MAY),
+      meetingReadiness("pulso", "monthly", [reported, silent, elsewhere], "global", archive, MAY),
     ).toEqual({ ready: 2, total: 3 });
   });
 
@@ -187,7 +207,7 @@ describe("o que alimenta a reunião é contagem viva, não legenda", () => {
       healthAssessmentDate: "2026-04-10",
     });
     expect(
-      meetingReadiness("health", "quarterly", [dated], "oceania", MAY),
+      meetingReadiness("health", "quarterly", [dated], "oceania", [], MAY),
     ).toEqual({ ready: 0, total: 1 });
   });
 
@@ -199,7 +219,7 @@ describe("o que alimenta a reunião é contagem viva, não legenda", () => {
       healthEmotional: "boa",
     });
     expect(
-      meetingReadiness("health", "quarterly", [assessed], "oceania", MAY),
+      meetingReadiness("health", "quarterly", [assessed], "oceania", [], MAY),
     ).toEqual({ ready: 1, total: 1 });
   });
 
@@ -211,16 +231,16 @@ describe("o que alimenta a reunião é contagem viva, não legenda", () => {
       healthEmotional: "boa",
     });
     expect(
-      meetingReadiness("health", "quarterly", [stale], "oceania", MAY),
+      meetingReadiness("health", "quarterly", [stale], "oceania", [], MAY),
     ).toEqual({ ready: 0, total: 1 });
   });
 });
 
 describe("quem participa vem do organograma, por referência", () => {
-  const meeting = RITMO_MEETINGS.find((item) => item.id === "monthly_regional");
+  const meeting = RITMO_MEETINGS.find((item) => item.id === "trimestral_pi_pontes");
 
   it("a reunião regional traz o Operacional de Línguas da região", () => {
-    if (!meeting) throw new Error("monthly_regional");
+    if (!meeting) throw new Error("trimestral_pi_pontes");
     const before = resolveMeetingParticipants(
       meeting,
       "oceania",
@@ -241,7 +261,7 @@ describe("quem participa vem do organograma, por referência", () => {
   });
 
   it("cada região lê o titular dela, não o da vizinha", () => {
-    if (!meeting) throw new Error("monthly_regional");
+    if (!meeting) throw new Error("trimestral_pi_pontes");
     const regions = regionsWith("oceania", { obtLab: "Ana Ribeiro" });
     expect(
       resolveMeetingParticipants(meeting, "africa", regions).find(
@@ -251,30 +271,27 @@ describe("quem participa vem do organograma, por referência", () => {
   });
 
   it("sem ninguém no organograma, o titular fica vazio em vez de inventado", () => {
-    if (!meeting) throw new Error("monthly_regional");
+    if (!meeting) throw new Error("trimestral_pi_pontes");
     const roles = resolveMeetingParticipants(meeting, "oceania", []);
     expect(roles.every((person) => person.holder === null)).toBe(true);
   });
 
   it("quem não é papel do organograma não recebe nome", () => {
-    if (!meeting) throw new Error("monthly_regional");
+    if (!meeting) throw new Error("trimestral_pi_pontes");
     const roles = resolveMeetingParticipants(
       meeting,
       "oceania",
       regionsWith("oceania", { obtLab: "Ana Ribeiro" }),
     );
-    const teams = roles.find((person) => person.key === "teams");
-    expect(teams?.fromOrgChart).toBe(false);
-    expect(teams?.holder).toBeNull();
+    const leadership = roles.find((person) => person.key === "leadership");
+    expect(leadership?.fromOrgChart).toBe(false);
+    expect(leadership?.holder).toBeNull();
   });
 
   it("o escopo global não tem organograma regional para ler", () => {
-    const celebration = RITMO_MEETINGS.find(
-      (item) => item.id === "annual_celebration",
-    );
-    if (!celebration) throw new Error("annual_celebration");
+    if (!meeting) throw new Error("trimestral_pi_pontes");
     const roles = resolveMeetingParticipants(
-      celebration,
+      meeting,
       "global",
       regionsWith("oceania", { obtLab: "Ana Ribeiro" }),
     );

@@ -10,6 +10,7 @@ import type {
   MeetingReadinessCount,
   MeetingStatus,
 } from "../types/meeting";
+import type { ReceivedSubmission } from "../types/forms";
 import type { Project } from "../types/project";
 import type { Region, RegionKey } from "../types/region";
 import {
@@ -82,14 +83,34 @@ export function nextOccurrence(
     : periodEnd(meeting.cadence, today);
 }
 
+/**
+ * The Pulses that came back for one project, most recent first.
+ *
+ * **A returned Pulse is a received submission, not a fresh `lastUpdated`** (FE-49, OBT-529).
+ * GATE-02 made the Monthly Pulse a form whose record is what arrives, and BE-12 archives each
+ * arrival; reading `lastUpdated` counted any edit to the record as *the team reported*. In
+ * fixture mode the archive is empty, so the count is `0/N` — which is the truth.
+ */
+export function pulsesOf(
+  project: Pick<Project, "id">,
+  submissions: readonly ReceivedSubmission[],
+): ReceivedSubmission[] {
+  return submissions
+    .filter((entry) => entry.kind === "pulso" && entry.projectId === project.id)
+    .sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
+}
+
 export function hasReported(
   kind: MeetingReadiness,
   project: Project,
   cadence: MeetingCadence,
   today: CalendarDate,
+  submissions: readonly ReceivedSubmission[],
 ): boolean {
   if (kind === "pulso") {
-    return coversPeriod(cadence, project.lastUpdated, today);
+    return pulsesOf(project, submissions).some((entry) =>
+      coversPeriod(cadence, entry.receivedAt, today),
+    );
   }
   return (
     isAssessed(project) &&
@@ -102,6 +123,7 @@ export function meetingReadiness(
   cadence: MeetingCadence,
   projects: readonly Project[],
   scopeKey: MeetingScopeKey,
+  submissions: readonly ReceivedSubmission[],
   now: Date = new Date(),
 ): MeetingReadinessCount | null {
   const inScope =
@@ -113,7 +135,7 @@ export function meetingReadiness(
   const today = toCalendarDate(now);
   return {
     ready: inScope.filter((project) =>
-      hasReported(kind, project, cadence, today),
+      hasReported(kind, project, cadence, today, submissions),
     ).length,
     total: inScope.length,
   };

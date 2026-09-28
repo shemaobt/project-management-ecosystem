@@ -41,12 +41,27 @@ const project = (over: Partial<Project> = {}): Project => ({
   ...over,
 });
 
-const view = (projects: Project[] | null) =>
+/** A Pulse that arrived and was archived — since FE-49 the only thing that counts as returned. */
+const returned = (projectId: string, receivedAt: string) => ({
+  id: `${projectId}-${receivedAt}`,
+  kind: "pulso" as const,
+  projectId,
+  languageName: "",
+  submittedBy: "",
+  receivedAt,
+  definitionVersion: 1,
+  appliedAt: null,
+});
+
+const view = (
+  projects: Project[] | null,
+  submissions: ReturnType<typeof returned>[] = [],
+) =>
   renderToStaticMarkup(
     createElement(
       MemoryRouter,
       null,
-      createElement(FormulariosView, { projects, submissions: [], now: NOW }),
+      createElement(FormulariosView, { projects, submissions, now: NOW }),
     ),
   );
 
@@ -123,7 +138,7 @@ describe("o ciclo do Pulso aparece com a posição do projeto escolhido", () => 
   });
 
   it("quem já reportou vê o período fechado, em vez do mesmo texto para todos", () => {
-    const markup = view([project({ lastUpdated: "2026-05-10" })]);
+    const markup = view([project()], [returned("kadiweu", "2026-05-10")]);
 
     expect(markup).toContain(
       i18n.t("forms_loop_closed", { project: "Kadiwéu" }),
@@ -161,10 +176,13 @@ describe("a tela mostra quem ainda não reportou neste período", () => {
   const pulseName = () => i18n.t("forms_pulse_title");
 
   it("lista os pendentes e não lista quem reportou", () => {
-    const markup = view([
-      project({ id: "atrasado", languageName: "Baikeno", lastUpdated: "2026-02-01" }),
-      project({ id: "emdia", languageName: "Asháninka", lastUpdated: "2026-05-09" }),
-    ]);
+    const markup = view(
+      [
+        project({ id: "atrasado", languageName: "Baikeno" }),
+        project({ id: "emdia", languageName: "Asháninka" }),
+      ],
+      [returned("atrasado", "2026-02-01"), returned("emdia", "2026-05-09")],
+    );
 
     expect(markup).toContain("Baikeno");
     expect(markup).toContain(
@@ -204,7 +222,7 @@ describe("a tela mostra quem ainda não reportou neste período", () => {
   });
 
   it("com todos em dia, afirma isso em vez de mostrar uma lista vazia", () => {
-    const markup = view([project({ lastUpdated: "2026-05-09" })]);
+    const markup = view([project()], [returned("kadiweu", "2026-05-09")]);
 
     expect(markup).toContain(
       i18n.t("forms_pending_none", { form: pulseName() }),
