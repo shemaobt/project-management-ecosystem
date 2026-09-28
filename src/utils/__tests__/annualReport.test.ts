@@ -91,6 +91,20 @@ describe("país sensível passa pelo dono da redação", () => {
     expect(JSON.stringify(line)).not.toContain("Egypt");
     expect(JSON.stringify(line)).not.toContain("Cairo");
   });
+
+  it("continua retido quando o servidor leu a ficha como coordenação — o relatório sai da sala", () => {
+    const sensitive = project("sigilosa", {
+      startDate: "2025-04-01",
+      location: "Egypt, Cairo",
+      team: "YWAM Egypt",
+      sensitiveCountry: true,
+      readAs: "coordination",
+    });
+    const [line] = buildAnnualReport([sensitive], 2025).regions[0].started;
+
+    expect(line.location).toEqual({ withheld: true, regionLabelKey: "continent_africa" });
+    expect(JSON.stringify(line)).not.toContain("Egypt");
+  });
 });
 
 describe("o seletor olha para trás", () => {
