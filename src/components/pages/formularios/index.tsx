@@ -19,7 +19,12 @@ import { StepByStep } from "./StepByStep";
 
 export interface FormulariosViewProps {
   projects: readonly Project[] | null;
-  submissions?: readonly ReceivedSubmission[];
+  /**
+   * `null` is *not read* — still loading, or the read failed. Since FE-49 the Pulse counts as
+   * returned only when a submission arrived, so an unread archive would render every team as
+   * *not reported*; the Pulse-dependent blocks give way to a sentence instead (PR #62 review).
+   */
+  submissions?: readonly ReceivedSubmission[] | null;
   now?: Date;
 }
 
@@ -39,10 +44,18 @@ export function FormulariosView({
   const project = sorted.find((entry) => entry.id === picked) ?? sorted[0];
 
   const pulse = formOf("pulso");
+  const pulsesKnown = submissions !== null;
+  const archive = useMemo(() => submissions ?? [], [submissions]);
 
   const readiness = useMemo(
-    () => formReadiness(pulse, sorted, new Date(`${todayIso}T00:00:00`)),
-    [pulse, sorted, todayIso],
+    () =>
+      formReadiness(
+        pulse,
+        sorted,
+        archive,
+        new Date(`${todayIso}T00:00:00`),
+      ),
+    [pulse, sorted, archive, todayIso],
   );
 
   const reporting = useMemo(() => {
@@ -50,9 +63,9 @@ export function FormulariosView({
     const at = new Date(`${todayIso}T00:00:00`);
     return FIELD_FORMS.map((form) => ({
       form,
-      state: reportingFor(form, project, at),
+      state: reportingFor(form, project, archive, at),
     }));
-  }, [project, todayIso]);
+  }, [project, archive, todayIso]);
 
   const pulseState =
     reporting?.find(({ form }) => form.kind === pulse.kind)?.state ?? null;
@@ -89,32 +102,44 @@ export function FormulariosView({
       ) : (
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {reporting.map(({ form, state }) => (
-              <FormCard
-                key={form.kind}
-                form={form}
-                reporting={state}
-                action={
-                  form.mechanism === "inApp" ? (
-                    <Button asChild>
-                      <Link to={`/formularios/avaliacao/${project.id}`}>
-                        {t("forms_open_health")}
-                      </Link>
-                    </Button>
-                  ) : null
-                }
-              />
-            ))}
+            {reporting
+              .filter(({ form }) => pulsesKnown || form.kind !== pulse.kind)
+              .map(({ form, state }) => (
+                <FormCard
+                  key={form.kind}
+                  form={form}
+                  reporting={state}
+                  action={
+                    form.mechanism === "inApp" ? (
+                      <Button asChild>
+                        <Link to={`/formularios/avaliacao/${project.id}`}>
+                          {t("forms_open_health")}
+                        </Link>
+                      </Button>
+                    ) : null
+                  }
+                />
+              ))}
           </div>
 
-          <StepByStep
-            projectName={project.languageName}
-            reporting={pulseState}
-          />
+          {/* The Health Assessment is filled in-app and reads nothing from the archive, so an
+              unread archive takes only the Pulse's blocks with it (PR #62 review). */}
+          {pulsesKnown ? (
+            <>
+              <StepByStep
+                projectName={project.languageName}
+                reporting={pulseState}
+              />
 
-          <PendingProjects form={pulse} readiness={readiness} />
+              <PendingProjects form={pulse} readiness={readiness} />
 
-          <ReceivedArchive submissions={submissions} />
+              <ReceivedArchive submissions={archive} />
+            </>
+          ) : (
+            <p className="rounded-md border border-line bg-muted px-4 py-3 text-small leading-normal text-fg-muted">
+              {t("forms_pulses_unread")}
+            </p>
+          )}
 
           <div className="flex flex-col gap-1.5 text-micro leading-normal text-fg-subtle">
             <p className="max-w-[80ch]">{t("forms_footnote")}</p>
@@ -132,6 +157,8 @@ export function FormulariosPage() {
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrateProjects = useProjectsStore((state) => state.hydrate);
   const submissions = useFormsStore((state) => state.submissions);
+  const formsRead = useFormsStore((state) => state.hydrated);
+  const formsLoading = useFormsStore((state) => state.loading);
   const hydrateForms = useFormsStore((state) => state.hydrate);
 
   useEffect(() => {
@@ -141,8 +168,8 @@ export function FormulariosPage() {
 
   return (
     <FormulariosView
-      projects={hydrated ? projects : null}
-      submissions={submissions}
+      projects={hydrated && !formsLoading ? projects : null}
+      submissions={formsRead ? submissions : null}
     />
   );
 }

@@ -18,10 +18,12 @@ const storage = createMemoryStorage();
 vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
-const { draftKey, useRhythmStore } = await import("../rhythmStore");
+const { draftKey, migrateRhythm, RHYTHM_VERSION, useRhythmStore } = await import(
+  "../rhythmStore"
+);
 
 const OCEANIA = "oceania" as const;
-const key = draftKey("monthly_regional", OCEANIA);
+const key = draftKey("bimestral_pi_campo", OCEANIA);
 
 const reset = () =>
   useRhythmStore.setState({ log: [], drafts: {}, hydrated: false });
@@ -34,16 +36,16 @@ describe("registrar uma reunião", () => {
   it("arquiva sob o período da data informada, não do dia de hoje", () => {
     useRhythmStore
       .getState()
-      .logMeeting("monthly_regional", OCEANIA, "monthly", {
+      .logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
         date: "2026-04-20",
         notes: "",
       });
 
     expect(held()).toEqual([
       {
-        meetingId: "monthly_regional",
+        meetingId: "bimestral_pi_campo",
         scopeKey: OCEANIA,
-        period: "2026-04",
+        period: "2026-B2",
         date: "2026-04-20",
         notes: "",
       },
@@ -53,7 +55,7 @@ describe("registrar uma reunião", () => {
   it("o trimestral arquiva sob o trimestre da data", () => {
     useRhythmStore
       .getState()
-      .logMeeting("obtlab_team", OCEANIA, "quarterly", {
+      .logMeeting("trimestral_pi_pontes", OCEANIA, "quarterly", {
         date: "2026-11-30",
         notes: "",
       });
@@ -63,11 +65,11 @@ describe("registrar uma reunião", () => {
 
   it("registrar de novo no mesmo período corrige, não duplica", () => {
     const { logMeeting } = useRhythmStore.getState();
-    logMeeting("monthly_regional", OCEANIA, "monthly", {
+    logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
       date: "2026-05-04",
       notes: "primeira",
     });
-    logMeeting("monthly_regional", OCEANIA, "monthly", {
+    logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
       date: "2026-05-11",
       notes: "corrigida",
     });
@@ -79,28 +81,28 @@ describe("registrar uma reunião", () => {
 
   it("períodos diferentes viram entradas diferentes no histórico", () => {
     const { logMeeting } = useRhythmStore.getState();
-    logMeeting("monthly_regional", OCEANIA, "monthly", {
+    logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
       date: "2026-04-20",
       notes: "",
     });
-    logMeeting("monthly_regional", OCEANIA, "monthly", {
+    logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
       date: "2026-05-04",
       notes: "",
     });
 
-    expect(held().map((entry) => entry.period)).toEqual(["2026-04", "2026-05"]);
+    expect(held().map((entry) => entry.period)).toEqual(["2026-B2", "2026-B3"]);
   });
 
   it("uma data ilegível não entra no histórico", () => {
     useRhythmStore
       .getState()
-      .logMeeting("monthly_regional", OCEANIA, "monthly", {
+      .logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
         date: "",
         notes: "sem data",
       });
     useRhythmStore
       .getState()
-      .logMeeting("monthly_regional", OCEANIA, "monthly", {
+      .logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
         date: "20/04/2026",
         notes: "formato do campo",
       });
@@ -114,32 +116,32 @@ describe("desfazer", () => {
 
   it("remove só a entrada daquele período", () => {
     const { logMeeting, undoMeeting } = useRhythmStore.getState();
-    logMeeting("monthly_regional", OCEANIA, "monthly", {
+    logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
       date: "2026-04-20",
       notes: "",
     });
-    logMeeting("monthly_regional", OCEANIA, "monthly", {
+    logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
       date: "2026-05-04",
       notes: "",
     });
 
-    undoMeeting("monthly_regional", OCEANIA, "2026-05");
+    undoMeeting("bimestral_pi_campo", OCEANIA, "2026-B3");
 
-    expect(held().map((entry) => entry.period)).toEqual(["2026-04"]);
+    expect(held().map((entry) => entry.period)).toEqual(["2026-B2"]);
   });
 
   it("não toca no registro de outra região", () => {
     const { logMeeting, undoMeeting } = useRhythmStore.getState();
-    logMeeting("monthly_regional", OCEANIA, "monthly", {
+    logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
       date: "2026-05-04",
       notes: "",
     });
-    logMeeting("monthly_regional", "africa", "monthly", {
+    logMeeting("bimestral_pi_campo", "africa", "bimonthly", {
       date: "2026-05-04",
       notes: "",
     });
 
-    undoMeeting("monthly_regional", OCEANIA, "2026-05");
+    undoMeeting("bimestral_pi_campo", OCEANIA, "2026-B3");
 
     expect(held().map((entry) => entry.scopeKey)).toEqual(["africa"]);
   });
@@ -162,7 +164,7 @@ describe("uma nota digitada não se perde ao fechar", () => {
   it("salvar consome o rascunho daquela linha", () => {
     const { setDraft, logMeeting } = useRhythmStore.getState();
     setDraft(key, { date: "2026-05-04", notes: "combinamos revisar o pulso" });
-    logMeeting("monthly_regional", OCEANIA, "monthly", {
+    logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
       date: "2026-05-04",
       notes: "combinamos revisar o pulso",
     });
@@ -172,19 +174,19 @@ describe("uma nota digitada não se perde ao fechar", () => {
   });
 
   it("o rascunho de uma linha não vaza para outra", () => {
-    const other = draftKey("monthly_regional", "africa");
+    const other = draftKey("bimestral_pi_campo", "africa");
     useRhythmStore.getState().setDraft(key, { date: "2026-05-04", notes: "oceania" });
 
     expect(useRhythmStore.getState().drafts[other]).toBeUndefined();
   });
 
   it("salvar uma linha não apaga o rascunho da outra", () => {
-    const other = draftKey("monthly_regional", "africa");
+    const other = draftKey("bimestral_pi_campo", "africa");
     const { setDraft, logMeeting } = useRhythmStore.getState();
     setDraft(key, { date: "2026-05-04", notes: "oceania" });
     setDraft(other, { date: "2026-05-04", notes: "africa" });
 
-    logMeeting("monthly_regional", OCEANIA, "monthly", {
+    logMeeting("bimestral_pi_campo", OCEANIA, "bimonthly", {
       date: "2026-05-04",
       notes: "oceania",
     });
@@ -201,5 +203,53 @@ describe("uma nota digitada não se perde ao fechar", () => {
     clearDraft(key);
 
     expect(useRhythmStore.getState().drafts[key]).toBeUndefined();
+  });
+});
+
+/**
+ * GATE-02 (OBT-388) trocou as cinco reuniões da onda 1 pelas três que existem, e nenhum id
+ * antigo sobrevive. O que foi guardado sob eles não é remapeado: `obtlab_team` era trimestral e
+ * a bimestral não é a sucessora dele, então mover a entrada poria uma reunião que aconteceu
+ * num período ao qual ela nunca pertenceu.
+ */
+describe("o conjunto do GATE-02 chega a quem já tinha um log guardado", () => {
+  it("a versão sobe, e é isso que faz o migrate rodar", () => {
+    expect(RHYTHM_VERSION).toBe(2);
+  });
+
+  it("descarta o log e os rascunhos dos ids que não existem mais, e só eles", () => {
+    const kept = {
+      meetingId: "bimestral_pi_campo",
+      scopeKey: OCEANIA,
+      period: "2026-B5",
+      date: "2026-09-10",
+      notes: "",
+    };
+    const migrated = migrateRhythm({
+      log: [
+        { ...kept, meetingId: "monthly_regional", period: "2026-09" },
+        { ...kept, meetingId: "monthly_prayer", period: "2026-09" },
+        { ...kept, meetingId: "annual_celebration", scopeKey: "global", period: "2026" },
+        kept,
+      ],
+      drafts: {
+        [draftKey("bimestral_pi_campo", OCEANIA)]: { date: "2026-09-10", notes: "fica" },
+        "obtlab_team__oceania": { date: "2026-09-10", notes: "sai" },
+      },
+      hydrated: true,
+    });
+
+    expect(migrated.log).toEqual([kept]);
+    expect(Object.keys(migrated.drafts)).toEqual([draftKey("bimestral_pi_campo", OCEANIA)]);
+    expect(migrated.hydrated).toBe(false);
+  });
+
+  it("um arquivo ilegível migra para vazio, sem quebrar a tela", () => {
+    expect(migrateRhythm(null)).toEqual({ log: [], drafts: {}, hydrated: false });
+    expect(migrateRhythm({ log: "x", drafts: null })).toEqual({
+      log: [],
+      drafts: {},
+      hydrated: false,
+    });
   });
 });

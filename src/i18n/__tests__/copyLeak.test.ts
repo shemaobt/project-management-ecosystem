@@ -304,7 +304,7 @@ describe("the shell rendered with the language set to EN", () => {
     const rhythm = render(RitmoPage);
     expect(rhythm).toContain(en.ritmo_lead);
     expect(rhythm).toContain(en.ritmo_flow_title);
-    expect(rhythm).toContain(en.ritmo_m1_title);
+    expect(rhythm).toContain(en.ritmo_bimestral_title);
     expect(rhythm).not.toContain(`${en.ritmo_lead} ${en.empty_soon}`);
   });
 

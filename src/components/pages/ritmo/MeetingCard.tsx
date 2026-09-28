@@ -1,11 +1,3 @@
-import {
-  Activity,
-  HandHeart,
-  Heart,
-  Sparkles,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -14,16 +6,9 @@ import {
   MEETING_FEED_LABEL_KEYS,
 } from "../../../constants/meetings";
 import { surfaceOutlined } from "../../../styles";
-import type { MeetingDefinition, MeetingIcon } from "../../../types/meeting";
+import type { MeetingDefinition } from "../../../types/meeting";
 import { cn } from "../../../utils/cn";
-
-const MEETING_ICONS: Record<MeetingIcon, LucideIcon> = {
-  pulse: Activity,
-  prayer: HandHeart,
-  heart: Heart,
-  users: Users,
-  spark: Sparkles,
-};
+import { MEETING_ICONS } from "./meetingIcons";
 
 export interface MeetingCardProps {
   meeting: MeetingDefinition;
@@ -70,6 +55,12 @@ export function MeetingCard({ meeting, children }: MeetingCardProps) {
             <span className="font-bold text-fg-muted">{t("ritmo_feeds")}</span>{" "}
             {t(MEETING_FEED_LABEL_KEYS[meeting.feeds])}
           </p>
+
+          {meeting.ourReading ? (
+            <p className="mt-1.5 font-serif text-micro leading-[1.4] italic text-fg-muted">
+              {t("ritmo_participants_pending")}
+            </p>
+          ) : null}
         </div>
       </div>
 
