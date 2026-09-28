@@ -6,7 +6,7 @@ This file defines the conventions for LLM agents working in this repository. Fol
 > `DS-PROJECT/` is the approved, client-validated design and interaction prototype for this product. Every screen, layout, component, token, flow, label and interaction in the frontend MUST be derived from it. Do not invent screens, do not redesign, do not substitute a different visual language. See §2.
 
 > **Rule one — no backend is being built.**
-> `tripod-api` exists, runs, and already contains a scaffolded **Shemá module**. Every backend need in this project is an addition *inside* that module. Any plan, issue or document that says "build a backend", "scaffold FastAPI" or names a repo called `shema-backend` is stale wording for *extend `tripod-api`*. See §3.2.
+> `shemaobt/shema-api` (formerly `tripod-api`, a name GitHub still redirects) exists, runs, and contains the **Shemá module on its `dev` branch**. Every backend need in this project is an addition *inside* that module. Any plan, issue or document that says "build a backend", "scaffold FastAPI" or names a repo called `shema-backend` is stale wording for *extend `shema-api`*. See §3.2.
 
 ---
 
@@ -30,9 +30,9 @@ Everything else (Rhythm, Prayer, ETEN, Forms, Team) is a loop that keeps those f
 | | Repo | Role |
 |---|---|---|
 | Frontend | **`shemaobt/project-management-ecosystem`** — *this repo* | The console. Holds the Vite app scaffolded in FE-01; wave 1 builds the product here. `DS-PROJECT/` is a **local-only** reference, not versioned here — see §2. |
-| Backend | **`shemaobt/tripod-api`** | Existing, running FastAPI service. Shemá is a **module inside it**, already scaffolded. |
+| Backend | **`shemaobt/shema-api`** — formerly `tripod-api` | Existing, running FastAPI service. Shemá is a **module inside it**, living on **`origin/dev`** — `main` does not have it yet (§3.2). |
 
-> ⚠️ Older Linear text (the project description body, the B1 milestone, the "Working plan" document) still names a frontend repo `shema-console` and a backend repo `shema-backend`. **Both names are stale.** The frontend is this repo — issue FE-01 ([OBT-348](https://linear.app/shema-obt/issue/OBT-348)) states it directly. The backend is `tripod-api` — issue BE-01 ([OBT-390](https://linear.app/shema-obt/issue/OBT-390)) states it directly: *"Shemá is a module inside it (`/api/shema`, `app/services/shema/`), not a new service."*
+> ⚠️ Older Linear text (the project description body, the B1 milestone, the "Working plan" document) still names a frontend repo `shema-console` and a backend repo `shema-backend`. **Both names are stale.** The frontend is this repo — issue FE-01 ([OBT-348](https://linear.app/shema-obt/issue/OBT-348)) states it directly. The backend is `shema-api` — the repository `tripod-api` was renamed to, and the name BE-01's own title still carries — and issue BE-01 ([OBT-390](https://linear.app/shema-obt/issue/OBT-390)) states it directly: *"Shemá is a module inside it (`/api/shema`, `app/services/shema/`), not a new service."*
 
 ---
 
@@ -120,21 +120,29 @@ Do not introduce Redux, MobX, or a second styling system.
 
 FE-01 pinned the whole stack in `package.json` so no later wave-1 issue has to choose a version: React 19.2 · react-dom 19.2 · TypeScript 5.9 · Vite 7 · Tailwind 4.3 · react-router-dom 7 · Zustand 5 · Axios 1.19 · i18next 25 + react-i18next 16 · lucide-react · sonner 2 · `cva` / `clsx` / `tailwind-merge` · react-leaflet 5 + leaflet 1.9 · `@radix-ui/react-slot` (the remaining Radix primitives are added by FE-03, one per component that needs it).
 
-### 3.2 Backend — the Shemá module inside `tripod-api`
+### 3.2 Backend — the Shemá module inside `shema-api`
 
-**Local reference checkout:** `/home/levig/tripod-api-main/tripod-api` (branch `main`).
-Its own `CLAUDE.md` at the repo root is authoritative for backend conventions — read it before writing backend code. Where it and this section disagree, `tripod-api/CLAUDE.md` wins.
+**The repository is `shemaobt/shema-api`**, renamed from `tripod-api` — GitHub still redirects the old name, and older issues, local clones and parts of this file's history use it. There is no second backend to look for. Its own `CLAUDE.md` at the repo root is authoritative for backend conventions — read it before writing backend code. Where it and this section disagree, `shema-api`'s `CLAUDE.md` wins.
 
-> Other local checkouts of the same repo exist (`/home/levig/backend-tripod/tripod-api`, `/home/levig/tripod-console/tripod-back/tripod-api`, the latter on a feature branch). Use the `main` checkout above unless told otherwise.
+**What counts is `origin/dev`, not anyone's checkout.** Each person keeps their own clone; the paths an earlier revision of this section listed were one developer's machine. Work starts from `origin/dev` in a worktree of its own, and a PR targets `dev`.
 
-#### The module already exists
+#### Where the module lives — `dev`, not `main`
 
-Scaffolded by commit `dd6bac4` *(feat(OBT-266): scaffold the Shemá module — api → services → models)*:
+The module is on **`origin/dev`** and **not yet on `main`**: the junction `dev → main` is [OBT-526](https://linear.app/shema-obt/issue/OBT-526). An earlier revision of this section said the module had been *"scaffolded by commit `dd6bac4`"*; that is not where it came from and is not what `dev` holds. It arrived through the B1 pull requests, among them:
+
+| PR | Issue | What it laid down |
+|---|---|---|
+| [shema-api#400](https://github.com/shemaobt/shema-api/pull/400) | BE-01 · [OBT-390](https://linear.app/shema-obt/issue/OBT-390) | the module design and `docs/shema.md`, the anchor the later tasks hang from |
+| [#404](https://github.com/shemaobt/shema-api/pull/404) | BE-04 · [OBT-393](https://linear.app/shema-obt/issue/OBT-393) | the sensitive-country rule as a property of the output shape |
+| [#405](https://github.com/shemaobt/shema-api/pull/405) | BE-03 · [OBT-392](https://linear.app/shema-obt/issue/OBT-392) | roles, regional scope and the module's door |
+| [#406](https://github.com/shemaobt/shema-api/pull/406) | BE-13 · [OBT-402](https://linear.app/shema-obt/issue/OBT-402) | the org chart and the intercessor network |
+| [#414](https://github.com/shemaobt/shema-api/pull/414) | BE-12 · [OBT-401](https://linear.app/shema-obt/issue/OBT-401) | forms, the submission archive and the leader link |
 
 ```text
-app/api/shema/          # router, registered in app/main.py at prefix /api/shema
-app/services/shema/     # business logic + all data access
-app/models/shema.py     # Pydantic schemas
+app/api/shema/          # routers, registered in app/main.py at prefix /api/shema
+app/services/shema/     # business logic + all data access, one operation per file
+app/models/shema*.py    # Pydantic schemas, one file per aggregate
+docs/shema.md           # the module's design document — read the section your issue cites
 ```
 
 **Never create a second Shemá service, app or repo.** New endpoints are added under `/api/shema`; new logic goes in `app/services/shema/`.
@@ -175,9 +183,9 @@ app/
 
 #### What already exists — reuse it, do not rebuild it
 
-**The single largest risk in wave 2 is rebuilding what exists.** Before writing anything, check what `tripod-api` already provides:
+**The single largest risk in wave 2 is rebuilding what exists.** Before writing anything, check what `shema-api` already provides:
 
-| Need | Already in `tripod-api` |
+| Need | Already in `shema-api` |
 |---|---|
 | JWT auth, current-user dependency, platform-admin guard | `app/core/auth_middleware.py`, `app/api/auth.py`, `app/services/auth/` |
 | Roles, role grant/revoke, app-scoped role resolution | `app/services/authorization/`, `app/api/roles.py` |
@@ -188,11 +196,11 @@ app/
 | Notifications | `app/db/models/notification.py`, `app/services/notifications/`, `app/api/notifications.py` |
 | Content translation helpers | `app/services/i18n/` |
 
-**BE-01 ([OBT-390](https://linear.app/shema-obt/issue/OBT-390)) is the audit that turns this table into decisions** — a reuse / extend / not-applicable verdict per capability, *based on reading the code*, reviewed by a `tripod-api` maintainer before implementation starts. It is the first backend issue and it blocks the rest of B1.
+**BE-01 ([OBT-390](https://linear.app/shema-obt/issue/OBT-390)) is the audit that turns this table into decisions** — a reuse / extend / not-applicable verdict per capability, *based on reading the code*, reviewed by a `shema-api` maintainer before implementation starts. It is the first backend issue and it blocks the rest of B1.
 
-> ⚠️ **The hardest boundary question is the project entity.** `tripod-api` has projects; Shemá has projects; they are probably not the same projects. Whether Shemá extends the existing entity or introduces its own related one is decided in BE-01. Getting it wrong is a migration, not a refactor.
+> ⚠️ **The hardest boundary question is the project entity.** `shema-api` has projects; Shemá has projects; they are probably not the same projects. Whether Shemá extends the existing entity or introduces its own related one is decided in BE-01. Getting it wrong is a migration, not a refactor.
 
-> ⚠️ `tripod-api` also contains a `project_health` module (`app/api/project_health/`, `app/services/project_health/` — interviews, prompts, agents, voice, reports). It is **not** the same instrument as Shemá's *Avaliação de Saúde* (a 4-dimension assessment filled in-app by an OBT Lab mentor). Read the existing module before assuming either reuse or duplication, and do not conflate the two data models.
+> ⚠️ `shema-api` also contains a `project_health` module (`app/api/project_health/`, `app/services/project_health/` — interviews, prompts, agents, voice, reports). It is **not** the same instrument as Shemá's *Avaliação de Saúde* (a 4-dimension assessment filled in-app by an OBT Lab mentor). Read the existing module before assuming either reuse or duplication, and do not conflate the two data models.
 
 #### Shemá-specific backend requirements
 
@@ -239,14 +247,14 @@ src/
 
 - Every screen reads through the *same* fixture module. That is what makes wave-2 integration mechanical and reversible one screen at a time.
 - Types grown against fixtures are the input to the data contract (§10, FE-44) — they are not throwaway.
-- `vite.config.ts` carries the `/api` dev proxy from day one, **wired but unused**, so wave 2 changes no config. Its target is `VITE_API_PROXY_TARGET` (default `http://localhost:8000`, where `tripod-api` runs locally); `.env.example` documents it.
+- `vite.config.ts` carries the `/api` dev proxy from day one, **wired but unused**, so wave 2 changes no config. Its target is `VITE_API_PROXY_TARGET` (default `http://localhost:8000`, where `shema-api` runs locally); `.env.example` documents it.
 - Auth in wave 1 is a **mocked session** in `AppShell`.
 
 **Built in FE-05 ([OBT-352](https://linear.app/shema-obt/issue/OBT-352)), 30/jul/2026 — Levi Gomes.** The layer exists; these are its rules:
 
 - **One entry point: `src/fixtures` (the index).** It exposes `projectsAPI`, `regionsAPI`, `meetingsAPI`, `prayerAPI`, `intercessorsAPI`, `etenAPI`, `geoAPI` — namespaces that mirror §8's Axios client — and every method is `async`. Screens `await` them exactly as they will `await` the API in wave 2. Deep imports (`fixtures/projects`, `fixtures/data/*.json`) are **blocked by ESLint** for `components/`, `contexts/`, `hooks/`, `stores/` and `services/`.
 - **The data is verbatim.** `src/fixtures/data/projects.json` is the Notion export as it is — empty fields, mixed casing, `Waima’a`, `Ngäbere`. Every read hands out a `structuredClone`, so a screen cannot corrupt the shared record.
-- **Every derivation is a pure function of `(project, now)`** in `src/utils/` — `getProjectStatus`, `getProgress`, `rollUpProgress`, `getOverallHealth`, `healthScore`, `getPriority`, `getStaleStatus`, `getDaysSinceUpdate`, `getDeadlineInfo`, `isRecentlyUpdated`, `matchesPreset`, `getRegion`. No hidden clock: `now` defaults to `new Date()` and is injected in tests. `tripod-api` has to reproduce these exactly, so they are pinned by `src/utils/__tests__/dataJsParity.json` — the output of the prototype's own `data.js` over all 127 records at the reference date `2026-05-14`. **Changing a derivation means regenerating that file, never hand-editing it: `npm run fixtures:parity`** (and `npm run fixtures:import` re-imports `projects.json` / `continents.json` from a fresh design package). Both scripts need `DS-PROJECT/` unzipped at the repo root and read it without writing to it.
+- **Every derivation is a pure function of `(project, now)`** in `src/utils/` — `getProjectStatus`, `getProgress`, `rollUpProgress`, `getOverallHealth`, `healthScore`, `getPriority`, `getStaleStatus`, `getDaysSinceUpdate`, `getDeadlineInfo`, `isRecentlyUpdated`, `matchesPreset`, `getRegion`. No hidden clock: `now` defaults to `new Date()` and is injected in tests. `shema-api` has to reproduce these exactly, so they are pinned by `src/utils/__tests__/dataJsParity.json` — the output of the prototype's own `data.js` over all 127 records at the reference date `2026-05-14`. **Changing a derivation means regenerating that file, never hand-editing it: `npm run fixtures:parity`** (and `npm run fixtures:import` re-imports `projects.json` / `continents.json` from a fresh design package). Both scripts need `DS-PROJECT/` unzipped at the repo root and read it without writing to it.
 - **The Notion export writes dates as `DD/MM/YYYY`; the fixture converts them at the boundary.** Decided 30/jul/2026 by Levi Gomes. The export's format is provably `DD/MM/YYYY` — of the 70 dates it carries, 60 have a first component above 12 and none have a second one, so the reading is unambiguous. `src/fixtures/normalize.ts` (`toIsoDate`) converts `startDate`, `deadline`, `lastUpdated`, `healthAssessmentDate` and every `progressHistory[].date` before the seeds run; anything that is not an export date passes through untouched. `data/projects.json` stays byte-identical to the export — the conversion happens on load, never on the file.
   - **This is a deliberate divergence from the prototype**, the only one. Left unconverted, the dates are unparseable: the prototype reads staleness as `em-dia` for all of them and the `recent` preset matches nothing. Converted, 7 projects correctly surface as `critico` at the reference date. `src/utils/__tests__/parity.test.ts` pins both sides — the helpers still reproduce `data.js` exactly over the raw export, and a second test asserts the conversion changes staleness *only* for the 8 records the export dated, leaving status, health, progress and region identical.
   - **BE-16 must reproduce the same conversion** when it migrates the 127 projects, and store real `date` columns rather than text. `toIsoDate` is the reference implementation. A migration that inserts `13/04/2024` into a text column moves the bug into the database, where the fix costs a migration instead of a function.
@@ -416,6 +424,8 @@ So B is the Pulse, E is the Health Assessment (built by FE-37, not here), and D 
 
 **No copy names a file format while GATE-03 is open.** `.html` out and `.json` back are the prototype's, never confirmed, and the format is behaviour — so the issue wins over the prototype (§2). This corrects copy that was already in the repo: `forms_generate` said *"(.html)"*, `forms_footnote` said *"returns as .json"* and `forms_received_empty` said *"import a .json"*, all ported ahead of the screen in FE-07. `formsRender.test.ts` guards both halves — no `forms_*` value in either catalogue may name an extension, and the rendered page may not either — and the screen states the openness in words (`forms_format_pending`). When GATE-03 closes, that guard is the thing to relax, deliberately.
 
+**The server half of the Forms hub exists since BE-12, and the screen still does not transact — two different facts** (FE-54, [OBT-545](https://linear.app/shema-obt/issue/OBT-545), 28/set/2026). BE-12 ([OBT-401](https://linear.app/shema-obt/issue/OBT-401), [shema-api#414](https://github.com/shemaobt/shema-api/pull/414)) is on `shema-api`'s `dev`: a submission is **archived byte-identically** (`request.body()` is what is kept, not the server's re-serialisation), and **import exists** at two doors, both for a signed-in coordinator — `POST /api/shema/forms/submissions` files an answer that arrived some other way and applies it in one call, and `POST /api/shema/forms/submissions/{id}/import` applies one already sitting in the inbox from a leader link. Applying is idempotent twice over (`applied_at`, and the progress a Pulse carries is absolute) and goes through `save_project`'s own write path, so an import is indistinguishable from a typed change except for `fromField`/`formType`. **What the console calls today is the reading half**: INT-09 ([OBT-414](https://linear.app/shema-obt/issue/OBT-414)) flipped `forms` to the API, so the archive list is `GET /forms/submissions` and no longer the empty fixture — but no screen calls either apply door, which is why `forms_actions_pending` and `receive_pending` still say applying the answer arrives later, and are still true. The bullet above that says *"the archive is empty, and stays empty"* now describes the fixture mode only.
+
 ### 5.4 Ritmo — the listening cascade
 
 **GATE-02 closed the set on 25/set/2026** ([OBT-388](https://linear.app/shema-obt/issue/OBT-388), Karina's answers of 22/set), and FE-49 ([OBT-529](https://linear.app/shema-obt/issue/OBT-529), 28/set/2026 — Daniel Santiago Caliri) rebuilt the area on it. **The set is the same in the seven regions**, and of its five encounters only three are meetings:
@@ -471,7 +481,7 @@ Prayer wall compiled from every project's shared requests, with indicators and c
 
 Annual credit report: yearly snapshot, credit calculation from the **delta** between snapshots, report by year, Shemá-branded PDF + CSV export, and the ETEN page (year selector, indicators, table, outputs).
 
-> ⚠️ The credit counting method is a **client gate** (Youngshin) — GATE-01 ([OBT-387](https://linear.app/shema-obt/issue/OBT-387)). Do not implement a calculation before it is fixed.
+> ⚠️ The credit counting method is a **client gate** (Youngshin) — GATE-01 ([OBT-387](https://linear.app/shema-obt/issue/OBT-387)). Do not implement a calculation before it is fixed. **Closed on 25/set/2026 — see §10**; the rule below stands, and [OBT-530](https://linear.app/shema-obt/issue/OBT-530) moves it to the fiscal year and rewrites this section.
 
 **Built in FE-34 ([OBT-376](https://linear.app/shema-obt/issue/OBT-376)), 14/aug/2026 — Daniel Oliveira**, against a counting rule the client stated during the work. The rule is **not** the prototype's, and it is **not yet formally confirmed with Youngshin** — GATE-01 stays open, and the screen says so in plain words rather than presenting a guess as fact.
 
@@ -544,11 +554,26 @@ Built in FE-39 ([OBT-381](https://linear.app/shema-obt/issue/OBT-381)), 15/aug/2
 - **The withholding is visible, not silent — and it takes the base with it.** A withheld record carries `locationWithheld: true` with the region label sitting where the location would be **and an empty `base`**: seed bases name places (`YWAM Egypt`, `YWAM Morelia`), so a file that withholds `Egypt` from the location while printing `YWAM Egypt` one column over has redacted nothing — raised in the PR #39 review, 15/aug/2026. FE-15's base gap stays open for the in-console surfaces (§5.1); this decision covers the export file only, the surface whose issue says *decide what is withheld*. The CSV adds a *País sensível* column, and both formats open with a header stating what the file contains, when it was generated, that it is confidential, and how many locations were withheld (`export_withheld_count`, which names location and base) — the same keys the dialog shows before the download, one owner per sentence. A file with no sensitive projects gets no withheld note rather than a "0 recolhidos" line.
 - **CSV hygiene is a function, not a habit.** `csvCell` in `src/utils/export.ts` quotes and escapes every field and neutralises anything a spreadsheet would read as a formula (`=`, `+`, `-`, `@` leads get `'`); the file opens with a BOM so non-Latin names (`Waima’a`, `Ngäbere`) survive Excel; the separator is `;`, the pt-BR default. The download itself attaches the anchor to the document and defers the blob revoke (`downloadTextFile`) — the prototype revokes in the same tick as the click (`app.jsx:804`), which Chrome tolerates and Firefox/Safari may not, and porting does not absolve (PR #39 review). Labels come from the existing vocabulary owners — `STATUS_LABEL_KEYS` was **promoted** from a private copy in the Sidebar's `sections.ts` to `src/constants/status.ts` beside `HEALTH_LABEL_KEYS`, because a third private copy is exactly what §13's one-owner rule forbids.
 - **Import validates everything before applying anything.** `parseProjectsImport` accepts only the raw project list (the prototype's backup contract): the first broken record rejects the whole file with its 1-based index, a duplicated id rejects it too, and the **redacted export is recognised and refused whole** (`import_is_export`) — importing the report would replace full records with reduced ones, which is the destructive round-trip the redaction makes possible. Validation is by vocabulary and shape, not by `typeof` alone — raised in the PR #39 review, 15/aug/2026: a shallow predicate asserting `entry is Partial<Project>` typed `status: "banana"` as `ProjectStatus` and broke the *next* export's label lookup. Union fields check their owners (`PROJECT_STATUSES`, `HEALTH_LEVELS` plus the empty rating, `isPrayerVisibility`), `coords` is a pair of finite numbers, and list fields check the item shape the derivations read (`needsItems[].description` reaches `.trim()` on the prayer wall). Apply is one operation, `projectsStore.importProjects`, so all-or-nothing is structural rather than promised. The dialog states the rule (`import_desc`) and, on refusal, states that nothing entered (`import_none_applied`).
-- **Receber Atualização and Link do líder are honest stubs.** Receive states the loop and that importing the answer is wave 2 (`receive_pending`), and repeats `forms_format_pending` **by reference** — GATE-03's sentence keeps one owner. The leader-link dialog states scope (intake only, no console, no data) and expiry in plain words, and that minting arrives in wave 2. The GATE-03 extension guard in `formsRender.test.ts` now also scans `receive_*` and `intake_*`.
+- **Receber Atualização and Link do líder were honest stubs in wave 1.** Receive states the loop and that importing the answer is wave 2 (`receive_pending`), and repeats `forms_format_pending` **by reference** — GATE-03's sentence keeps one owner. The leader-link dialog states scope (intake only, no console, no data) and expiry in plain words. The GATE-03 extension guard in `formsRender.test.ts` now also scans `receive_*` and `intake_*`.
+  - **The leader link is no longer a stub** (FE-54, [OBT-545](https://linear.app/shema-obt/issue/OBT-545), 28/set/2026). INT-09 ([OBT-414](https://linear.app/shema-obt/issue/OBT-414), [PR #50](https://github.com/shemaobt/project-management-ecosystem/pull/50), 15/set/2026 — Levi Gomes) integrated it against BE-12: the dialog mints through `POST /api/shema/intake-links` (listed with `GET` and revoked with `POST …/{id}/revoke`), and the person who receives it answers at the public route **`intake/:token`** (`App.tsx`), outside the session, through `GET`/`POST /api/shema/intake/{token}`. The sentence *"minting arrives in wave 2"* left with it. **Receber Atualização stays a stub** for the reason §5.3 gives: the server can apply an answer, the console does not call it yet.
 - **Reload is the wave-2 seam, exercised.** `projectsStore.reload()` always refetches from the fixture layer — `hydrate()` is once, `reload()` is every time — behind the prototype's own `confirm_reload` copy in a confirm dialog. In wave 2 it becomes the same `GET` the hydrate uses.
 - **The dialogs are testable at the presentational seam** (§5.9's shape): each ships a `*Body` component taking props, and `dados/__tests__/dialogs.test.ts` pins the copy guarantees — the loading state shows no download buttons (a loading export is not an export of 0 projects), the sensitive count appears before the download, and no rendered dialog names a file extension.
 
 ---
+
+### 5.11 Acesso entre o PME e o Formulário de Solicitação de Recursos
+
+**The PME becomes the door to the form, and this section is the pointer, not the detail** (FE-54, [OBT-545](https://linear.app/shema-obt/issue/OBT-545), 28/set/2026). The decisions are recorded with author and date in [OBT-522](https://linear.app/shema-obt/issue/OBT-522) and argued in full in the 25/set document *"Acesso PME ↔ Formulário e respostas da Karina"*; each implementation issue writes its own detail here when it lands.
+
+- **The form has no login.** Everyone reaches it from the PME with a single-use **pass code** ([OBT-527](https://linear.app/shema-obt/issue/OBT-527)), or by a **link the platform issues** — reunião de 22/set.
+- **Roles are managed in the PME, on one screen, for both apps**, and only the **Admin** grants and revokes ([OBT-543](https://linear.app/shema-obt/issue/OBT-543), [OBT-546](https://linear.app/shema-obt/issue/OBT-546)); the form's own `/access` retires. The Gestor sees every stage at the mesa's level and administers no roles — Daniel, 23/set.
+- **The session carries several roles** ([OBT-523](https://linear.app/shema-obt/issue/OBT-523)), and the PME's door accepts the form's roles.
+- **A team is the project's members in the PME** ([OBT-524](https://linear.app/shema-obt/issue/OBT-524)); someone outside the PME requests through a link the Admin issues — *"os dois, tanto quem já tem conta no PME quanto quem ainda não tem pode fazer uma solicitação"*, Karina, 25/set.
+- **The base leader has no account** and endorses by a link with a code sent to the e-mail the team gave — reunião de 22/set.
+- **The mesa's approval registers the project and its members in the PME**, with the Admin checking first — Karina, 25/set ([OBT-547](https://linear.app/shema-obt/issue/OBT-547)).
+- **Inside the PME** the form appears as *Solicitar recurso* and a status on the record ([OBT-544](https://linear.app/shema-obt/issue/OBT-544)), and its notices ring the PME's bell ([OBT-541](https://linear.app/shema-obt/issue/OBT-541)).
+
+⚠️ **Attribution is the part to keep.** Only the lines marked *Karina* are hers; the rest is the 22/set meeting (OBT, Karina, Daniel, Levi) or Daniel's own decisions of 23 and 25/set, and OBT-522 says which is which. This section names issues by `OBT-###` only, on purpose: the new front's `FE-*`/`BE-*` codes collide with each other and with the older ones (two `BE-21`, two `BE-22`), so the code alone does not say which issue is meant.
 
 ## 6. Domain rules
 
@@ -569,7 +594,7 @@ Ported from `DS-PROJECT/data.js` — these are the canonical enums and derivatio
 
 `sensitiveCountry` projects must be handled with **devida cautela in every output path**: the map, exports (JSON/CSV/TXT/HTML/PDF), the prayer wall, the ETEN report and notifications.
 
-Treat it as a cross-cutting invariant: any new output surface must go through the same redaction rule. It is scheduled deliberately **early in the backend wave** (BE-04, [OBT-393](https://linear.app/shema-obt/issue/OBT-393)), before anything that emits data, and enforced in `tripod-api`'s service layer so it holds for every consumer, not only the console.
+Treat it as a cross-cutting invariant: any new output surface must go through the same redaction rule. It is scheduled deliberately **early in the backend wave** (BE-04, [OBT-393](https://linear.app/shema-obt/issue/OBT-393)), before anything that emits data, and enforced in `shema-api`'s service layer so it holds for every consumer, not only the console.
 
 > ⚠️ What "devida cautela" means per output is a **client gate**.
 
@@ -727,7 +752,7 @@ Define a single global `*:focus-visible` outline using the telha focus ring. Com
 
 ### API
 
-> ⚠️ **The backend repo is `shema-api`** — renamed from `tripod-api`, and that is the name this section uses because it is the one the frozen contract, BE-01's design document and BE-03's branch all use. **§3.2 of this file still says `tripod-api` and still claims the Shemá module is already scaffolded; both are stale.** The correction is FE-44's Appendix B.1, whose owner is whoever lands the rename — it is not INT-01's to write, and leaving it unmentioned would be worse than naming it. FE-44's **B.4 is closed by this issue**: `src/services/api` now exists.
+> The backend repo is `shema-api`, renamed from `tripod-api`, and the module this section calls lives on its `dev` branch (§3.2). The flag an earlier revision of this line raised — *§3.2 still says `tripod-api` and still claims the module is scaffolded* — was FE-44's Appendix B.1, and FE-54 ([OBT-545](https://linear.app/shema-obt/issue/OBT-545), 28/set/2026) closed it. FE-44's **B.4 was closed by INT-01**: `src/services/api` exists.
 
 All backend calls target **`shema-api`** and go through a single Axios instance, with namespaced APIs (`authAPI`, `sessionAPI`, `projectsAPI`, `regionsAPI`, `meetingsAPI`, `prayerAPI`, `intercessorsAPI`, `etenAPI`, `formsAPI`, `geoAPI`). Add new methods to the right namespace — never create a second client or duplicate auth handling.
 
@@ -807,7 +832,7 @@ Team `OBT`. Every issue follows: **Goal / Read these first / Context & specs / S
 
 | Milestone | Issues | What it is |
 |---|---|---|
-| **B1 · Backend** | GATE-01…03, BE-01…16 | **BE-01 audits `tripod-api` first**, then the Shemá model + migrations, roles/region scope, sensitive-country rule, and one issue per area. BE-16 migrates the 127 projects from the Notion export. |
+| **B1 · Backend** | GATE-01…03, BE-01…16 | **BE-01 audits `shema-api` first** (then named `tripod-api`), then the Shemá model + migrations, roles/region scope, sensitive-country rule, and one issue per area. BE-16 migrates the 127 projects from the Notion export. |
 | **B2 · Integração por tela** | INT-01…12 | Swap the fixture layer for the real API **one screen at a time**, reversible per screen, fixtures kept behind a flag for local dev. INT-12 closes with a privacy and production-readiness review. |
 
 ### Rules of engagement
@@ -816,16 +841,16 @@ Team `OBT`. Every issue follows: **Goal / Read these first / Context & specs / S
 - **Watch the shared files.** `src/components/ui/**`, the i18n catalogues, and on the backend the Alembic chain, are where two people collide.
 - **Do not skip the Definition of Done checkboxes.** Several encode the actual product guarantee — the byte-identical archive round trip, the double-import no-op, the unauthorized prayer request absent from all four output paths. Those tests *are* the requirement.
 
-### ⚠️ Open client gates
+### ⚠️ Client gates
 
-Do not freeze the corresponding contracts before these are answered. They cost about a day of team effort but an unknown number of weeks of someone else's calendar — send them early.
+Do not freeze the corresponding contracts before these are answered. They cost about a day of team effort but an unknown number of weeks of someone else's calendar — send them early. **Two closed on 25/set/2026**, from Karina's answers of 22/set; the answer lives in each gate's closing comment and in the issue that implements it (FE-54, [OBT-545](https://linear.app/shema-obt/issue/OBT-545)).
 
-| Gate | Issue | Blocks |
-|---|---|---|
-| ETEN credit counting method (Youngshin) | GATE-01 · [OBT-387](https://linear.app/shema-obt/issue/OBT-387) | BE-11, INT-08 |
-| Final meeting set — Prayer Pulse vs. Governance | GATE-02 · [OBT-388](https://linear.app/shema-obt/issue/OBT-388) | BE-10, FE-31 |
-| Monthly Pulse file format (`.html` / `.json`) | GATE-03 · [OBT-389](https://linear.app/shema-obt/issue/OBT-389) | the Pulse epic — the riskiest work |
-| What "devida cautela" means per output | — | BE-04 and every output surface |
+| Gate | Issue | State | Where the answer went |
+|---|---|---|---|
+| ETEN credit counting method | GATE-01 · [OBT-387](https://linear.app/shema-obt/issue/OBT-387) | **Closed 25/set.** One credit per defined scope completed, in approved chapters; every partner gets the whole credit; the period is ETEN's **fiscal year, August to July**, cut on 31/07. Karina answered for Youngshin and confirmed that suffices. Open, not blocking: the report's format (*"vou providenciar"*). | FE-51 · [OBT-530](https://linear.app/shema-obt/issue/OBT-530), BE-11 · [OBT-400](https://linear.app/shema-obt/issue/OBT-400), INT-08 · [OBT-413](https://linear.app/shema-obt/issue/OBT-413) |
+| Final meeting set | GATE-02 · [OBT-388](https://linear.app/shema-obt/issue/OBT-388) | **Closed 25/set.** One set for all seven regions: bimonthly International Projects × field team, quarterly International Projects × bridge people, semiannual Member Care debriefing; the Monthly Pulse is a form and the annual Celebration a report, not meetings; Prayer Pulse, Governance and Repasse are not meetings. Open, not blocking: who the bridge people are, and whether the Health Assessment moves to the bimonthly. | FE-49 · [OBT-529](https://linear.app/shema-obt/issue/OBT-529), BE-10 · [OBT-399](https://linear.app/shema-obt/issue/OBT-399), INT-07 · [OBT-412](https://linear.app/shema-obt/issue/OBT-412), FE-50 · [OBT-533](https://linear.app/shema-obt/issue/OBT-533) |
+| Monthly Pulse file format | GATE-03 · [OBT-389](https://linear.app/shema-obt/issue/OBT-389) | **Open only for the format**, which is ours to choose (*"só colocar o mais simples possível"*) and waits on a field test with a leader Karina will name. Answered 22/set: the Prayer Pulse goes to the intercessor network only, and its recipients commit not to forward it; a Prayer Pulse already sent **cannot be recalled from the people who received it**, and teams must be told that before they authorize (3.3); a Monthly Pulse returned from the field is kept, *"faz parte da história do projeto"* (3.2). ⚠️ **Not reconciled, and not decided here:** keeping the returned Pulse archived byte for byte, for good, collides with §6.2's *"cleared, not merely hidden"* the day a request inside it has its consent withdrawn — §6.2 asks the server copy to be deleted. The recall answer is about copies outside the system and does not settle it. | BE-09 · [OBT-398](https://linear.app/shema-obt/issue/OBT-398) |
+| What "devida cautela" means per output | GATE-04 · [OBT-486](https://linear.app/shema-obt/issue/OBT-486) | **Open only for the list of sensitive countries** (*"estamos definindo ainda"*). Answered 22/set, completed by Daniel on 23/set: the base name is always hidden outside the system; only coordination (`globalStrategist`, and `coordinator` in its own region) reads the real country, the rest read the region, the record included; the withheld notice is coordination's alone; the ETEN report and the public link carry language, region and progress, no base. | BE-19 · [OBT-528](https://linear.app/shema-obt/issue/OBT-528), FE-48 · [OBT-532](https://linear.app/shema-obt/issue/OBT-532) |
 
 ### Stale references you will encounter
 
@@ -834,8 +859,9 @@ The Linear project description body, the B1 milestone description and the *"Work
 | Stale wording | Current reality |
 |---|---|
 | repo `shema-console` | this repo, `shemaobt/project-management-ecosystem` |
-| repo `shema-backend`, "FastAPI scaffold", "build the backend" | the **existing** `shemaobt/tripod-api`; Shemá is a module inside it, already scaffolded |
-| epics `SHM-01…13`, issues `OBT-266`…`OBT-346` | `FE-*` / `BE-*` / `INT-*` / `GATE-*`, issues `OBT-348`…`OBT-417` |
+| repo `shema-backend`, "FastAPI scaffold", "build the backend" | the **existing** `shemaobt/shema-api`; Shemá is a module inside it, on `origin/dev` |
+| repo `tripod-api`; "scaffolded by commit `dd6bac4`" | the same repository, renamed `shema-api`; the module arrived through the B1 PRs on `dev` (§3.2) |
+| epics `SHM-01…13`, issues `OBT-266`…`OBT-346` | `FE-*` / `BE-*` / `INT-*` / `GATE-*`, issues from `OBT-348` on — including `OBT-486` and the access front `OBT-522`…`OBT-549` |
 | milestones "1 Fundação … 5 Prestação de contas" | F1…F5 (wave 1), B1…B2 (wave 2) |
 | `cards.jsx` implements `CardCoral`, and `app.jsx` switches `metaphor` across three values | the product ships **two** views; Coral's rings live in the Diário's footer (§5.1, FE-17). The prototype was not updated — it is the client's file, and FE-15's scope forbids touching `DS-PROJECT/` |
 
@@ -847,7 +873,7 @@ The Linear project description body, the B1 milestone description and the *"Work
 - **No module-level description comments.** File name and location convey purpose.
 - **TypeScript**: explicit types for props, API payloads and store shapes. Avoid `any` where a real type exists.
 - **Python**: strong typing on public functions; explicit Pydantic models over bare `dict`; concise docstrings on public service functions.
-- **File names**: PascalCase for React components (`ProjetosPage.tsx`), camelCase for utilities, hooks and stores (`api.ts`, `cn.ts`), snake_case one-operation-per-file in `tripod-api` services (`create_project.py`).
+- **File names**: PascalCase for React components (`ProjetosPage.tsx`), camelCase for utilities, hooks and stores (`api.ts`, `cn.ts`), snake_case one-operation-per-file in `shema-api` services (`create_project.py`).
 - Domain vocabulary stays in Portuguese where the product uses it (Ritmo, Pulso, Oração, Equipe, telha, verde) — do not anglicize identifiers that map to UI concepts the client names in Portuguese.
 
 ---
@@ -914,9 +940,9 @@ Wave 1's reviews (PRs #10–#16) return to the same handful of defects, listed h
 - [ ] **Tests pin behaviour, not formatting**, and a guard's own scope is asserted — a walk that also sweeps `__tests__` reports the PT/EN parity tests as leaks. *(#13, #15)*
 - [ ] **A doc line the diff contradicts is reconciled in the same PR.** §2 says which source wins; silence is not a resolution. *(#12)*
 
-### Backend (`tripod-api`)
+### Backend (`shema-api`)
 
-- [ ] `tripod-api/CLAUDE.md` read before writing backend code.
+- [ ] `shema-api`'s `CLAUDE.md` read before writing backend code, from `origin/dev`.
 - [ ] Work lands **inside the existing Shemá module** (`app/api/shema/`, `app/services/shema/`) — no new service, no new repo.
 - [ ] Checked whether the capability **already exists** before building it (§3.2 reuse table); BE-01's verdict respected.
 - [ ] `app/api/` stays thin — **zero database access in routers**, no SQLAlchemy imports beyond `AsyncSession`.
