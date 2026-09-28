@@ -284,4 +284,11 @@ describe("sem os Pulsos lidos, a tela não afirma que ninguém reportou", () => 
       i18n.t("forms_pending_title", { form: i18n.t("forms_pulse_title") }),
     );
   });
+
+  it("e deixa a Avaliação de Saúde onde está, porque ela não lê o arquivo", () => {
+    const markup = view([project()], null);
+
+    expect(markup).toContain(i18n.t("forms_open_health"));
+    expect(markup).toContain('href="/formularios/avaliacao/kadiweu"');
+  });
 });

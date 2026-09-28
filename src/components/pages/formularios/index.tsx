@@ -44,6 +44,7 @@ export function FormulariosView({
   const project = sorted.find((entry) => entry.id === picked) ?? sorted[0];
 
   const pulse = formOf("pulso");
+  const pulsesKnown = submissions !== null;
   const archive = useMemo(() => submissions ?? [], [submissions]);
 
   const readiness = useMemo(
@@ -98,39 +99,47 @@ export function FormulariosView({
         </div>
       ) : !project || !reporting || !pulseState ? (
         <EmptyState message={t("forms_no_projects")} />
-      ) : submissions === null ? (
-        <p className="rounded-md border border-line bg-muted px-4 py-3 text-small leading-normal text-fg-muted">
-          {t("forms_pulses_unread")}
-        </p>
       ) : (
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {reporting.map(({ form, state }) => (
-              <FormCard
-                key={form.kind}
-                form={form}
-                reporting={state}
-                action={
-                  form.mechanism === "inApp" ? (
-                    <Button asChild>
-                      <Link to={`/formularios/avaliacao/${project.id}`}>
-                        {t("forms_open_health")}
-                      </Link>
-                    </Button>
-                  ) : null
-                }
-              />
-            ))}
+            {reporting
+              .filter(({ form }) => pulsesKnown || form.kind !== pulse.kind)
+              .map(({ form, state }) => (
+                <FormCard
+                  key={form.kind}
+                  form={form}
+                  reporting={state}
+                  action={
+                    form.mechanism === "inApp" ? (
+                      <Button asChild>
+                        <Link to={`/formularios/avaliacao/${project.id}`}>
+                          {t("forms_open_health")}
+                        </Link>
+                      </Button>
+                    ) : null
+                  }
+                />
+              ))}
           </div>
 
-          <StepByStep
-            projectName={project.languageName}
-            reporting={pulseState}
-          />
+          {/* The Health Assessment is filled in-app and reads nothing from the archive, so an
+              unread archive takes only the Pulse's blocks with it (PR #62 review). */}
+          {pulsesKnown ? (
+            <>
+              <StepByStep
+                projectName={project.languageName}
+                reporting={pulseState}
+              />
 
-          <PendingProjects form={pulse} readiness={readiness} />
+              <PendingProjects form={pulse} readiness={readiness} />
 
-          <ReceivedArchive submissions={archive} />
+              <ReceivedArchive submissions={archive} />
+            </>
+          ) : (
+            <p className="rounded-md border border-line bg-muted px-4 py-3 text-small leading-normal text-fg-muted">
+              {t("forms_pulses_unread")}
+            </p>
+          )}
 
           <div className="flex flex-col gap-1.5 text-micro leading-normal text-fg-subtle">
             <p className="max-w-[80ch]">{t("forms_footnote")}</p>
