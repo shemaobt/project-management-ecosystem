@@ -332,10 +332,20 @@ describe("o que não é reunião não se registra como reunião", () => {
     expect(markup).toContain(i18n.t("ritmo_pulso_where"));
   });
 
-  it("a Celebração anual diz que é relatório, sem botão nenhum", () => {
-    const markup = renderToStaticMarkup(createElement(CelebrationCard));
+  it("a Celebração anual diz que é relatório, sem botão de registrar", () => {
+    const markup = renderToStaticMarkup(
+      createElement(MemoryRouter, null, createElement(CelebrationCard)),
+    );
     expect(markup).toContain(i18n.t("ritmo_celebracao_title"));
     expect(markup).toContain(i18n.t("ritmo_celebracao_desc"));
     expect(markup).not.toContain("<button");
+  });
+
+  it("e leva ao relatório do ano (FE-50)", () => {
+    const markup = renderToStaticMarkup(
+      createElement(MemoryRouter, null, createElement(CelebrationCard)),
+    );
+    expect(markup).toContain('href="/ritmo/relatorio"');
+    expect(markup).toContain(i18n.t("ritmo_celebracao_open"));
   });
 });
