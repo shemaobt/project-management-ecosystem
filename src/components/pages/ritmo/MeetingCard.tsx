@@ -56,7 +56,7 @@ export function MeetingCard({ meeting, children }: MeetingCardProps) {
             {t(MEETING_FEED_LABEL_KEYS[meeting.feeds])}
           </p>
 
-          {meeting.ourReading ? (
+          {meeting.participantsPending ? (
             <p className="mt-1.5 font-serif text-micro leading-[1.4] italic text-fg-muted">
               {t("ritmo_participants_pending")}
             </p>

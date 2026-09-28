@@ -44,11 +44,11 @@ export interface MeetingDefinition {
   feeds: MeetingFeed;
   readiness?: MeetingReadiness;
   /**
-   * The attendee list or the readiness is **our reading**, not Karina's answer: GATE-02 left
-   * open who the bridge people are and whether the Health Assessment moves to the bimonthly
-   * meeting. The card says so until she answers.
+   * Who attends is **not defined yet**, so the card shows the roles it is held by and says the
+   * people are still to be named. Only the quarterly carries it today: the bridge people do not
+   * exist as information (Karina, 28/set/2026) — `BRIDGE_PEOPLE` in `constants/meetings.ts`.
    */
-  ourReading?: boolean;
+  participantsPending?: boolean;
   titleKey: string;
   descriptionKey: string;
 }
