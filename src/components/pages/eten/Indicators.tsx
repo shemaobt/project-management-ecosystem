@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { surfaceOutlined } from "../../../styles";
 import type { EtenYearReport } from "../../../types/eten";
 import { cn } from "../../../utils/cn";
+import { fiscalYearSpan } from "../../../utils/etenCredits";
 
 export interface IndicatorsProps {
   report: EtenYearReport;
@@ -59,7 +60,7 @@ export function Indicators({ report }: IndicatorsProps) {
           {t("eten_advancing")}
         </p>
         <p className="mt-1 text-tag leading-[1.4] text-fg-subtle">
-          {t("eten_advancing_sub")} {report.year}
+          {t("eten_advancing_sub")} {fiscalYearSpan(report.year)}
         </p>
       </section>
     </div>
