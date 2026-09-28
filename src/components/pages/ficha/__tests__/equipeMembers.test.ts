@@ -27,6 +27,7 @@ const { makeEmptyProject } = await import("../../../../stores/recordStore");
 const { formatDate } = await import("../../../../utils/format");
 const { EquipeTab } = await import("../tabs/Equipe");
 const { MembersPanel } = await import("../tabs/equipe/ProjectMembers");
+const { FULL_ACCESS } = await import("../../../../utils/recordAccess");
 
 const noop = () => {};
 
@@ -46,6 +47,7 @@ const handle = (values: Values, saved: boolean) => {
     errors: [],
     errorsFor: () => [],
     discard: noop,
+    place: FULL_ACCESS,
   };
 };
 

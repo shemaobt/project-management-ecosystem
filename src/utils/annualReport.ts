@@ -2,7 +2,7 @@ import { REGIONS } from "../constants/regions";
 import type { LocationDisplay, RegionKey } from "../types/region";
 import type { Project } from "../types/project";
 import { parseIsoDate, toCalendarDate } from "./cadence";
-import { getLocationDisplay, getRegion } from "./region";
+import { getLeavingLocation, getRegion } from "./region";
 
 /**
  * The annual report GATE-02 turned the Celebration into (OBT-388, Karina, 22/set/2026):
@@ -50,11 +50,23 @@ function yearOf(date: string | undefined): number | null {
   return parseIsoDate(date)?.year ?? null;
 }
 
+/**
+ * The report is a summary of the year that leaves the room, so a sensitive project's line
+ * is withheld whoever reads — FE-48's per-reader rule is for cards and the record, not for
+ * what leaves (§6.1). The line carries the place only, never the base.
+ */
+function reportedLocation(project: Project): LocationDisplay {
+  const place = getLeavingLocation(project);
+  return place.withheld
+    ? { withheld: true, regionLabelKey: place.regionLabelKey }
+    : { withheld: false, location: place.location };
+}
+
 function reported(project: Project): ReportedProject {
   return {
     id: project.id,
     languageName: project.languageName,
-    location: getLocationDisplay(project),
+    location: reportedLocation(project),
   };
 }
 

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { FULL_ACCESS } from "../../../../utils/recordAccess";
 
 function createMemoryStorage() {
   const data = new Map<string, string>();
@@ -195,12 +196,12 @@ describe("base e YWAM/JOCUM são um conceito com dois nomes", () => {
   });
 
   it("a base é obrigatória para salvar", () => {
-    expect(missingRequired({ ...makeEmptyProject() })).toContain("team");
+    expect(missingRequired({ ...makeEmptyProject() }, FULL_ACCESS)).toContain("team");
     expect(
-      missingRequired({ ...makeEmptyProject(), team: "   " }),
+      missingRequired({ ...makeEmptyProject(), team: "   " }, FULL_ACCESS),
     ).toContain("team");
     expect(
-      missingRequired({ ...makeEmptyProject(), team: "JOCUM Aurora" }),
+      missingRequired({ ...makeEmptyProject(), team: "JOCUM Aurora" }, FULL_ACCESS),
     ).not.toContain("team");
   });
 

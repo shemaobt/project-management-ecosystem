@@ -23,6 +23,7 @@ import type {
   RecordSaveReport,
 } from "../types/projectRecord";
 import type { ApiFailure } from "../types/session";
+import { mayWrite, recordAccess } from "../utils/recordAccess";
 
 /** A field whose two values differ — `JSON` because half of them are arrays. */
 function differs(left: unknown, right: unknown): boolean {
@@ -258,7 +259,12 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
       return outcome;
     }
 
-    const fields = changedFields(draft, record.project);
+    // Second net under the draft filter (useDraft): a field this reader may not write
+    // never travels, so a stale draft cannot turn the whole save into a 403 (OBT-532).
+    const access = recordAccess(record.project, false);
+    const fields = changedFields(draft, record.project).filter((field) =>
+      mayWrite(access, field),
+    );
     if (fields.length === 0) {
       // No request goes out, so this is **not** a save — and it must not be answered
       // with one. Somebody who only typed into a tab this endpoint does not take yet

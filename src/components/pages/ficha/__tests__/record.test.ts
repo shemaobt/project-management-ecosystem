@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { FULL_ACCESS } from "../../../../utils/recordAccess";
 
 function createMemoryStorage() {
   const data = new Map<string, string>();
@@ -132,7 +133,7 @@ describe("o rascunho não some", () => {
 
 describe("os quatro obrigatórios são cobrados num lugar só", () => {
   it("uma ficha vazia acusa exatamente os quatro", () => {
-    expect(missingRequired(makeEmptyProject())).toEqual([...REQUIRED_FIELDS]);
+    expect(missingRequired(makeEmptyProject(), FULL_ACCESS)).toEqual([...REQUIRED_FIELDS]);
   });
 
   it("objetivo conta como vazio quando a lista está vazia", () => {
@@ -142,13 +143,13 @@ describe("os quatro obrigatórios são cobrados num lugar só", () => {
       bridgeLanguage: "Português",
       team: "YWAM Boa Vista",
     };
-    expect(missingRequired(draft)).toEqual(["objective"]);
-    expect(missingRequired({ ...draft, objective: ["NT"] })).toEqual([]);
+    expect(missingRequired(draft, FULL_ACCESS)).toEqual(["objective"]);
+    expect(missingRequired({ ...draft, objective: ["NT"] }, FULL_ACCESS)).toEqual([]);
   });
 
   it("espaço em branco não preenche obrigatório", () => {
     expect(
-      missingRequired({ ...makeEmptyProject(), languageName: "   " }),
+      missingRequired({ ...makeEmptyProject(), languageName: "   " }, FULL_ACCESS),
     ).toContain("languageName");
   });
 

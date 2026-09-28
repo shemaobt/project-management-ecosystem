@@ -11,7 +11,7 @@ import type { ReceivedSubmission } from "../types/forms";
 import type { Project } from "../types/project";
 import { formatIsoDate, parseIsoDate, periodEnd, toCalendarDate } from "./cadence";
 import { isAssessed } from "./health";
-import { getRegion, getRegionLabelKey } from "./region";
+import { getLocationDisplay, getRegion, getRegionLabelKey } from "./region";
 import { hasReported, indexPulses, type PulseIndex } from "./rhythm";
 
 export function formOf(kind: FormKind): FormDefinition {
@@ -102,6 +102,11 @@ export function formReadiness(
     periodEnd: formatIsoDate(periodEnd(form.cadence, today)),
     pending,
   };
+}
+
+export function projectOptionLabel(project: Project): string {
+  const { base } = getLocationDisplay(project);
+  return base ? `${project.languageName} · ${base}` : project.languageName;
 }
 
 export function selectableProjects(projects: readonly Project[]): Project[] {

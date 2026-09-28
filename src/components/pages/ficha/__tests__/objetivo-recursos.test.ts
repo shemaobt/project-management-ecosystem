@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { FULL_ACCESS } from "../../../../utils/recordAccess";
 
 function createMemoryStorage() {
   const data = new Map<string, string>();
@@ -119,12 +120,12 @@ describe("o prazo definido na aba é o que a ordenação do F2 consome", () => {
 
 describe("o escopo é obrigatório no registro inteiro", () => {
   it("uma ficha sem escopo aparece na lista de pendências", () => {
-    expect(missingRequired(makeEmptyProject())).toContain("objective");
+    expect(missingRequired(makeEmptyProject(), FULL_ACCESS)).toContain("objective");
   });
 
   it("um escopo marcado sai da lista", () => {
     const values = { ...makeEmptyProject(), objective: ["NT" as const] };
-    expect(missingRequired(values)).not.toContain("objective");
+    expect(missingRequired(values, FULL_ACCESS)).not.toContain("objective");
   });
 });
 

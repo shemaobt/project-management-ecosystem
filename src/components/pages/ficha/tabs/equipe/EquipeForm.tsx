@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Input } from "../../../../ui";
 import { Field, FieldGrid } from "../../fields";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import type { DraftHandle } from "../../useDraft";
 import { PeopleField } from "./PeopleField";
 import { RegionalRoles } from "./RegionalRoles";
@@ -15,9 +16,12 @@ export function EquipeForm({ draft }: EquipeFormProps) {
   const { t } = useTranslation();
   const [touched, setTouched] = useState(false);
   const values = draft.values;
+  const locked = !draft.place.baseWritable;
+  const hidden = draft.place.withheld;
+  const shown = (value: string | undefined) => (hidden ? "" : (value ?? ""));
 
   const teamError =
-    touched && !values.team?.trim() ? t("f_required") : undefined;
+    !locked && touched && !values.team?.trim() ? t("f_required") : undefined;
 
   const setBase = (value: string) => {
     draft.set("team", value);
@@ -30,7 +34,7 @@ export function EquipeForm({ draft }: EquipeFormProps) {
         <Field
           id="ficha-team"
           label={t("f_facilitators")}
-          required
+          required={!locked}
           full
           hint={t("f_base_hint")}
           error={teamError}
@@ -38,7 +42,8 @@ export function EquipeForm({ draft }: EquipeFormProps) {
           {(control) => (
             <Input
               {...control}
-              value={values.team ?? ""}
+              value={shown(values.team)}
+              disabled={locked}
               placeholder={t("placeholder_facilitators")}
               autoComplete="off"
               aria-invalid={Boolean(teamError)}
@@ -64,7 +69,8 @@ export function EquipeForm({ draft }: EquipeFormProps) {
           {(control) => (
             <Input
               {...control}
-              value={values.teamLeaderContact ?? ""}
+              value={shown(values.teamLeaderContact)}
+              disabled={locked}
               placeholder={t("f_contact")}
               autoComplete="off"
               spellCheck={false}
@@ -90,7 +96,8 @@ export function EquipeForm({ draft }: EquipeFormProps) {
           {(control) => (
             <Input
               {...control}
-              value={values.mentorContact ?? ""}
+              value={shown(values.mentorContact)}
+              disabled={locked}
               placeholder={t("f_contact")}
               autoComplete="off"
               spellCheck={false}
@@ -105,7 +112,8 @@ export function EquipeForm({ draft }: EquipeFormProps) {
           {(control) => (
             <Input
               {...control}
-              value={values.teamContact ?? ""}
+              value={shown(values.teamContact)}
+              disabled={locked}
               placeholder={t("placeholder_team_contact")}
               autoComplete="off"
               onChange={(event) => draft.set("teamContact", event.target.value)}
@@ -157,7 +165,11 @@ export function EquipeForm({ draft }: EquipeFormProps) {
         </Field>
       </FieldGrid>
 
-      {values.sensitiveCountry && <SensitiveContacts />}
+      {locked ? (
+        <CoordinationOnlyNote />
+      ) : (
+        values.sensitiveCountry && <SensitiveContacts />
+      )}
 
       <RegionalRoles location={values.location ?? ""} />
 

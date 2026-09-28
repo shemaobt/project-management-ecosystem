@@ -8,10 +8,15 @@ const PAGE_SIZE = 30;
 
 export interface AtlasViewProps {
   projects: readonly Project[];
+  locationsWithheld: number | null;
   onSelect?: (project: Project) => void;
 }
 
-export function AtlasView({ projects, onSelect }: AtlasViewProps) {
+export function AtlasView({
+  projects,
+  locationsWithheld,
+  onSelect,
+}: AtlasViewProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const [prevProjects, setPrevProjects] = useState(projects);
@@ -22,7 +27,13 @@ export function AtlasView({ projects, onSelect }: AtlasViewProps) {
 
   return (
     <div>
-      {projects.length > 0 && <Globe projects={projects} onSelect={onSelect} />}
+      {projects.length > 0 && (
+        <Globe
+          projects={projects}
+          locationsWithheld={locationsWithheld}
+          onSelect={onSelect}
+        />
+      )}
       <div className="grid grid-cols-1 gap-3">
         {projects.slice(0, visibleCount).map((project) => (
           <ProjectCardAtlas

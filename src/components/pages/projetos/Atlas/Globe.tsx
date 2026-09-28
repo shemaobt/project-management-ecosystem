@@ -14,11 +14,7 @@ import {
   SensitiveNotice,
 } from "./GlobeOverlays";
 import { GlobeDefs, GlobeGraticule, GlobeLand } from "./GlobeScenery";
-import {
-  buildMarkerSources,
-  buildNightStats,
-  countWithheld,
-} from "./markers";
+import { buildMarkerSources, buildNightStats } from "./markers";
 import { Medallion } from "./Medallion";
 import {
   densifyPolygon,
@@ -37,10 +33,11 @@ interface Rotation {
 
 export interface GlobeProps {
   projects: readonly Project[];
+  locationsWithheld: number | null;
   onSelect?: (project: Project) => void;
 }
 
-export function Globe({ projects, onSelect }: GlobeProps) {
+export function Globe({ projects, locationsWithheld, onSelect }: GlobeProps) {
   const [rotation, setRotation] = useState<Rotation>({
     ...GLOBE_INITIAL_ROTATION,
   });
@@ -181,7 +178,6 @@ export function Globe({ projects, onSelect }: GlobeProps) {
   }, [sources, rotation]);
 
   const stats = useMemo(() => buildNightStats(projects), [projects]);
-  const withheld = useMemo(() => countWithheld(sources), [sources]);
 
   const selected = projects.find((p) => p.id === selectedId);
   const selectedMarker = selected
@@ -248,7 +244,7 @@ export function Globe({ projects, onSelect }: GlobeProps) {
           onFocus={handleFocusPoint}
         />
         <NightStatsOverlay stats={stats} />
-        <SensitiveNotice count={withheld} />
+        <SensitiveNotice count={locationsWithheld} />
 
         <svg
           ref={svgRef}

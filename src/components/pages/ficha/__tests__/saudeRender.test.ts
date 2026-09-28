@@ -6,6 +6,7 @@ import type {
   Project,
   ProjectDerived,
 } from "../../../../types/project";
+import { FULL_ACCESS } from "../../../../utils/recordAccess";
 
 function createMemoryStorage() {
   const data = new Map<string, string>();
@@ -67,6 +68,7 @@ const handle = (values: Values = {}, health: OverallHealth | null = null) => ({
   update: noop,
   errors: [],
   errorsFor: () => [],
+  place: FULL_ACCESS,
   discard: noop,
 });
 

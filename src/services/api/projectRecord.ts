@@ -15,6 +15,7 @@ import type {
   OverallHealth,
   ProgressHistoryEntry,
   Project,
+  ReadAs,
   ProjectDerived,
   ProjectMaterial,
   ProjectPhase,
@@ -172,6 +173,10 @@ interface WireRecord {
   status: Project["status"] | null;
   sensitivity: string;
   sensitiveCountry: boolean;
+  /** OBT-528, additive: the same bit for every reader — withheld from what leaves. */
+  locationWithheld?: boolean;
+  /** OBT-528, additive: who this record was built for. */
+  readAs?: string;
   statusComments: string;
   statusGoal: string;
   orgRole: string;
@@ -209,6 +214,14 @@ interface WireRecord {
 }
 
 const text = (value: string | null | undefined): string => value ?? "";
+
+/**
+ * The server's `readAs`, read closed: anything but its two values — absent included, a
+ * server from before OBT-528 — is no answer, and a payload with no answer reads withheld.
+ */
+export function readReadAs(value: unknown): ReadAs | undefined {
+  return value === "coordination" || value === "other" ? value : undefined;
+}
 
 function authorization(
   wire: WireAuthorization | null,
@@ -427,7 +440,8 @@ export function mapRecord(wire: WireRecord): Project {
     lastUpdated: text(wire.lastUpdated),
     status: wire.status ?? "desconhecido",
     sensitivity: wire.sensitivity,
-    sensitiveCountry: wire.sensitiveCountry,
+    sensitiveCountry: wire.sensitiveCountry || wire.locationWithheld === true,
+    readAs: readReadAs(wire.readAs),
     statusComments: wire.statusComments,
     statusGoal: wire.statusGoal,
     orgRole: wire.orgRole,

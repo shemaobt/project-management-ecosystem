@@ -168,6 +168,31 @@ export const SERVER_WRITABLE: ReadonlySet<RecordField> = new Set<RecordField>([
 ]);
 
 /**
+ * What only a coordination reader writes, on **every** record — the place, the flag and
+ * the reason beside it (`COORDINATION_WRITES` in shema-api's `shema_privacy.py`, OBT-528).
+ * The server refuses them with a 403 from anybody else.
+ */
+export const COORDINATION_WRITES: ReadonlySet<RecordField> = new Set<RecordField>([
+  "location",
+  "location2",
+  "coords",
+  "sensitiveCountry",
+  "sensitivity",
+]);
+
+/**
+ * What only coordination writes on a record whose place is **withheld** — the base and
+ * the three contacts (`WITHHELD_WRITES`). *Não dá para editar o que não se vê.*
+ */
+export const WITHHELD_WRITES: ReadonlySet<RecordField> = new Set<RecordField>([
+  "team",
+  "ywamBase",
+  "teamContact",
+  "teamLeaderContact",
+  "mentorContact",
+]);
+
+/**
  * `ywamBase` is accepted and folded onto `team`, so only one of them travels.
  *
  * They are one column: JOCUM is the Portuguese for YWAM, the tab shows one input and

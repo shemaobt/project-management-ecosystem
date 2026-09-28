@@ -7,6 +7,7 @@ import {
   isIsoShape,
   parseCoordinate,
 } from "../../../../../utils/identity";
+import { getLocationDisplay } from "../../../../../utils/region";
 import {
   Input,
   Select,
@@ -15,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../ui";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { Field, FieldGrid } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { SensitiveFlag } from "./SensitiveFlag";
@@ -57,6 +59,13 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
     setTouched((current) => ({ ...current, [field]: true }));
 
   const code = values.languageCode ?? "";
+  const locked = !draft.place.placeWritable;
+  const place = draft.saved ? getLocationDisplay(draft.saved) : null;
+  const withheld = draft.place.withheld && place?.withheld === true;
+  const shownLocation = withheld && place?.withheld
+    ? t(place.regionLabelKey)
+    : (values.location ?? "");
+  const shownCoords: [string, string] = withheld ? ["", ""] : typed;
 
   const setCoordinate = (index: 0 | 1, raw: string) => {
     const next: [string, string] = [typed[0], typed[1]];
@@ -160,7 +169,8 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
           {(control) => (
             <Input
               {...control}
-              value={values.location ?? ""}
+              value={shownLocation}
+              disabled={locked}
               placeholder={t("placeholder_location")}
               onChange={(event) => draft.set("location", event.target.value)}
             />
@@ -171,7 +181,8 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
           {(control) => (
             <Input
               {...control}
-              value={values.location2 ?? ""}
+              value={withheld ? "" : (values.location2 ?? "")}
+              disabled={locked}
               placeholder={t("placeholder_location2")}
               onChange={(event) => draft.set("location2", event.target.value)}
             />
@@ -200,7 +211,8 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
                 inputMode="decimal"
                 aria-label={t("f_longitude")}
                 placeholder={t("f_longitude")}
-                value={typed[0]}
+                value={shownCoords[0]}
+                disabled={locked}
                 onChange={(event) => setCoordinate(0, event.target.value)}
               />
               <Input
@@ -209,7 +221,8 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
                 inputMode="decimal"
                 aria-label={t("f_latitude")}
                 placeholder={t("f_latitude")}
-                value={typed[1]}
+                value={shownCoords[1]}
+                disabled={locked}
                 onChange={(event) => setCoordinate(1, event.target.value)}
               />
             </div>
@@ -217,8 +230,11 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
         </Field>
       </FieldGrid>
 
+      {locked && <CoordinationOnlyNote />}
+
       <SensitiveFlag
         checked={Boolean(values.sensitiveCountry)}
+        disabled={locked}
         onChange={(next) => draft.set("sensitiveCountry", next)}
       />
     </div>

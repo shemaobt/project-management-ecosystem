@@ -10,12 +10,8 @@ import { objectiveTagTone } from "../../../styles";
 import { cn } from "../../../utils/cn";
 import { getDeadlineInfo } from "../../../utils/recency";
 import { StatusDot } from "../../common/StatusBadge";
-import {
-  cardLocationDisplay,
-  cardPriority,
-  cardProgress,
-  cardStale,
-} from "./derived";
+import { getLocationDisplay } from "../../../utils/region";
+import { cardPriority, cardProgress, cardStale } from "./derived";
 
 const STAMP_TONES: Record<ProjectPriority, string> = {
   default: "bg-verde text-on-dark",
@@ -49,7 +45,7 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
   const priority = cardPriority(project);
   const deadline = getDeadlineInfo(project.deadline);
   const stale = cardStale(project);
-  const location = cardLocationDisplay(project);
+  const location = getLocationDisplay(project);
   const locationText = location.withheld
     ? t(location.regionLabelKey)
     : project.location.split("—")[0].trim();
@@ -109,7 +105,7 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
         <div className="flex flex-wrap items-center gap-2 text-micro text-fg-muted">
           <span className="inline-flex items-center gap-1">
             <Users size={11} strokeWidth={1.75} aria-hidden />
-            {project.team || "—"}
+            {location.base || "—"}
           </span>
           {locationText && (
             <>

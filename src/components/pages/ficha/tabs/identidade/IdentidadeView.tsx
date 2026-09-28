@@ -2,7 +2,9 @@ import { useTranslation } from "react-i18next";
 import { VITALITY_SCALE } from "../../../../../constants/project";
 import { formatNumber } from "../../../../../utils/format";
 import { hasPlottableCoords } from "../../../../../utils/identity";
+import { getLocationDisplay } from "../../../../../utils/region";
 import { Badge } from "../../../../ui";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { DetailItem, FieldGrid } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 
@@ -14,6 +16,8 @@ export function IdentidadeView({ draft }: IdentidadeViewProps) {
   const { t } = useTranslation();
   const locale = t("locale");
   const values = draft.values;
+  const withheld = draft.place.withheld;
+  const place = draft.saved ? getLocationDisplay(draft.saved) : null;
   const speakers = Number(values.speakerCount);
   const coords = values.coords;
   const step = VITALITY_SCALE.find(
@@ -47,8 +51,10 @@ export function IdentidadeView({ draft }: IdentidadeViewProps) {
       </DetailItem>
 
       <DetailItem label={t("d_location")} full serif>
-        {values.location || "—"}
-        {values.location2 && ` · ${values.location2}`}
+        {withheld && place?.withheld
+          ? t(place.regionLabelKey)
+          : values.location || "—"}
+        {!withheld && values.location2 && ` · ${values.location2}`}
         {values.sensitiveCountry && (
           <Badge tone="accent" className="ml-2.5 align-middle not-italic">
             {t("d_sensitive_tag")}
@@ -57,10 +63,18 @@ export function IdentidadeView({ draft }: IdentidadeViewProps) {
       </DetailItem>
 
       <DetailItem label={t("d_coords")} full>
-        {hasPlottableCoords(coords)
-          ? `${coords![0]}, ${coords![1]}`
-          : t("d_coords_missing")}
+        {withheld
+          ? "—"
+          : hasPlottableCoords(coords)
+            ? `${coords![0]}, ${coords![1]}`
+            : t("d_coords_missing")}
       </DetailItem>
+
+      {withheld && (
+        <div className="sm:col-span-2">
+          <CoordinationOnlyNote />
+        </div>
+      )}
     </FieldGrid>
   );
 }

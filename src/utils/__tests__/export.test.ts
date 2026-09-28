@@ -167,8 +167,27 @@ describe("a transformação de país sensível é visível, não silenciosa", ()
     expect(record.locationWithheld).toBe(false);
   });
 
-  it("o cabeçalho dos dois formatos conta quantos locais foram recolhidos", () => {
+  it("o cabeçalho só conta os recolhidos quando a lista foi lida para a coordenação", () => {
     const data = buildProjectsExport([shared(), sensitive()], t, NOW);
+    const meta = JSON.parse(toJsonExport(data)).meta;
+
+    expect(meta.locationsWithheld).toBeNull();
+    expect(meta.withheldNote).toBeNull();
+    expect(toCsvExport(data, t)).not.toContain(
+      i18n.t("export_withheld_count", { count: 1 }),
+    );
+  });
+
+  it("lido como coordenação, a linha sai mas as linhas continuam reduzidas", () => {
+    const secret = { ...sensitive(), readAs: "coordination" as const };
+    const data = buildProjectsExport(
+      [{ ...shared(), readAs: "coordination" as const }, secret],
+      t,
+      NOW,
+    );
+    const csv = toCsvExport(data, t);
+    expect(csv).not.toContain(secret.team);
+    expect(csv).not.toContain(secret.location);
     const meta = JSON.parse(toJsonExport(data)).meta;
 
     expect(meta.locationsWithheld).toBe(1);
