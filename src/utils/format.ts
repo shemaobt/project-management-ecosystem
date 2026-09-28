@@ -23,6 +23,13 @@ export function formatDate(date: string, locale = getActiveLocale()): string {
   });
 }
 
+const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})(?:$|T)/u;
+
+export function utcDay(moment: string): string {
+  const match = ISO_DAY.exec(moment);
+  return match ? `${match[1]}-${match[2]}-${match[3]}` : "";
+}
+
 export function formatDayMonth(date: string, locale = getActiveLocale()): string {
   if (!date) return "—";
   return new Date(`${date}T00:00:00`).toLocaleDateString(locale, {

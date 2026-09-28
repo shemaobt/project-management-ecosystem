@@ -9,7 +9,9 @@ export type DataNamespace =
   | "prayer"
   | "intercessors"
   | "eten"
-  | "forms";
+  | "forms"
+  | "members"
+  | "access";
 
 export type DataSource = "api" | "fixtures";
 
@@ -22,7 +24,7 @@ export const INTEGRATED_BY: Record<DataNamespace, string> = {
   // `.list()` / `.get()` stay fixture-backed on purpose: BE-05 only ever shipped the
   // browse envelope (`{items, counts, …}`), never the plain `Project[]` those two
   // promise, and the screens that still call them (ficha, avaliação, dados, equipe,
-  // eten, formulários, início, oração, ritmo) read the full record shape BE-06 hasn't
+  // eten, formulários, início, oração, ritmo, acesso) read the full record shape BE-06 hasn't
   // shipped yet. Flipping this flag would break all of them at once, ahead of their own
   // INTs — see `projectsBrowse` for what INT-02 actually integrated.
   projects: "INT-02 · BE-05",
@@ -43,6 +45,8 @@ export const INTEGRATED_BY: Record<DataNamespace, string> = {
   intercessors: "INT-10 · BE-13",
   eten: "INT-08 · BE-11",
   forms: "INT-09 · BE-12",
+  members: "BE-18 · OBT-524",
+  access: "BE-22 · FE-52",
 };
 
 export const INTEGRATED: Record<DataNamespace, DataSource> = {
@@ -57,6 +61,8 @@ export const INTEGRATED: Record<DataNamespace, DataSource> = {
   intercessors: "api",
   eten: "fixtures",
   forms: "api",
+  members: "api",
+  access: "api",
 };
 
 export function parseOverride(raw: unknown): DataSource | null {

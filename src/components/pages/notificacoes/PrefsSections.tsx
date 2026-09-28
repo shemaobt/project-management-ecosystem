@@ -12,6 +12,7 @@ import type {
 } from "../../../types/notification";
 import type { Project } from "../../../types/project";
 import { cn } from "../../../utils/cn";
+import { getLocationDisplay } from "../../../utils/region";
 import {
   CheckboxField,
   Radio,
@@ -216,7 +217,7 @@ export function ScopeSection({ prefs, handlers, projects }: ScopeSectionProps) {
               <CheckboxField
                 key={project.id}
                 label={`${project.languageName || "—"} · ${
-                  project.team || project.ywamBase || "—"
+                  getLocationDisplay(project).base || "—"
                 }`}
                 checked={prefs.customProjectIds.includes(project.id)}
                 onCheckedChange={() => handlers.toggleCustomProject(project.id)}

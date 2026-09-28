@@ -174,9 +174,24 @@ describe("o Exportar mostra o aviso antes do download", () => {
     expect(markup).toContain(i18n.t("export_contains"));
     expect(markup).toContain(i18n.t("export_confidential"));
     expect(markup).toContain(i18n.t("export_count", { count: 2 }));
-    expect(markup).toContain(i18n.t("export_withheld_count", { count: 1 }));
+    // A list no server read for this person addresses the notice to nobody.
+    expect(markup).not.toContain(i18n.t("export_withheld_count", { count: 1 }));
     expect(markup).toContain(i18n.t("export_json"));
     expect(markup).toContain(i18n.t("export_csv"));
+  });
+
+  it("lida como coordenação, anuncia quantos saem recolhidos", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ExportDialogBody, {
+        projects: [
+          project({ readAs: "coordination" }),
+          project({ id: "guardado", sensitiveCountry: true, readAs: "coordination" }),
+        ],
+        onDownload: noop,
+      }),
+    );
+
+    expect(markup).toContain(i18n.t("export_withheld_count", { count: 1 }));
   });
 
   it("sem país sensível, não fala em recolhimento", () => {

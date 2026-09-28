@@ -4,6 +4,7 @@ import { DEFAULT_UNIT_TYPE } from "../constants/project";
 import { createDeferredJsonStorage } from "./draftStorage";
 import type { RecordTabId } from "../constants/recordTabs";
 import type { Project } from "../types/project";
+import { mayWrite, type RecordAccess } from "../utils/recordAccess";
 
 export const NEW_RECORD = "novo";
 
@@ -36,8 +37,13 @@ export const REQUIRED_FIELD_TAB: Record<RequiredField, RecordTabId> = {
   objective: "objetivo",
 };
 
-export function missingRequired(draft: ProjectDraft): RequiredField[] {
+/** A field this reader may not write is never missing for them — the base of a withheld record read as `other`. */
+export function missingRequired(
+  draft: ProjectDraft,
+  access: RecordAccess,
+): RequiredField[] {
   return REQUIRED_FIELDS.filter((field) => {
+    if (!mayWrite(access, field)) return false;
     const value = draft[field];
     if (Array.isArray(value)) return value.length === 0;
     return typeof value !== "string" || value.trim() === "";

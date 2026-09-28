@@ -139,11 +139,17 @@ export function failureMessageKey(failure: ApiFailure): string {
   return FAILURE_MESSAGE_KEYS[failure.kind];
 }
 
+export function serverSentence(failure: ApiFailure): string | null {
+  return SERVER_SENTENCE_WINS.has(failure.kind) && failure.detail
+    ? failure.detail
+    : null;
+}
+
 export function failureMessage(failure: ApiFailure, t: Translate): string {
-  if (SERVER_SENTENCE_WINS.has(failure.kind) && failure.detail) {
-    return failure.detail;
-  }
-  return t(failureMessageKey(failure), { status: failure.status ?? "" });
+  return (
+    serverSentence(failure) ??
+    t(failureMessageKey(failure), { status: failure.status ?? "" })
+  );
 }
 
 export function isRetryable(failure: ApiFailure): boolean {

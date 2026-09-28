@@ -20,7 +20,7 @@ import {
   getStaleStatus,
   isNoNews,
 } from "./recency";
-import { getCountry, getLocationDisplay, getRegion } from "./region";
+import { getCountry, getLeavingLocation, getRegion } from "./region";
 
 type SharedFacts = Pick<
   AppNotification,
@@ -34,12 +34,12 @@ type SharedFacts = Pick<
 >;
 
 function sharedFacts(project: Project): SharedFacts {
-  const location = getLocationDisplay(project);
+  const location = getLeavingLocation(project);
   return {
     region: getRegion(project),
     projectId: project.id,
     language: project.languageName || "—",
-    base: project.team || project.ywamBase,
+    base: location.base,
     country: location.withheld ? "" : getCountry(project),
     locationWithheld: location.withheld,
     mentor: project.mentor,
@@ -162,7 +162,7 @@ export function routeNotifications(
   return entries.filter(
     (entry) =>
       (route.role === "globalStrategist" ||
-        entry.audience.includes(route.role)) &&
+        entry.audience.some((key) => key === route.role)) &&
       (route.regions === null || route.regions.includes(entry.region)),
   );
 }

@@ -1,7 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
 import { SessionGate } from "./components/layout/SessionGate";
+import { AcessoPage } from "./components/pages/acesso";
 import { AvaliacaoPage } from "./components/pages/avaliacao";
+import { ConvitePage } from "./components/pages/convite";
 import { DesignSystemPage } from "./components/pages/design-system/DesignSystemPage";
 import { EquipePage } from "./components/pages/equipe";
 import { EtenPage } from "./components/pages/eten";
@@ -14,9 +16,11 @@ import { LeaveNetworkPage } from "./components/pages/intercessores/LeaveNetworkP
 import { OracaoPage } from "./components/pages/oracao";
 import { ProjetosPage } from "./components/pages/projetos/ProjetosPage";
 import { RitmoPage } from "./components/pages/ritmo/RitmoPage";
+import { RelatorioPage } from "./components/pages/ritmo/relatorio/RelatorioPage";
 import { Toaster } from "./components/ui";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { accessAPI } from "./services/api";
 
 export default function App() {
   return (
@@ -24,6 +28,9 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            {accessAPI ? (
+              <Route path="convite" element={<ConvitePage api={accessAPI} />} />
+            ) : null}
             {/* No session, no console: the leader link's whole page (§8, §9.13 —
                 the leader has no account, so this route must not reach SessionGate). */}
             <Route path="intake/:token" element={<IntakePage />} />
@@ -44,6 +51,10 @@ export default function App() {
                         element={<FichaPage />}
                       />
                       <Route path="ritmo" element={<RitmoPage />} />
+                      <Route
+                        path="ritmo/relatorio/:year?"
+                        element={<RelatorioPage />}
+                      />
                       <Route path="oracao" element={<OracaoPage />} />
                       <Route
                         path="oracao/intercessores"
@@ -59,6 +70,12 @@ export default function App() {
                         element={<AvaliacaoPage />}
                       />
                       <Route path="equipe" element={<EquipePage />} />
+                      {accessAPI ? (
+                        <Route
+                          path="acesso"
+                          element={<AcessoPage api={accessAPI} />}
+                        />
+                      ) : null}
                     </Route>
                     <Route
                       path="design-system"

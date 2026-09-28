@@ -165,7 +165,7 @@ describe("as duas metáforas mostram a mesma janela do conjunto", () => {
         createElement(JournalView, { projects: page, onOpen: noop }),
       ),
       renderToStaticMarkup(
-        createElement(AtlasView, { projects: sorted, onSelect: noop }),
+        createElement(AtlasView, { projects: sorted, locationsWithheld: null, onSelect: noop }),
       ),
     ];
 
@@ -180,7 +180,7 @@ describe("as duas metáforas mostram a mesma janela do conjunto", () => {
     const all = await projectsAPI.list();
     const sorted = sortProjects(all, DEFAULT_SORT, "pt");
     const markup = renderToStaticMarkup(
-      createElement(AtlasView, { projects: sorted, onSelect: noop }),
+      createElement(AtlasView, { projects: sorted, locationsWithheld: null, onSelect: noop }),
     );
     expect(markup).toContain(`${PAGE_SIZE}/${sorted.length}`);
   });

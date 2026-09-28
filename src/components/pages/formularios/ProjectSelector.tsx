@@ -1,6 +1,7 @@
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import type { Project } from "../../../types/project";
+import { projectOptionLabel } from "../../../utils/forms";
 import {
   Label,
   Select,
@@ -34,9 +35,7 @@ export function ProjectSelector({
         <SelectContent>
           {projects.map((project) => (
             <SelectItem key={project.id} value={project.id}>
-              {project.team
-                ? `${project.languageName} · ${project.team}`
-                : project.languageName}
+              {projectOptionLabel(project)}
             </SelectItem>
           ))}
         </SelectContent>

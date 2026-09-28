@@ -12,12 +12,12 @@ import {
   getLocationDisplay,
   getMapPlacement,
   getRegion,
+  withheldNotice,
 } from "../../../../../utils/region";
 import { filterProjects } from "../../../../../utils/search";
 import {
   buildMarkerSources,
   buildNightStats,
-  countWithheld,
   markerRadius,
 } from "../markers";
 import { orthoProject, spreadOverlapping } from "../projection";
@@ -139,20 +139,40 @@ describe("país sensível nunca aparece em precisão total", () => {
         expect(display).toEqual({
           withheld: true,
           regionLabelKey: expect.stringMatching(/^continent_/) as string,
+          base: "",
         });
       } else {
-        expect(display).toEqual({ withheld: false, location: project.location });
+        expect(display).toEqual({
+          withheld: false,
+          location: project.location,
+          base: project.team || project.ywamBase,
+        });
       }
     }
   });
 
-  it("o aviso conta exatamente os projetos sensíveis do conjunto filtrado", async () => {
+  it("o aviso endereçado à coordenação conta exatamente os projetos sensíveis do conjunto", async () => {
     const all = await projectsAPI.list();
     const result = filterProjects(all, { ...EMPTY_FILTERS }, "", NOW);
-    const sources = buildMarkerSources(result.projects);
-    expect(countWithheld(sources)).toBe(
-      result.projects.filter((project) => project.sensitiveCountry).length,
-    );
+    const sensitive = result.projects.filter((p) => p.sensitiveCountry).length;
+    expect(sensitive).toBeGreaterThan(0);
+    expect(withheldNotice(result.projects, true)).toBe(sensitive);
+    expect(withheldNotice(result.projects, false)).toBeNull();
+    // A list no server read for anybody addresses nobody.
+    expect(withheldNotice(result.projects)).toBeNull();
+  });
+
+  it("cartão da coordenação com coordenadas reais plota no centróide", () => {
+    const truth = makeProject({
+      location: "Peru, Vila Sintética",
+      coords: [-70.1, -9.9],
+      sensitiveCountry: true,
+      readAs: "coordination",
+    });
+    expect(getMapPlacement(truth)).toEqual({
+      coords: REGION_CENTROIDS["south-america"],
+      precision: "region",
+    });
   });
 
   it("projeto sem coordenadas não some do mapa: plota na região, fora do aviso", () => {
@@ -166,7 +186,7 @@ describe("país sensível nunca aparece em precisão total", () => {
       coords: REGION_CENTROIDS["south-america"],
       precision: "region",
     });
-    expect(countWithheld(sources)).toBe(0);
+    expect(withheldNotice([noCoords], true)).toBeNull();
   });
 });
 

@@ -146,8 +146,8 @@ exactly those three channels and the screen states in words that delivery is wav
 
 **Roles have no region.** The grant is `user_app_roles (user_id, app_id, role_id)` and
 `require_role(app_key, role_key)` answers a global yes/no per app. Shemá's authorization is
-**by role and by region** — `SessionPersona` is `{role, regionScope}` and a regional holder sees
-and edits their region. `organizations` is the only existing scoping dimension and it is the wrong
+**by role and by region** — `SessionPersona` is `{role, roles, regionScope}` (the list since
+OBT-523, §9.13) and a regional holder sees and edits their region. `organizations` is the only existing scoping dimension and it is the wrong
 one: a region is one of seven fixed keys (§5.3), not a tenant with members and a manager. BE-03
 either adds a region dimension to the Shemá grant or maps the seven regions onto organization
 rows; it is a schema decision, not a wiring one, and §12.2 states what the frontend needs back
@@ -226,6 +226,11 @@ the migration, not after. The optional eighteen are the fields wave 1's screens 
 `pastoralInterventionWhen`, `location2`, `portion`, `facilitator`, `teamLeaderContact`,
 `mentorContact`, `objectiveNotes`, `financialNotes`, `financialOtherDetails`, `otherProgress`,
 `storiesTranslated`, `readyVesselsAudioHours`, `mediaPhotos`, `mediaVideos`.
+
+> **A nineteenth, `readAs`, arrived with FE-48 ([OBT-532](https://linear.app/shema-obt/issue/OBT-532)),
+> and it is not an export key either:** who the server built the card or the record for,
+> `"coordination"` or `"other"` (OBT-528). It is absent on a project no server read for anybody —
+> the fixture list — and absent reads withheld (§8.1).
 
 **Server requirement:** every one of the 18 is nullable in the schema, and absent means absent —
 not an empty default. `healthPhysical` is the clearest case: the export has three health dimensions
@@ -751,15 +756,17 @@ The test that proves the whole section is the one the delivery plan already name
 unauthorized prayer request is absent from all four output paths** — the prayer wall, exports, the
 ETEN report and notifications.
 
-**Where redaction lives, stated once, because the types already encode it.** A project read by
-someone allowed to open it is a *coordination* surface and carries the truth: `Project.location` is
-a plain string and the console applies the display rule when it draws a card, a tooltip or a
-marker. Every shape that *leaves* coordination carries the redaction **in its own type** —
+**Where redaction lives, stated once, because the types already encode it.** ~~A project read by
+someone allowed to open it is a *coordination* surface and carries the truth.~~ **Since OBT-528 /
+FE-48 the card and the record are built for their reader:** coordination (`globalStrategist`, the
+`coordinator` of the project's region) reads the truth of a sensitive place and everybody else its
+region, and the payload says which with `readAs`. The console reads that answer
+(`getLocationDisplay`) and never evaluates a role. Every shape that *leaves* coordination carries the redaction **in its own type** —
 `PrayerRequest.locationWithheld`, `EtenYearSnapshot.country: LocationDisplay`,
 `AppNotification.locationWithheld`, `ExportedProject.locationWithheld` — so a renderer downstream
 cannot leak what the payload does not hold. **That split is the rule**: redact in the payload on
-every path that leaves, and never on the project read itself, where hiding the country from its own
-author is data loss rather than privacy (§8.1, rule 5).
+every path that leaves, and on the console's reads for every reader who is not coordination (§8.1,
+rule 5).
 
 ### 8.1 Sensitive countries
 
@@ -771,26 +778,29 @@ same rule while rendering, through the same single owner (`getLocationDisplay` /
 rules 1 to 3 below are what both sides implement, and the server is the one that must hold.
 
 1. **The location is replaced by the region name, never the country or the place.** The frontend's
-   single owner is `getLocationDisplay`; its shape is `{withheld: true, regionLabelKey}` or
-   `{withheld: false, location}` — **the redaction travels in the shape**, so a renderer cannot leak
+   single owner is `getLocationDisplay` (the console's reads, by `readAs`) beside `getLeavingLocation`
+   (what leaves, by the flag); since FE-48 both return a `PlaceDisplay` —
+   `{withheld: true, regionLabelKey, base: ""}` or `{withheld: false, location, base}` — **the
+   redaction travels in the shape**, so a renderer cannot leak
    what the payload does not hold. Reproduce that: return the withheld marker, not an empty string.
 2. **Coordinates are the region centroid, never the true position** — `REGION_CENTROIDS` in
-   `src/constants/geo.ts`. The marker carries a dashed "approximate" ring and the map announces, in
-   a visible overlay, **how many projects are being withheld**: a silently incomplete map is its own
-   hazard, so the reduction is always announced. Reduced precision was chosen over omission because
+   `src/constants/geo.ts` — for **every** reader, coordination included. The marker carries a dashed
+   "approximate" ring and the map announces, in a visible overlay, **how many projects are being
+   withheld** — to coordination only since GATE-04 (1.3): the overlay mounts when the collection's
+   `locationsWithheld` is a number, and the server sends `null` to everybody else. Reduced precision was chosen over omission because
    the map must show exactly what the filters return.
 3. **The base name goes with the location in any file that leaves.** Both flagged seed records have
    a base that names a place — `YWAM Egypt`, `YWAM Morelia` — so a file that withholds `Egypt`
    while printing `YWAM Egypt` one column over has redacted nothing. In the export the base is
-   emptied for a withheld record; **in-console surfaces still render it verbatim**, which is an open
-   gap §11.4 owns.
+   emptied for a withheld record, and since FE-48 so is every in-console surface: the base travels
+   in `PlaceDisplay`, shown only to a payload read as coordination (§11.4, answered).
 4. **Media of a flagged project never reaches a public audience**, however it was authorized. §8.3.
-5. **The record itself is not redacted.** The coordinator filling it is the person who needs the
-   real country, so the Identity tab renders `location` verbatim with a badge. Redaction belongs to
-   output paths; an editing surface that hides the data from its own author is not privacy, it is
-   data loss. The same holds for `teamLeaderContact`, `mentorContact` and `teamContact` — personal
-   data that may belong to someone in a sensitive country, shown on the record and **gated on every
-   output the same way `location` is**.
+5. ~~The record itself is not redacted.~~ **The record is built for its reader (OBT-528, FE-48).**
+   Coordination reads the real place with a badge and edits it; everybody else reads the region
+   (`location` holds the region **key**), with `location2`, the base, the three contacts and
+   `sensitivity` empty and the coordinates at the centroid. The server refuses location, coordinates,
+   flag and reason from anybody but coordination on every record, and on a withheld one the base and
+   contacts too (a 403); the Identity and Team tabs disable exactly those fields for that reader.
 
 ### 8.2 Consent — prayer requests and needs
 
@@ -853,13 +863,15 @@ sensitive human context in the record.
 **allowlist** (`ExportedProject`, 24 fields), which means a field added to `Project` later stays out
 of the file until someone puts it in. Personal contacts, people's names, media and materials are not
 in the allowlist at all; `sharedPrayerRequests` comes through `buildPrayerRequests`, so the raw
-columns are never read; `location` comes through `getLocationDisplay`; `notes` is asked of
+columns are never read; `location` and `base` come through `getLeavingLocation`, withheld by the flag
+whoever exports; `notes` is asked of
 `canExportNotes` under an audience of `publico`, which answers no.
 
 **Server requirement (BE-14): the export is generated server-side by an allowlist, and so is the
 file's header** — what it contains, when it was generated, that it is confidential, and **how many
-locations were withheld**. A file with no sensitive projects gets no withheld note rather than a
-"0 withheld" line.
+locations were withheld** — a line addressed to coordination only (GATE-04, 1.3): the client export
+prints it only when its rows were read for coordination (`withheldNotice`). A file with no sensitive
+projects gets no withheld note rather than a "0 withheld" line.
 
 **Server requirement: the export is not an import.** The redacted file is recognised and refused on
 import, because importing the report would replace full records with reduced ones. Import validates
@@ -915,8 +927,8 @@ it picks, the paths below keep their shape.
   `MediaAuthorization.at` are the same.
 - **Every response is already scoped, and every *leaving* shape is already redacted.** A response
   never carries a project the caller may not see, and never carries a raw prayer column (§8). The
-  project read itself carries the true `location` — it is a coordination surface, and §8 states the
-  split once.
+  card and the record carry the truth of a sensitive place only to coordination, and say so with
+  `readAs` (§8.1, rule 5).
 - Errors are the repository's own envelope; the frontend surfaces the message and nothing else.
 - **No endpoint returns a vocabulary the frontend already has** (Appendix A), with one exception
   named in §9.7.
@@ -947,11 +959,20 @@ client-computed counts is the defect this note exists to prevent.
 
 The Atlas reads the same response. `geoAPI.outlines()` stays a bundled asset (§6.3).
 
+> **What BE-05 and OBT-528 actually serve** is an envelope, not `Project[]`
+> (`{items, counts, matched, total, locationsWithheld}`), with each card built for its reader:
+> `readAs` (additive) says whether it carries the truth, and `locationsWithheld` is how many items are
+> withheld, addressed to coordination and `null` for anybody else. The console maps
+> `locationWithheld` onto `sensitiveCountry` and `readAs` onto the project, and the globe mounts its
+> overlay from `locationsWithheld` (FE-48).
+
 ### 9.2 Início — FE-30, no endpoint of its own
 
 The six indicators are derived from `GET /api/shema/projects` through the same `filterProjects` the
 destination uses, so **the count is by construction what the link returns**. An `/indicators`
-endpoint would be a second owner of that relation and is explicitly not wanted.
+endpoint would be a second owner of that relation and is explicitly not wanted. The globe below the
+band reads the fixture list, which no server read for anybody, so it announces no withheld count
+until the list integrates (FE-48); "Bases" counts only the bases the reader may see.
 
 ### 9.3 Ficha do projeto — INT-03 ([OBT-408](https://linear.app/shema-obt/issue/OBT-408)) · BE-06 ([OBT-395](https://linear.app/shema-obt/issue/OBT-395))
 
@@ -962,6 +983,13 @@ PATCH  /api/shema/projects/{id}     {Partial<Project>} -> Project
 ```
 
 `projectsStore.saveProject` is an upsert and splits at this seam by whether the id is new.
+
+**The record is built for its reader (OBT-528).** Two additive keys travel with it: `readAs`
+(`"coordination"` · `"other"`) and `locationWithheld` (the flag, for every reader). The console reads
+`readAs` closed — anything else, absence included, is no answer and reads withheld — and folds
+`locationWithheld` onto `sensitiveCountry`. A reader who is not coordination gets a **403** for
+`location`, `location2`, `coords`, `sensitiveCountry` or `sensitivity` on any record, and for the base
+or the three contacts on a withheld one; the console never sends them (FE-48).
 
 **Server requirements on the write:**
 
@@ -1195,16 +1223,139 @@ would put a translation table on every read, which is the defect §9.0's convent
 One Shemá-specific read is missing and BE-03 owns it:
 
 ```
-GET /api/shema/session   -> { role: SessionRole, regionScope: RegionKey[] | null, name: string | null }
+GET /api/shema/session   -> { role: SessionRole, roles: SessionRole[],
+                              regionScope: RegionKey[] | null, name: string | null }
 ```
 
-`SessionRole` is `globalStrategist | coordinator | obtLab | resourceCircle`; `regionScope: null`
-means global. **`name` is resolved from the org chart** (§5.3) — it is not a user profile field, and
+`regionScope: null` means global.
+
+**The roles list — BE-17 of the PME ([OBT-523](https://linear.app/shema-obt/issue/OBT-523)),
+27/sep/2026.** A person can hold several roles across the two apps the PME serves (OBT-522:
+the Admin today is also `globalStrategist` and `gestor`), so the session carries the whole set:
+
+- **`SessionRole` is a closed vocabulary of eight keys, in the server's precedence order:**
+  `globalStrategist`, `coordinator`, `obtLab`, `resourceCircle` — the four personas the screens
+  were drawn for — then `admin` (OBT-522's Admin, *"Admin da plataforma"*, one role for both
+  apps and **not** the installation's `is_platform_admin`), `gestor`, `mesa` (the form's two
+  privileged seats), and `equipe`, which since OBT-524 is a **project membership**: the server
+  answers it for an account that is a live member of at least one project (§9.14), and that is
+  what lets a member with no role anywhere through the door. `SESSION_ROLES` in `src/constants/roles.ts` is the list, and
+  `shema-api`'s `ROLE_PRECEDENCE` is the same tuple, pinned in order by a test on each side
+  (`tests/test_shema/test_access.py` there, `session.test.ts` here).
+- **`roles` is every role held, highest precedence first; `role` is its first entry and is
+  transitional** — kept so no screen that reads one role breaks. Every account that reached the
+  console before keeps its `role`; new consumers read `roles`.
+- **The door.** The server answers this route to an account holding a Shemá role, the `admin`
+  role in `shema`, or `gestor`/`mesa` in `resource-request-form`; it refuses (`403`) an account
+  holding none — the form's `equipe` and `lider` included — and every other `/api/shema` route
+  still needs a Shemá role. `admin`, `gestor` and `mesa` carry no region (`regionScope: []`).
+- **`readSession` fails closed on the list.** `roles` is required; an empty list is the same
+  refusal as the `403` (`forbidden`, *no role*); a key outside `SESSION_ROLES` refuses the whole
+  session (`UNKNOWN_VOCABULARY`) and is never dropped, because a shortened list would lie about
+  who the person is; and a `role` that is not the list's first entry refuses it too, because every
+  screen still reads `role` and the persona must not carry a role the person does not hold. A response without `roles` comes from a server older than this contract
+  and is refused the same way: `shema-api` ships first.
+
+**`name` is resolved from the org chart** (§5.3) — it is not a user profile field, and
 renaming a role-holder renames who the session says you are. `GET /api/auth/my-roles` cannot answer
 this today because the grant has no region (§3.1). `SessionRole` and `SessionPersona` were declared
 in `src/contexts/AuthContext.tsx` rather than under `src/types/`, the one gap in the frozen surface
 of §1. INT-01 closed it (§12.3): they live in `src/types/session.ts` now, under the same
 `contract.test.ts` guard as the other ten, and the context re-exports them so no import moved.
+
+### 9.14 Membros do projeto — BE-18 ([OBT-524](https://linear.app/shema-obt/issue/OBT-524)), 27/sep/2026
+
+```
+GET    /api/shema/projects/{id}/members            -> ProjectMember[]   # behind the PME's door
+POST   /api/shema/projects/{id}/members {userId}   -> ProjectMember     # Admin only · 201
+DELETE /api/shema/projects/{id}/members/{userId}   -> 204               # Admin only · marks the row
+GET    /api/shema/me/projects                      -> ProjectRef[]      # behind the PME's door
+```
+
+`ProjectMember` is `{userId, name, role: "equipe", addedAt}` and `ProjectRef` is
+`{id, languageName}` (`src/types/project.ts`). `name` is the account's display name, else its
+e-mail; `addedAt` is the UTC day the membership began, `YYYY-MM-DD` (§9.0). The roster is in the
+order people joined.
+
+The link from an account to the projects whose team it is on — what "a equipe" means since
+OBT-522 (22 and 25/sep), and what the form (OBT-520), *Solicitar recurso* (OBT-544) and the
+Admin's access screen (OBT-546) read. The free-text people on the record (`teamLeader`, `mentor`,
+`translators`, … §5.1) are untouched: the client has not replaced them and the Notion export
+carries them.
+
+**Server requirements:**
+- **Only the Admin writes** (`admin` in the `shema` app, not the installation's
+  `is_platform_admin`): every other role — the four personas, `mesa`, `gestor`, and a member of
+  the project — is a 403. A live duplicate is a 409; an account that does not exist is a 422.
+- **Removal marks, it never deletes.** The row keeps `removed_at`/`removed_by`, because a request
+  a member sent stays the project's after they leave; adding the same account later makes a new
+  row. One live membership per account and project.
+- **A roster is read by three people:** whoever reaches the project's region, the project's own
+  live members, and the Admin. Anybody else gets the 404 of a project that does not exist (§8).
+  The roster is a coordination surface and redacts nothing — it names people, not places.
+- **A live membership is the session's `equipe`** (§9.13), so a member holding no role anywhere
+  passes the door to these two reads and to nothing else. It is **not** a region: a member reaches
+  no other project. What else a member sees of their own project is OBT-544's.
+- `/me/projects` answers **403, not `[]`**, to an account holding no role of the door's vocabulary
+  and no live membership — the door refuses it before the list is read. A `mesa` or a `gestor`
+  with no membership gets `[]`.
+
+**In the console:** the ficha's Equipe tab lists the roster read-only (`ProjectMembers.tsx`), in
+both modes and only for a saved record; `membersAPI.add` and `.remove` are called by the Admin's
+access screen (§9.15, OBT-546); `.mine` waits for OBT-544. In fixtures mode the double answers empty
+lists and refuses both writes with `forbidden` — the fixtures carry no accounts, and none of the
+four mocked personas is the Admin.
+
+### 9.15 Acesso — FE-52 ([OBT-546](https://linear.app/shema-obt/issue/OBT-546)) · BE-22 ([OBT-543](https://linear.app/shema-obt/issue/OBT-543)), 27/sep/2026
+
+```
+GET  /api/shema/access/people?email=      -> AccountGrants             # exact e-mail, case aside; 404 when none
+POST /api/shema/access/grants             {userId, appKey, roleKey, regionKeys} -> AccountGrants
+POST /api/shema/access/grants/revoke      {userId, appKey, roleKey}             -> AccountGrants
+POST /api/shema/access/invites            {email, appKey, roleKey, regionKeys}  -> 201 SentInvite
+POST /api/shema/access/invites/revoke     {inviteId}                            -> OpenInvite
+GET  /api/shema/access/invites            -> OpenInvite[]              # not accepted, newest first, ≤ 200
+GET  /api/shema/access/changes            -> GrantChange[]             # roles and regions, newest first, ≤ 200
+```
+
+All seven are the Admin's (`admin` in the `shema` app): every other role is a `403`. The shapes are
+`src/types/access.ts`. `AccountGrants` is `{userId, email, displayName, isActive, apps: [{appKey,
+roles}], regions: [{regionKey, grantedBy, grantedAt}], regionScope}` — `regions` are the stored rows
+the Admin edits, `regionScope` what they reach (`null` = every region). `SentInvite` is `OpenInvite`
+plus `inviteUrl` and `emailSent`, and it is the **only** shape that carries the link: the list never
+does. `GrantChange` is `{action, at, appKey, roleKey | null, regionKey | null, userId, userEmail,
+userName, actorId, actorEmail, actorName}`, exactly one of `roleKey`/`regionKey` set.
+
+**Server requirements** (`shema-api` `docs/shema.md` §6.8 owns the full list and every refusal
+sentence): the grantable vocabulary is the four Shemá personas and `admin` for `shema`, `admin`,
+`gestor` and `mesa` for the form (`GRANTABLE_ROLES`, `src/constants/access.ts`, pinned to it);
+`admin` is one role for both apps and is never granted by link; a regional role comes with at least
+one region and `regionKeys` is the account's whole scope; mesa and Gestor never share an account;
+nobody grants, revokes or invites themselves; every refusal is `{detail, code}` with the status the
+table there gives, and the console shows `detail` verbatim.
+
+**The invitee's three routes are not in this module yet:**
+
+```
+GET  /api/resource-requests/access/invites/{token}          -> {status, email, app_name, role_key, role_label, account_exists, region_keys}   # anonymous
+POST /api/resource-requests/access/invites/{token}/accept   # signed in with the invited e-mail
+POST /api/auth/signup  {email, password, display_name}      -> {user, tokens}    # the platform's own
+```
+
+They answer snake_case, and `accessAPI` maps them once (`describeInvite`, `join`) — the second
+named mapping after `/api/auth/*` (§9.13). OBT-549 moves the first two into `/api/shema`; then only
+that mapping changes. They are the other exceptions to §9.0's bearer rule: the lookup is anonymous
+and sign-up has no session to show. The console reads the invitation's `role_key` through its own
+catalogue and never renders `role_label` or `app_name`, per this document's "keys, never labels".
+
+**Dates.** These routes answer datetimes (`grantedAt`, `createdAt`, `expiresAt`, `at`), against
+§9.0's day-only rule; they are moments of an administrative act, which the history orders by. The
+console shows the UTC day, read by field (`utcDay`).
+
+**In the console:** `/acesso` for `admin` only, `/convite?token=` outside the session gate; the
+lookup does not list the person's memberships (the server does not answer it), so the screen reads
+rosters project by project through §9.14. `accessAPI` has **no fixture double**: it is `null` in
+fixtures, and both routes are registered only when it exists.
 
 ---
 
@@ -1323,11 +1474,12 @@ belongs in the file more than the format does.
 ### 11.4 The fourth gate, which has no issue: what *devida cautela* means per output
 
 `CLAUDE.md` §6.1 marks it and BE-04 ([OBT-393](https://linear.app/shema-obt/issue/OBT-393)) is
-scheduled before anything that emits data. One concrete question is already open and named in §8.1:
-**the base name.** The export file empties it for a withheld record; the console's cards, tooltips
-and prayer wall still render it verbatim, and both flagged records carry a base that names a place.
-Redacting it everywhere is a second rule and it belongs to this gate — **do not invent it surface
-by surface.**
+scheduled before anything that emits data. One concrete question was open and named in §8.1:
+**the base name.** ~~Redacting it everywhere is a second rule and it belongs to this gate.~~ **GATE-04
+answered it** (Karina 22/sep, Daniel 23/sep): the base is hidden from everything that leaves and from
+every reader who is not coordination. OBT-528 built the server half, FE-48 the console's — one owner,
+`PlaceDisplay.base`, not surface by surface. The gate stays open only for the list of sensitive
+countries.
 
 ---
 
@@ -1338,7 +1490,8 @@ Each of these is a real question with a named owner. None is an oversight.
 1. **The module's name, route prefix, service package and table names** — BE-01. §3.2 records the
    per-directory naming evidence so the decision is made once.
 2. **How the region dimension attaches to the role grant** — BE-03. §3.1. Whatever the mechanism,
-   the frontend needs exactly `{role, regionScope}` back from §9.13.
+   the frontend needs exactly `{role, regionScope}` back from §9.13 — and, since OBT-523, the
+   `roles` list beside them.
 3. **Where the session shape lives** — INT-01, with BE-03 holding the other half of it (item 2).
    **Closed by INT-01**; the paragraph below is the record of why it was open.
    `SessionRole`, `SessionPersona` and `SessionUser` are declared in
@@ -1392,6 +1545,8 @@ rejects data the console can produce.
 | `PrayerVisibility` | `coordenacao`, `rede` | none; default `coordenacao` |
 | `RegionKey` | `south-america`, `north-america`, `africa`, `asia`, `oceania`, `europe`, `other` | derived from `location` |
 | `RoleKey` | `coordinator`, `obtLab`, `resourceCircle` | none |
+| `AccessAppKey` | `shema`, `resource-request-form` | none |
+| One-time link state (`IntakeLinkStatus` = `InviteStatus`) | `pending`, `used`, `expired`, `revoked` | none |
 | `MaterialKind` | `text`, `audio`, `video` | none |
 | `StoryRecordStatus` | `planned`, `recording`, `recorded` | none |
 | `MeetingState` | `done`, `pending`, `overdue`, `new` | derived |

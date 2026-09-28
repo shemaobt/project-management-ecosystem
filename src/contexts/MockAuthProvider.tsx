@@ -1,44 +1,30 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  MOCK_SESSION_KEY,
+  MOCK_SESSION_PERSONAS,
+  readMockRole,
+  type MockPersona,
+} from "../services/api";
 import { useRegionsStore } from "../stores/regionsStore";
 import type { Region } from "../types/region";
 import {
   AuthContext,
   scopeRegions,
   type AuthSession,
-  type SessionPersona,
-  type SessionRole,
+  type MockRole,
   type SessionUser,
 } from "./session";
 
-const SESSION_KEY = "shema-session-v1";
-
 const GLOBAL_STRATEGIST_NAME = "Karina Marinho";
 
-export const MOCK_SESSION_PERSONAS: Record<SessionRole, SessionPersona> = {
-  globalStrategist: {
-    id: "mock-global-strategist",
-    role: "globalStrategist",
-    regionScope: null,
-  },
-  coordinator: {
-    id: "mock-coordinator",
-    role: "coordinator",
-    regionScope: ["south-america"],
-  },
-  obtLab: {
-    id: "mock-obt-lab",
-    role: "obtLab",
-    regionScope: ["africa"],
-  },
-  resourceCircle: {
-    id: "mock-resource-circle",
-    role: "resourceCircle",
-    regionScope: ["oceania"],
-  },
-};
-
 export function resolvePersonaName(
-  persona: SessionPersona,
+  persona: MockPersona,
   regions: Region[],
 ): string | null {
   if (persona.role === "globalStrategist") return GLOBAL_STRATEGIST_NAME;
@@ -51,15 +37,8 @@ export function resolvePersonaName(
   return null;
 }
 
-function loadStoredRole(): SessionRole {
-  const stored = localStorage.getItem(SESSION_KEY);
-  return stored && stored in MOCK_SESSION_PERSONAS
-    ? (stored as SessionRole)
-    : "globalStrategist";
-}
-
 export function MockAuthProvider({ children }: { children: ReactNode }) {
-  const [role, setRole] = useState<SessionRole>(loadStoredRole);
+  const [role, setRole] = useState<MockRole>(readMockRole);
   const regions = useRegionsStore((state) => state.regions);
   const hydrated = useRegionsStore((state) => state.hydrated);
   const hydrate = useRegionsStore((state) => state.hydrate);
@@ -68,8 +47,10 @@ export function MockAuthProvider({ children }: { children: ReactNode }) {
     void hydrate();
   }, [hydrate]);
 
-  useEffect(() => {
-    localStorage.setItem(SESSION_KEY, role);
+  // A layout effect runs before the children's effects, so the doubles that read the mock
+  // role (fixtures/session.ts) see the one this render is for when the children fetch.
+  useLayoutEffect(() => {
+    localStorage.setItem(MOCK_SESSION_KEY, role);
   }, [role]);
 
   const session = useMemo<AuthSession>(() => {

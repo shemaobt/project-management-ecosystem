@@ -86,9 +86,9 @@ export function NightStatsOverlay({ stats }: { stats: NightStats }) {
   );
 }
 
-export function SensitiveNotice({ count }: { count: number }) {
+export function SensitiveNotice({ count }: { count: number | null }) {
   const { t } = useTranslation();
-  if (count === 0) return null;
+  if (count === null || count <= 0) return null;
   return (
     <div
       className={cn(

@@ -2,6 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import { FULL_ACCESS } from "../../../../utils/recordAccess";
 
 function createMemoryStorage() {
   const data = new Map<string, string>();
@@ -174,6 +175,7 @@ const handle = {
   missing: [],
   errors: [],
   errorsFor: () => [],
+  place: FULL_ACCESS,
   set: noop,
   update: noop,
   discard: noop,

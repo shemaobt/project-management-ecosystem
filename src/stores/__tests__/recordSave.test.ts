@@ -538,3 +538,38 @@ describe("a recusa do servidor cai na aba certa", () => {
     expect(tabOfFirstError([{ field: null, index: null, message: "x" }])).toBeNull();
   });
 });
+
+describe("o salvamento nunca envia campo que o leitor não pode gravar (OBT-532)", () => {
+  const patchBody = () => {
+    const patch = sent.find((config) => config.method === "patch");
+    return JSON.parse(String(patch?.data)) as Record<string, unknown>;
+  };
+
+  it("lido como other num registro retido, local, base e contatos ficam de fora", async () => {
+    queue = [ok({ readAs: "other", sensitiveCountry: true, team: "", ywamBase: "" })];
+    store().forget();
+    await store().open("p1");
+    queue = [ok({ readAs: "other", sensitiveCountry: true, notes: "vai" }, '"8"')];
+
+    const outcome = await store().save(
+      saving({ location: "Lugar Sintético", team: "Base Sintética", teamContact: "c", notes: "vai" }),
+    );
+
+    expect(outcome.kind).toBe("saved");
+    expect(patchBody()).toEqual({ notes: "vai" });
+  });
+
+  it("lido como coordenação, os mesmos campos viajam", async () => {
+    queue = [ok({ readAs: "coordination", sensitiveCountry: true })];
+    store().forget();
+    await store().open("p1");
+    queue = [ok({ readAs: "coordination" }, '"8"')];
+
+    await store().save(saving({ location: "Lugar Sintético", team: "Base Sintética" }));
+
+    expect(patchBody()).toMatchObject({
+      location: "Lugar Sintético",
+      team: "Base Sintética",
+    });
+  });
+});

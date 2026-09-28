@@ -41,3 +41,7 @@ export type GeoOutline = Coordinates[];
 export type LocationDisplay =
   | { withheld: false; location: string }
   | { withheld: true; regionLabelKey: string };
+
+export type PlaceDisplay =
+  | { withheld: false; location: string; base: string }
+  | { withheld: true; regionLabelKey: string; base: "" };

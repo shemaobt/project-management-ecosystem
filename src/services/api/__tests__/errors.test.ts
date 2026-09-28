@@ -11,6 +11,7 @@ import {
   isAnnounceable,
   isApiFailure,
   isRetryable,
+  serverSentence,
   toApiFailure,
 } from "../errors";
 
@@ -182,6 +183,19 @@ describe("a frase que o coordenador lê", () => {
     expect(failureMessage(toApiFailure(withResponse(403, { detail })), t)).toBe(
       pt.net_forbidden,
     );
+  });
+
+  it("serverSentence diz quando a frase é do servidor, e o failureMessage lê a mesma regra", () => {
+    const detail = "'mesa' and 'gestor' are mutually exclusive.";
+    for (const status of [400, 404, 409, 422]) {
+      const refused = toApiFailure(withResponse(status, { detail }));
+      expect(serverSentence(refused), String(status)).toBe(detail);
+      expect(failureMessage(refused, t), String(status)).toBe(detail);
+    }
+    for (const status of [401, 403, 500]) {
+      expect(serverSentence(toApiFailure(withResponse(status, { detail }))), String(status)).toBeNull();
+    }
+    expect(serverSentence(toApiFailure(withResponse(409, {})))).toBeNull();
   });
 
   it("o erro de servidor nomeia o status para quem for investigar", () => {

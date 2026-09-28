@@ -1,7 +1,10 @@
 import type { Project } from "../../../../types/project";
 import { getProjectStatus } from "../../../../utils/progress";
-import { getRegion, type MapPlacement } from "../../../../utils/region";
-import { cardMapPlacement } from "../derived";
+import {
+  getMapPlacement,
+  getRegion,
+  type MapPlacement,
+} from "../../../../utils/region";
 
 export interface AtlasMarkerSource {
   project: Project;
@@ -13,14 +16,8 @@ export function buildMarkerSources(
 ): AtlasMarkerSource[] {
   return projects.map((project) => ({
     project,
-    placement: cardMapPlacement(project),
+    placement: getMapPlacement(project),
   }));
-}
-
-export function countWithheld(
-  sources: readonly AtlasMarkerSource[],
-): number {
-  return sources.filter((source) => source.project.sensitiveCountry).length;
 }
 
 export function markerRadius(project: Project): number {

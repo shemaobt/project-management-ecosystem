@@ -15,6 +15,7 @@ import type { SessionStatus } from "../session";
 
 const SESSION: ShemaSession = {
   role: "coordinator",
+  roles: ["coordinator"],
   regionScope: ["south-america"],
   name: "Nome do Organograma",
 };
@@ -90,6 +91,7 @@ describe("uma recusa devolve a pessoa à superfície de onde ela veio", () => {
     expect(personaOf(typo.signed)).toEqual({
       id: "u-1",
       role: "coordinator",
+      roles: ["coordinator"],
       regionScope: ["south-america"],
     });
   });
@@ -192,5 +194,48 @@ describe("fora de uma tentativa, o evento do token manda", () => {
     for (const [status, surface] of reached) {
       expect(sessionSurface(status, true), status).toBe(surface);
     }
+  });
+});
+
+describe("a porta do PME", () => {
+  it("quem só tem mesa, gestor ou admin chega ao app, sem região", () => {
+    for (const role of ["mesa", "gestor", "admin"] as const) {
+      const session: ShemaSession = {
+        role,
+        roles: [role],
+        regionScope: [],
+        name: null,
+      };
+      const state = replay([
+        { type: "proving" },
+        { type: "proved", accountId: "u-2", session },
+      ]);
+      expect(surfaceOf(state), role).toBe("app");
+      expect(personaOf(state.signed)).toEqual({
+        id: "u-2",
+        role,
+        roles: [role],
+        regionScope: [],
+      });
+    }
+  });
+
+  it("a conta sem papel volta à tela de entrada com a recusa de papel", () => {
+    const noRole: ApiFailure = {
+      kind: "forbidden",
+      status: null,
+      code: null,
+      detail: null,
+    };
+    const state = replay([
+      { type: "proving" },
+      { type: "refused", failure: noRole },
+    ]);
+    expect(surfaceOf(state)).toBe("signIn");
+    expect(state.failure).toBe(noRole);
+  });
+
+  it("a pessoa anônima não carrega papel nenhum", () => {
+    expect(personaOf(null).roles).toEqual([]);
   });
 });

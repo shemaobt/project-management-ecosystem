@@ -11,10 +11,15 @@ const CONSEQUENCES = [
 
 export interface SensitiveFlagProps {
   checked: boolean;
+  disabled?: boolean;
   onChange: (checked: boolean) => void;
 }
 
-export function SensitiveFlag({ checked, onChange }: SensitiveFlagProps) {
+export function SensitiveFlag({
+  checked,
+  disabled = false,
+  onChange,
+}: SensitiveFlagProps) {
   const { t } = useTranslation();
 
   return (
@@ -36,6 +41,7 @@ export function SensitiveFlag({ checked, onChange }: SensitiveFlagProps) {
             id="ficha-sensitive"
             label={t("f_sensitive")}
             checked={checked}
+            disabled={disabled}
             onCheckedChange={(next) => onChange(next === true)}
           />
           <p className="mt-1 text-micro text-fg-subtle">

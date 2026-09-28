@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { splitPeople } from "../../../../../utils/people";
 import { DetailItem, FieldGrid } from "../../fields";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import type { DraftHandle } from "../../useDraft";
 import { RegionalRoles } from "./RegionalRoles";
 import { SensitiveContacts } from "./SensitiveContacts";
@@ -30,30 +31,32 @@ export interface EquipeViewProps {
 export function EquipeView({ draft }: EquipeViewProps) {
   const { t } = useTranslation();
   const values = draft.values;
+  const hidden = draft.place.withheld;
+  const shown = (value: string | undefined) => (hidden ? "" : value) || "—";
 
   return (
     <div className="flex flex-col gap-5">
       <FieldGrid>
         <DetailItem label={t("d_facilitators")} full>
-          {values.team || "—"}
+          {shown(values.team)}
         </DetailItem>
 
         <DetailItem label={t("d_leader")}>{values.teamLeader || "—"}</DetailItem>
 
         <DetailItem label={t("f_leader_contact")}>
           <span className="wrap-anywhere">
-            {values.teamLeaderContact || "—"}
+            {shown(values.teamLeaderContact)}
           </span>
         </DetailItem>
 
         <DetailItem label={t("d_mentor")}>{values.mentor || "—"}</DetailItem>
 
         <DetailItem label={t("f_mentor_contact")}>
-          <span className="wrap-anywhere">{values.mentorContact || "—"}</span>
+          <span className="wrap-anywhere">{shown(values.mentorContact)}</span>
         </DetailItem>
 
         <DetailItem label={t("d_team_contact")}>
-          {values.teamContact || "—"}
+          {shown(values.teamContact)}
         </DetailItem>
 
         <DetailItem label={t("d_partner")}>{values.partnerOrg || "—"}</DetailItem>
@@ -67,9 +70,14 @@ export function EquipeView({ draft }: EquipeViewProps) {
         </DetailItem>
       </FieldGrid>
 
-      {values.sensitiveCountry && <SensitiveContacts />}
+      {hidden ? (
+        <CoordinationOnlyNote />
+      ) : (
+        values.sensitiveCountry && <SensitiveContacts />
+      )}
 
       <RegionalRoles location={values.location ?? ""} />
+
     </div>
   );
 }

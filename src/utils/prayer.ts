@@ -5,7 +5,7 @@ import type { PrayerVisibility, Project } from "../types/project";
 import type { RegionKey } from "../types/region";
 import {
   getCountry,
-  getLocationDisplay,
+  getLeavingLocation,
   getRegion,
   getRegionLabelKey,
 } from "./region";
@@ -28,11 +28,11 @@ export function buildPrayerRequests(
   const requests: PrayerRequest[] = [];
 
   projects.forEach((project) => {
-    const location = getLocationDisplay(project);
+    const location = getLeavingLocation(project);
     const shared = {
       projectId: project.id,
       language: project.languageName || "—",
-      base: project.team || project.ywamBase,
+      base: location.base,
       country: location.withheld ? "" : getCountry(project),
       region: getRegion(project),
       locationWithheld: location.withheld,
