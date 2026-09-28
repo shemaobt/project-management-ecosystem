@@ -69,6 +69,12 @@ export const formsAPI = pick<typeof fixture.formsAPI>(
   fixture.formsAPI,
 );
 
+export const membersAPI = pick<typeof fixture.membersAPI>(
+  "members",
+  api.membersAPI,
+  fixture.membersAPI,
+);
+
 export const geoAPI = fixture.geoAPI;
 
 export { announceFailure, failureSentence } from "./announce";

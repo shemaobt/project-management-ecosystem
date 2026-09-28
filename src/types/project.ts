@@ -383,3 +383,27 @@ export interface Project {
   mediaVideos?: ProjectVideo[];
   derived?: ProjectDerived;
 }
+
+/**
+ * A project member's role — `equipe` only, until the client names another (BE-18 · OBT-524).
+ * The server's `shema_project_members.role` and the session's reserved `equipe` are the same word.
+ */
+export type ProjectMemberRole = "equipe";
+
+/**
+ * One live member of a project, as `GET /api/shema/projects/{id}/members` lists it and the
+ * Admin's `POST` answers it (`docs/data-contracts.md` §9.14). `name` is the account's display
+ * name, else its e-mail; `addedAt` is the UTC day the membership began, `YYYY-MM-DD`.
+ */
+export interface ProjectMember {
+  userId: string;
+  name: string;
+  role: ProjectMemberRole;
+  addedAt: string;
+}
+
+/** A project the signed-in account is a live member of — `GET /api/shema/me/projects`. */
+export interface ProjectRef {
+  id: string;
+  languageName: string;
+}
