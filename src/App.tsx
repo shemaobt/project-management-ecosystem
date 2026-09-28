@@ -15,6 +15,7 @@ import { IntercessoresPage } from "./components/pages/intercessores/Intercessore
 import { OracaoPage } from "./components/pages/oracao";
 import { ProjetosPage } from "./components/pages/projetos/ProjetosPage";
 import { RitmoPage } from "./components/pages/ritmo/RitmoPage";
+import { RelatorioPage } from "./components/pages/ritmo/relatorio/RelatorioPage";
 import { Toaster } from "./components/ui";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -46,6 +47,10 @@ export default function App() {
                         element={<FichaPage />}
                       />
                       <Route path="ritmo" element={<RitmoPage />} />
+                      <Route
+                        path="ritmo/relatorio/:year?"
+                        element={<RelatorioPage />}
+                      />
                       <Route path="oracao" element={<OracaoPage />} />
                       <Route
                         path="oracao/intercessores"
