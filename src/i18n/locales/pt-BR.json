@@ -555,7 +555,7 @@
   "ritmo_role_project_leader": "Líder do projeto",
   "ritmo_feed_field_check": "Os formulários do período e a Avaliação de Saúde",
   "ritmo_feed_member_care": "O cuidado com a equipe ao longo do semestre",
-  "ritmo_participants_pending": "Quem participa e o que alimenta esta reunião são uma leitura provisória, ainda por confirmar.",
+  "ritmo_participants_pending": "As pessoas-ponte ainda não foram definidas. Por enquanto, a reunião se organiza pelos papéis acima, sem lista de nomes.",
   "ritmo_period_bimester": "{{n}}º bimestre · {{year}}",
   "ritmo_period_semester": "{{n}}º semestre · {{year}}",
   "ritmo_flow_pulso_what": "O Pulso Mensal devolvido",

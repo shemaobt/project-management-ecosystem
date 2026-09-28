@@ -21,8 +21,13 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
 const { default: i18n } = await import("../../../../i18n");
-const { LISTENING_FLOW, MEETING_STATE_SYMBOLS, RITMO_ENCOUNTERS, RITMO_MEETINGS } =
-  await import("../../../../constants/meetings");
+const {
+  BRIDGE_PEOPLE,
+  LISTENING_FLOW,
+  MEETING_STATE_SYMBOLS,
+  RITMO_ENCOUNTERS,
+  RITMO_MEETINGS,
+} = await import("../../../../constants/meetings");
 const { MemoryRouter } = await import("react-router-dom");
 const { EMPTY_REGION_TEAM, REGIONS } = await import(
   "../../../../constants/regions"
@@ -198,23 +203,35 @@ describe("o cartão da reunião diz cadência, quem participa e o que a alimenta
   });
 
   /**
-   * GATE-02 deixou em aberto quem são as pessoas-ponte e se a Avaliação de Saúde passa para a
-   * bimestral. O que está nos dois cartões é leitura nossa, e o cartão diz isso.
+   * Karina, 28/set/2026: a Avaliação de Saúde fica na bimestral (confirmado), e as pessoas-ponte
+   * ainda não existem como informação. Só a trimestral carrega o aviso, e ele diz isso — não que
+   * a leitura é provisória.
    */
-  it("a bimestral e a trimestral dizem que os participantes são leitura provisória", () => {
-    for (const id of ["bimestral_pi_campo", "trimestral_pi_pontes"] as const) {
-      const card = renderToStaticMarkup(
-        createElement(MeetingCard, { meeting: byId(id), children: null }),
-      );
-      expect(card, id).toContain(i18n.t("ritmo_participants_pending"));
-    }
+  it("só a trimestral avisa que as pessoas-ponte ainda não foram definidas", () => {
+    const withNotice = RITMO_MEETINGS.filter((item) =>
+      renderToStaticMarkup(
+        createElement(MeetingCard, { meeting: item, children: null }),
+      ).includes(i18n.t("ritmo_participants_pending")),
+    ).map((item) => item.id);
+
+    expect(withNotice).toEqual(["trimestral_pi_pontes"]);
+    expect(i18n.t("ritmo_participants_pending")).toContain("pessoas-ponte");
   });
 
-  it("a semestral não carrega o aviso, porque ninguém deixou nada em aberto nela", () => {
-    const card = renderToStaticMarkup(
-      createElement(MeetingCard, { meeting: byId("semestral_member_care"), children: null }),
-    );
-    expect(card).not.toContain(i18n.t("ritmo_participants_pending"));
+  it("a bimestral é alimentada pela Avaliação de Saúde, sem aviso de leitura provisória", () => {
+    expect(byId("bimestral_pi_campo").readiness).toBe("health");
+    expect(byId("bimestral_pi_campo").participantsPending).toBeFalsy();
+  });
+
+  it("o cartão e o fluxo da escuta leem as pessoas-ponte do mesmo lugar", () => {
+    const tier = LISTENING_FLOW.find((item) => item.key === "trimestral_pi_pontes");
+
+    expect(byId("trimestral_pi_pontes").roles).toEqual([
+      "internationalProjects",
+      ...BRIDGE_PEOPLE.roles,
+    ]);
+    expect(tier?.attendees).toEqual(byId("trimestral_pi_pontes").roles);
+    expect(byId("trimestral_pi_pontes").participantsPending).toBe(!BRIDGE_PEOPLE.defined);
   });
 });
 
