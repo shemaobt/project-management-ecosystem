@@ -282,7 +282,16 @@ describe("eten fixture", () => {
     const report = buildEtenReport(
       [project],
       2025,
-      [{ projectId: "kadiweu", year: 2025, credits: 25, source: "manual" }],
+      [
+        {
+          projectId: "kadiweu",
+          year: 2025,
+          credits: 25,
+          source: "manual",
+          recordedBy: "Maria",
+          recordedAt: "2025-08-02T12:00:00Z",
+        },
+      ],
       new Date("2026-05-14"),
     );
 
@@ -291,6 +300,11 @@ describe("eten fixture", () => {
     expect(report.snapshots[0].advanced).toBe(28);
     expect(report.snapshots[0].credits).toBe(25);
     expect(report.snapshots[0].creditsSource).toBe("manual");
+    expect(report.snapshots[0].manualEntry).toEqual({
+      credits: 25,
+      recordedBy: "Maria",
+      recordedAt: "2025-08-02T12:00:00Z",
+    });
     expect(report.totalCredits).toBe(25);
   });
 
@@ -299,7 +313,16 @@ describe("eten fixture", () => {
     const report = buildEtenReport(
       [project],
       2025,
-      [{ projectId: "kadiweu", year: 2024, credits: 9, source: "manual" }],
+      [
+        {
+          projectId: "kadiweu",
+          year: 2024,
+          credits: 9,
+          source: "manual",
+          recordedBy: "",
+          recordedAt: null,
+        },
+      ],
       new Date("2026-05-14"),
     );
 

@@ -171,6 +171,20 @@ describe("a leitura do registro", () => {
     expect(project.sensitiveCountry).toBe(true);
   });
 
+  it("completedDate, a 74ª chave, chega ao Project; ausente ou nulo fica ausente", async () => {
+    const completedDate = async (value: unknown) => {
+      script = () => ({
+        status: 200,
+        data: { ...WIRE, completedDate: value },
+        headers: { etag: '"1"' },
+      });
+      return (await projectRecordAPI.read("ashaninka")).project.completedDate;
+    };
+    expect(await completedDate("2026-03-10")).toBe("2026-03-10");
+    expect(await completedDate(null)).toBeUndefined();
+    expect(await completedDate(undefined)).toBeUndefined();
+  });
+
   it("o bloco derived do servidor chega inteiro, sem recálculo", async () => {
     script = () => ({ status: 200, data: WIRE, headers: { etag: '"1"' } });
     const { project } = await projectRecordAPI.read("ashaninka");

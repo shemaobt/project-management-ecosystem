@@ -73,7 +73,6 @@ describe("a tabela de troca", () => {
     expect(waiting).toEqual([
       "projects",
       "prayer",
-      "eten",
     ]);
   });
 

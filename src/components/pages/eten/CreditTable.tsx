@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { EtenYearReport, EtenYearSnapshot } from "../../../types/eten";
 import { cn } from "../../../utils/cn";
+import { formatDate } from "../../../utils/format";
 import {
   Table,
   TableBody,
@@ -10,8 +11,10 @@ import {
   TableHeaderCell,
   TableRow,
 } from "../../ui";
+import { locationLabel, manualLabel, readingLabel } from "./evidence";
 
 const NUM = "text-right tabular-nums";
+const EVIDENCE = "mt-0.5 block text-tag font-normal text-fg-subtle";
 
 function Credits({ snapshot }: { snapshot: EtenYearSnapshot }) {
   const { t } = useTranslation();
@@ -35,8 +38,10 @@ function Credits({ snapshot }: { snapshot: EtenYearSnapshot }) {
     >
       {snapshot.credits}
       {snapshot.creditsSource === "manual" ? (
-        <span className="ml-1.5 text-tag font-semibold text-fg-muted">
-          {t("eten_source_manual")}
+        <span className={EVIDENCE}>{manualLabel(snapshot, t)}</span>
+      ) : snapshot.completionSource === "completedDate" && snapshot.completedDate ? (
+        <span className={EVIDENCE}>
+          {t("eten_completed_on", { date: formatDate(snapshot.completedDate) })}
         </span>
       ) : null}
     </span>
@@ -78,17 +83,41 @@ export function CreditTable({ report }: CreditTableProps) {
                 {snapshot.languageName}
               </span>
               <span className="mt-0.5 block text-tag text-fg-subtle">
-                {snapshot.country.withheld
-                  ? t(snapshot.country.regionLabelKey)
-                  : snapshot.country.location}
+                {locationLabel(snapshot.country, t)}
               </span>
+              {snapshot.approvedUnverified ? (
+                <span
+                  className="mt-0.5 block text-tag font-semibold text-status-attention-fg"
+                  title={t("eten_unverified_note")}
+                >
+                  {t("eten_unverified")}
+                </span>
+              ) : null}
             </TableCell>
             <TableCell className={NUM}>{snapshot.scopeUnits || "—"}</TableCell>
             <TableCell className={NUM}>
-              {snapshot.hasData ? snapshot.approvedAtStart : "—"}
+              {snapshot.hasData ? (
+                <>
+                  {snapshot.approvedAtStart}
+                  <span className={EVIDENCE}>
+                    {readingLabel(snapshot.startReading, t)}
+                  </span>
+                </>
+              ) : (
+                "—"
+              )}
             </TableCell>
             <TableCell className={NUM}>
-              {snapshot.hasData ? snapshot.approvedAtEnd : "—"}
+              {snapshot.hasData ? (
+                <>
+                  {snapshot.approvedAtEnd}
+                  <span className={EVIDENCE}>
+                    {readingLabel(snapshot.endReading, t)}
+                  </span>
+                </>
+              ) : (
+                "—"
+              )}
             </TableCell>
             <TableCell
               className={cn(

@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -23,12 +25,14 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { createEmptyProject } = await import("../../../../fixtures/blank");
 const { EtenView } = await import("..");
-const { reportYears, defaultReportYear } = await import(
+const { buildEtenReport, reportYears, defaultReportYear } = await import(
   "../../../../utils/etenCredits"
 );
 const { formatDate } = await import("../../../../utils/format");
 
 type Project = ReturnType<typeof createEmptyProject>;
+type EtenYearReport = import("../../../../types/eten").EtenYearReport;
+type EtenCreditEntry = import("../../../../types/eten").EtenCreditEntry;
 
 const NOW = new Date(2027, 5, 14);
 
@@ -48,10 +52,25 @@ const snapshot = (date: string, approvedUnits: number) => ({
   approvedUnits,
 });
 
-const view = (projects: Project[] | null) =>
+const YEAR = 2026;
+
+const render = (
+  report: EtenYearReport | null,
+  error: string | null = null,
+) =>
   renderToStaticMarkup(
-    createElement(EtenView, { projects, ledger: [], now: NOW }),
+    createElement(EtenView, {
+      year: YEAR,
+      onYearChange: () => {},
+      report,
+      error,
+      onRetry: () => {},
+      now: NOW,
+    }),
   );
+
+const view = (projects: Project[] | null, ledger: EtenCreditEntry[] = []) =>
+  render(projects === null ? null : buildEtenReport(projects, YEAR, ledger, NOW));
 
 beforeEach(async () => {
   await i18n.changeLanguage("pt");
@@ -277,5 +296,191 @@ describe("a tela não promete o que a onda 1 não entrega", () => {
     const markup = view(null);
     expect(markup).not.toContain(i18n.t("eten_empty"));
     expect(markup).toContain(i18n.t("loading"));
+  });
+});
+
+describe("a tela mostra o relatório que recebeu, e não calcula nenhum número", () => {
+  const SCREEN_DIR = join(process.cwd(), "src", "components", "pages", "eten");
+  const screen = readdirSync(SCREEN_DIR)
+    .filter((name) => /\.tsx?$/u.test(name))
+    .map((name) => [name, readFileSync(join(SCREEN_DIR, name), "utf8")] as const);
+
+  it("nenhum arquivo da tela importa a regra do crédito", () => {
+    expect(screen.map(([name]) => name)).toContain("index.tsx");
+    expect(screen.map(([name]) => name)).toContain("CreditTable.tsx");
+    for (const [path, source] of screen) {
+      expect(source, path).not.toMatch(/\b(buildEtenReport|accountFor|readingAtYearEnd)\b/u);
+    }
+  });
+
+  /** O relatório como o `GET /eten/report` do BE-11 responde — nenhum projeto por trás. */
+  const fromServer: EtenYearReport = {
+    year: YEAR,
+    listedProjects: 2,
+    advancingProjects: 1,
+    totalCredits: 1,
+    hasData: true,
+    periodStart: "2025-08-01",
+    periodEnd: "2026-07-31",
+    asOf: "2026-09-29",
+    reportId: "b3f1c0de-0000-4000-8000-000000000413",
+    recordedAt: "2026-09-29T14:02:11Z",
+    snapshots: [
+      {
+        projectId: "sigilosa-cairo",
+        languageName: "Sigilosa",
+        country: { withheld: true, regionLabelKey: "continent_africa" },
+        scopeUnits: 25,
+        approvedAtStart: 20,
+        approvedAtEnd: 25,
+        advanced: 5,
+        concluded: true,
+        completedInYear: true,
+        undatedCompletion: false,
+        hasData: true,
+        credits: 1,
+        creditsSource: "calculated",
+        startReading: {
+          source: "history",
+          approvedUnits: 20,
+          totalUnits: 25,
+          entryId: "e-1",
+          date: "2025-07-20",
+        },
+        endReading: {
+          source: "history",
+          approvedUnits: 25,
+          totalUnits: 25,
+          entryId: "e-2",
+          date: "2026-03-10",
+        },
+        completedDate: "2026-03-10",
+        completionSource: "completedDate",
+        approvedUnverified: false,
+        manualEntry: null,
+      },
+      {
+        projectId: "kadiweu-mato-grosso",
+        languageName: "Kadiwéu",
+        country: { withheld: false, location: "Brazil" },
+        scopeUnits: 260,
+        approvedAtStart: 40,
+        approvedAtEnd: 40,
+        advanced: 0,
+        concluded: false,
+        completedInYear: false,
+        undatedCompletion: false,
+        hasData: true,
+        credits: 0,
+        creditsSource: "calculated",
+        startReading: null,
+        endReading: {
+          source: "live",
+          approvedUnits: 40,
+          totalUnits: 260,
+          entryId: null,
+          date: null,
+        },
+        completedDate: null,
+        completionSource: "snapshots",
+        approvedUnverified: true,
+        manualEntry: null,
+      },
+    ],
+  };
+
+  it("mostra a data em que o servidor registrou o relatório e qual registro é", () => {
+    const markup = render(fromServer);
+    expect(markup).toContain(
+      i18n.t("eten_recorded_on", { date: formatDate("2026-09-29") }),
+    );
+    expect(markup).toContain(fromServer.reportId);
+    expect(markup).not.toContain(i18n.t("eten_not_recorded"));
+  });
+
+  it("diz o período fiscal e o corte em 31 de julho", () => {
+    const markup = render(fromServer);
+    expect(markup).toContain(
+      i18n.t("eten_period", {
+        start: formatDate("2025-08-01"),
+        end: formatDate("2026-07-31"),
+      }),
+    );
+    expect(markup).toContain(
+      i18n.t("eten_computed_for", { date: formatDate("2026-09-29") }),
+    );
+  });
+
+  it("um cálculo que ninguém registrou diz isso, em vez de inventar um registro", () => {
+    const markup = view([listed({ progressHistory: [snapshot("2026-07-31", 10)] })]);
+    expect(markup).toContain(i18n.t("eten_not_recorded"));
+    expect(markup).not.toContain(i18n.t("eten_report_ref"));
+  });
+
+  it("o detalhamento leva do total ao projeto e ao registro que o produziu", () => {
+    const markup = render(fromServer);
+    expect(markup).toContain(i18n.t("eten_breakdown_title"));
+    expect(markup).toContain(
+      i18n.t("eten_why_completed", { scope: 25, date: formatDate("2026-03-10") }),
+    );
+    expect(markup).toContain(i18n.t("eten_breakdown_credits", { count: 1 }));
+  });
+
+  it("só quem ganhou crédito entra no detalhamento; a tabela continua com todos", () => {
+    const markup = render(fromServer);
+    const breakdown = markup.slice(markup.indexOf(i18n.t("eten_breakdown_title")));
+    expect(breakdown).toContain("Sigilosa");
+    expect(breakdown).not.toContain("Kadiwéu");
+    expect(markup).toContain("Kadiwéu");
+  });
+
+  it("cada leitura da tabela diz de que registro veio", () => {
+    const markup = render(fromServer);
+    expect(markup).toContain(
+      i18n.t("eten_reading_on", { date: formatDate("2026-03-10") }),
+    );
+    expect(markup).toContain(i18n.t("eten_reading_live"));
+  });
+
+  it("a contagem vinda da importação vem marcada", () => {
+    expect(render(fromServer)).toContain(i18n.t("eten_unverified"));
+  });
+
+  it("o país sensível sai como a região que o servidor mandou, em todo lugar da tela", () => {
+    const markup = render(fromServer);
+    expect(markup).toContain(i18n.t("continent_africa"));
+    expect(markup).not.toContain("Egypt");
+    expect(markup).not.toContain("Cairo");
+  });
+
+  it("o crédito à mão diz quem o informou e quando", () => {
+    const markup = view(
+      [
+        listed({
+          progressHistory: [snapshot("2025-07-31", 40), snapshot("2026-07-31", 60)],
+        }),
+      ],
+      [
+        {
+          projectId: "kadiweu",
+          year: YEAR,
+          credits: 1,
+          source: "manual",
+          recordedBy: "Maria Lima",
+          recordedAt: "2026-08-03T10:00:00Z",
+        },
+      ],
+    );
+    expect(markup).toContain(
+      i18n.t("eten_manual_by", { name: "Maria Lima", date: formatDate("2026-08-03") }),
+    );
+  });
+
+  it("uma falha diz o que aconteceu e oferece tentar de novo, sem número nenhum", () => {
+    const markup = render(null, "Sem conexão com o servidor.");
+    expect(markup).toContain("Sem conexão com o servidor.");
+    expect(markup).toContain(i18n.t("net_retry"));
+    expect(markup).not.toContain(i18n.t("eten_total_credits"));
+    expect(markup).not.toContain(i18n.t("loading"));
   });
 });

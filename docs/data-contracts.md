@@ -479,7 +479,7 @@ payload. §8.5.
 
 ### 5.6 ETEN
 
-`src/types/eten.ts`. **Shapes frozen; the rule that fills them is Open · GATE-01.**
+`src/types/eten.ts`. **Shapes frozen; the rule that fills them was Open · GATE-01 and closed on 25/set/2026.** INT-08 added the evidence fields BE-11 serves (§9.8), additively.
 
 `EtenCreditEntry` is `{projectId, year, credits, source}` with `source` in `manual | calculated`;
 `EtenYearSnapshot` and `EtenYearReport` are the report's read shapes. **A stored `manual` entry
@@ -1099,6 +1099,18 @@ PUT /api/shema/eten/credits/{projectId}/{year}    {credits}  -> EtenCreditEntry 
 snapshots[]}`, and each snapshot carries the scope, the approved count at the start and end of the
 year, the advance between them, and the credit with its `source`.
 
+**Evidence, added by BE-11 and read by INT-08** (additive — a consumer of the keys above reads
+what it read before). The report adds `periodStart`/`periodEnd` (the fiscal year, 1 August to
+31 July), `asOf` (the day it was computed for) and `reportId`/`recordedAt` (the
+`shema_eten_reports` row that keeps it; `null` from the fixture double). Each snapshot adds
+`startReading`/`endReading` (`{source: history | live, approvedUnits, totalUnits, entryId, date}`
+or `null`), `completedDate`, `completionSource` (`completedDate | snapshots`),
+`approvedUnverified` and `manualEntry` (`{credits, recordedBy, recordedAt}`); `EtenCreditEntry`
+adds `recordedBy`/`recordedAt`. `year` is the fiscal year that ends on 31/07/`year` (GATE-01,
+closed 25/set/2026). **There is no export route**: ETEN's format changes every year and this
+year's had not arrived on 28/set/2026; it lands as a presenter in `shema-api`'s
+`app/models/shema_eten.py`.
+
 **Server requirements:**
 
 - **A year with no data is not a year of zero credits.** `hasData` distinguishes them at the row and
@@ -1107,7 +1119,7 @@ year, the advance between them, and the credit with its `source`.
   empty. The prototype fabricated `inETEN` and invented two year-end snapshots at 45% and 100% of
   the current count; that is not ported and must not be reintroduced.
 - A `manual` entry wins over the computed value; the computed one is marked `calculated`.
-- The rule itself is **Open · GATE-01** (§11.1).
+- The rule itself was **Open · GATE-01** (§11.1) and closed on 25/set/2026.
 
 ### 9.9 Formulários e link do líder — INT-09 ([OBT-414](https://linear.app/shema-obt/issue/OBT-414)) · BE-12 ([OBT-401](https://linear.app/shema-obt/issue/OBT-401))
 

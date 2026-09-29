@@ -1,12 +1,15 @@
 import { afterAll, describe, expect, it } from "vitest";
 import type { EtenCreditEntry } from "../../types/eten";
 import type { ProgressHistoryEntry, ProjectStatus } from "../../types/project";
+import { createEmptyProject } from "../../fixtures/blank";
 import {
   accountFor,
-  approvedAtYearEnd,
+  buildEtenReport,
   fiscalYearEnd,
+  fiscalYearStart,
   fiscalYearOf,
   fiscalYearSpan,
+  readingAtYearEnd,
   type CountedProject,
 } from "../etenCredits";
 import { parseIsoDate, type CalendarDate } from "../cadence";
@@ -42,6 +45,12 @@ const project = (
   ...extra,
 });
 
+const approvedAtYearEnd = (
+  counted: CountedProject,
+  year: number,
+  now: Date,
+): number | null => readingAtYearEnd(counted, year, now)?.approvedUnits ?? null;
+
 const on = (iso: string): CalendarDate => {
   const parsed = parseIsoDate(iso);
   if (!parsed) throw new Error(iso);
@@ -71,6 +80,7 @@ describe("o ano fiscal fecha em 31 de julho, lido por campo", () => {
     expect(fiscalYearSpan(2026)).toBe("2025/26");
     expect(fiscalYearSpan(2000)).toBe("1999/00");
     expect(fiscalYearEnd(2026)).toBe("2026-07-31");
+    expect(fiscalYearStart(2026)).toBe("2025-08-01");
   });
 });
 
@@ -284,7 +294,14 @@ describe("ano sem dado não é ano de zero crédito", () => {
 
 describe("um crédito informado à mão manda no calculado", () => {
   const ledger: EtenCreditEntry[] = [
-    { projectId: "kadiweu", year: 2026, credits: 9, source: "manual" },
+    {
+      projectId: "kadiweu",
+      year: 2026,
+      credits: 9,
+      source: "manual",
+      recordedBy: "",
+      recordedAt: null,
+    },
   ];
 
   it("sobrepõe o cálculo e diz de onde veio", () => {
@@ -316,5 +333,150 @@ describe("um crédito informado à mão manda no calculado", () => {
     );
 
     expect(account.creditsSource).not.toBe("manual");
+  });
+});
+
+describe("cada leitura diz de onde veio", () => {
+  it("a leitura do histórico traz o dia do registro que a produziu", () => {
+    const entries = [snapshot("2025-09-01", 8), snapshot("2026-06-02", 30)];
+    expect(readingAtYearEnd(project(entries), 2026, NOW)).toEqual({
+      source: "history",
+      approvedUnits: 30,
+      totalUnits: null,
+      entryId: null,
+      date: "2026-06-02",
+    });
+  });
+
+  it("o ano aberto sem registro lê o projeto como está, e diz que é o registro atual", () => {
+    const reading = readingAtYearEnd(
+      project([], { approvedUnits: 7 }),
+      2027,
+      NOW,
+    );
+    expect(reading?.source).toBe("live");
+    expect(reading?.date).toBeNull();
+    expect(reading?.approvedUnits).toBe(7);
+  });
+
+  it("a conta leva as duas leituras junto com os números", () => {
+    const entries = [snapshot("2025-07-31", 200), snapshot("2026-01-15", 260)];
+    const account = accountFor(project(entries), 2026, [], NOW);
+
+    expect(account.startReading?.date).toBe("2025-07-31");
+    expect(account.endReading?.date).toBe("2026-01-15");
+    expect(account.completionSource).toBe("snapshots");
+  });
+});
+
+/**
+ * FE-51 e BE-11: um `concluido` com `completedDate` e escopo definido é creditado no ano fiscal
+ * dessa data. O dublê de fixture responde o que o `account_for` do servidor responde.
+ */
+describe("a data de conclusão registrada decide o ano", () => {
+  it("credita no ano fiscal da data, mesmo sem leitura no ano", () => {
+    const account = accountFor(
+      project([], { status: "concluido", completedDate: "2026-03-10" }),
+      2026,
+      [],
+      NOW,
+    );
+
+    expect(account.credits).toBe(1);
+    expect(account.creditsSource).toBe("calculated");
+    expect(account.completionSource).toBe("completedDate");
+    expect(account.completedDate).toBe("2026-03-10");
+    expect(account.undatedCompletion).toBe(false);
+  });
+
+  it("em outro ano a mesma conclusão não credita", () => {
+    const entries = [snapshot("2024-07-31", 100), snapshot("2025-07-31", 150)];
+    const account = accountFor(
+      project(entries, { status: "concluido", completedDate: "2026-03-10" }),
+      2025,
+      [],
+      NOW,
+    );
+
+    expect(account.credits).toBe(0);
+    expect(account.completedInYear).toBe(false);
+  });
+
+  it("1º de agosto já é o ano fiscal seguinte", () => {
+    const stamped = project([], { status: "concluido", completedDate: "2026-08-01" });
+    expect(accountFor(stamped, 2027, [], NOW).credits).toBe(1);
+    expect(accountFor(stamped, 2026, [], NOW).credits).toBeNull();
+  });
+
+  it("uma data de um escopo que já tinha fechado antes não credita de novo", () => {
+    const entries = [snapshot("2025-07-31", 260)];
+    const account = accountFor(
+      project(entries, { status: "concluido", completedDate: "2026-03-10" }),
+      2026,
+      [],
+      NOW,
+    );
+
+    expect(account.completionSource).toBe("snapshots");
+    expect(account.credits).toBe(0);
+  });
+
+  it("sem escopo definido a data não decide nada", () => {
+    const account = accountFor(
+      project([], { status: "concluido", completedDate: "2026-03-10", totalUnits: 0 }),
+      2026,
+      [],
+      NOW,
+    );
+
+    expect(account.completionSource).toBe("snapshots");
+    expect(account.credits).toBeNull();
+  });
+});
+
+describe("um projeto que chegou completo não é creditado no ano em que foi cadastrado", () => {
+  it("a primeira leitura, a inicial, já no escopo é chegada e não conclusão", () => {
+    const entries = [{ ...snapshot("2026-02-01", 260), initial: true }];
+    const account = accountFor(project(entries), 2026, [], NOW);
+
+    expect(account.completedInYear).toBe(false);
+    expect(account.undatedCompletion).toBe(true);
+    expect(account.credits).toBeNull();
+  });
+
+  it("uma leitura comum no escopo continua sendo conclusão", () => {
+    const entries = [snapshot("2026-02-01", 260)];
+    expect(accountFor(project(entries), 2026, [], NOW).credits).toBe(1);
+  });
+});
+
+describe("o relatório do dublê diz o que cobre e que ninguém o registrou", () => {
+  const listed = (over: Partial<ReturnType<typeof createEmptyProject>> = {}) => ({
+    ...createEmptyProject("kadiweu"),
+    inETEN: true,
+    totalUnits: 260,
+    ...over,
+  });
+
+  it("período fiscal, dia do cálculo, e registro nulo", () => {
+    const report = buildEtenReport([listed()], 2026, [], NOW);
+
+    expect(report.periodStart).toBe("2025-08-01");
+    expect(report.periodEnd).toBe("2026-07-31");
+    expect(report.asOf).toBe("2027-06-14");
+    expect(report.reportId).toBeNull();
+    expect(report.recordedAt).toBeNull();
+  });
+
+  it("um ano cujo único fato é um crédito pela data tem dado", () => {
+    const report = buildEtenReport(
+      [listed({ status: "concluido", completedDate: "2025-03-10" })],
+      2025,
+      [],
+      NOW,
+    );
+
+    expect(report.hasData).toBe(true);
+    expect(report.totalCredits).toBe(1);
   });
 });

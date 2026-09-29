@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { etenAPI } from "../../../services/api";
-import { useProjectsStore } from "../../../stores/projectsStore";
-import type { EtenCreditEntry } from "../../../types/eten";
-import type { Project } from "../../../types/project";
+import { etenAPI, failureMessage, toApiFailure } from "../../../services/api";
+import type { EtenYearReport } from "../../../types/eten";
+import type { ApiFailure } from "../../../types/session";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { Button } from "../../ui";
+import { CreditBreakdown } from "./CreditBreakdown";
 import { CreditTable } from "./CreditTable";
 import { Indicators } from "./Indicators";
+import { ReportProvenance } from "./ReportProvenance";
 import {
-  buildEtenReport,
   currentFiscalYear,
   defaultReportYear,
   fiscalYearSpan,
@@ -18,24 +19,31 @@ import {
 import { YearSelector } from "./YearSelector";
 
 export interface EtenViewProps {
-  projects: readonly Project[] | null;
-  ledger?: readonly EtenCreditEntry[];
+  year: number;
+  onYearChange: (year: number) => void;
+  /** The server's answer for `year`; `null` while it is on its way or when it failed. */
+  report: EtenYearReport | null;
+  /** The failure sentence, when the read failed. */
+  error: string | null;
+  onRetry: () => void;
   now?: Date;
 }
 
+/**
+ * The ETEN report as the server answered it (INT-08). The screen computes no figure: in `api`
+ * mode `GET /eten/report` owns the rule, and in fixture mode the double answers with the same
+ * shape. Pure, so the static render the suite has can see every state (§5.8's seam).
+ */
 export function EtenView({
-  projects,
-  ledger = [],
+  year,
+  onYearChange,
+  report,
+  error,
+  onRetry,
   now = new Date(),
 }: EtenViewProps) {
   const { t } = useTranslation();
   const years = useMemo(() => reportYears(now), [now]);
-  const [year, setYear] = useState(() => defaultReportYear(now));
-
-  const report = useMemo(
-    () => buildEtenReport(projects ?? [], year, ledger, now),
-    [projects, ledger, year, now],
-  );
 
   return (
     <section className="mx-auto w-full max-w-(--container-reading) px-(--container-pad) pt-8 pb-20">
@@ -54,17 +62,27 @@ export function EtenView({
         <YearSelector
           years={years}
           value={year}
-          onChange={setYear}
+          onChange={onYearChange}
           openYear={currentFiscalYear(now)}
         />
       </header>
 
-      {projects === null ? (
+      {error ? (
+        <EmptyState
+          message={error}
+          action={
+            <Button variant="secondary" size="sm" onClick={onRetry}>
+              {t("net_retry")}
+            </Button>
+          }
+        />
+      ) : report === null ? (
         <div className="flex justify-center py-16">
           <LoadingSpinner size="lg" label={t("loading")} />
         </div>
       ) : (
         <>
+          <ReportProvenance report={report} />
           <Indicators report={report} />
 
           {report.listedProjects === 0 ? (
@@ -77,6 +95,7 @@ export function EtenView({
                 </p>
               )}
               <CreditTable report={report} />
+              {report.hasData ? <CreditBreakdown report={report} /> : null}
             </>
           )}
 
@@ -90,19 +109,54 @@ export function EtenView({
   );
 }
 
+interface Answer {
+  year: number;
+  attempt: number;
+  report: EtenYearReport | null;
+  failure: ApiFailure | null;
+}
+
+/**
+ * One request per year chosen and per retry. An answer is shown only for the year and the
+ * attempt it was asked for, so a slow reply for the year left behind never lands under the
+ * label of the year on screen — a figure that goes to a funder under the wrong year is the
+ * failure this screen exists to prevent. The failure is kept raw and worded at render.
+ */
 export function EtenPage() {
-  const projects = useProjectsStore((state) => state.projects);
-  const hydrated = useProjectsStore((state) => state.hydrated);
-  const hydrate = useProjectsStore((state) => state.hydrate);
-  const [ledger, setLedger] = useState<readonly EtenCreditEntry[]>([]);
+  const { t } = useTranslation();
+  const [now] = useState(() => new Date());
+  const [year, setYear] = useState(() => defaultReportYear(now));
+  const [attempt, setAttempt] = useState(0);
+  const [answer, setAnswer] = useState<Answer | null>(null);
 
   useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+    let cancelled = false;
+    etenAPI
+      .report(year)
+      .then((report) => {
+        if (!cancelled) setAnswer({ year, attempt, report, failure: null });
+      })
+      .catch((raw: unknown) => {
+        if (!cancelled) {
+          setAnswer({ year, attempt, report: null, failure: toApiFailure(raw) });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [year, attempt]);
 
-  useEffect(() => {
-    void etenAPI.credits().then(setLedger);
-  }, []);
+  const current =
+    answer && answer.year === year && answer.attempt === attempt ? answer : null;
 
-  return <EtenView projects={hydrated ? projects : null} ledger={ledger} />;
+  return (
+    <EtenView
+      year={year}
+      onYearChange={setYear}
+      report={current?.report ?? null}
+      error={current?.failure ? failureMessage(current.failure, t) : null}
+      onRetry={() => setAttempt((count) => count + 1)}
+      now={now}
+    />
+  );
 }
