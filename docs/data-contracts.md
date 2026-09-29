@@ -1073,6 +1073,8 @@ POST   /api/shema/meetings/log    {meetingId, scopeKey, date, notes}  -> Meeting
 DELETE /api/shema/meetings/log/{meetingId}/{scopeKey}/{period}        -> 204
 ```
 
+> **INT-07 ([OBT-412](https://linear.app/shema-obt/issue/OBT-412)), 29/set/2026:** GATE-02 answered *one set for every region*, BE-10 did not build `GET /meetings`, and `meetingsAPI` carries no `list`; `RITMO_MEETINGS` is the source. The paragraph below is the reasoning while the gate was open.
+
 **`GET /meetings` is the one exception to §9.0's last rule**, and only because of GATE-02: serving
 the definitions lets the meeting set change without a frontend deploy. Until the gate closes, the
 frontend's `RITMO_MEETINGS` is the source and the endpoint is optional; both catalogues already
@@ -1370,7 +1372,7 @@ can exist; `hydrate()` becomes the matching `GET`.
 | | `importProjects(projects)` | `POST /import/projects` (§9.12) |
 | | `reload()` | the same `GET /projects` as `hydrate()`, unconditionally |
 | `regionsStore` (`shema-regions-v1`) | `saveTeams(drafts, changedBy)` | `PUT /regions/{key}/team` (§9.10) |
-| `rhythmStore` (`shema-rhythm-v1`) | `logMeeting(id, scope, cadence, entry)` | `POST /meetings/log` (§9.7) |
+| `rhythmStore` (`shema-rhythm-drafts-v1`, drafts only since INT-07) | `logMeeting(id, scope, entry)` | `POST /meetings/log` (§9.7) |
 | | `undoMeeting(id, scope, period)` | `DELETE /meetings/log/...` (§9.7) |
 | | `setDraft` / `clearDraft` | stays client-side — a typed note is not a write |
 | `prayerStore` (`shema-intercessors-v1`) | `addIntercessor` / `updateIntercessor` / `removeIntercessor` | `POST` / `PATCH` / `DELETE /prayer/intercessors` (§9.6) |
