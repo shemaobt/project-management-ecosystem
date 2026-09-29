@@ -22,6 +22,7 @@ const { MOCK_SESSION_KEY } = await import("../../fixtures/session");
 const { RITMO_MEETINGS } = await import("../../constants/meetings");
 const { meetingStatus } = await import("../../utils/rhythm");
 const { useRhythmStore } = await import("../rhythmStore");
+const { resetMeetingLog } = await import("../../fixtures/meetings");
 
 /**
  * Fixture mode stands in for the server (§4.1): the double derives the period and gives the
@@ -37,6 +38,7 @@ const asRole = (role: string) => storage.setItem(MOCK_SESSION_KEY, role);
 
 beforeEach(() => {
   storage.clear();
+  resetMeetingLog();
   useRhythmStore.setState({
     log: [],
     drafts: {},
@@ -81,10 +83,41 @@ describe("as cadências novas funcionam ponta a ponta", () => {
     ).toBe("pending");
   });
 
+  it("o que se registrou continua lá quando a tela lê o log de novo", async () => {
+    await useRhythmStore
+      .getState()
+      .logMeeting("bimestral_pi_campo", "africa", { date: "2026-03-01", notes: "fica" });
+    useRhythmStore.setState({ log: [] });
+
+    await useRhythmStore.getState().reload();
+
+    expect(useRhythmStore.getState().log).toEqual([
+      {
+        meetingId: "bimestral_pi_campo",
+        scopeKey: "africa",
+        period: "2026-B2",
+        date: "2026-03-01",
+        notes: "fica",
+      },
+    ]);
+  });
+
+  it("a leitura é só das regiões de quem lê, como no servidor", async () => {
+    await useRhythmStore
+      .getState()
+      .logMeeting("bimestral_pi_campo", "africa", { date: "2026-03-01", notes: "" });
+    asRole("coordinator");
+
+    await useRhythmStore.getState().reload();
+
+    expect(useRhythmStore.getState().log).toEqual([]);
+  });
+
   it("desfazer tira a linha de em dia", async () => {
     const { logMeeting } = useRhythmStore.getState();
     await logMeeting("trimestral_pi_pontes", "africa", { date: "2026-11-30", notes: "" });
     await useRhythmStore.getState().undoMeeting("trimestral_pi_pontes", "africa", "2026-Q4");
+    await useRhythmStore.getState().reload();
 
     expect(useRhythmStore.getState().log).toEqual([]);
   });

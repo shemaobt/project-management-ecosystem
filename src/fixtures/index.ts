@@ -150,9 +150,7 @@ export const meetingsAPI = {
     scopeKey: RegionKey,
     period: string,
   ): Promise<void> {
-    void meetingId;
-    void period;
-    undoMeetingEntry(scopeKey);
+    undoMeetingEntry(meetingId, scopeKey, period);
   },
 };
 
