@@ -164,6 +164,15 @@ describe("the toast, which is six fills under one class", () => {
     }
   });
 
+  it("names on-brand where the fill is a brand fill, and inherits on-dark elsewhere", () => {
+    for (const slot of TYPED_SLOTS) {
+      const { ink } = TOAST_PAINT[slot];
+      expect(TOAST_CLASSNAMES[slot].match(SURFACE_INK) ?? [], slot).toEqual(
+        ink === "on-dark" ? [] : [`text-${ink}`],
+      );
+    }
+  });
+
   it("lets the description inherit that ink instead of restating a surface", () => {
     expect(TOAST_CLASSNAMES.description).toContain("text-current/80");
   });
