@@ -27,7 +27,11 @@ import type {
   IntakeSubmissionPayload,
   ReceivedSubmission,
 } from "../../types/forms";
-import type { MeetingDefinition, MeetingLogEntry } from "../../types/meeting";
+import type {
+  MeetingId,
+  MeetingLogEntry,
+  MeetingLogPayload,
+} from "../../types/meeting";
 import type {
   ConsentContext,
   IntercessorCreate,
@@ -227,15 +231,27 @@ export const regionsAPI = {
   },
 };
 
+const MEETING_LOG = `${SHEMA}/meetings/log`;
+
 export const meetingsAPI = {
-  async list(): Promise<MeetingDefinition[]> {
-    const { data } = await http.get<MeetingDefinition[]>(`${SHEMA}/meetings`);
+  async log(): Promise<MeetingLogEntry[]> {
+    const { data } = await http.get<MeetingLogEntry[]>(MEETING_LOG);
     return data;
   },
 
-  async log(): Promise<MeetingLogEntry[]> {
-    const { data } = await http.get<MeetingLogEntry[]>(`${SHEMA}/meetings/log`);
+  async logMeeting(payload: MeetingLogPayload): Promise<MeetingLogEntry> {
+    const { data } = await http.post<MeetingLogEntry>(MEETING_LOG, payload);
     return data;
+  },
+
+  async undo(
+    meetingId: MeetingId,
+    scopeKey: RegionKey,
+    period: string,
+  ): Promise<void> {
+    await http.delete(
+      `${MEETING_LOG}/${encodeURIComponent(meetingId)}/${encodeURIComponent(scopeKey)}/${encodeURIComponent(period)}`,
+    );
   },
 };
 
