@@ -12,7 +12,8 @@ import { MEETING_ICONS } from "./meetingIcons";
 
 export interface MeetingCardProps {
   meeting: MeetingDefinition;
-  children: ReactNode;
+  /** The region rows; none while the log is unread, and then the card is only its head. */
+  children?: ReactNode;
 }
 
 export function MeetingCard({ meeting, children }: MeetingCardProps) {
@@ -21,7 +22,7 @@ export function MeetingCard({ meeting, children }: MeetingCardProps) {
 
   return (
     <section className={cn("mb-4.5 rounded-lg p-6 shadow-card", surfaceOutlined)}>
-      <div className="mb-4.5 flex gap-4">
+      <div className={cn("flex gap-4", children ? "mb-4.5" : null)}>
         <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-accent-soft text-telha">
           <Icon size={22} strokeWidth={1.75} aria-hidden />
         </span>
@@ -64,9 +65,11 @@ export function MeetingCard({ meeting, children }: MeetingCardProps) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 border-t border-line pt-4">
-        {children}
-      </div>
+      {children ? (
+        <div className="flex flex-col gap-2 border-t border-line pt-4">
+          {children}
+        </div>
+      ) : null}
     </section>
   );
 }

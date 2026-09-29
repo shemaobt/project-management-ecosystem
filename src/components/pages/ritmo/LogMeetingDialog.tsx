@@ -20,6 +20,7 @@ export interface LogMeetingDialogProps {
   meetingTitle: string;
   scopeLabel: string;
   draft: MeetingNote;
+  saving: boolean;
   onDraftChange: (draft: MeetingNote) => void;
   onSave: () => void;
 }
@@ -30,6 +31,7 @@ export function LogMeetingDialog({
   meetingTitle,
   scopeLabel,
   draft,
+  saving,
   onDraftChange,
   onSave,
 }: LogMeetingDialogProps) {
@@ -83,12 +85,13 @@ export function LogMeetingDialog({
           <Button
             variant="secondary"
             size="sm"
+            disabled={saving}
             onClick={() => onOpenChange(false)}
           >
             {t("btn_cancel")}
           </Button>
-          <Button size="sm" disabled={!draft.date} onClick={onSave}>
-            {t("ritmo_save")}
+          <Button size="sm" disabled={!draft.date || saving} onClick={onSave}>
+            {t(saving ? "ritmo_saving" : "ritmo_save")}
           </Button>
         </DialogFooter>
       </DialogContent>

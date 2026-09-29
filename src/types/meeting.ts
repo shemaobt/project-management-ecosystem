@@ -75,6 +75,18 @@ export interface MeetingLogEntry {
   notes: string;
 }
 
+/**
+ * What `POST /api/shema/meetings/log` accepts — FE-44 §9.7's body, and no `period`: the server
+ * derives it from the day and the meeting's cadence, and refuses a body that states one (BE-10).
+ * `scopeKey` is a region and never `global`, because every meeting GATE-02 kept is held per region.
+ */
+export interface MeetingLogPayload {
+  meetingId: MeetingId;
+  scopeKey: RegionKey;
+  date: string;
+  notes: string;
+}
+
 export interface MeetingStatus {
   state: MeetingState;
   date: string | null;
