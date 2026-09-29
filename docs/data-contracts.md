@@ -516,9 +516,18 @@ Entry ids are stable derivations of what the row renders — `health:{projectId}
 `need:{projectId}:{category}:{submittedAt}` — never of a position, because a removed need would
 otherwise hand its read state to its neighbour. Exact duplicates take an occurrence suffix.
 
-`audience` is a list of `RoleKey`, from the table in `src/constants/notifications.ts`: field,
+`audience` is a list of `SessionRole`, from the table in `src/constants/notifications.ts`: field,
 health, need and stale reach `coordinator` and `obtLab`; **prayer reaches `resourceCircle` alone** —
 the role whose responsibility it is.
+
+**The resource-request form's two kinds** (BE-21, [OBT-541](https://linear.app/shema-obt/issue/OBT-541),
+29/set/2026) join the union as `RequestNotification`, a second branch with its own base
+`{id, urgent, audience, projectId: string | null, date, requestName}`: `requestArrival`
+(`requestStage: "triagem"`, reaching `admin` and `gestor`) and `requestDecision`
+(`requestStage: "aprovado" | "condicional" | "revisar" | "recusado"`, reaching `equipe`, `admin`,
+`gestor` and `mesa` — every role that can start a request). They are **stored, not derived**, carry
+no region, location, base or mentor, and **nothing from the evaluation** — the GATE-03 D4 ceiling.
+The derived five are `ProjectNotification`.
 
 `NotificationPrefs` is `{enabled, channels{email,push,whatsapp}, when, scope, emailAddr, phoneAddr,
 customProjectIds}`. `NotificationPrefsHandlers` is the operations contract the store implements and
@@ -1191,6 +1200,11 @@ POST /api/shema/notifications/read     {ids: string[]}  -> 204
   read state survives a re-derivation.
 - The badge counts unread over **exactly the list the panel returns**.
 - Channel delivery does not exist yet on either side (§3.1). The preference records the choice.
+- **The two request kinds (OBT-541) are delivered rows**, written by the form's arrival and decision
+  (`shema_request_notices` holds the project, the registered name and the stage beside the
+  `notifications` row). The entry answers `kind`, `projectId`, `requestName` and `requestStage` under
+  the frozen type's own names, and `projectId` is `null` for a reader who does not reach the
+  project. They are addressed per person, so region routing does not apply to them.
 
 **One schema consequence worth naming before BE-15 starts.** These notifications are *derived from
 the projects*, so their ids are not rows: the existing `notifications` table stores a row per
