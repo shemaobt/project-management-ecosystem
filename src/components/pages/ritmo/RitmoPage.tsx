@@ -25,7 +25,6 @@ import {
   toLocalIsoDate,
 } from "../../../utils/format";
 import {
-  meetingEntries,
   meetingReadiness,
   meetingStatus,
   nextOccurrence,
@@ -119,14 +118,10 @@ export function RitmoPage() {
         canSeeRegion,
       ).map((scope) => {
         const status = meetingStatus(log, meeting, scope.key, now);
-        const current = periodKey(meeting.cadence, reference);
         return {
           scope,
           status,
-          loggedPeriod:
-            meetingEntries(log, meeting.id, scope.key).find(
-              (entry) => entry.period === current,
-            )?.period ?? null,
+          period: periodKey(meeting.cadence, reference),
           nextDue: formatDate(
             formatIsoDate(nextOccurrence(meeting, status, now)),
           ),
@@ -224,10 +219,9 @@ export function RitmoPage() {
                     readiness={row.readiness}
                     participants={row.participants}
                     onLog={() => setEditing({ meeting, scope: row.scope })}
-                    onUndo={() => {
-                      if (row.loggedPeriod === null) return;
-                      void undoMeeting(meeting.id, row.scope.key, row.loggedPeriod);
-                    }}
+                    onUndo={() =>
+                      void undoMeeting(meeting.id, row.scope.key, row.period)
+                    }
                   />
                 ))
               )}
