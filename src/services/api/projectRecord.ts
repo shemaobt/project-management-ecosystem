@@ -171,6 +171,9 @@ interface WireRecord {
   deadline: string | null;
   lastUpdated: string | null;
   status: Project["status"] | null;
+  /** BE-11's stamp on the move into `concluido`, the 74th key — absent from a server that
+   * still answers the 73 FE-44 froze, and `null` on a record that never finished. */
+  completedDate?: string | null;
   sensitivity: string;
   sensitiveCountry: boolean;
   /** OBT-528, additive: the same bit for every reader — withheld from what leaves. */
@@ -439,6 +442,7 @@ export function mapRecord(wire: WireRecord): Project {
     deadline: text(wire.deadline),
     lastUpdated: text(wire.lastUpdated),
     status: wire.status ?? "desconhecido",
+    completedDate: maybe(wire.completedDate ?? null),
     sensitivity: wire.sensitivity,
     sensitiveCountry: wire.sensitiveCountry || wire.locationWithheld === true,
     readAs: readReadAs(wire.readAs),
