@@ -3,7 +3,7 @@ import type { TFunction } from "i18next";
 import { Link } from "react-router-dom";
 import { NEED_CATEGORIES } from "../../../constants/project";
 import { DEFAULT_TAB } from "../../../constants/recordTabs";
-import { REQUEST_STAGE_LABEL_KEYS } from "../../../constants/requests";
+import { DECISION_STAGE_LABEL_KEYS } from "../../../constants/requests";
 import { HEALTH_LABEL_KEYS } from "../../../constants/status";
 import type { AppNotification } from "../../../types/notification";
 import type { NeedCategory } from "../../../types/project";
@@ -45,7 +45,7 @@ function summaryFor(entry: AppNotification, t: TFunction): string {
       return t("notif_request_arrival_summary");
     case "requestDecision":
       return t("notif_request_decision_summary", {
-        stage: t(REQUEST_STAGE_LABEL_KEYS[entry.requestStage]),
+        stage: t(DECISION_STAGE_LABEL_KEYS[entry.requestStage]),
       });
   }
 }

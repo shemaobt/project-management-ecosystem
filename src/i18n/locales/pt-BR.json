@@ -1016,8 +1016,6 @@
   "notif_request_arrival_summary": "Pedido de recurso recebido · em triagem",
   "notif_request_decision_summary": "Decisão da mesa · {{stage}}",
   "notif_request_unnamed": "Pedido de recurso",
-  "request_stage_triagem": "Em triagem",
-  "request_stage_analise": "Em análise",
   "request_stage_aprovado": "Aprovado",
   "request_stage_condicional": "Aprovado com condições",
   "request_stage_revisar": "Revisar e reenviar",

@@ -1,8 +1,6 @@
-import type { RequestStage } from "../types/request";
+import type { RequestDecisionStage } from "../types/request";
 
-export const REQUEST_STAGE_LABEL_KEYS: Record<RequestStage, string> = {
-  triagem: "request_stage_triagem",
-  analise: "request_stage_analise",
+export const DECISION_STAGE_LABEL_KEYS: Record<RequestDecisionStage, string> = {
   aprovado: "request_stage_aprovado",
   condicional: "request_stage_condicional",
   revisar: "request_stage_revisar",

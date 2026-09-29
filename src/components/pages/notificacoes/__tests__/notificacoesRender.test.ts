@@ -222,7 +222,7 @@ describe("NotificationsPanelBody", () => {
     return i18n.changeLanguage("en").then(() => {
       const markup = requestView();
 
-      expect(markup).toContain("Board decision · Approved with conditions");
+      expect(markup).toContain("Board decision · Conditionally approved");
       expect(markup).toContain("Resource request received · in triage");
       expect(markup).not.toContain("Decisão da mesa");
     });
