@@ -6,12 +6,6 @@ export interface ReportProvenanceProps {
   report: EtenYearReport;
 }
 
-/**
- * Which answer these figures are: the fiscal period they cover, the day they were computed for,
- * and the `shema_eten_reports` row the server keeps them in (BE-11). Two reports that disagree
- * are reconciled by comparing these lines, not argued about. The prototype has no such block;
- * it is composed from the page's own micro type, the way the footnote under the table is.
- */
 export function ReportProvenance({ report }: ReportProvenanceProps) {
   const { t } = useTranslation();
   const recordedDay = report.recordedAt ? utcDay(report.recordedAt) : "";

@@ -8,13 +8,6 @@ export interface CreditBreakdownProps {
   report: EtenYearReport;
 }
 
-/**
- * The path from the total to the projects that produced it (INT-08): only the lines that earned
- * a credit, each with the event behind it, summed back to the total. The table beside it keeps
- * every listed project, including the ones at zero; this list answers *why is the total this
- * number*, which is the question a funder asks. Not in the prototype — composed from the page's
- * outlined card and micro type.
- */
 export function CreditBreakdown({ report }: CreditBreakdownProps) {
   const { t } = useTranslation();
   const contributing = report.snapshots.filter(
