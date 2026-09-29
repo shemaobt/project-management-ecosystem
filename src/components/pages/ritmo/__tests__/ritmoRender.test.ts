@@ -37,6 +37,8 @@ const { Cascade, ListeningFlow } = await import("../Cascade");
 const { MeetingCard } = await import("../MeetingCard");
 const { MeetingRow } = await import("../MeetingRow");
 const { CelebrationCard, PulseCard } = await import("../EncounterCards");
+const { LogUnread } = await import("../LogUnread");
+const { withinReach } = await import("../reach");
 
 type Region = (typeof REGIONS)[number] & { team: typeof EMPTY_REGION_TEAM };
 
@@ -364,5 +366,73 @@ describe("o que não é reunião não se registra como reunião", () => {
     );
     expect(markup).toContain('href="/ritmo/relatorio"');
     expect(markup).toContain(i18n.t("ritmo_celebracao_open"));
+  });
+});
+
+/**
+ * INT-07 (OBT-412): o log é do servidor. Enquanto ele não foi lido, nenhuma linha diz o estado
+ * da reunião — sem log, todas diriam *a iniciar*, que é *nunca aconteceu* quando a verdade é
+ * *não sabemos*. E o 403 do Círculo de Recursos não é falha: é o log que não é do papel dele.
+ */
+describe("o log das reuniões vem do servidor, e a tela diz quando não o tem", () => {
+  const unread = (reading: "forbidden" | "loading" | "failed") =>
+    renderToStaticMarkup(createElement(LogUnread, { reading, onRetry: noop }));
+
+  it("sem acesso, nomeia de quem é o log pelos rótulos do organograma, sem oferecer tentar de novo", () => {
+    const html = unread("forbidden");
+
+    expect(html).toContain(i18n.t("equipe_global"));
+    expect(html).toContain(i18n.t("role_coordinator"));
+    expect(html).toContain(i18n.t("role_obtlab"));
+    expect(html).not.toContain(i18n.t("net_retry"));
+  });
+
+  it("uma leitura que falhou diz que o estado é desconhecido e oferece tentar de novo", () => {
+    const html = unread("failed");
+
+    expect(html).toContain(i18n.t("ritmo_log_unread"));
+    expect(html).toContain(i18n.t("net_retry"));
+  });
+
+  it("enquanto lê, diz que está lendo e não oferece nada", () => {
+    const html = unread("loading");
+
+    expect(html).toContain(i18n.t("ritmo_log_loading"));
+    expect(html).not.toContain(i18n.t("net_retry"));
+  });
+
+  it("sem linhas, o cartão da reunião fica só com a cabeça — nenhum estado inventado", () => {
+    const html = renderToStaticMarkup(createElement(MeetingCard, { meeting }));
+
+    expect(html).toContain(i18n.t(meeting.titleKey));
+    for (const state of ["done", "pending", "overdue", "new"] as const) {
+      expect(html).not.toContain(MEETING_STATE_SYMBOLS[state]);
+    }
+    expect(html).not.toContain(i18n.t("ritmo_register"));
+  });
+});
+
+describe("nenhuma reunião de fora da região de quem lê", () => {
+  const scopes = [
+    { key: "oceania" as const, labelKey: "continent_oceania", count: 36 },
+    { key: "africa" as const, labelKey: "continent_africa", count: 12 },
+    { key: "global" as const, labelKey: "ritmo_all_ecosystem", count: 48 },
+  ];
+
+  it("um papel regional vê só a própria região", () => {
+    expect(withinReach(scopes, (key) => key === "africa").map((s) => s.key)).toEqual([
+      "africa",
+    ]);
+  });
+
+  it("nem o papel global recebe uma linha global, que o servidor recusaria", () => {
+    expect(withinReach(scopes, () => true).map((s) => s.key)).toEqual([
+      "oceania",
+      "africa",
+    ]);
+  });
+
+  it("sem regiões lidas ainda, não há linha nenhuma", () => {
+    expect(withinReach(scopes, () => false)).toEqual([]);
   });
 });

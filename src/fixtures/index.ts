@@ -7,7 +7,11 @@ import type {
   IntakeSubmissionPayload,
   ReceivedSubmission,
 } from "../types/forms";
-import type { MeetingDefinition, MeetingLogEntry } from "../types/meeting";
+import type {
+  MeetingId,
+  MeetingLogEntry,
+  MeetingLogPayload,
+} from "../types/meeting";
 import type {
   ConsentContext,
   IntercessorCreate,
@@ -48,7 +52,7 @@ import {
   reviewIntercessor,
   updateIntercessor,
 } from "./intercessors";
-import { loadMeetingLog, loadMeetings } from "./meetings";
+import { loadMeetingLog, logMeetingEntry, undoMeetingEntry } from "./meetings";
 import { listMembers, myProjects, refuseRosterWrite } from "./members";
 import { buildPrayerRequests } from "../utils/prayer";
 import type { AssessmentDraft } from "../types/assessment";
@@ -135,11 +139,18 @@ export const regionsAPI = {
 };
 
 export const meetingsAPI = {
-  async list(): Promise<MeetingDefinition[]> {
-    return loadMeetings();
-  },
   async log(): Promise<MeetingLogEntry[]> {
     return loadMeetingLog();
+  },
+  async logMeeting(payload: MeetingLogPayload): Promise<MeetingLogEntry> {
+    return logMeetingEntry(payload);
+  },
+  async undo(
+    meetingId: MeetingId,
+    scopeKey: RegionKey,
+    period: string,
+  ): Promise<void> {
+    undoMeetingEntry(meetingId, scopeKey, period);
   },
 };
 

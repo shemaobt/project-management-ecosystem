@@ -184,21 +184,6 @@ describe("regions fixture", () => {
 });
 
 describe("meetings fixture", () => {
-  it("carries the listening cascade", async () => {
-    const meetings = await meetingsAPI.list();
-    expect(meetings.map((meeting) => meeting.id)).toEqual([
-      "bimestral_pi_campo",
-      "trimestral_pi_pontes",
-      "semestral_member_care",
-    ]);
-    expect(meetings.map((meeting) => meeting.cadence)).toEqual([
-      "bimonthly",
-      "quarterly",
-      "semiannual",
-    ]);
-    expect(meetings.filter((meeting) => meeting.scope === "global")).toEqual([]);
-  });
-
   it("starts with an empty meeting log", async () => {
     expect(await meetingsAPI.log()).toEqual([]);
   });
@@ -378,7 +363,6 @@ describe("fixture module contract", () => {
       projectsAPI.list(),
       projectsAPI.get("fataluku"),
       regionsAPI.list(),
-      meetingsAPI.list(),
       meetingsAPI.log(),
       prayerAPI.list(),
       intercessorsAPI.list(),
