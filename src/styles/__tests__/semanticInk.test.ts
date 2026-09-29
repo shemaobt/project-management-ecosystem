@@ -179,7 +179,7 @@ const TOAST_PAINT: Record<ToastType, { fill: string; ink: string }> = {
   success: { fill: "verde-claro-ink", ink: "on-brand" },
   error: { fill: "telha", ink: "on-brand" },
   warning: { fill: "status-attention-fg", ink: "on-dark" },
-  info: { fill: "azul-ink", ink: "on-dark" },
+  info: { fill: "azul-ink", ink: "on-brand" },
 };
 
 const FE03_CLASSNAMES: ClassNames = {

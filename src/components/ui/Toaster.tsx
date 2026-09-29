@@ -7,7 +7,7 @@ export const TOAST_CLASSNAMES = {
   success: "data-[type=success]:bg-verde-claro-ink data-[type=success]:text-on-brand",
   error: "data-[type=error]:bg-telha data-[type=error]:text-on-brand",
   warning: "data-[type=warning]:bg-status-attention-fg",
-  info: "data-[type=info]:bg-azul-ink",
+  info: "data-[type=info]:bg-azul-ink data-[type=info]:text-on-brand",
   description: "font-normal text-current/80",
   actionButton:
     "rounded-pill bg-branco/15 px-2.5 py-1 text-micro font-bold uppercase",
