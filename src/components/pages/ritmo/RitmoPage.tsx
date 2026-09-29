@@ -6,6 +6,7 @@ import {
   RITMO_ENCOUNTERS,
   RITMO_MEETINGS,
 } from "../../../constants/meetings";
+import { useAuth } from "../../../contexts/session";
 import { useFormsStore } from "../../../stores/formsStore";
 import { draftKey, useRhythmStore } from "../../../stores/rhythmStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
@@ -24,24 +25,26 @@ import {
   toLocalIsoDate,
 } from "../../../utils/format";
 import {
+  meetingEntries,
   meetingReadiness,
   meetingStatus,
   nextOccurrence,
   resolveMeetingParticipants,
   rhythmScopes,
   scopesFor,
-  type RhythmScope,
 } from "../../../utils/rhythm";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Cascade, ListeningFlow } from "./Cascade";
 import { CelebrationCard, PulseCard } from "./EncounterCards";
 import { LogMeetingDialog } from "./LogMeetingDialog";
+import { LogUnread, type LogReading } from "./LogUnread";
 import { MeetingCard } from "./MeetingCard";
 import { MeetingRow } from "./MeetingRow";
+import { withinReach, type RegionScope } from "./reach";
 
 interface Editing {
   meeting: MeetingDefinition;
-  scope: RhythmScope;
+  scope: RegionScope;
 }
 
 type Translate = ReturnType<typeof useTranslation>["t"];
@@ -72,9 +75,14 @@ export function RitmoPage() {
   const hydrateProjects = useProjectsStore((state) => state.hydrate);
   const regions = useRegionsStore((state) => state.regions);
   const hydrateRegions = useRegionsStore((state) => state.hydrate);
+  const regionsRead = useRegionsStore((state) => state.hydrated);
+  const { canSeeRegion } = useAuth();
   const log = useRhythmStore((state) => state.log);
+  const logRead = useRhythmStore((state) => state.hydrated);
+  const logFailed = useRhythmStore((state) => state.error !== null);
+  const logForbidden = useRhythmStore((state) => state.forbidden);
   const drafts = useRhythmStore((state) => state.drafts);
-  const hydrateRhythm = useRhythmStore((state) => state.hydrate);
+  const reloadRhythm = useRhythmStore((state) => state.reload);
   const setDraft = useRhythmStore((state) => state.setDraft);
   const logMeeting = useRhythmStore((state) => state.logMeeting);
   const undoMeeting = useRhythmStore((state) => state.undoMeeting);
@@ -83,27 +91,42 @@ export function RitmoPage() {
   const pulsesRead = useFormsStore((state) => state.hydrated);
 
   const [editing, setEditing] = useState<Editing | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     void hydrateProjects();
     void hydrateRegions();
-    void hydrateRhythm();
+    void reloadRhythm();
     void hydrateForms();
-  }, [hydrateProjects, hydrateRegions, hydrateRhythm, hydrateForms]);
+  }, [hydrateProjects, hydrateRegions, reloadRhythm, hydrateForms]);
 
   const todayIso = toLocalIsoDate();
-  const today = toCalendarDate(new Date(`${todayIso}T00:00:00`));
+  const logReading: LogReading | null = logForbidden
+    ? "forbidden"
+    : logRead
+      ? null
+      : logFailed
+        ? "failed"
+        : "loading";
 
   const agenda = useMemo(() => {
     const now = new Date(`${todayIso}T00:00:00`);
     const reference = toCalendarDate(now);
     return RITMO_MEETINGS.map((meeting) => ({
       meeting,
-      rows: scopesFor(meeting, projects, GLOBAL_SCOPE_LABEL_KEY).map((scope) => {
+      rows: withinReach(
+        scopesFor(meeting, projects, GLOBAL_SCOPE_LABEL_KEY),
+        canSeeRegion,
+      ).map((scope) => {
         const status = meetingStatus(log, meeting, scope.key, now);
+        const current = periodKey(meeting.cadence, reference);
         return {
           scope,
           status,
+          loggedPeriod:
+            meetingEntries(log, meeting.id, scope.key).find(
+              (entry) => entry.period === current,
+            )?.period ?? null,
           nextDue: formatDate(
             formatIsoDate(nextOccurrence(meeting, status, now)),
           ),
@@ -122,20 +145,27 @@ export function RitmoPage() {
         };
       }),
     }));
-  }, [todayIso, projects, log, regions, submissions, t]);
+  }, [todayIso, projects, log, regions, submissions, t, canSeeRegion]);
 
   const pulseRows = useMemo(() => {
     const now = new Date(`${todayIso}T00:00:00`);
-    return rhythmScopes(projects).map((scope) => ({
+    return withinReach(rhythmScopes(projects), canSeeRegion).map((scope) => ({
       scope,
       readiness: meetingReadiness("pulso", "monthly", projects, scope.key, submissions, now),
     }));
-  }, [todayIso, projects, submissions]);
+  }, [todayIso, projects, submissions, canSeeRegion]);
 
   const editingKey = editing
     ? draftKey(editing.meeting.id, editing.scope.key)
     : "";
   const draft = drafts[editingKey] ?? { date: todayIso, notes: "" };
+
+  const saveEditing = async ({ meeting, scope }: Editing) => {
+    setSaving(true);
+    const outcome = await logMeeting(meeting.id, scope.key, draft);
+    setSaving(false);
+    if (outcome.status === "saved") setEditing(null);
+  };
 
   return (
     <section className="mx-auto max-w-(--container-reading) px-(--container-pad) pt-8 pb-20">
@@ -166,12 +196,22 @@ export function RitmoPage() {
 
       {hydrated ? <PulseCard rows={pulseRows} read={pulsesRead} /> : null}
 
+      {hydrated && logReading ? (
+        <LogUnread reading={logReading} onRetry={() => void reloadRhythm()} />
+      ) : null}
+
       {hydrated
         ? agenda.map(({ meeting, rows }) => (
             <MeetingCard key={meeting.id} meeting={meeting}>
-              {rows.length === 0 ? (
+              {logReading ? null : rows.length === 0 ? (
                 <p className="text-micro leading-[1.45] text-fg-subtle">
-                  {t("ritmo_no_projects")}
+                  {t(
+                    projects.length === 0
+                      ? "ritmo_no_projects"
+                      : regionsRead
+                        ? "ritmo_no_projects_reach"
+                        : "loading",
+                  )}
                 </p>
               ) : (
                 rows.map((row) => (
@@ -184,13 +224,10 @@ export function RitmoPage() {
                     readiness={row.readiness}
                     participants={row.participants}
                     onLog={() => setEditing({ meeting, scope: row.scope })}
-                    onUndo={() =>
-                      undoMeeting(
-                        meeting.id,
-                        row.scope.key,
-                        periodKey(meeting.cadence, today),
-                      )
-                    }
+                    onUndo={() => {
+                      if (row.loggedPeriod === null) return;
+                      void undoMeeting(meeting.id, row.scope.key, row.loggedPeriod);
+                    }}
                   />
                 ))
               )}
@@ -204,21 +241,14 @@ export function RitmoPage() {
         <LogMeetingDialog
           open
           onOpenChange={(open) => {
-            if (!open) setEditing(null);
+            if (!open && !saving) setEditing(null);
           }}
           meetingTitle={t(editing.meeting.titleKey)}
           scopeLabel={t(editing.scope.labelKey)}
           draft={draft}
+          saving={saving}
           onDraftChange={(next) => setDraft(editingKey, next)}
-          onSave={() => {
-            logMeeting(
-              editing.meeting.id,
-              editing.scope.key,
-              editing.meeting.cadence,
-              draft,
-            );
-            setEditing(null);
-          }}
+          onSave={() => void saveEditing(editing)}
         />
       ) : null}
     </section>
