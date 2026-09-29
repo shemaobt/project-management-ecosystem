@@ -1,12 +1,18 @@
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
+import { Link } from "react-router-dom";
 import { NEED_CATEGORIES } from "../../../constants/project";
+import { DEFAULT_TAB } from "../../../constants/recordTabs";
+import { REQUEST_STAGE_LABEL_KEYS } from "../../../constants/requests";
 import { HEALTH_LABEL_KEYS } from "../../../constants/status";
 import type { AppNotification } from "../../../types/notification";
 import type { NeedCategory } from "../../../types/project";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
-import { notificationAge } from "../../../utils/notifications";
+import {
+  isRequestNotice,
+  notificationAge,
+} from "../../../utils/notifications";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 
@@ -35,7 +41,20 @@ function summaryFor(entry: AppNotification, t: TFunction): string {
       return t("notif_stale_summary", { count: entry.daysSilent });
     case "prayer":
       return entry.text || t("oracao_audio");
+    case "requestArrival":
+      return t("notif_request_arrival_summary");
+    case "requestDecision":
+      return t("notif_request_decision_summary", {
+        stage: t(REQUEST_STAGE_LABEL_KEYS[entry.requestStage]),
+      });
   }
+}
+
+function titleFor(entry: AppNotification, t: TFunction): string {
+  if (isRequestNotice(entry)) {
+    return entry.requestName.trim() || t("notif_request_unnamed");
+  }
+  return `${entry.language} · ${entry.base || "—"}`;
 }
 
 function ageLabel(date: string, t: TFunction): string {
@@ -52,11 +71,37 @@ function ageLabel(date: string, t: TFunction): string {
   }
 }
 
-function LogRow({ entry }: { entry: AppNotification }) {
+const ROW = "flex items-center gap-3 border-b border-line px-1 py-2.5 last:border-b-0";
+
+interface LogRowProps {
+  entry: AppNotification;
+  onNavigate?: () => void;
+}
+
+function LogRow({ entry, onNavigate }: LogRowProps) {
+  const content = <RowContent entry={entry} />;
+  if (isRequestNotice(entry) && entry.projectId !== null) {
+    return (
+      <Link
+        to={`/ficha/${entry.projectId}/${DEFAULT_TAB}`}
+        onClick={onNavigate}
+        className={cn(
+          ROW,
+          "rounded-sm transition-colors duration-fast ease-out hover:bg-accent-soft",
+        )}
+      >
+        {content}
+      </Link>
+    );
+  }
+  return <div className={ROW}>{content}</div>;
+}
+
+function RowContent({ entry }: { entry: AppNotification }) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center gap-3 border-b border-line px-1 py-2.5 last:border-b-0">
+    <>
       <span
         aria-hidden
         className={cn(
@@ -68,7 +113,7 @@ function LogRow({ entry }: { entry: AppNotification }) {
       />
       <div className="min-w-0 flex-1">
         <p className="truncate text-[13px] leading-[1.2] font-semibold text-fg-strong">
-          {entry.language} · {entry.base || "—"}
+          {titleFor(entry, t)}
         </p>
         <p className="mt-0.5 text-micro leading-[1.3] text-fg-muted">
           {entry.urgent && (
@@ -82,16 +127,21 @@ function LogRow({ entry }: { entry: AppNotification }) {
       <span className="shrink-0 text-micro leading-none font-medium text-fg-subtle">
         {ageLabel(entry.date, t)}
       </span>
-    </div>
+    </>
   );
 }
 
 export interface NotificationLogProps {
   entries: readonly AppNotification[] | null;
   enabled: boolean;
+  onNavigate?: () => void;
 }
 
-export function NotificationLog({ entries, enabled }: NotificationLogProps) {
+export function NotificationLog({
+  entries,
+  enabled,
+  onNavigate,
+}: NotificationLogProps) {
   const { t } = useTranslation();
 
   if (entries === null) {
@@ -114,7 +164,7 @@ export function NotificationLog({ entries, enabled }: NotificationLogProps) {
   return (
     <div className="flex flex-col">
       {entries.map((entry) => (
-        <LogRow key={entry.id} entry={entry} />
+        <LogRow key={entry.id} entry={entry} onNavigate={onNavigate} />
       ))}
     </div>
   );

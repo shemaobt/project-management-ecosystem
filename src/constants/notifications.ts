@@ -5,7 +5,7 @@ import type {
   NotificationScope,
   NotificationWhen,
 } from "../types/notification";
-import type { RoleKey } from "../types/role";
+import type { SessionRole } from "../types/session";
 
 export const NOTIF_DEFAULTS: NotificationPrefs = {
   enabled: true,
@@ -19,13 +19,15 @@ export const NOTIF_DEFAULTS: NotificationPrefs = {
 
 export const NOTIFICATION_AUDIENCES: Record<
   NotificationKind,
-  readonly RoleKey[]
+  readonly SessionRole[]
 > = {
   field: ["coordinator", "obtLab"],
   health: ["coordinator", "obtLab"],
   need: ["coordinator", "obtLab"],
   stale: ["coordinator", "obtLab"],
   prayer: ["resourceCircle"],
+  requestArrival: ["admin", "gestor"],
+  requestDecision: ["equipe", "admin", "gestor", "mesa"],
 };
 
 export interface NotificationChannelOption {

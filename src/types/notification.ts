@@ -1,8 +1,16 @@
 import type { NeedCategory, OverallHealth } from "./project";
 import type { RegionKey } from "./region";
-import type { RoleKey } from "./role";
+import type { RequestDecisionStage } from "./request";
+import type { SessionRole } from "./session";
 
-export type NotificationKind = "field" | "health" | "need" | "stale" | "prayer";
+export type NotificationKind =
+  | "field"
+  | "health"
+  | "need"
+  | "stale"
+  | "prayer"
+  | "requestArrival"
+  | "requestDecision";
 
 export type NotificationChannel = "email" | "push" | "whatsapp";
 
@@ -33,7 +41,7 @@ export interface NotificationPrefsHandlers {
 interface NotificationBase {
   id: string;
   urgent: boolean;
-  audience: readonly RoleKey[];
+  audience: readonly SessionRole[];
   region: RegionKey;
   projectId: string;
   language: string;
@@ -70,9 +78,34 @@ export interface PrayerNotification extends NotificationBase {
   audioUrl?: string;
 }
 
-export type AppNotification =
+export type ProjectNotification =
   | FieldNotification
   | HealthNotification
   | NeedNotification
   | StaleNotification
   | PrayerNotification;
+
+interface RequestNoticeBase {
+  id: string;
+  urgent: boolean;
+  audience: readonly SessionRole[];
+  projectId: string | null;
+  date: string;
+  requestName: string;
+}
+
+export interface RequestArrivalNotification extends RequestNoticeBase {
+  kind: "requestArrival";
+  requestStage: "triagem";
+}
+
+export interface RequestDecisionNotification extends RequestNoticeBase {
+  kind: "requestDecision";
+  requestStage: RequestDecisionStage;
+}
+
+export type RequestNotification =
+  | RequestArrivalNotification
+  | RequestDecisionNotification;
+
+export type AppNotification = ProjectNotification | RequestNotification;
