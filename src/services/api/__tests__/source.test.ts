@@ -72,7 +72,6 @@ describe("a tabela de troca", () => {
       "projects",
       "meetings",
       "prayer",
-      "eten",
     ]);
   });
 

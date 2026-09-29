@@ -59,7 +59,7 @@ export const INTEGRATED: Record<DataNamespace, DataSource> = {
   meetings: "fixtures",
   prayer: "fixtures",
   intercessors: "api",
-  eten: "fixtures",
+  eten: "api",
   forms: "api",
   members: "api",
   access: "api",
