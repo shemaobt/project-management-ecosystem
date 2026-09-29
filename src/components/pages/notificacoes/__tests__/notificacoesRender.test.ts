@@ -1,7 +1,9 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import type {
+  AppNotification,
   NotificationPrefs,
   NotificationPrefsHandlers,
 } from "../../../../types/notification";
@@ -73,7 +75,7 @@ const view = (overrides: Partial<NotificationPrefs> = {}) => {
       entries: visibleNotifications(
         routedNotifications(
           projects,
-          { role: "globalStrategist", regions: null },
+          { roles: ["globalStrategist"], regions: null },
           NOW,
         ),
         prefs,
@@ -145,6 +147,85 @@ describe("NotificationsPanelBody", () => {
 
     expect(markup).toContain("Carregando");
     expect(markup).not.toContain("Nenhuma notificação");
+  });
+
+  const requests: AppNotification[] = [
+    {
+      kind: "requestDecision",
+      id: "d1",
+      urgent: false,
+      audience: ["equipe"],
+      projectId: "kadiweu",
+      date: "2026-08-15",
+      requestName: "Kadiwéu 2026",
+      requestStage: "condicional",
+    },
+    {
+      kind: "requestArrival",
+      id: "a1",
+      urgent: false,
+      audience: ["gestor"],
+      projectId: "tikuna",
+      date: "2026-08-14",
+      requestName: "  ",
+      requestStage: "triagem",
+    },
+    {
+      kind: "requestArrival",
+      id: "a2",
+      urgent: false,
+      audience: ["gestor"],
+      projectId: null,
+      date: "2026-08-13",
+      requestName: "Sem ponteiro",
+      requestStage: "triagem",
+    },
+  ];
+
+  const requestView = () =>
+    renderToStaticMarkup(
+      createElement(
+        MemoryRouter,
+        null,
+        createElement(NotificationsPanelBody, {
+          entries: requests,
+          projects: [],
+          prefs: { ...NOTIF_DEFAULTS },
+          handlers,
+        }),
+      ),
+    );
+
+  it("os dois avisos de pedido mostram o nome registrado e a etapa, e cada um leva à ficha do projeto", () => {
+    const markup = requestView();
+
+    expect(markup).toContain("Kadiwéu 2026");
+    expect(markup).toContain("Decisão da mesa · Aprovado com condições");
+    expect(markup).toContain("Pedido de recurso recebido · em triagem");
+    expect(markup).toContain('href="/ficha/kadiweu/identidade"');
+    expect(markup).toContain('href="/ficha/tikuna/identidade"');
+  });
+
+  it("um aviso de pedido sem nome usa a referência genérica", () => {
+    expect(requestView()).toContain(">Pedido de recurso<");
+  });
+
+  it("um aviso de pedido sem ponteiro não vira link, e nenhum mostra local nem base", () => {
+    const markup = requestView();
+
+    expect(markup).toContain("Sem ponteiro");
+    expect(markup.match(/href=/g)).toHaveLength(2);
+    expect(markup).not.toContain(" · —");
+  });
+
+  it("em inglês o aviso de pedido também sai em inglês", () => {
+    return i18n.changeLanguage("en").then(() => {
+      const markup = requestView();
+
+      expect(markup).toContain("Board decision · Approved with conditions");
+      expect(markup).toContain("Resource request received · in triage");
+      expect(markup).not.toContain("Decisão da mesa");
+    });
   });
 
   it("em inglês nada fica em português", () => {
