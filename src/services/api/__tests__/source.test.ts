@@ -58,19 +58,20 @@ describe("a tabela de troca", () => {
     }
   });
 
-  it("cada namespace liga na sua própria issue: sessão por INT-01, organograma e rede por INT-10", () => {
+  it("cada namespace liga na sua própria issue: sessão por INT-01, organograma e rede por INT-10, Ritmo por INT-07", () => {
     expect(INTEGRATED.session).toBe("api");
     expect(INTEGRATED_BY.session).toBe("INT-01 · BE-03");
     expect(INTEGRATED.regions).toBe("api");
     expect(INTEGRATED_BY.regions).toBe("INT-10 · BE-13");
     expect(INTEGRATED.intercessors).toBe("api");
     expect(INTEGRATED_BY.intercessors).toBe("INT-10 · BE-13");
+    expect(INTEGRATED.meetings).toBe("api");
+    expect(INTEGRATED_BY.meetings).toBe("INT-07 · BE-10");
     const waiting = NAMESPACES.filter(
       (namespace) => INTEGRATED[namespace] === "fixtures",
     );
     expect(waiting).toEqual([
       "projects",
-      "meetings",
       "prayer",
       "eten",
     ]);
