@@ -11,7 +11,7 @@ const overlayPill =
   "absolute z-3 rounded-pill border border-branco/14 bg-[rgba(20,14,32,0.6)] backdrop-blur-[8px]";
 
 const controlButton =
-  "inline-flex size-7 items-center justify-center rounded-pill text-tag font-extrabold tracking-button text-areia transition-all duration-fast ease-out hover:bg-telha/32 hover:text-on-dark";
+  "inline-flex size-7 items-center justify-center rounded-pill text-tag font-extrabold tracking-button text-on-dark-muted transition-all duration-fast ease-out hover:bg-telha/32 hover:text-on-dark";
 
 export interface GlobeControlsProps {
   autoRotate: boolean;
@@ -80,7 +80,7 @@ export function NightStatsOverlay({ stats }: { stats: NightStats }) {
           <span className="font-sans text-lead font-black tracking-[-0.02em] text-on-dark tabular-nums max-sm:text-body">
             {item.value}
           </span>
-          <span className="mt-[3px] text-[9px] font-semibold tracking-[0.12em] uppercase text-on-dark">
+          <span className="mt-[3px] text-[9px] font-semibold tracking-[0.12em] uppercase text-on-dark-muted">
             {item.label}
           </span>
         </div>
@@ -96,7 +96,7 @@ export function SensitiveNotice({ count }: { count: number | null }) {
     <div
       className={cn(
         overlayPill,
-        "bottom-5 left-5 flex items-center gap-2 px-3.5 py-2 text-[10px] font-semibold tracking-[0.04em] text-on-dark max-sm:bottom-3 max-sm:left-3",
+        "bottom-5 left-5 flex items-center gap-2 px-3.5 py-2 text-[10px] font-semibold tracking-[0.04em] text-on-dark-muted max-sm:bottom-3 max-sm:left-3",
       )}
     >
       <EyeOff size={12} strokeWidth={1.75} aria-hidden />

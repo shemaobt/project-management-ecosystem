@@ -96,6 +96,7 @@
   --fg-subtle: #6a6956;
   --fg-on-brand: var(--shema-branco);
   --fg-on-dark: var(--shema-branco);
+  --fg-on-dark-muted: var(--shema-areia);
   --fg-on-light: var(--shema-verde);
   --fg-link: var(--shema-telha);
 
@@ -347,6 +348,7 @@
   --color-fg-subtle: var(--fg-subtle);
   --color-on-brand: var(--fg-on-brand);
   --color-on-dark: var(--fg-on-dark);
+  --color-on-dark-muted: var(--fg-on-dark-muted);
   --color-on-light: var(--fg-on-light);
   --color-link: var(--fg-link);
 
