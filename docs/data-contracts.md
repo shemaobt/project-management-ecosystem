@@ -1354,9 +1354,10 @@ All seven are the Admin's (`admin` in the `shema` app): every other role is a `4
 `src/types/access.ts`. `AccountGrants` is `{userId, email, displayName, isActive, apps: [{appKey,
 roles}], regions: [{regionKey, grantedBy, grantedAt}], regionScope}` — `regions` are the stored rows
 the Admin edits, `regionScope` what they reach (`null` = every region). `SentInvite` is `OpenInvite`
-plus `inviteUrl` and `emailSent`, and it is the **only** shape that carries the link: the list never
-does. `GrantChange` is `{action, at, appKey, roleKey | null, regionKey | null, userId, userEmail,
-userName, actorId, actorEmail, actorName}`, exactly one of `roleKey`/`regionKey` set.
+plus `inviteUrl` and `emailSent`, and it is, with §9.17's `ConfirmedProject`, the **only** shape that
+carries the link: the list never does. `GrantChange` is `{action, at, appKey, roleKey | null,
+regionKey | null, userId, userEmail, userName, actorId, actorEmail, actorName}`, exactly one of
+`roleKey`/`regionKey` set.
 
 **Server requirements** (`shema-api` `docs/shema.md` §6.8 owns the full list and every refusal
 sentence): the grantable vocabulary is the four Shemá personas and `admin` for `shema`, `admin`,
@@ -1419,6 +1420,35 @@ The external link's address is `{apps.resourceRequestForm}/solicitar/{token}`, t
 `gestor` and `admin`, and the Admin's dialog beside the Leader link (`CLAUDE.md` §5.13).
 `resourceRequestsAPI` has **no fixture double**: it is `null` in fixtures, `accessAPI`'s precedent
 (§9.15).
+
+### 9.17 Aguardando confirmação — BE-23 ([OBT-547](https://linear.app/shema-obt/issue/OBT-547)), 30/sep/2026
+
+```
+GET  /api/shema/pending-projects          -> AwaitingProject[]         # oldest first
+POST /api/shema/projects/{id}/confirm     ProjectConfirmation          -> ConfirmedProject
+POST /api/shema/projects/{id}/reject      {reason}                     -> DiscardedProject
+```
+
+All three are the Admin's, like §9.15's: any other role is a `403`, an id no approval filed a
+`404`, a project already confirmed or discarded a `409`, and a confirmation without
+`sensitiveCountry` or a discard without a reason a `422`. They answer camelCase and
+`src/types/access.ts` types them. `AwaitingProject` is `{id, languageName, languageCode, location,
+team, requestId, requestName, filedAt, members: [{name, role, email}], locationWithheld}`.
+`ProjectConfirmation` is `{languageName, languageCode, location, team, sensitiveCountry, members:
+[{name, email}]}` — the server keeps what was filed for a `languageCode`, `location` or `team` left
+out, and the console always sends all five. `ConfirmedProject` is `{id, languageName, requestIds,
+joined: [{email, userId}], invited: [{email, inviteId, inviteUrl, emailSent}], withoutEmail}` — the
+second shape, after §9.15's `SentInvite`, that carries an invitation's link. `DiscardedProject` is
+`{id, reason, discardedAt, requestId, requestProjectId: null, detail}`.
+
+**An invitation to a project's team** is §9.15's invitation naming a project and no role:
+`OpenInvite` gains `projectId` (`null` on a role's invitation), the list answers such a row with
+`roleKey: "equipe"`, and the invitee's lookup with `role_key: "equipe"`; accepting it is the
+membership (§9.14).
+
+**Server requirements:** `shema-api` `docs/shema.md` §6.11 owns the flow, the filing on approval and
+every refusal sentence. **In the console:** the *Aguardando confirmação* section of `/acesso`
+(`CLAUDE.md` §5.12), on `accessAPI` — `null` in fixtures (§9.15).
 
 ---
 

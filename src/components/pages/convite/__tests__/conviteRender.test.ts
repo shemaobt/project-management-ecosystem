@@ -86,6 +86,14 @@ describe("o que o convite dá, pelo catálogo do console", () => {
     });
   });
 
+  it("o convite para a equipe de um projeto abre no PME como Equipe do projeto", () => {
+    const team = { ...INVITE, roleKey: "equipe", regionKeys: [] };
+    expect(readInvitation(team)).toEqual({ open: true, role: "equipe", app: "shema" });
+    expect(open(team)).toContain(
+      t("convite_gives", { role: t("role_equipe"), app: t("acesso_app_shema") }),
+    );
+  });
+
   it("papel vazio, desconhecido ou o Admin falham fechados", () => {
     for (const roleKey of ["", "lider", "admin", "banana"]) {
       expect(readInvitation({ ...INVITE, roleKey }), roleKey).toEqual({
