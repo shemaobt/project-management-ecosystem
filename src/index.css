@@ -471,3 +471,35 @@
     border-radius: var(--radius-xs);
   }
 }
+
+/* OBT-502 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animate-slide-up: fade-in var(--duration) var(--ease-out);
+    --animate-slide-in-right: fade-in var(--duration) var(--ease-out);
+    --animate-slide-in-left: fade-in var(--duration) var(--ease-out);
+    --animate-spin: spin-still 1.6s ease-in-out infinite;
+  }
+
+  @keyframes spin-still {
+    50% {
+      opacity: 0.4;
+    }
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-property:
+      color, background-color, border-color, outline-color,
+      text-decoration-color, fill, stroke, opacity, box-shadow;
+  }
+
+  [class*="hover:-translate-"]:hover,
+  [class*="hover:translate-"]:hover,
+  [class*="hover:-scale-"]:hover,
+  [class*="hover:scale-"]:hover {
+    translate: none;
+    scale: none;
+  }
+}
