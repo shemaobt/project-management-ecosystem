@@ -10,9 +10,8 @@ vi.stubGlobal("localStorage", {
 });
 
 const { Globe } = await import("../Globe");
-const { prefersReducedMotion, REDUCED_MOTION_QUERY } = await import(
-  "../../../../../utils/motion"
-);
+const { prefersReducedMotion, REDUCED_MOTION_QUERY } =
+  await import("../../../../../utils/motion");
 
 const PLAYING = "❚❚";
 const PAUSED = "▶";
@@ -27,7 +26,11 @@ function withPreference(reduce: boolean) {
 
 const globe = () =>
   renderToStaticMarkup(
-    createElement(Globe, { projects: [], locationsWithheld: null }),
+    createElement(Globe, {
+      projects: [],
+      locationsWithheld: null,
+      listPageSize: null,
+    }),
   );
 
 afterEach(() => {
