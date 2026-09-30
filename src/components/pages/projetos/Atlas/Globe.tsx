@@ -5,6 +5,7 @@ import {
   type GlobeFocusPoint,
 } from "../../../../constants/geo";
 import { geoAPI } from "../../../../services/api";
+import { prefersReducedMotion } from "../../../../utils/motion";
 import type { Project } from "../../../../types/project";
 import type { GeoOutline } from "../../../../types/region";
 import { GlobeMarkers, type ProjectedMarker } from "./GlobeMarkers";
@@ -56,7 +57,8 @@ export function Globe({
   const [rotation, setRotation] = useState<Rotation>({
     ...GLOBE_INITIAL_ROTATION,
   });
-  const [autoRotate, setAutoRotate] = useState(true);
+  const [reducedMotion] = useState(prefersReducedMotion);
+  const [autoRotate, setAutoRotate] = useState(!reducedMotion);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [medPos, setMedPos] = useState<{
@@ -149,6 +151,10 @@ export function Globe({
   }, []);
 
   const focusOn = (targetLambda: number, targetPhi: number) => {
+    if (reducedMotion) {
+      setRotation({ lambda: targetLambda, phi: targetPhi });
+      return;
+    }
     const start = { ...rotation };
     const dur = 900;
     const ease = (x: number) => 1 - Math.pow(1 - x, 3);
