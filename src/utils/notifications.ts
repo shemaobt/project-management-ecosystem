@@ -7,6 +7,8 @@ import type { SessionRole } from "../contexts/AuthContext";
 import type {
   AppNotification,
   NotificationPrefs,
+  ProjectNotification,
+  RequestNotification,
 } from "../types/notification";
 import type { Project } from "../types/project";
 import type { RegionKey } from "../types/region";
@@ -23,7 +25,7 @@ import {
 import { getCountry, getLeavingLocation, getRegion } from "./region";
 
 type SharedFacts = Pick<
-  AppNotification,
+  ProjectNotification,
   | "region"
   | "projectId"
   | "language"
@@ -55,8 +57,8 @@ function staleSince(lastUpdate: string): string {
 export function buildNotifications(
   projects: readonly Project[],
   now: Date = new Date(),
-): AppNotification[] {
-  const entries: AppNotification[] = [];
+): ProjectNotification[] {
+  const entries: ProjectNotification[] = [];
   const byId = new Map(projects.map((project) => [project.id, project]));
 
   for (const project of projects) {
@@ -150,8 +152,14 @@ export function buildNotifications(
   return entries.sort((a, b) => b.date.localeCompare(a.date));
 }
 
+export function isRequestNotice(
+  entry: AppNotification,
+): entry is RequestNotification {
+  return entry.kind === "requestArrival" || entry.kind === "requestDecision";
+}
+
 export interface NotificationRoute {
-  role: SessionRole;
+  roles: readonly SessionRole[];
   regions: readonly RegionKey[] | null;
 }
 
@@ -159,12 +167,15 @@ export function routeNotifications(
   entries: readonly AppNotification[],
   route: NotificationRoute,
 ): AppNotification[] {
-  return entries.filter(
-    (entry) =>
-      (route.role === "globalStrategist" ||
-        entry.audience.some((key) => key === route.role)) &&
-      (route.regions === null || route.regions.includes(entry.region)),
-  );
+  const global = route.roles.includes("globalStrategist");
+  return entries.filter((entry) => {
+    const addressed = entry.audience.some((key) => route.roles.includes(key));
+    if (isRequestNotice(entry)) return addressed;
+    return (
+      (global || addressed) &&
+      (route.regions === null || route.regions.includes(entry.region))
+    );
+  });
 }
 
 function mentorMatches(mentor: string, userName: string | null): boolean {
@@ -180,9 +191,14 @@ export function applyNotificationPrefs(
   if (!prefs.enabled) return [];
   return entries.filter((entry) => {
     if (prefs.when === "urgent" && !entry.urgent) return false;
-    if (prefs.scope === "mentored") return mentorMatches(entry.mentor, userName);
+    if (prefs.scope === "mentored") {
+      return !isRequestNotice(entry) && mentorMatches(entry.mentor, userName);
+    }
     if (prefs.scope === "custom") {
-      return prefs.customProjectIds.includes(entry.projectId);
+      return (
+        entry.projectId !== null &&
+        prefs.customProjectIds.includes(entry.projectId)
+      );
     }
     return true;
   });

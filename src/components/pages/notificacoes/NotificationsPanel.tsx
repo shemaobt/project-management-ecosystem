@@ -46,6 +46,7 @@ export interface NotificationsPanelBodyProps {
   projects: readonly Project[];
   prefs: NotificationPrefs;
   handlers: NotificationPrefsHandlers;
+  onNavigate?: () => void;
 }
 
 export function NotificationsPanelBody({
@@ -53,6 +54,7 @@ export function NotificationsPanelBody({
   projects,
   prefs,
   handlers,
+  onNavigate,
 }: NotificationsPanelBodyProps) {
   const { t } = useTranslation();
 
@@ -68,7 +70,11 @@ export function NotificationsPanelBody({
       <SectionLabel number="04">{t("notif_sec_preview")}</SectionLabel>
       <PreviewCard />
       <SectionLabel number="05">{t("notif_sec_log")}</SectionLabel>
-      <NotificationLog entries={entries} enabled={prefs.enabled} />
+      <NotificationLog
+        entries={entries}
+        enabled={prefs.enabled}
+        onNavigate={onNavigate}
+      />
     </DialogBody>
   );
 }
@@ -108,6 +114,7 @@ export function NotificationsPanel({
           projects={projects}
           prefs={store.prefs}
           handlers={store}
+          onNavigate={() => onOpenChange(false)}
         />
         <DialogFooter>
           <span className="flex-1 text-micro leading-[1.3] text-fg-muted">

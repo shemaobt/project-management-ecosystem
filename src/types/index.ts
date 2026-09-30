@@ -12,3 +12,4 @@ export type * from "./assessment";
 export type * from "./notification";
 export type * from "./session";
 export type * from "./access";
+export type * from "./request";

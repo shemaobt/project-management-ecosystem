@@ -1,12 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { NOTIF_DEFAULTS } from "../../constants/notifications";
-import type { AppNotification, NotificationPrefs } from "../../types/notification";
+import {
+  NOTIF_DEFAULTS,
+  NOTIFICATION_AUDIENCES,
+} from "../../constants/notifications";
+import type {
+  AppNotification,
+  NotificationPrefs,
+  RequestArrivalNotification,
+  RequestDecisionNotification,
+} from "../../types/notification";
 import type { NeedItem, Project } from "../../types/project";
 import { removeNeedAt } from "../needs";
 import {
   applyNotificationPrefs,
   buildNotifications,
   countUnread,
+  isRequestNotice,
   notificationAge,
   routedNotifications,
   routeNotifications,
@@ -322,44 +331,37 @@ describe("routeNotifications", () => {
   );
 
   it("o intercessor recebe o pedido, e só ele", () => {
-    const routed = routeNotifications(entries, {
-      role: "resourceCircle",
-      regions: null,
+    const routed = routeNotifications(entries, { roles: ["resourceCircle"], regions: null,
     });
 
     expect(kinds(routed)).toEqual(["prayer"]);
   });
 
   it("o administrador recebe o campo e a saúde, não o pedido", () => {
-    const routed = routeNotifications(entries, {
-      role: "coordinator",
-      regions: null,
+    const routed = routeNotifications(entries, { roles: ["coordinator"], regions: null,
     });
 
     expect(kinds(routed)).toEqual(["health", "health"]);
   });
 
-  it("um papel fora da tabela de audiências não recebe nada, nem com escopo global", () => {
+  it("um papel fora da audiência de um tipo não recebe esse tipo, nem com escopo global", () => {
     for (const role of ["admin", "gestor", "mesa", "equipe"] as const) {
-      expect(routeNotifications(entries, { role, regions: null }), role).toEqual(
-        [],
-      );
+      expect(
+        routeNotifications(entries, { roles: [role], regions: null }),
+        role,
+      ).toEqual([]);
     }
   });
 
   it("papel regional só vê a própria região", () => {
-    const routed = routeNotifications(entries, {
-      role: "coordinator",
-      regions: ["south-america"],
+    const routed = routeNotifications(entries, { roles: ["coordinator"], regions: ["south-america"],
     });
 
     expect(routed.map((entry) => entry.projectId)).toEqual(["south"]);
   });
 
   it("a estrategista global vê tudo", () => {
-    const routed = routeNotifications(entries, {
-      role: "globalStrategist",
-      regions: null,
+    const routed = routeNotifications(entries, { roles: ["globalStrategist"], regions: null,
     });
 
     expect(routed).toHaveLength(entries.length);
@@ -434,7 +436,7 @@ describe("visibleNotifications", () => {
     );
 
     const visible = visibleNotifications(
-      routedNotifications(projects, { role: "coordinator", regions: null }, NOW),
+      routedNotifications(projects, { roles: ["coordinator"], regions: null }, NOW),
       prefs(),
       null,
     );
@@ -459,7 +461,7 @@ describe("visibleNotifications", () => {
     const visible = visibleNotifications(
       routedNotifications(
         [...loud, quiet],
-        { role: "coordinator", regions: ["africa"] },
+        { roles: ["coordinator"], regions: ["africa"] },
         NOW,
       ),
       prefs(),
@@ -509,5 +511,129 @@ describe("notificationAge", () => {
     });
     expect(notificationAge("2026-07-01", NOW)).toEqual({ unit: "date" });
     expect(notificationAge("", NOW)).toEqual({ unit: "date" });
+  });
+});
+
+describe("avisos do formulário (OBT-541)", () => {
+  const arrival: RequestArrivalNotification = {
+    kind: "requestArrival",
+    id: "a1",
+    urgent: false,
+    audience: NOTIFICATION_AUDIENCES.requestArrival,
+    projectId: null,
+    date: "2026-08-14",
+    requestName: "Kadiwéu 2026",
+    requestStage: "triagem",
+  };
+  const decision: RequestDecisionNotification = {
+    kind: "requestDecision",
+    id: "d1",
+    urgent: false,
+    audience: NOTIFICATION_AUDIENCES.requestDecision,
+    projectId: "kadiweu",
+    date: "2026-08-15",
+    requestName: "Kadiwéu 2026",
+    requestStage: "revisar",
+  };
+  const entries: AppNotification[] = [decision, arrival];
+
+  it("a chegada alcança admin e gestor, e nenhum papel regional, mesa ou equipe", () => {
+    for (const role of ["admin", "gestor"] as const) {
+      expect(
+        kinds(routeNotifications([arrival], { roles: [role], regions: [] })),
+        role,
+      ).toEqual(["requestArrival"]);
+    }
+    for (const role of [
+      "coordinator",
+      "obtLab",
+      "resourceCircle",
+      "mesa",
+      "equipe",
+    ] as const) {
+      expect(
+        routeNotifications([arrival], { roles: [role], regions: null }),
+        role,
+      ).toEqual([]);
+    }
+  });
+
+  it("a decisão alcança quem pode ter iniciado o pedido, e só eles", () => {
+    for (const role of ["equipe", "admin", "gestor", "mesa"] as const) {
+      expect(
+        kinds(routeNotifications([decision], { roles: [role], regions: [] })),
+        role,
+      ).toEqual(["requestDecision"]);
+    }
+    for (const role of [
+      "coordinator",
+      "obtLab",
+      "resourceCircle",
+      "globalStrategist",
+    ] as const) {
+      expect(
+        routeNotifications([decision], { roles: [role], regions: null }),
+        role,
+      ).toEqual([]);
+    }
+  });
+
+  it("o ver-tudo do globalStrategist não alcança aviso de pedido; o papel de admin, sim", () => {
+    expect(
+      routeNotifications(entries, {
+        roles: ["globalStrategist"],
+        regions: null,
+      }),
+    ).toEqual([]);
+    expect(
+      kinds(
+        routeNotifications(entries, {
+          roles: ["globalStrategist", "admin"],
+          regions: null,
+        }),
+      ),
+    ).toEqual(["requestDecision", "requestArrival"]);
+  });
+
+  it("um gestor sem região recebe a chegada: aviso de pedido não passa pela região", () => {
+    expect(
+      kinds(routeNotifications(entries, { roles: ["gestor"], regions: [] })),
+    ).toEqual(["requestDecision", "requestArrival"]);
+  });
+
+  it("um coordenador que também é equipe recebe a própria decisão", () => {
+    expect(
+      kinds(
+        routeNotifications([decision], {
+          roles: ["coordinator", "equipe"],
+          regions: ["south-america"],
+        }),
+      ),
+    ).toEqual(["requestDecision"]);
+  });
+
+  it("só-urgentes esconde os avisos de pedido; a lista personalizada os filtra pelo projeto", () => {
+    expect(
+      applyNotificationPrefs(entries, prefs({ when: "urgent" }), null),
+    ).toEqual([]);
+    expect(
+      applyNotificationPrefs(
+        entries,
+        prefs({ scope: "custom", customProjectIds: ["kadiweu"] }),
+        null,
+      ),
+    ).toEqual([decision]);
+    expect(
+      applyNotificationPrefs(entries, prefs({ scope: "mentored" }), "Ana"),
+    ).toEqual([]);
+  });
+
+  it("isRequestNotice separa os avisos de pedido dos derivados dos projetos", () => {
+    const derived = buildNotifications(
+      [makeProject({ id: "p", healthAssessmentDate: "2026-08-10" })],
+      NOW,
+    );
+    expect(derived.some(isRequestNotice)).toBe(false);
+    expect(entries.every(isRequestNotice)).toBe(true);
   });
 });

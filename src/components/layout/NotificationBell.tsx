@@ -44,9 +44,9 @@ export function NotificationBell({ className }: NotificationBellProps) {
   const routed = useMemo(
     () =>
       hydrated
-        ? routedNotifications(projects, { role: user.role, regions: scope })
+        ? routedNotifications(projects, { roles: user.roles, regions: scope })
         : null,
-    [hydrated, projects, user.role, scope],
+    [hydrated, projects, user.roles, scope],
   );
 
   const entries = useMemo(
