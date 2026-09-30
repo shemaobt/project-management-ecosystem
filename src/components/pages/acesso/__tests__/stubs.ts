@@ -29,6 +29,7 @@ export function sessionFor(roles: SessionRole[]) {
       regionScope: [],
       name: null,
     },
+    apps: { resourceRequestForm: null },
     visibleRegions: [],
     canSeeRegion: () => false,
     signIn: async () => undefined,

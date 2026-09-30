@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { KeyRound } from "lucide-react";
+import { KeyRound, Send } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import "../../i18n";
 import { DEFAULT_TAB } from "../../constants/recordTabs";
 import { useAuth } from "../../contexts/AuthContext";
-import { accessAPI } from "../../services/api";
+import { accessAPI, resourceRequestsAPI } from "../../services/api";
 import { NEW_RECORD } from "../../stores/recordStore";
 import { useProjectsStore } from "../../stores/projectsStore";
 import { BrandMark } from "../common/BrandMark";
@@ -15,9 +15,10 @@ import { ExportDialog } from "../pages/dados/ExportDialog";
 import { ImportDialog } from "../pages/dados/ImportDialog";
 import { LeaderLinkDialog } from "../pages/dados/LeaderLinkDialog";
 import { ReceiveUpdateDialog } from "../pages/dados/ReceiveUpdateDialog";
+import { RequestLinkDialog } from "../pages/dados/RequestLinkDialog";
 import { toast } from "../ui";
 import { usePrefsStore } from "../../stores/prefsStore";
-import { canAdministerAccess } from "../../utils/access";
+import { canAdministerAccess, isFormOnly } from "../../utils/access";
 import { cn } from "../../utils/cn";
 
 const TB_BTN = cn(
@@ -40,7 +41,7 @@ const HEADER_ACTIONS = [
   { key: "intake", glyph: "🔗", labelKey: "btn_intake" },
 ] as const;
 
-type HeaderDialogKey = (typeof HEADER_ACTIONS)[number]["key"];
+type HeaderDialogKey = (typeof HEADER_ACTIONS)[number]["key"] | "requestLink";
 
 export function AppHeader() {
   const { t } = useTranslation();
@@ -48,8 +49,10 @@ export function AppHeader() {
   const lang = usePrefsStore((state) => state.lang);
   const toggleLang = usePrefsStore((state) => state.toggleLang);
   const reload = useProjectsStore((state) => state.reload);
-  const { signOut, user } = useAuth();
+  const { signOut, user, apps } = useAuth();
   const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
+  const formOnly = isFormOnly(user.roles);
+  const requestLinks = canAdministerAccess(user) ? resourceRequestsAPI : null;
 
   const closeDialog = (open: boolean) => {
     if (!open) setDialog(null);
@@ -94,27 +97,41 @@ export function AppHeader() {
           </Link>
         ) : null}
         <NotificationBell className={TB_BTN} />
-        {HEADER_ACTIONS.map((action) => (
+        {formOnly
+          ? null
+          : HEADER_ACTIONS.map((action) => (
+              <button
+                key={action.key}
+                type="button"
+                className={TB_BTN}
+                title={"titleKey" in action ? t(action.titleKey) : undefined}
+                onClick={() => setDialog(action.key)}
+              >
+                <span aria-hidden>{action.glyph}</span> {t(action.labelKey)}
+              </button>
+            ))}
+        {requestLinks ? (
           <button
-            key={action.key}
             type="button"
             className={TB_BTN}
-            title={"titleKey" in action ? t(action.titleKey) : undefined}
-            onClick={() => setDialog(action.key)}
+            onClick={() => setDialog("requestLink")}
           >
-            <span aria-hidden>{action.glyph}</span> {t(action.labelKey)}
+            <Send size={14} strokeWidth={1.75} aria-hidden />
+            {t("rr_link_btn")}
           </button>
-        ))}
-        <button
-          type="button"
-          className={cn(
-            TB_BTN,
-            "border-telha bg-telha hover:border-accent-hover hover:bg-accent-hover",
-          )}
-          onClick={() => navigate(`/ficha/${NEW_RECORD}/${DEFAULT_TAB}`)}
-        >
-          <span aria-hidden>+</span> {t("btn_new")}
-        </button>
+        ) : null}
+        {formOnly ? null : (
+          <button
+            type="button"
+            className={cn(
+              TB_BTN,
+              "border-telha bg-telha hover:border-accent-hover hover:bg-accent-hover",
+            )}
+            onClick={() => navigate(`/ficha/${NEW_RECORD}/${DEFAULT_TAB}`)}
+          >
+            <span aria-hidden>+</span> {t("btn_new")}
+          </button>
+        )}
         {signOut ? (
           <button
             type="button"
@@ -133,6 +150,14 @@ export function AppHeader() {
       <ExportDialog open={dialog === "export"} onOpenChange={closeDialog} />
       <ImportDialog open={dialog === "import"} onOpenChange={closeDialog} />
       <LeaderLinkDialog open={dialog === "intake"} onOpenChange={closeDialog} />
+      {requestLinks ? (
+        <RequestLinkDialog
+          api={requestLinks}
+          formBase={apps.resourceRequestForm}
+          open={dialog === "requestLink"}
+          onOpenChange={closeDialog}
+        />
+      ) : null}
       <ConfirmDialog
         open={dialog === "reload"}
         onOpenChange={closeDialog}

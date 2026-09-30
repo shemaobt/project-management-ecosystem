@@ -50,6 +50,7 @@ import type { SaveOutcome } from "../../types/team";
 import type {
   AuthenticatedAccount,
   Credentials,
+  SessionApps,
   SessionRole,
   ShemaSession,
 } from "../../types/session";
@@ -75,6 +76,11 @@ interface WireAuthResponse {
   tokens: WireTokens;
 }
 
+interface WireHandoff {
+  code: string;
+  expires_at: string;
+}
+
 const REGION_KEYS = new Set<string>(REGIONS.map((region) => region.key));
 
 function account(wire: WireAccount): AuthenticatedAccount {
@@ -89,6 +95,27 @@ function knownRole(value: unknown): SessionRole {
   const role = SESSION_ROLES.find((key) => key === value);
   if (role === undefined) throw failure("invalid", null, UNKNOWN_VOCABULARY);
   return role;
+}
+
+const WEB_PROTOCOLS = new Set(["http:", "https:"]);
+
+function appAddress(value: unknown): string | null {
+  if (typeof value !== "string" || value.trim() === "") return null;
+  try {
+    const address = new URL(value.trim());
+    if (!WEB_PROTOCOLS.has(address.protocol)) return null;
+    return address.href.replace(/\/+$/u, "");
+  } catch {
+    return null;
+  }
+}
+
+export function readApps(payload: unknown): SessionApps {
+  const apps: Record<string, unknown> =
+    typeof payload === "object" && payload !== null && !Array.isArray(payload)
+      ? Object.fromEntries(Object.entries(payload))
+      : {};
+  return { resourceRequestForm: appAddress(apps.resourceRequestForm) };
 }
 
 export function readSession(payload: unknown): ShemaSession {
@@ -121,6 +148,7 @@ export function readSession(payload: unknown): ShemaSession {
     roles,
     regionScope,
     name: typeof name === "string" && name ? name : null,
+    apps: readApps(body.apps),
   };
 }
 
@@ -144,6 +172,20 @@ export const authAPI = {
 
   refresh(): Promise<boolean> {
     return refreshSession();
+  },
+
+  async handoff(
+    appKey: AccessAppKey,
+    context: Record<string, string> | null,
+  ): Promise<string> {
+    const token = refreshToken();
+    if (!token) throw failure("unauthorized");
+    const { data } = await http.post<WireHandoff>("/auth/handoff", {
+      app_key: appKey,
+      refresh_token: token,
+      context,
+    });
+    return data.code;
   },
 
   async signOut(): Promise<void> {
@@ -439,26 +481,26 @@ const INVITE_STATUSES: readonly InviteStatus[] = [
   "revoked",
 ];
 
-function refuseVocabulary(): never {
+export function refuseVocabulary(): never {
   throw failure("invalid", null, UNKNOWN_VOCABULARY);
 }
 
-function fieldsOf(value: unknown): Record<string, unknown> {
+export function fieldsOf(value: unknown): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     refuseVocabulary();
   }
   return Object.fromEntries(Object.entries(value));
 }
 
-function textOf(value: unknown): string {
+export function textOf(value: unknown): string {
   return typeof value === "string" ? value : refuseVocabulary();
 }
 
-function optionalTextOf(value: unknown): string | null {
+export function optionalTextOf(value: unknown): string | null {
   return value === null || value === undefined ? null : textOf(value);
 }
 
-function listOf(value: unknown): unknown[] {
+export function listOf(value: unknown): unknown[] {
   return Array.isArray(value) ? value : refuseVocabulary();
 }
 

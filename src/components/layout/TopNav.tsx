@@ -1,6 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { holdsFormRole, isFormOnly } from "../../utils/access";
 import { cn } from "../../utils/cn";
+import { ResourceCircleEntry } from "./ResourceCircleEntry";
 
 const NAV_ITEMS = [
   { to: "/projetos", labelKey: "nav_projetos" },
@@ -11,8 +14,20 @@ const NAV_ITEMS = [
   { to: "/equipe", labelKey: "nav_equipe" },
 ] as const;
 
+const NAV_ITEM = cn(
+  "-mb-px shrink-0 border-b-2 border-transparent px-4.5 py-3.5",
+  "text-small font-bold tracking-[0.02em] text-fg-subtle no-underline",
+  "transition-colors duration-fast ease-out",
+  "hover:text-fg hover:no-underline",
+);
+
 export function TopNav() {
   const { t } = useTranslation();
+  const { user, apps } = useAuth();
+  const formBase = holdsFormRole(user.roles) ? apps.resourceRequestForm : null;
+  const areas = !isFormOnly(user.roles);
+
+  if (!areas && formBase === null) return null;
 
   return (
     <nav
@@ -22,23 +37,20 @@ export function TopNav() {
         "border-b border-line px-(--container-pad)",
       )}
     >
-      {NAV_ITEMS.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          className={({ isActive }) =>
-            cn(
-              "-mb-px shrink-0 border-b-2 border-transparent px-4.5 py-3.5",
-              "text-small font-bold tracking-[0.02em] text-fg-subtle no-underline",
-              "transition-colors duration-fast ease-out",
-              "hover:text-fg hover:no-underline",
-              isActive && "border-telha text-telha hover:text-telha",
-            )
-          }
-        >
-          {t(item.labelKey)}
-        </NavLink>
-      ))}
+      {areas
+        ? NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                cn(NAV_ITEM, isActive && "border-telha text-telha hover:text-telha")
+              }
+            >
+              {t(item.labelKey)}
+            </NavLink>
+          ))
+        : null}
+      {formBase ? <ResourceCircleEntry base={formBase} className={NAV_ITEM} /> : null}
     </nav>
   );
 }

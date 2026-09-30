@@ -9,11 +9,16 @@ export type SessionRole =
   | "mesa"
   | "equipe";
 
+export interface SessionApps {
+  resourceRequestForm: string | null;
+}
+
 export interface ShemaSession {
   role: SessionRole;
   roles: SessionRole[];
   regionScope: RegionKey[] | null;
   name: string | null;
+  apps: SessionApps;
 }
 
 export interface AuthenticatedAccount {

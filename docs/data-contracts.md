@@ -1252,10 +1252,13 @@ One Shemá-specific read is missing and BE-03 owns it:
 
 ```
 GET /api/shema/session   -> { role: SessionRole, roles: SessionRole[],
-                              regionScope: RegionKey[] | null, name: string | null }
+                              regionScope: RegionKey[] | null, name: string | null,
+                              apps: { resourceRequestForm: string | null } }
 ```
 
-`regionScope: null` means global.
+`regionScope: null` means global. `apps` is FE-53's ([OBT-544](https://linear.app/shema-obt/issue/OBT-544), §9.16):
+the resource-request form's address from the app registry, without a trailing slash, `null` when
+the registry has none — the console accepts only `http(s)` and holds no constant for it.
 
 **The roles list — BE-17 of the PME ([OBT-523](https://linear.app/shema-obt/issue/OBT-523)),
 27/sep/2026.** A person can hold several roles across the two apps the PME serves (OBT-522:
@@ -1330,7 +1333,8 @@ carries them.
 
 **In the console:** the ficha's Equipe tab lists the roster read-only (`ProjectMembers.tsx`), in
 both modes and only for a saved record; `membersAPI.add` and `.remove` are called by the Admin's
-access screen (§9.15, OBT-546); `.mine` waits for OBT-544. In fixtures mode the double answers empty
+access screen (§9.15, OBT-546); `.mine` tells the ficha's *Solicitar recurso* whether the reader may
+start a request for the project (OBT-544, §9.16). In fixtures mode the double answers empty
 lists and refuses both writes with `forbidden` — the fixtures carry no accounts, and none of the
 four mocked personas is the Admin.
 
@@ -1350,9 +1354,10 @@ All seven are the Admin's (`admin` in the `shema` app): every other role is a `4
 `src/types/access.ts`. `AccountGrants` is `{userId, email, displayName, isActive, apps: [{appKey,
 roles}], regions: [{regionKey, grantedBy, grantedAt}], regionScope}` — `regions` are the stored rows
 the Admin edits, `regionScope` what they reach (`null` = every region). `SentInvite` is `OpenInvite`
-plus `inviteUrl` and `emailSent`, and it is the **only** shape that carries the link: the list never
-does. `GrantChange` is `{action, at, appKey, roleKey | null, regionKey | null, userId, userEmail,
-userName, actorId, actorEmail, actorName}`, exactly one of `roleKey`/`regionKey` set.
+plus `inviteUrl` and `emailSent`, and it is, with §9.17's `ConfirmedProject`, the **only** shape that
+carries the link: the list never does. `GrantChange` is `{action, at, appKey, roleKey | null,
+regionKey | null, userId, userEmail, userName, actorId, actorEmail, actorName}`, exactly one of
+`roleKey`/`regionKey` set.
 
 **Server requirements** (`shema-api` `docs/shema.md` §6.8 owns the full list and every refusal
 sentence): the grantable vocabulary is the four Shemá personas and `admin` for `shema`, `admin`,
@@ -1384,6 +1389,66 @@ console shows the UTC day, read by field (`utcDay`).
 lookup does not list the person's memberships (the server does not answer it), so the screen reads
 rosters project by project through §9.14. `accessAPI` has **no fixture double**: it is `null` in
 fixtures, and both routes are registered only when it exists.
+
+### 9.16 O formulário dentro do PME — FE-53 ([OBT-544](https://linear.app/shema-obt/issue/OBT-544)) · BE-21 · BE-24 · BE-26, 30/sep/2026
+
+```
+POST /api/auth/handoff                               {app_key, refresh_token, context} -> 201 {code, expires_at}
+GET  /api/resource-requests/projects/{id}/requests  -> RequestCard[]        # any session; 404 out of reach
+POST /api/resource-requests/links                    {email, project_hint} -> 201 IssuedRequestLink   # the Admin
+GET  /api/resource-requests/links                    -> RequestLink[]       # the Admin, newest first
+POST /api/resource-requests/links/{id}/revoke        -> RequestLink         # the Admin, idempotent
+```
+
+The routes are the form's and shema-api's own — `docs/resource_requests.md` §5.4.3 and §5.4.5 there
+for the cards and the link, `app/api/auth.py` for the handoff — and they answer **snake_case**.
+`src/types/request.ts` types them verbatim, so they carry no mapping: `RequestCard` is `{id, reg_name,
+request_type, amount_requested, currency, stage, created_at, submitted_at, endorsed, decision, open,
+can_edit, started_by_name}`, `RequestLink` is `{id, email, project_hint, status, expires_at,
+verified_at, revoked_at, created_by, created_at}`, and `IssuedRequestLink` adds `token` and `code` —
+the **only** shape that carries them. `amount_requested` is the server's `Decimal`, a string.
+`readCard` and `readLink` keep exactly these fields and refuse a vocabulary outside the frozen one
+(stages, types, currencies, decisions, the four link statuses) as `UNKNOWN_VOCABULARY`. Like §9.15's,
+these routes answer datetimes, and the console shows the UTC day (`utcDay`).
+
+The handoff is the platform's `/api/auth/*`: `authAPI.handoff` sends the session's refresh token and
+the context — `{projectId}` from the ficha, none from the *Resource Circle* entry — and hands back
+the code, which the console puts in the **fragment** of `{apps.resourceRequestForm}/entrar#code=…`.
+The external link's address is `{apps.resourceRequestForm}/solicitar/{token}`, the form's public page.
+
+**In the console:** the ficha's Recursos tab (a saved record), the *Resource Circle* entry for `mesa`,
+`gestor` and `admin`, and the Admin's dialog beside the Leader link (`CLAUDE.md` §5.13).
+`resourceRequestsAPI` has **no fixture double**: it is `null` in fixtures, `accessAPI`'s precedent
+(§9.15).
+
+### 9.17 Aguardando confirmação — BE-23 ([OBT-547](https://linear.app/shema-obt/issue/OBT-547)), 30/sep/2026
+
+```
+GET  /api/shema/pending-projects          -> AwaitingProject[]         # oldest first
+POST /api/shema/projects/{id}/confirm     ProjectConfirmation          -> ConfirmedProject
+POST /api/shema/projects/{id}/reject      {reason}                     -> DiscardedProject
+```
+
+All three are the Admin's, like §9.15's: any other role is a `403`, an id no approval filed a
+`404`, a project already confirmed or discarded a `409`, and a confirmation without
+`sensitiveCountry` or a discard without a reason a `422`. They answer camelCase and
+`src/types/access.ts` types them. `AwaitingProject` is `{id, languageName, languageCode, location,
+team, requestId, requestName, filedAt, members: [{name, role, email}], locationWithheld}`.
+`ProjectConfirmation` is `{languageName, languageCode, location, team, sensitiveCountry, members:
+[{name, email}]}` — the server keeps what was filed for a `languageCode`, `location` or `team` left
+out, and the console always sends all five. `ConfirmedProject` is `{id, languageName, requestIds,
+joined: [{email, userId}], invited: [{email, inviteId, inviteUrl, emailSent}], withoutEmail}` — the
+second shape, after §9.15's `SentInvite`, that carries an invitation's link. `DiscardedProject` is
+`{id, reason, discardedAt, requestId, requestProjectId: null, detail}`.
+
+**An invitation to a project's team** is §9.15's invitation naming a project and no role:
+`OpenInvite` gains `projectId` (`null` on a role's invitation), the list answers such a row with
+`roleKey: "equipe"`, and the invitee's lookup with `role_key: "equipe"`; accepting it is the
+membership (§9.14).
+
+**Server requirements:** `shema-api` `docs/shema.md` §6.11 owns the flow, the filing on approval and
+every refusal sentence. **In the console:** the *Aguardando confirmação* section of `/acesso`
+(`CLAUDE.md` §5.12), on `accessAPI` — `null` in fixtures (§9.15).
 
 ---
 

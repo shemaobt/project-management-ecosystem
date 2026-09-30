@@ -2,7 +2,7 @@ import { createContext, useContext } from "react";
 import { ROLE_DEFINITIONS } from "../constants/roles";
 import type { Region, RegionKey } from "../types/region";
 import type { RoleKey } from "../types/role";
-import type { ApiFailure, SessionRole } from "../types/session";
+import type { ApiFailure, SessionApps, SessionRole } from "../types/session";
 
 export type { SessionRole };
 
@@ -24,6 +24,7 @@ export interface SessionUser extends SessionPersona {
 export interface AuthSession {
   status: SessionStatus;
   user: SessionUser;
+  apps: SessionApps;
   visibleRegions: Region[];
   canSeeRegion: (key: RegionKey) => boolean;
   signIn: ((email: string, password: string) => Promise<void>) | null;
@@ -33,6 +34,8 @@ export interface AuthSession {
 }
 
 export const UNASSIGNED_HOLDER_KEY = "sb_no_coordinator";
+
+export const NO_APPS: SessionApps = { resourceRequestForm: null };
 
 export const SESSION_ROLE_LABEL_KEYS: Record<SessionRole, string> = {
   globalStrategist: "equipe_global",

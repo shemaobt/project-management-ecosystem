@@ -11,7 +11,8 @@ export type DataNamespace =
   | "eten"
   | "forms"
   | "members"
-  | "access";
+  | "access"
+  | "resourceRequests";
 
 export type DataSource = "api" | "fixtures";
 
@@ -47,6 +48,7 @@ export const INTEGRATED_BY: Record<DataNamespace, string> = {
   forms: "INT-09 · BE-12",
   members: "BE-18 · OBT-524",
   access: "BE-22 · FE-52",
+  resourceRequests: "BE-24 · BE-26 · OBT-544",
 };
 
 export const INTEGRATED: Record<DataNamespace, DataSource> = {
@@ -63,6 +65,7 @@ export const INTEGRATED: Record<DataNamespace, DataSource> = {
   forms: "api",
   members: "api",
   access: "api",
+  resourceRequests: "api",
 };
 
 export function parseOverride(raw: unknown): DataSource | null {

@@ -6,6 +6,7 @@ import type { ProjectMember } from "../../../../../types/project";
 import type { ApiFailure } from "../../../../../types/session";
 import { formatDate } from "../../../../../utils/format";
 import { LoadingSpinner } from "../../../../common/LoadingSpinner";
+import { RecordPanel } from "../../RecordPanel";
 
 export interface MembersPanelProps {
   /** `null` while the roster is on its way. */
@@ -29,12 +30,11 @@ export function MembersPanel({ members, error, hint }: MembersPanelProps) {
   const locale = t("locale");
 
   return (
-    <section className="rounded-[12px] border border-line bg-muted px-4 py-3.5">
-      <h3 className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-[0.14em] uppercase text-fg-muted">
-        <Users size={14} strokeWidth={1.75} aria-hidden />
-        {t("f_members_title")}
-      </h3>
-
+    <RecordPanel
+      icon={<Users size={14} strokeWidth={1.75} aria-hidden />}
+      title={t("f_members_title")}
+      hint={hint ?? t("f_members_hint")}
+    >
       {error ? (
         <p
           role="alert"
@@ -66,11 +66,7 @@ export function MembersPanel({ members, error, hint }: MembersPanelProps) {
           ))}
         </ul>
       )}
-
-      <p className="mt-3 text-micro leading-[1.45] text-fg-subtle">
-        {hint ?? t("f_members_hint")}
-      </p>
-    </section>
+    </RecordPanel>
   );
 }
 

@@ -18,6 +18,7 @@ const SESSION: ShemaSession = {
   roles: ["coordinator"],
   regionScope: ["south-america"],
   name: "Nome do Organograma",
+  apps: { resourceRequestForm: null },
 };
 
 const REFUSED: ApiFailure = {
@@ -205,6 +206,7 @@ describe("a porta do PME", () => {
         roles: [role],
         regionScope: [],
         name: null,
+        apps: { resourceRequestForm: null },
       };
       const state = replay([
         { type: "proving" },
