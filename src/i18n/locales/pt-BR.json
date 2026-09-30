@@ -1040,6 +1040,8 @@
   "rr_opening": "Abrindo…",
   "rr_in_progress_by": "Em preenchimento por {{name}}",
   "rr_in_progress_other": "Em preenchimento por outra pessoa da equipe",
+  "rr_membership_checking": "Conferindo se você é membro deste projeto…",
+  "rr_membership_unread": "Não deu para confirmar se você é membro deste projeto, então o botão de solicitar ainda não aparece.",
   "rr_opens_new_tab": "(abre numa nova aba)",
   "rr_entry_hint": "Abre o formulário de solicitação de recursos numa nova aba, já com a sua sessão.",
   "rr_tab_blocked": "O navegador não abriu a aba nova. Permita pop-ups para o PME e tente de novo.",

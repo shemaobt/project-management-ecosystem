@@ -171,7 +171,7 @@ export const authAPI = {
   },
 
   async handoff(
-    appKey: string,
+    appKey: AccessAppKey,
     context: Record<string, string> | null,
   ): Promise<string> {
     const token = refreshToken();

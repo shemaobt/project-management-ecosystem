@@ -68,7 +68,13 @@ const panel = (cards: readonly RequestCard[] | null, error: string | null = null
 
 const button = (action: RequestAction | null, formAvailable = true) =>
   renderToStaticMarkup(
-    createElement(RequestButton, { action, formAvailable, opening: false, onOpen: () => {} }),
+    createElement(RequestButton, {
+      action,
+      formAvailable,
+      opening: false,
+      onOpen: () => {},
+      onRetry: () => {},
+    }),
   );
 
 beforeEach(async () => {
@@ -156,32 +162,56 @@ describe("o painel dos pedidos na ficha — a projeção da BE-24", () => {
 
 describe("o botão muda conforme a instância", () => {
   it("sem instância: Solicitar recurso, um botão que abre numa aba nova", () => {
-    const html = button(requestAction([SENT], true));
+    const html = button(requestAction([SENT], "yes"));
     expect(html).toContain("<button");
     expect(html).toContain(i18n.t("rr_start"));
     expect(html).toContain(i18n.t("rr_opens_new_tab"));
   });
 
   it("com instância minha: Continuar", () => {
-    const html = button(requestAction([SENT, { ...DRAFT, can_edit: true }], false));
+    const html = button(requestAction([SENT, { ...DRAFT, can_edit: true }], "no"));
     expect(html).toContain("<button");
     expect(html).toContain(i18n.t("rr_continue"));
     expect(html).not.toContain(i18n.t("rr_start"));
   });
 
   it("com instância de outro: Em preenchimento por X, e sem botão", () => {
-    const html = button(requestAction([DRAFT], true));
+    const html = button(requestAction([DRAFT], "yes"));
     expect(html).toContain(i18n.t("rr_in_progress_by", { name: "Membro Dois" }));
     expect(html).not.toContain("<button");
   });
 
+  it("enquanto a membresia é lida, o espaço diz que está conferindo — não é 'não membro'", () => {
+    const html = button(requestAction([SENT], "checking"));
+    expect(html).toContain('role="status"');
+    expect(html).toContain(i18n.t("rr_membership_checking"));
+    expect(html).not.toContain(i18n.t("rr_start"));
+  });
+
+  it("membresia que não foi lida fala e oferece tentar de novo, em vez de sumir com o botão", () => {
+    const html = button(requestAction([SENT], "unread"));
+    expect(html).toContain('role="alert"');
+    expect(html).toContain(i18n.t("rr_membership_unread"));
+    expect(html).toContain(i18n.t("net_retry"));
+    expect(html).not.toContain(i18n.t("rr_start"));
+  });
+
+  it("instância aberta decide sozinha, com a membresia ainda em voo ou sem leitura", () => {
+    expect(button(requestAction([DRAFT], "checking"))).toContain(
+      i18n.t("rr_in_progress_by", { name: "Membro Dois" }),
+    );
+    expect(button(requestAction([{ ...DRAFT, can_edit: true }], "unread"))).toContain(
+      i18n.t("rr_continue"),
+    );
+  });
+
   it("quem não pode iniciar não vê botão nenhum", () => {
-    expect(button(requestAction([SENT], false))).toBe("");
+    expect(button(requestAction([SENT], "no"))).toBe("");
     expect(button(null)).toBe("");
   });
 
   it("sem o endereço do formulário, o botão não aparece — o aviso diz por quê", () => {
-    const html = button(requestAction([], true), false);
+    const html = button(requestAction([], "yes"), false);
     expect(html).not.toContain("<button");
     expect(html).toContain(i18n.t("rr_form_unavailable", { admin: i18n.t("role_admin") }));
   });
@@ -204,5 +234,7 @@ describe("a ficha liga o painel à aba Recursos e à passagem", () => {
     expect(wired).toContain(".projectRequests(projectId)");
     expect(wired).toContain("useResourceForm(apps.resourceRequestForm)");
     expect(wired).toContain("open(projectContext(projectId))");
+    expect(wired).toContain("setMembershipFailed(true)");
+    expect(wired).not.toContain("setMemberOf([])");
   });
 });

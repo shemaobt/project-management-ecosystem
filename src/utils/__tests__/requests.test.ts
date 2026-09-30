@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import type { RequestCard } from "../../types/request";
 import {
   formEntryUrl,
-  mayStartRequest,
   openInstance,
   openResourceForm,
   projectContext,
   requestAction,
   requestLinkUrl,
+  startPermission,
   type FormTab,
   type HandoffContext,
 } from "../requests";
@@ -49,50 +49,58 @@ const DRAFT_I_WRITE = card({
 
 describe("o botão lê a instância aberta — BE-24 × BE-25", () => {
   it("sem instância aberta, quem pode iniciar vê Solicitar recurso", () => {
-    expect(requestAction([], true)).toEqual({ kind: "start" });
-    expect(requestAction([card({})], true)).toEqual({ kind: "start" });
+    expect(requestAction([], "yes")).toEqual({ kind: "start" });
+    expect(requestAction([card({})], "yes")).toEqual({ kind: "start" });
   });
 
   it("um pedido já enviado não trava o projeto — só a instância aberta trava", () => {
     const sent = card({ stage: "aprovado", submitted_at: "2026-09-21T12:00:00+00:00" });
     expect(openInstance([sent])).toBeNull();
-    expect(requestAction([sent], true)).toEqual({ kind: "start" });
+    expect(requestAction([sent], "yes")).toEqual({ kind: "start" });
   });
 
   it("instância que eu escrevo diz Continuar, mesmo para quem não poderia iniciar", () => {
-    expect(requestAction([card({}), DRAFT_I_WRITE], true)).toEqual({ kind: "continue" });
-    expect(requestAction([DRAFT_I_WRITE], false)).toEqual({ kind: "continue" });
+    expect(requestAction([card({}), DRAFT_I_WRITE], "yes")).toEqual({ kind: "continue" });
+    expect(requestAction([DRAFT_I_WRITE], "no")).toEqual({ kind: "continue" });
   });
 
   it("instância de outro diz quem está preenchendo, e não há botão", () => {
-    expect(requestAction([DRAFT_OF_OTHER], true)).toEqual({
+    expect(requestAction([DRAFT_OF_OTHER], "yes")).toEqual({
       kind: "inProgress",
       by: "Membro Dois",
     });
-    expect(requestAction([{ ...DRAFT_OF_OTHER, started_by_name: null }], true)).toEqual({
+    expect(requestAction([{ ...DRAFT_OF_OTHER, started_by_name: null }], "yes")).toEqual({
       kind: "inProgress",
       by: null,
     });
   });
 
   it("quem não é membro nem Admin não inicia", () => {
-    expect(requestAction([], false)).toEqual({ kind: "none" });
+    expect(requestAction([], "no")).toEqual({ kind: "none" });
   });
 });
 
 describe("quem inicia um pedido na ficha", () => {
-  it("o Admin, em qualquer projeto", () => {
-    expect(mayStartRequest(["globalStrategist", "admin", "gestor"], [], "kadiweu")).toBe(true);
+  it("o Admin, em qualquer projeto, sem esperar a membresia", () => {
+    expect(startPermission(["globalStrategist", "admin", "gestor"], null, false, "kadiweu")).toBe("yes");
+    expect(startPermission(["admin"], null, true, "kadiweu")).toBe("yes");
   });
 
   it("o membro, no projeto dele e só nele", () => {
-    expect(mayStartRequest(["coordinator"], ["kadiweu"], "kadiweu")).toBe(true);
-    expect(mayStartRequest(["coordinator"], ["kadiweu"], "ashaninka")).toBe(false);
+    expect(startPermission(["coordinator"], ["kadiweu"], false, "kadiweu")).toBe("yes");
+    expect(startPermission(["coordinator"], ["kadiweu"], false, "ashaninka")).toBe("no");
   });
 
   it("papel sem membresia não basta — nem a coordenação, nem a mesa", () => {
-    expect(mayStartRequest(["coordinator"], [], "kadiweu")).toBe(false);
-    expect(mayStartRequest(["mesa"], [], "kadiweu")).toBe(false);
+    expect(startPermission(["coordinator"], [], false, "kadiweu")).toBe("no");
+    expect(startPermission(["mesa"], [], false, "kadiweu")).toBe("no");
+  });
+
+  it("membresia em voo é 'conferindo', e a que falhou é 'sem leitura' — nenhuma das duas é 'não membro'", () => {
+    expect(startPermission(["coordinator"], null, false, "kadiweu")).toBe("checking");
+    expect(startPermission(["coordinator"], null, true, "kadiweu")).toBe("unread");
+    expect(requestAction([], "checking")).toEqual({ kind: "checking" });
+    expect(requestAction([], "unread")).toEqual({ kind: "unread" });
   });
 });
 

@@ -1,6 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { RequestAction } from "../../../../utils/requests";
+import { LoadingSpinner } from "../../../common/LoadingSpinner";
 import { Button } from "../../../ui";
 
 export interface RequestButtonProps {
@@ -8,12 +9,36 @@ export interface RequestButtonProps {
   formAvailable: boolean;
   opening: boolean;
   onOpen: () => void;
+  onRetry: () => void;
 }
 
-export function RequestButton({ action, formAvailable, opening, onOpen }: RequestButtonProps) {
+export function RequestButton({
+  action,
+  formAvailable,
+  opening,
+  onOpen,
+  onRetry,
+}: RequestButtonProps) {
   const { t } = useTranslation();
 
   if (action === null || action.kind === "none") return null;
+
+  if (action.kind === "checking") {
+    return <LoadingSpinner size="sm" label={t("rr_membership_checking")} />;
+  }
+
+  if (action.kind === "unread") {
+    return (
+      <div className="flex max-w-[44ch] flex-wrap items-center gap-2">
+        <p role="alert" className="text-micro font-semibold text-accent-press">
+          {t("rr_membership_unread")}
+        </p>
+        <Button size="sm" variant="secondary" onClick={onRetry}>
+          {t("net_retry")}
+        </Button>
+      </div>
+    );
+  }
 
   if (action.kind === "inProgress") {
     return (

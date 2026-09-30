@@ -1040,6 +1040,8 @@
   "rr_opening": "Opening…",
   "rr_in_progress_by": "Being filled in by {{name}}",
   "rr_in_progress_other": "Being filled in by another team member",
+  "rr_membership_checking": "Checking whether you are a member of this project…",
+  "rr_membership_unread": "Could not confirm whether you are a member of this project, so the request button does not show yet.",
   "rr_opens_new_tab": "(opens in a new tab)",
   "rr_entry_hint": "Opens the resource request form in a new tab, already signed in.",
   "rr_tab_blocked": "The browser did not open the new tab. Allow pop-ups for the PME and try again.",

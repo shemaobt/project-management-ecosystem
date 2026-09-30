@@ -1,14 +1,19 @@
 import { ADMIN_ROLE, FORM_APP } from "../constants/access";
 import { FORM_ENTRY_PATH, FORM_LINK_PATH } from "../constants/requests";
+import type { AccessAppKey } from "../types/access";
 import type { RequestCard } from "../types/request";
 import type { SessionRole } from "../types/session";
 
 export type HandoffContext = Record<string, string>;
 
+export type StartPermission = "yes" | "no" | "checking" | "unread";
+
 export type RequestAction =
   | { kind: "start" }
   | { kind: "continue" }
   | { kind: "inProgress"; by: string | null }
+  | { kind: "checking" }
+  | { kind: "unread" }
   | { kind: "none" };
 
 export interface FormTab {
@@ -25,7 +30,7 @@ export type FormOpening =
 export interface FormOpeningSteps {
   base: string;
   context: HandoffContext | null;
-  handoff: (appKey: string, context: HandoffContext | null) => Promise<string>;
+  handoff: (appKey: AccessAppKey, context: HandoffContext | null) => Promise<string>;
   openTab: () => FormTab | null;
 }
 
@@ -45,17 +50,21 @@ export function openInstance(cards: readonly RequestCard[]): RequestCard | null 
   return cards.find((card) => card.open) ?? null;
 }
 
-export function mayStartRequest(
+export function startPermission(
   roles: readonly SessionRole[],
-  memberOf: readonly string[],
+  memberOf: readonly string[] | null,
+  membershipFailed: boolean,
   projectId: string,
-): boolean {
-  return roles.includes(ADMIN_ROLE) || memberOf.includes(projectId);
+): StartPermission {
+  if (roles.includes(ADMIN_ROLE)) return "yes";
+  if (membershipFailed) return "unread";
+  if (memberOf === null) return "checking";
+  return memberOf.includes(projectId) ? "yes" : "no";
 }
 
 export function requestAction(
   cards: readonly RequestCard[],
-  mayStart: boolean,
+  permission: StartPermission,
 ): RequestAction {
   const open = openInstance(cards);
   if (open) {
@@ -63,7 +72,16 @@ export function requestAction(
       ? { kind: "continue" }
       : { kind: "inProgress", by: open.started_by_name };
   }
-  return mayStart ? { kind: "start" } : { kind: "none" };
+  switch (permission) {
+    case "yes":
+      return { kind: "start" };
+    case "no":
+      return { kind: "none" };
+    case "checking":
+      return { kind: "checking" };
+    case "unread":
+      return { kind: "unread" };
+  }
 }
 
 export async function openResourceForm({

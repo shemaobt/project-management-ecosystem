@@ -12,9 +12,9 @@ import {
 import type { RequestCard } from "../../../../types/request";
 import type { ApiFailure } from "../../../../types/session";
 import {
-  mayStartRequest,
   projectContext,
   requestAction,
+  startPermission,
 } from "../../../../utils/requests";
 import { RequestButton } from "./RequestButton";
 import { RequestsPanel } from "./RequestsPanel";
@@ -31,6 +31,8 @@ export function ProjectRequests({ api, projectId }: ProjectRequestsProps) {
   const [cards, setCards] = useState<readonly RequestCard[] | null>(null);
   const [failure, setFailure] = useState<ApiFailure | null>(null);
   const [memberOf, setMemberOf] = useState<readonly string[] | null>(null);
+  const [membershipFailed, setMembershipFailed] = useState(false);
+  const [membershipReads, setMembershipReads] = useState(0);
   const { open, opening } = useResourceForm(apps.resourceRequestForm);
 
   useEffect(() => {
@@ -57,16 +59,22 @@ export function ProjectRequests({ api, projectId }: ProjectRequestsProps) {
         if (!cancelled) setMemberOf(refs.map((ref) => ref.id));
       })
       .catch(() => {
-        if (!cancelled) setMemberOf([]);
+        if (!cancelled) setMembershipFailed(true);
       });
     return () => {
       cancelled = true;
     };
-  }, [admin]);
+  }, [admin, membershipReads]);
 
-  const mayStart = mayStartRequest(user.roles, memberOf ?? [], projectId);
+  const rereadMembership = () => {
+    setMemberOf(null);
+    setMembershipFailed(false);
+    setMembershipReads((count) => count + 1);
+  };
+
+  const permission = startPermission(user.roles, memberOf, membershipFailed, projectId);
   const action =
-    cards === null || failure !== null ? null : requestAction(cards, mayStart);
+    cards === null || failure !== null ? null : requestAction(cards, permission);
 
   return (
     <RequestsPanel
@@ -78,6 +86,7 @@ export function ProjectRequests({ api, projectId }: ProjectRequestsProps) {
           formAvailable={apps.resourceRequestForm !== null}
           opening={opening}
           onOpen={() => void open(projectContext(projectId))}
+          onRetry={rereadMembership}
         />
       }
     />
