@@ -65,7 +65,9 @@ const project = (over: Partial<Project> = {}): Project =>
 /** Every place the issue names, each rendering or deriving what it shows for `p`. */
 const PLACES: Record<string, (p: Project) => string> = {
   "projetos/ProjectCardAtlas": (p) =>
-    renderToStaticMarkup(createElement(ProjectCardAtlas, { project: p })),
+    renderToStaticMarkup(
+      createElement(ProjectCardAtlas, { project: p, onOpen: noop }),
+    ),
   "projetos/Journal/ProjectCardDiario": (p) =>
     renderToStaticMarkup(
       createElement(ProjectCardDiario, { project: p, index: 0, onOpen: noop }),

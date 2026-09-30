@@ -12,6 +12,7 @@ import {
   getIdentityLabel,
   getSpeakerLabel,
   getUnitShare,
+  cardHealthDots,
   isActivationKey,
   openableCardProps,
 } from "../card";
@@ -159,8 +160,12 @@ describe("os anéis de progresso", () => {
 describe("o cartão abre pelo teclado", () => {
   it("Enter e Espaço abrem a ficha e seguram o comportamento padrão", () => {
     let opened = 0;
-    const props = openableCardProps("abrir", () => {
-      opened += 1;
+    const props = openableCardProps({
+      label: "abrir",
+      describedBy: "resumo",
+      onOpen: () => {
+        opened += 1;
+      },
     });
     const press = (key: string) => {
       let prevented = false;
@@ -176,6 +181,7 @@ describe("o cartão abre pelo teclado", () => {
     expect(props.role).toBe("button");
     expect(props.tabIndex).toBe(0);
     expect(props["aria-label"]).toBe("abrir");
+    expect(props["aria-describedby"]).toBe("resumo");
 
     expect(press("Enter")).toBe(true);
     expect(press(" ")).toBe(true);
@@ -194,6 +200,20 @@ describe("o cartão abre pelo teclado", () => {
     expect(isActivationKey(" ")).toBe(true);
     expect(isActivationKey("Spacebar")).toBe(false);
     expect(isActivationKey("ArrowDown")).toBe(false);
+  });
+});
+
+describe("os pontos de saúde do cartão", () => {
+  it("são as três dimensões do protótipo, nesta ordem, e dimensão não avaliada é N/A", () => {
+    expect(
+      cardHealthDots(
+        makeProject({ healthEmotional: "boa", healthSpiritual: "critica" }),
+      ),
+    ).toEqual([
+      { state: "boa", labelKey: "d_emotional" },
+      { state: "na", labelKey: "d_relational" },
+      { state: "critica", labelKey: "d_spiritual" },
+    ]);
   });
 });
 

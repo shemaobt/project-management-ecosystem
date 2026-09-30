@@ -1,22 +1,20 @@
 import { useTranslation } from "react-i18next";
-import type {
-  OverallHealth,
-  Project,
-  ProjectPriority,
-} from "../../../../types/project";
+import type { Project, ProjectPriority } from "../../../../types/project";
 import { cn } from "../../../../utils/cn";
 import { formatDate } from "../../../../utils/format";
 import { BrandMark } from "../../../common/BrandMark";
 import { PriorityPin, StatusDot } from "../../../common/StatusBadge";
 import {
+  cardFunnel,
+  cardHealthDots,
   getCardDateLabel,
   getCardQuote,
   getIdentityLabel,
   getSpeakerLabel,
-  openableCardProps,
 } from "../card";
 import { getLocationDisplay } from "../../../../utils/region";
 import { cardLastProgressUpdate, cardPriority } from "../derived";
+import { OpenableCard } from "../OpenableCard";
 import { ProgressRings } from "../ProgressRings";
 
 const TAPE_TONES: Record<ProjectPriority, string> = {
@@ -59,18 +57,12 @@ export function ProjectCardDiario({
   const lastUpdate = cardLastProgressUpdate(project);
   const location = getLocationDisplay(project);
   const identity = getIdentityLabel(project);
-  const healthDots: { state: OverallHealth; label: string }[] = [
-    { state: project.healthEmotional || "na", label: t("d_emotional") },
-    { state: project.healthRelational || "na", label: t("d_relational") },
-    { state: project.healthSpiritual || "na", label: t("d_spiritual") },
-  ];
+  const funnel = cardFunnel(project, t);
 
   return (
-    <article
-      {...openableCardProps(
-        t("card_open", { language: project.languageName }),
-        onOpen,
-      )}
+    <OpenableCard
+      project={project}
+      onOpen={onOpen}
       className={cn(
         "relative flex cursor-pointer flex-col gap-3 rounded-[2px] border-t border-l border-verde/4",
         "bg-paper px-5.5 pt-6 pb-5.5 shadow-paper",
@@ -155,9 +147,9 @@ export function ProjectCardDiario({
             <span aria-hidden className="mr-1 text-telha">
               ●
             </span>
-            {project.translatedUnits}/{project.totalUnits}{" "}
+            {funnel.translated.count}{" "}
             <span className="font-medium text-fg-muted">
-              {t("d_p_translated_short").toLowerCase()}
+              {funnel.translated.label}
             </span>
           </div>
           <div className="flex flex-wrap gap-x-2 text-[10px] text-fg-subtle tabular-nums">
@@ -165,24 +157,27 @@ export function ProjectCardDiario({
               <span aria-hidden className="mr-1 text-azul-ink">
                 ●
               </span>
-              {project.communityCheckedUnits}{" "}
-              {t("d_p_community_short").toLowerCase()}
+              {funnel.checked.count} {funnel.checked.label}
             </span>
             <span>
               <span aria-hidden className="mr-1 text-verde-claro">
                 ●
               </span>
-              {project.approvedUnits} {t("d_p_approved_short").toLowerCase()}
+              {funnel.approved.count} {funnel.approved.label}
             </span>
           </div>
           <div className="mt-0.5 flex gap-[3px]">
-            {healthDots.map((dot) => (
-              <StatusDot key={dot.label} state={dot.state} label={dot.label} />
+            {cardHealthDots(project).map((dot) => (
+              <StatusDot
+                key={dot.labelKey}
+                state={dot.state}
+                label={t(dot.labelKey)}
+              />
             ))}
           </div>
         </div>
         <ProgressRings project={project} />
       </div>
-    </article>
+    </OpenableCard>
   );
 }

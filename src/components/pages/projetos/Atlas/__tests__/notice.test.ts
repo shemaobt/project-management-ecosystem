@@ -68,7 +68,11 @@ describe("o aviso de retidos só monta quando a contagem vem", () => {
     ];
     const view = (locationsWithheld: number | null) =>
       renderToStaticMarkup(
-        createElement(AtlasView, { projects, locationsWithheld }),
+        createElement(AtlasView, {
+          projects,
+          locationsWithheld,
+          onSelect: () => {},
+        }),
       );
     expect(view(1)).toContain(noticeOf(1));
     expect(view(null)).not.toContain(noticeOf(1));
