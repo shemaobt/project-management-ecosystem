@@ -7,6 +7,9 @@ import type {
   AccessAppRoles,
   AccessRegionGrant,
   AccountGrants,
+  AwaitingProject,
+  ConfirmedProject,
+  DiscardedProject,
   GrantChange,
   InviteDescription,
   InvitePayload,
@@ -14,6 +17,7 @@ import type {
   JoinEntry,
   JoinOutcome,
   OpenInvite,
+  ProjectConfirmation,
   RoleGrantPayload,
   RoleRevokePayload,
   SentInvite,
@@ -569,6 +573,30 @@ export const accessAPI = {
 
   async changes(): Promise<GrantChange[]> {
     const { data } = await http.get<GrantChange[]>(`${ACCESS}/changes`);
+    return data;
+  },
+
+  async pendingProjects(): Promise<AwaitingProject[]> {
+    const { data } = await http.get<AwaitingProject[]>(`${SHEMA}/pending-projects`);
+    return data;
+  },
+
+  async confirmProject(
+    projectId: string,
+    payload: ProjectConfirmation,
+  ): Promise<ConfirmedProject> {
+    const { data } = await http.post<ConfirmedProject>(
+      `${SHEMA}/projects/${encodeURIComponent(projectId)}/confirm`,
+      payload,
+    );
+    return data;
+  },
+
+  async discardProject(projectId: string, reason: string): Promise<DiscardedProject> {
+    const { data } = await http.post<DiscardedProject>(
+      `${SHEMA}/projects/${encodeURIComponent(projectId)}/reject`,
+      { reason },
+    );
     return data;
   },
 

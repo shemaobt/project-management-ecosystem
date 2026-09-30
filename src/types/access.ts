@@ -57,6 +57,7 @@ export interface OpenInvite {
   createdAt: string;
   expiresAt: string;
   createdBy: string | null;
+  projectId?: string | null;
 }
 
 export interface SentInvite extends OpenInvite {
@@ -105,3 +106,66 @@ export type JoinOutcome =
       failure: ApiFailure;
       accountCreated: boolean;
     };
+
+export interface ProposedMember {
+  name: string;
+  role: string;
+  email: string;
+}
+
+export interface AwaitingProject {
+  id: string;
+  languageName: string;
+  languageCode: string;
+  location: string;
+  team: string;
+  requestId: string;
+  requestName: string;
+  filedAt: string;
+  members: ProposedMember[];
+  locationWithheld: boolean;
+}
+
+export interface ConfirmedMemberPayload {
+  name: string;
+  email: string;
+}
+
+export interface ProjectConfirmation {
+  languageName: string;
+  languageCode: string;
+  location: string;
+  team: string;
+  sensitiveCountry: boolean;
+  members: ConfirmedMemberPayload[];
+}
+
+export interface JoinedMember {
+  email: string;
+  userId: string;
+}
+
+export interface InvitedMember {
+  email: string;
+  inviteId: string;
+  inviteUrl: string;
+  emailSent: boolean;
+}
+
+export interface ConfirmedProject {
+  id: string;
+  languageName: string;
+  requestIds: string[];
+  joined: JoinedMember[];
+  invited: InvitedMember[];
+  withoutEmail: string[];
+}
+
+export interface DiscardedProject {
+  id: string;
+  reason: string;
+  discardedAt: string;
+  requestId: string;
+  requestProjectId: string | null;
+  detail: string;
+}

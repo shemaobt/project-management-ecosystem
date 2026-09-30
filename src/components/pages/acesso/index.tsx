@@ -6,6 +6,7 @@ import { canAdministerAccess } from "../../../utils/access";
 import { HistorySection } from "./HistorySection";
 import { InvitesSection, type InvitePrefill } from "./InvitesSection";
 import { NotAuthorized } from "./NotAuthorized";
+import { PendingProjectsSection } from "./PendingProjects";
 import { PersonSection } from "./PersonSection";
 
 export interface AcessoPageProps {
@@ -46,6 +47,10 @@ function AccessScreen({ api }: AcessoPageProps) {
           api={api}
           onChanged={() => setRevision((current) => current + 1)}
           onInvite={invite}
+        />
+        <PendingProjectsSection
+          api={api}
+          onChanged={() => setRevision((current) => current + 1)}
         />
         <InvitesSection api={api} prefill={prefill} revision={revision} />
         <HistorySection api={api} revision={revision} />

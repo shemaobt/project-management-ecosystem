@@ -12,6 +12,9 @@ export const STUB_API: AccessAPI = {
   revokeInvite: never,
   invites: never,
   changes: never,
+  pendingProjects: never,
+  confirmProject: never,
+  discardProject: never,
   describeInvite: never,
   join: never,
 };
