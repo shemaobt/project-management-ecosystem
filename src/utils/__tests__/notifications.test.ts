@@ -565,12 +565,34 @@ describe("avisos do formulário (OBT-541)", () => {
         role,
       ).toEqual(["requestDecision"]);
     }
-    for (const role of ["coordinator", "obtLab", "resourceCircle"] as const) {
+    for (const role of [
+      "coordinator",
+      "obtLab",
+      "resourceCircle",
+      "globalStrategist",
+    ] as const) {
       expect(
         routeNotifications([decision], { roles: [role], regions: null }),
         role,
       ).toEqual([]);
     }
+  });
+
+  it("o ver-tudo do globalStrategist não alcança aviso de pedido; o papel de admin, sim", () => {
+    expect(
+      routeNotifications(entries, {
+        roles: ["globalStrategist"],
+        regions: null,
+      }),
+    ).toEqual([]);
+    expect(
+      kinds(
+        routeNotifications(entries, {
+          roles: ["globalStrategist", "admin"],
+          regions: null,
+        }),
+      ),
+    ).toEqual(["requestDecision", "requestArrival"]);
   });
 
   it("um gestor sem região recebe a chegada: aviso de pedido não passa pela região", () => {

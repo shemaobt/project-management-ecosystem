@@ -525,7 +525,8 @@ the role whose responsibility it is.
 `{id, urgent, audience, projectId: string | null, date, requestName}`: `requestArrival`
 (`requestStage: "triagem"`, reaching `admin` and `gestor`) and `requestDecision`
 (`requestStage: "aprovado" | "condicional" | "revisar" | "recusado"`, reaching `equipe`, `admin`,
-`gestor` and `mesa` — every role that can start a request). They are **stored, not derived**, carry
+`gestor` and `mesa` — every role that can start a request). `globalStrategist`'s see-all does not
+apply to them: they reach exactly their audience. They are **stored, not derived**, carry
 no region, location, base or mentor, and **nothing from the evaluation** — the GATE-03 D4 ceiling.
 The derived five are `ProjectNotification`.
 

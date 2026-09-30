@@ -168,13 +168,14 @@ export function routeNotifications(
   route: NotificationRoute,
 ): AppNotification[] {
   const global = route.roles.includes("globalStrategist");
-  return entries.filter(
-    (entry) =>
-      (global || entry.audience.some((key) => route.roles.includes(key))) &&
-      (isRequestNotice(entry) ||
-        route.regions === null ||
-        route.regions.includes(entry.region)),
-  );
+  return entries.filter((entry) => {
+    const addressed = entry.audience.some((key) => route.roles.includes(key));
+    if (isRequestNotice(entry)) return addressed;
+    return (
+      (global || addressed) &&
+      (route.regions === null || route.regions.includes(entry.region))
+    );
+  });
 }
 
 function mentorMatches(mentor: string, userName: string | null): boolean {
