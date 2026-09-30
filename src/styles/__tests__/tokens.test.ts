@@ -613,3 +613,76 @@ describe("a voz urgente é um vermelho próprio, e o halo é da mesma série", (
     );
   });
 });
+
+describe("o tom quieto da superfície escura se lê sobre a pílula do globo, e fica abaixo do número", () => {
+  const overlays = readFileSync(
+    join(
+      process.cwd(),
+      "src/components/pages/projetos/Atlas/GlobeOverlays.tsx",
+    ),
+    "utf8",
+  );
+  const SKY = ["night-sky-1", "night-sky-2", "night-sky-3"] as const;
+  const WORST_PIXEL_BEHIND_CONTROLS = [63, 59, 72];
+
+  const pillAlphas = [
+    ...overlays.matchAll(/bg-\[rgba\(20,14,32,([\d.]+)\)\]/gu),
+  ].map((match) => Number(match[1]));
+
+  function pillOver(sky: string, alpha: number): number[] {
+    return opaque(sky).map((base, index) =>
+      Math.round(alpha * [20, 14, 32][index] + (1 - alpha) * base),
+    );
+  }
+
+  function inkOnPill(ink: string, sky: string, alpha: number): number {
+    return ratio(luminance(ink), luminanceOf(pillOver(sky, alpha)));
+  }
+
+  it("a varredura encontra as duas pílulas do painel, a dos rótulos e a dos controles", () => {
+    expect([...new Set(pillAlphas)].sort()).toEqual([0.6, 0.78]);
+  });
+
+  it("fg-on-dark-muted passa em texto pequeno sobre cada pílula composta sobre cada tom da noite", () => {
+    for (const alpha of pillAlphas) {
+      for (const sky of SKY) {
+        expect(
+          inkOnPill("fg-on-dark-muted", sky, alpha),
+          `${sky} @ ${alpha}`,
+        ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+      }
+    }
+  });
+
+  it("e passa sobre o pixel mais claro que o Chrome mediu atrás dos controles", () => {
+    expect(
+      ratio(
+        luminance("fg-on-dark-muted"),
+        luminanceOf(WORST_PIXEL_BEHIND_CONTROLS),
+      ),
+    ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+  });
+
+  it("é mais quieto que o número que legenda, sem deixar de ser tinta", () => {
+    for (const sky of SKY) {
+      const legend = inkOnPill("fg-on-dark-muted", sky, 0.6);
+      const number = inkOnPill("fg-on-dark", sky, 0.6);
+      expect(legend, sky).toBeLessThan(number * 0.75);
+    }
+  });
+
+  it("é sólido e vem da paleta: o contraste não depende de opacidade", () => {
+    expect(paint("fg-on-dark-muted").alpha).toBe(1);
+    expect(token("fg-on-dark-muted")).toBe(token("shema-areia"));
+  });
+
+  it("os rótulos e os controles o usam, e o número continua em on-dark", () => {
+    const classesOf = (child: string) =>
+      new RegExp(`className="([^"]*)">\\s*\\{${child}\\}`, "u").exec(overlays)?.[1];
+    expect(overlays).not.toMatch(/text-areia/u);
+    expect(classesOf("item\\.label")).toContain("text-on-dark-muted");
+    expect(classesOf("item\\.value")).toMatch(/text-on-dark(?![-\w])/u);
+    expect(overlays).toMatch(/controlButton =\s*"[^"]*text-on-dark-muted/u);
+    expect(overlays).toMatch(/"bottom-5[^"]*text-on-dark-muted/u);
+  });
+});

@@ -105,6 +105,8 @@ pelos dois sem atenuante; e decidir se `Checkbox`/`Radio` podem ser usados sem r
 
 ## 5. O globo do Atlas é só para mouse
 
+**Resolvido em [OBT-498](https://linear.app/shema-obt/issue/OBT-498) (30/set/2026): o globo é ilustração.** O SVG recebeu `aria-hidden`, uma frase `sr-only` diz que o mapa é ilustrativo e onde estão os mesmos projetos, e o pausar e os atalhos BR/AF/SE continuam focáveis, fora da subárvore escondida, com nome. O texto abaixo é o registro original.
+
 **O que é.** O SVG do globo tem 244 nós e **zero elementos focáveis dentro**. Os medalhões e os
 marcadores de projeto abrem só com clique e arrasto.
 
@@ -147,6 +149,8 @@ atenção que a cor consiga carregar.
 ---
 
 ## 7. Falta um tom quieto para superfície escura (`on-dark-muted`)
+
+**Resolvido em OBT-500 (30/set/2026):** `--fg-on-dark-muted` = `--shema-areia`, utilitária `text-on-dark-muted`, aplicada nos rótulos, no aviso e nos controles do globo; o valor segue como proposta a ratificar (Levi ou designer). O 2.91 abaixo coincide com o areia sobre a pílula composta no canvas claro (2.92), que a pílula nunca pisa; sobre a noite real, renderizado, o areia mede 10.49. O texto original fica como registro.
 
 **O que é.** FE-19 já registrou que `text-areia` é o único tom de tinta que não migrou para a camada
 semântica, porque `on-dark` é branco cheio e não existe nada mais quieto. FE-43 tornou isso mais
