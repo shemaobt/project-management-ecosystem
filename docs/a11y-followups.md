@@ -81,6 +81,12 @@ HTML — do cartão.
 
 ## 4. Alvos de toque abaixo de 24×24 px
 
+> **Resolvido em parte, em [OBT-497](https://linear.app/shema-obt/issue/OBT-497).** O `×` (20→24 px
+> de alvo, pseudo-elemento transparente) e o link (18,6→26,6 px, padding com margem negativa) estão
+> resolvidos, com o desenho intacto. `Checkbox`/`Radio` passaram a exigir `label` no tipo, o que
+> resolve o **nome** do controle, não o tamanho: a caixa segue 16×16 e o alvo é o `<label>` em volta,
+> como antes; um `Radio` solto ainda compilaria. A descrição original segue abaixo como registro.
+
 **O que é.** WCAG 2.5.8 (AA, 2.2) pede 24×24 CSS px de área alvo. Medidos a 360px de largura, num
 navegador de verdade:
 

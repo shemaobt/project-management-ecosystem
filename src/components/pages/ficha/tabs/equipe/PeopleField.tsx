@@ -6,6 +6,8 @@ import {
   removePerson,
   splitPeople,
 } from "../../../../../utils/people";
+import { touchTargetPseudo } from "../../../../../styles";
+import { cn } from "../../../../../utils/cn";
 import { Button, Input } from "../../../../ui";
 import type { FieldControlProps } from "../../fields";
 
@@ -74,7 +76,10 @@ export function PeopleField({
                 type="button"
                 aria-label={t("f_people_remove", { name: person })}
                 onClick={() => onChange(removePerson(value, index))}
-                className="inline-flex size-5 cursor-pointer items-center justify-center rounded-pill text-fg-muted transition-colors duration-fast ease-out hover:bg-accent-soft hover:text-telha"
+                className={cn(
+                  "inline-flex size-5 cursor-pointer items-center justify-center rounded-pill text-fg-muted transition-colors duration-fast ease-out hover:bg-accent-soft hover:text-telha",
+                  touchTargetPseudo,
+                )}
               >
                 <X size={13} strokeWidth={2.25} />
               </button>

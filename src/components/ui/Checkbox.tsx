@@ -5,12 +5,17 @@ import { cn } from "../../utils/cn";
 import { transitionColors } from "../../styles";
 import { optionLabel } from "./option";
 
-export function Checkbox({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>) {
+export interface CheckboxProps extends Omit<
+  ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>,
+  "aria-label"
+> {
+  label: string;
+}
+
+export function Checkbox({ label, className, ...props }: CheckboxProps) {
   return (
     <CheckboxPrimitive.Root
+      aria-label={label}
       className={cn(
         `flex size-4 shrink-0 items-center justify-center rounded-xs border border-line-strong bg-elevated ${transitionColors} data-[state=checked]:border-telha data-[state=checked]:bg-telha disabled:cursor-not-allowed disabled:opacity-50`,
         className,
@@ -24,10 +29,7 @@ export function Checkbox({
   );
 }
 
-export interface CheckboxFieldProps
-  extends ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> {
-  label: string;
-}
+export type CheckboxFieldProps = CheckboxProps;
 
 export function CheckboxField({
   label,
@@ -37,7 +39,7 @@ export function CheckboxField({
 }: CheckboxFieldProps) {
   return (
     <label className={cn(optionLabel, className)} htmlFor={id}>
-      <Checkbox id={id} {...props} />
+      <Checkbox id={id} label={label} {...props} />
       <span>{label}</span>
     </label>
   );
