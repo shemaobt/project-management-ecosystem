@@ -147,6 +147,29 @@ describe("as sete rotas do Admin, como a OBT-543 as serve", () => {
   });
 });
 
+describe("os projetos aguardando confirmação — OBT-547", () => {
+  it("a lista, a confirmação e o descarte vão cada um à sua rota, com o id codificado", async () => {
+    script = () => ({ status: 200, data: [] });
+    await accessAPI.pendingProjects();
+    await accessAPI.confirmProject("p 1", {
+      languageName: "Língua Teste",
+      languageCode: "ltt",
+      location: "Peru",
+      team: "Base Teste",
+      sensitiveCountry: true,
+      members: [{ name: "Joana Teste", email: "equipe@exemplo.org" }],
+    });
+    await accessAPI.discardProject("p 1", "duplicado");
+    expect(calls.map((call) => `${call.method} ${call.path}`)).toEqual([
+      "get /shema/pending-projects",
+      "post /shema/projects/p%201/confirm",
+      "post /shema/projects/p%201/reject",
+    ]);
+    expect(calls[1].body).toMatchObject({ sensitiveCountry: true, languageName: "Língua Teste" });
+    expect(calls[2].body).toEqual({ reason: "duplicado" });
+  });
+});
+
 describe("readAccount falha fechado, como readSession", () => {
   it("lê a conta legal inteira", () => {
     expect(readAccount(ACCOUNT)).toEqual(ACCOUNT);

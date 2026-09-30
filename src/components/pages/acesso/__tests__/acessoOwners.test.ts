@@ -53,9 +53,18 @@ describe("o link do convite aparece uma vez e não fica guardado", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("só o painel do convite recém-criado lê o link — nenhuma lista, nenhum store", () => {
+  it("só o painel do convite recém-criado e o resumo da confirmação leem o link — nenhuma lista, nenhum store", () => {
     const readers = everywhere.filter((path) => read(path).includes("inviteUrl"));
-    expect(readers).toEqual(["src/components/pages/acesso/InvitesSection.tsx"]);
+    expect(readers).toEqual([
+      "src/components/pages/acesso/InvitesSection.tsx",
+      "src/components/pages/acesso/PendingProjects.tsx",
+    ]);
+  });
+
+  it("o resumo da confirmação guarda os links só no estado do componente", () => {
+    const source = flat(read("src/components/pages/acesso/PendingProjects.tsx"));
+    expect(source).toContain("useState<ConfirmedProject|null>(null)");
+    expect(source).toContain("onDismiss={()=>setConfirmed(null)}");
   });
 });
 
