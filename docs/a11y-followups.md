@@ -81,6 +81,12 @@ HTML — do cartão.
 
 ## 4. Alvos de toque abaixo de 24×24 px
 
+> **Resolvido em parte, em [OBT-497](https://linear.app/shema-obt/issue/OBT-497).** O `×` (20→24 px
+> de alvo, pseudo-elemento transparente) e o link (18,6→26,6 px, padding com margem negativa) estão
+> resolvidos, com o desenho intacto. `Checkbox`/`Radio` passaram a exigir `label` no tipo, o que
+> resolve o **nome** do controle, não o tamanho: a caixa segue 16×16 e o alvo é o `<label>` em volta,
+> como antes; um `Radio` solto ainda compilaria. A descrição original segue abaixo como registro.
+
 **O que é.** WCAG 2.5.8 (AA, 2.2) pede 24×24 CSS px de área alvo. Medidos a 360px de largura, num
 navegador de verdade:
 
@@ -104,6 +110,8 @@ pelos dois sem atenuante; e decidir se `Checkbox`/`Radio` podem ser usados sem r
 ---
 
 ## 5. O globo do Atlas é só para mouse
+
+**Resolvido em [OBT-498](https://linear.app/shema-obt/issue/OBT-498) (30/set/2026): o globo é ilustração.** O SVG recebeu `aria-hidden`, uma frase `sr-only` diz que o mapa é ilustrativo e onde estão os mesmos projetos, e o pausar e os atalhos BR/AF/SE continuam focáveis, fora da subárvore escondida, com nome. O texto abaixo é o registro original.
 
 **O que é.** O SVG do globo tem 244 nós e **zero elementos focáveis dentro**. Os medalhões e os
 marcadores de projeto abrem só com clique e arrasto.
@@ -147,6 +155,8 @@ atenção que a cor consiga carregar.
 ---
 
 ## 7. Falta um tom quieto para superfície escura (`on-dark-muted`)
+
+**Resolvido em OBT-500 (30/set/2026):** `--fg-on-dark-muted` = `--shema-areia`, utilitária `text-on-dark-muted`, aplicada nos rótulos, no aviso e nos controles do globo; o valor segue como proposta a ratificar (Levi ou designer). O 2.91 abaixo coincide com o areia sobre a pílula composta no canvas claro (2.92), que a pílula nunca pisa; sobre a noite real, renderizado, o areia mede 10.49. O texto original fica como registro.
 
 **O que é.** FE-19 já registrou que `text-areia` é o único tom de tinta que não migrou para a camada
 semântica, porque `on-dark` é branco cheio e não existe nada mais quieto. FE-43 tornou isso mais
@@ -194,6 +204,11 @@ movimento essencial — cabe numa issue própria, curta.
 
 **O que seria preciso.** Um bloco em `@layer base` que zere duração e transform sob
 `prefers-reduced-motion: reduce`, e um teste de fonte que impeça a próxima animação de escapar dele.
+
+**Resolvido em OBT-502 (30/set/2026).** Um bloco `@media (prefers-reduced-motion: reduce)` no fim de
+`src/index.css` (fora de `@layer`, para vencer as utilitárias) tira o que desloca e mantém os fades; o
+globo começa parado; `src/styles/__tests__/reducedMotion.test.ts` reprova a animação que escapar. Ver
+CLAUDE.md §7.3.
 
 ---
 
