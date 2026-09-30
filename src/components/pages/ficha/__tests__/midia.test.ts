@@ -121,7 +121,7 @@ describe("MidiaView", () => {
 describe("MidiaForm", () => {
   it("renders six upload slots with no authorization pre-checked", () => {
     const html = form();
-    expect(html.split("Autorizo compartilhar").length - 1).toBe(6);
+    expect(html.split(">Autorizo compartilhar<").length - 1).toBe(6);
     expect(html).not.toContain('data-state="checked"');
   });
 
@@ -145,7 +145,7 @@ describe("MidiaForm", () => {
     });
     expect(html).toContain("https://vimeo.com/9");
     expect(html).toContain("Remover · Vídeos 1");
-    expect(html.split("Autorizo compartilhar").length - 1).toBe(7);
+    expect(html.split(">Autorizo compartilhar<").length - 1).toBe(7);
   });
 
   it("announces the sensitive-country composition where the decision is made", () => {

@@ -23,7 +23,7 @@ export function MeetingCard({ meeting, children }: MeetingCardProps) {
   return (
     <section className={cn("mb-4.5 rounded-lg p-6 shadow-card", surfaceOutlined)}>
       <div className={cn("flex gap-4", children ? "mb-4.5" : null)}>
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-accent-soft text-telha">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent-press">
           <Icon size={22} strokeWidth={1.75} aria-hidden />
         </span>
 

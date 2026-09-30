@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   GLOBE_INITIAL_ROTATION,
   type GlobeFocusPoint,
 } from "../../../../constants/geo";
 import { geoAPI } from "../../../../services/api";
+import { prefersReducedMotion } from "../../../../utils/motion";
 import type { Project } from "../../../../types/project";
 import type { GeoOutline } from "../../../../types/region";
 import { GlobeMarkers, type ProjectedMarker } from "./GlobeMarkers";
@@ -34,14 +36,29 @@ interface Rotation {
 export interface GlobeProps {
   projects: readonly Project[];
   locationsWithheld: number | null;
+  listPageSize: number | null;
   onSelect?: (project: Project) => void;
 }
 
-export function Globe({ projects, locationsWithheld, onSelect }: GlobeProps) {
+function illustrationKey(count: number, listPageSize: number | null) {
+  if (listPageSize === null) return "atlas_illustration";
+  return count > listPageSize
+    ? "atlas_illustration_list_paged"
+    : "atlas_illustration_list";
+}
+
+export function Globe({
+  projects,
+  locationsWithheld,
+  listPageSize,
+  onSelect,
+}: GlobeProps) {
+  const { t } = useTranslation();
   const [rotation, setRotation] = useState<Rotation>({
     ...GLOBE_INITIAL_ROTATION,
   });
-  const [autoRotate, setAutoRotate] = useState(true);
+  const [reducedMotion] = useState(prefersReducedMotion);
+  const [autoRotate, setAutoRotate] = useState(!reducedMotion);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [medPos, setMedPos] = useState<{
@@ -134,6 +151,10 @@ export function Globe({ projects, locationsWithheld, onSelect }: GlobeProps) {
   }, []);
 
   const focusOn = (targetLambda: number, targetPhi: number) => {
+    if (reducedMotion) {
+      setRotation({ lambda: targetLambda, phi: targetPhi });
+      return;
+    }
     const start = { ...rotation };
     const dur = 900;
     const ease = (x: number) => 1 - Math.pow(1 - x, 3);
@@ -238,6 +259,14 @@ export function Globe({ projects, locationsWithheld, onSelect }: GlobeProps) {
           style={{ backgroundImage: STAR_LAYER }}
         />
 
+        <p className="sr-only">
+          {t(illustrationKey(projects.length, listPageSize), {
+            count: projects.length,
+            page: listPageSize,
+            more: t("load_more"),
+          })}
+        </p>
+
         <GlobeControls
           autoRotate={autoRotate}
           onToggleRotate={() => setAutoRotate((previous) => !previous)}
@@ -247,6 +276,7 @@ export function Globe({ projects, locationsWithheld, onSelect }: GlobeProps) {
         <SensitiveNotice count={locationsWithheld} />
 
         <svg
+          aria-hidden="true"
           ref={svgRef}
           viewBox={`-${R + 30} -${R + 30} ${2 * (R + 30)} ${2 * (R + 30)}`}
           className="relative z-1 block h-auto w-full max-w-[640px] cursor-grab select-none active:cursor-grabbing"

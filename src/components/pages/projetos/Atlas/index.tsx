@@ -31,6 +31,7 @@ export function AtlasView({
         <Globe
           projects={projects}
           locationsWithheld={locationsWithheld}
+          listPageSize={PAGE_SIZE}
           onSelect={onSelect}
         />
       )}

@@ -96,6 +96,7 @@
   --fg-subtle: #6a6956;
   --fg-on-brand: var(--shema-branco);
   --fg-on-dark: var(--shema-branco);
+  --fg-on-dark-muted: var(--shema-areia);
   --fg-on-light: var(--shema-verde);
   --fg-link: var(--shema-telha);
 
@@ -347,6 +348,7 @@
   --color-fg-subtle: var(--fg-subtle);
   --color-on-brand: var(--fg-on-brand);
   --color-on-dark: var(--fg-on-dark);
+  --color-on-dark-muted: var(--fg-on-dark-muted);
   --color-on-light: var(--fg-on-light);
   --color-link: var(--fg-link);
 
@@ -469,5 +471,37 @@
     outline: 2px solid var(--accent);
     outline-offset: 2px;
     border-radius: var(--radius-xs);
+  }
+}
+
+/* OBT-502 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animate-slide-up: fade-in 280ms var(--ease-out);
+    --animate-slide-in-right: fade-in 280ms var(--ease-out);
+    --animate-slide-in-left: fade-in 280ms var(--ease-out);
+    --animate-spin: spin-still 1.6s ease-in-out infinite;
+  }
+
+  @keyframes spin-still {
+    50% {
+      opacity: 0.4;
+    }
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-property:
+      color, background-color, border-color, outline-color,
+      text-decoration-color, fill, stroke, opacity, box-shadow;
+  }
+
+  [class*="hover:-translate-"]:hover,
+  [class*="hover:translate-"]:hover,
+  [class*="hover:-scale-"]:hover,
+  [class*="hover:scale-"]:hover {
+    translate: none;
+    scale: none;
   }
 }

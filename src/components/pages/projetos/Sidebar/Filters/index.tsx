@@ -64,6 +64,7 @@ export function DetailedFilters({ baseline, counts }: DetailedFiltersProps) {
 
   return (
     <div>
+      <h2 className="sr-only">{t("sb_filters_heading")}</h2>
       <div className="mt-2 mb-2 flex items-center justify-between">
         <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-fg-subtle">
           {t("expand_filters")}
