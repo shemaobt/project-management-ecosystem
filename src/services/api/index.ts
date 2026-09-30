@@ -3,6 +3,10 @@ import * as api from "./endpoints";
 import { healthAssessmentsAPI as apiHealthAssessmentsAPI } from "./healthAssessments";
 import { projectBrowseAPI as apiProjectBrowseAPI } from "./projectBrowse";
 import { projectRecordAPI as apiProjectRecordAPI } from "./projectRecord";
+import {
+  resourceRequestsAPI as apiResourceRequestsAPI,
+  type ResourceRequestsAPI,
+} from "./resourceRequests";
 import { resolveSource, type DataNamespace } from "./source";
 
 function pick<T>(namespace: DataNamespace, real: T, double: T): T {
@@ -78,6 +82,9 @@ export const membersAPI = pick<typeof fixture.membersAPI>(
 export const accessAPI: api.AccessAPI | null =
   resolveSource("access") === "api" ? api.accessAPI : null;
 
+export const resourceRequestsAPI: ResourceRequestsAPI | null =
+  resolveSource("resourceRequests") === "api" ? apiResourceRequestsAPI : null;
+
 export const geoAPI = fixture.geoAPI;
 
 export {
@@ -106,6 +113,7 @@ export { hasSession, onSessionEvent } from "./tokens";
 export { resolveSource } from "./source";
 export type { DataNamespace, DataSource } from "./source";
 export type { AccessAPI } from "./endpoints";
+export type { ResourceRequestsAPI } from "./resourceRequests";
 export type { Translate } from "./errors";
 export type { ProjectBrowseQuery, ProjectBrowseResult } from "../../types/projectBrowse";
 export { mapRecord, readConflict, readFieldErrors, toWire } from "./projectRecord";

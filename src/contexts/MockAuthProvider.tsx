@@ -15,6 +15,7 @@ import { useRegionsStore } from "../stores/regionsStore";
 import type { Region } from "../types/region";
 import {
   AuthContext,
+  NO_APPS,
   scopeRegions,
   type AuthSession,
   type MockRole,
@@ -63,6 +64,7 @@ export function MockAuthProvider({ children }: { children: ReactNode }) {
     return {
       status: hydrated ? "ready" : "loading",
       user,
+      apps: NO_APPS,
       visibleRegions,
       canSeeRegion: (key) =>
         visibleRegions.some((region) => region.key === key),
