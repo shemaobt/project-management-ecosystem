@@ -35,14 +35,21 @@ interface Rotation {
 export interface GlobeProps {
   projects: readonly Project[];
   locationsWithheld: number | null;
-  listBelow: boolean;
+  listPageSize: number | null;
   onSelect?: (project: Project) => void;
+}
+
+function illustrationKey(count: number, listPageSize: number | null) {
+  if (listPageSize === null) return "atlas_illustration";
+  return count > listPageSize
+    ? "atlas_illustration_list_paged"
+    : "atlas_illustration_list";
 }
 
 export function Globe({
   projects,
   locationsWithheld,
-  listBelow,
+  listPageSize,
   onSelect,
 }: GlobeProps) {
   const { t } = useTranslation();
@@ -247,8 +254,10 @@ export function Globe({
         />
 
         <p className="sr-only">
-          {t(listBelow ? "atlas_illustration_list" : "atlas_illustration", {
+          {t(illustrationKey(projects.length, listPageSize), {
             count: projects.length,
+            page: listPageSize,
+            more: t("load_more"),
           })}
         </p>
 

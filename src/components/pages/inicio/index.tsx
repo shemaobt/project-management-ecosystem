@@ -21,7 +21,7 @@ export function InicioView({ projects, onOpen }: InicioViewProps) {
           <Globe
             projects={projects}
             locationsWithheld={withheldNotice(projects)}
-            listBelow={false}
+            listPageSize={null}
             onSelect={onOpen}
           />
         </div>

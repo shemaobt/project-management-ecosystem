@@ -82,6 +82,23 @@ describe("o globo do Atlas é uma ilustração para o leitor de tela", () => {
     expect(markup).toContain(`<p class="sr-only">${sentence}</p>`);
   });
 
+  it("com mais projetos que a página, a frase diz que a lista vem por partes", async () => {
+    const many = Array.from({ length: 31 }, (_, index) =>
+      makeProject({ id: `p${index}`, coords: [index, 10] }),
+    );
+    const view = () =>
+      renderToStaticMarkup(
+        createElement(AtlasView, { projects: many, locationsWithheld: null }),
+      );
+    const pt = view();
+    expect(pt).toContain("os mesmos 31 projetos, 30 por vez");
+    expect(pt).toContain("“Mostrar mais” carrega o resto");
+    expect(pt).not.toContain("traz os mesmos 31 projetos.");
+    await i18n.changeLanguage("en");
+    expect(view()).toContain("the same 31 projects, 30 at a time");
+    expect(view()).toContain("“Show more” loads the rest");
+  });
+
   it("a frase acompanha a língua", async () => {
     await i18n.changeLanguage("en");
     const markup = atlas();
@@ -111,6 +128,8 @@ describe("o globo do Atlas é uma ilustração para o leitor de tela", () => {
       `<p class="sr-only">${i18n.t("atlas_illustration", { count: 3 })}</p>`,
     );
     expect(markup).not.toContain(i18n.t("atlas_illustration_list", { count: 3 }));
+    expect(markup).not.toContain("os mesmos 3 projetos");
+    expect(markup).toContain("A lista e os filtros ficam na área Projetos");
   });
 
   it("o pausar e os três atalhos ficam fora do SVG, com nome", () => {
