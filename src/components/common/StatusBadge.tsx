@@ -1,4 +1,5 @@
 import { cva } from "class-variance-authority";
+import type { TFunction } from "i18next";
 import { AlertTriangle, Check, Circle, Minus, X } from "lucide-react";
 import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
@@ -116,6 +117,21 @@ export function StatusBadge(props: StatusBadgeProps) {
   );
 }
 
+export function healthDotPhrase(
+  t: TFunction,
+  label: string,
+  state: OverallHealth,
+): string {
+  return `${label}: ${t(HEALTH_LABEL_KEYS[state])}`;
+}
+
+export function priorityPhrase(
+  t: TFunction,
+  priority: ProjectPriority,
+): string {
+  return t(PRIORITY_LABEL_KEYS[priority]);
+}
+
 export interface StatusDotProps {
   state: OverallHealth;
   label: string;
@@ -124,7 +140,7 @@ export interface StatusDotProps {
 
 export function StatusDot({ state, label, className }: StatusDotProps) {
   const { t } = useTranslation();
-  const spoken = `${label}: ${t(HEALTH_LABEL_KEYS[state])}`;
+  const spoken = healthDotPhrase(t, label, state);
   return (
     <span
       title={spoken}
@@ -143,7 +159,7 @@ export interface PriorityPinProps {
 
 export function PriorityPin({ priority, className }: PriorityPinProps) {
   const { t } = useTranslation();
-  const spoken = t(PRIORITY_LABEL_KEYS[priority]);
+  const spoken = priorityPhrase(t, priority);
   return (
     <span
       title={spoken}
