@@ -2,6 +2,8 @@ import { Globe } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { touchTargetInline } from "../../../../../styles";
+import { cn } from "../../../../../utils/cn";
 import { useRegionsStore } from "../../../../../stores/regionsStore";
 import {
   getRegion,
@@ -27,7 +29,10 @@ export function RolesPanel({ roles, regionLabelKey }: RolesPanelProps) {
         </span>
         <Link
           to="/equipe"
-          className="text-micro font-semibold text-telha underline underline-offset-2 hover:no-underline"
+          className={cn(
+            "text-micro font-semibold text-telha underline underline-offset-2 hover:no-underline",
+            touchTargetInline,
+          )}
         >
           {t("f_roles_open")}
         </Link>
