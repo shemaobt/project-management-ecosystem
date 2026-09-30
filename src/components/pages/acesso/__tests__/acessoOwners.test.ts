@@ -61,10 +61,13 @@ describe("o link do convite aparece uma vez e não fica guardado", () => {
     ]);
   });
 
-  it("o resumo da confirmação guarda os links só no estado do componente", () => {
+  it("o resumo da confirmação guarda os links só no estado do componente, e a próxima confirmação não os apaga", () => {
     const source = flat(read("src/components/pages/acesso/PendingProjects.tsx"));
-    expect(source).toContain("useState<ConfirmedProject|null>(null)");
-    expect(source).toContain("onDismiss={()=>setConfirmed(null)}");
+    expect(source).toContain("useState<readonlyConfirmedProject[]>([])");
+    expect(source).toContain("setConfirmed((current)=>keepConfirmation(current,result))");
+    expect(source).toContain(
+      "setConfirmed((current)=>current.filter((entry)=>entry.id!==result.id))",
+    );
   });
 });
 

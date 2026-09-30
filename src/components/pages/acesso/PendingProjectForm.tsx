@@ -5,14 +5,8 @@ import type { AwaitingProject, ProjectConfirmation } from "../../../types/access
 import type { ApiFailure } from "../../../types/session";
 import { formatDate, utcDay } from "../../../utils/format";
 import { Button, CheckboxField, Input, Label } from "../../ui";
+import { membersToSend, type MemberRow } from "./pending";
 import { RefusalNote } from "./RefusalNote";
-
-interface MemberRow {
-  key: string;
-  name: string;
-  role: string;
-  email: string;
-}
 
 function rowsOf(project: AwaitingProject): MemberRow[] {
   return project.members.map((member, index) => ({
@@ -73,7 +67,7 @@ export function PendingProjectForm({
       location: location.trim(),
       team: team.trim(),
       sensitiveCountry: sensitive,
-      members: members.map((row) => ({ name: row.name.trim(), email: row.email.trim() })),
+      members: membersToSend(members),
     });
   };
 

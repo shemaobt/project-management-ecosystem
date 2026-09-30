@@ -1282,6 +1282,7 @@
   "acesso_pending_discard_title": "Discard {{name}}?",
   "acesso_pending_discard_body": "The request stays approved and without a project. Say why this project does not enter the PME.",
   "acesso_pending_discard_reason": "Reason",
+  "acesso_pending_discard_reason_required": "A reason is required to discard.",
   "acesso_pending_discarded": "{{name}} was discarded. The request stays approved and without a project.",
   "acesso_pending_confirmed": "{{name}} confirmed — the project now shows in Projects.",
   "acesso_pending_joined_one": "{{count}} person joined the team",

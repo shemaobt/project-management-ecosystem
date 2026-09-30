@@ -1282,6 +1282,7 @@
   "acesso_pending_discard_title": "Descartar {{name}}?",
   "acesso_pending_discard_body": "O pedido continua aprovado e sem projeto. Diga por que este projeto não entra no PME.",
   "acesso_pending_discard_reason": "Motivo",
+  "acesso_pending_discard_reason_required": "O motivo é obrigatório para descartar.",
   "acesso_pending_discarded": "{{name}} foi descartado. O pedido continua aprovado e sem projeto.",
   "acesso_pending_confirmed": "{{name}} confirmado — o projeto já aparece em Projetos.",
   "acesso_pending_joined_one": "{{count}} pessoa entrou na equipe",

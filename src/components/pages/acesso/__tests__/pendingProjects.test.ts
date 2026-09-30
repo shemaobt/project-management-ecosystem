@@ -23,8 +23,9 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
 const { default: i18n } = await import("../../../../i18n");
-const { ConfirmedNote, PendingState } = await import("../PendingProjects");
+const { ConfirmedNote, DiscardReason, PendingState } = await import("../PendingProjects");
 const { PendingProjectForm } = await import("../PendingProjectForm");
+const { keepConfirmation, membersToSend } = await import("../pending");
 
 beforeEach(async () => {
   await i18n.changeLanguage("pt");
@@ -106,6 +107,20 @@ describe("a conferência de um projeto aguardando confirmação", () => {
     expect(nameless).toMatch(/<button[^>]*type="submit"[^>]*disabled=""/u);
   });
 
+  it("linha sem nome e sem e-mail não vai ao servidor; a que tem um dos dois vai, aparada", () => {
+    expect(
+      membersToSend([
+        { key: "a", name: " Ana Teste ", role: "coordenação", email: "" },
+        { key: "b", name: "", role: "", email: " equipe@exemplo.org " },
+        { key: "c", name: "", role: "", email: "" },
+        { key: "d", name: "   ", role: "", email: "  " },
+      ]),
+    ).toEqual([
+      { name: "Ana Teste", email: "" },
+      { name: "", email: "equipe@exemplo.org" },
+    ]);
+  });
+
   it("fala inglês quando o console fala inglês", async () => {
     await i18n.changeLanguage("en");
     const out = form();
@@ -141,6 +156,52 @@ describe("o que a confirmação respondeu", () => {
     expect(out).toContain(i18n.t("acesso_pending_member_unnamed"));
     expect(out).toContain("https://pme.exemplo.org/convite?token=abc");
     expect(out).toContain(escaped(i18n.t("acesso_invite_email_not_sent")));
+  });
+
+  it("confirmar outro projeto sem fechar o aviso não apaga os links do primeiro", () => {
+    const second: ConfirmedProject = {
+      ...RESULT,
+      id: "p-2",
+      languageName: "Outra Língua Teste",
+      requestIds: ["r-2"],
+      invited: [{ ...RESULT.invited[0], inviteId: "i-2", inviteUrl: "https://pme.exemplo.org/convite?token=def" }],
+    };
+    const kept = keepConfirmation(keepConfirmation([], RESULT), second);
+    expect(kept.map((result) => result.id)).toEqual(["p-1", "p-2"]);
+
+    const out = kept
+      .map((result) => render(createElement(ConfirmedNote, { result, onDismiss: noop })))
+      .join("");
+    expect(out).toContain("https://pme.exemplo.org/convite?token=abc");
+    expect(out).toContain("https://pme.exemplo.org/convite?token=def");
+  });
+
+  it("a mesma resposta não vira dois avisos", () => {
+    expect(keepConfirmation([RESULT], RESULT)).toEqual([RESULT]);
+  });
+});
+
+describe("o descarte pede o motivo e diz por quê", () => {
+  const dialog = (reason: string) =>
+    render(createElement(DiscardReason, { reason, onChange: noop }));
+
+  it("sem motivo, a frase de obrigatório aparece e descreve o campo", () => {
+    for (const reason of ["", "   "]) {
+      const out = dialog(reason);
+      expect(out).toContain(i18n.t("acesso_pending_discard_reason_required"));
+      expect(out).toMatch(/<textarea[^>]*aria-describedby="([^"]+)"[\s\S]*<p id="\1"/u);
+    }
+  });
+
+  it("com motivo, a frase some", () => {
+    const out = dialog("Pedido em duplicidade");
+    expect(out).not.toContain(i18n.t("acesso_pending_discard_reason_required"));
+    expect(out).not.toContain("aria-describedby");
+  });
+
+  it("fala inglês quando o console fala inglês", async () => {
+    await i18n.changeLanguage("en");
+    expect(dialog("")).toContain("A reason is required to discard.");
   });
 });
 

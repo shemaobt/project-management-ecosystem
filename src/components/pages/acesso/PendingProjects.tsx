@@ -17,6 +17,7 @@ import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { OneTimeLink } from "../../common/OneTimeLink";
 import { Button, Label, Textarea } from "../../ui";
 import { Panel } from "./Panel";
+import { keepConfirmation } from "./pending";
 import { PendingProjectForm } from "./PendingProjectForm";
 import { RefusalNote } from "./RefusalNote";
 
@@ -76,6 +77,38 @@ export function ConfirmedNote({ result, onDismiss }: ConfirmedNoteProps) {
   );
 }
 
+export interface DiscardReasonProps {
+  reason: string;
+  onChange: (reason: string) => void;
+}
+
+export function DiscardReason({ reason, onChange }: DiscardReasonProps) {
+  const { t } = useTranslation();
+  const reasonId = useId();
+  const missing = reason.trim() === "";
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-small leading-body text-fg">{t("acesso_pending_discard_body")}</p>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor={reasonId}>{t("acesso_pending_discard_reason")}</Label>
+        <Textarea
+          id={reasonId}
+          value={reason}
+          maxLength={1000}
+          aria-describedby={missing ? `${reasonId}-required` : undefined}
+          onChange={(event) => onChange(event.target.value)}
+        />
+        {missing ? (
+          <p id={`${reasonId}-required`} className="text-micro text-accent-press">
+            {t("acesso_pending_discard_reason_required")}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export interface PendingStateProps {
   projects: readonly AwaitingProject[] | null;
   error: string | null;
@@ -109,13 +142,12 @@ export interface PendingProjectsSectionProps {
 
 export function PendingProjectsSection({ api, onChanged }: PendingProjectsSectionProps) {
   const { t } = useTranslation();
-  const reasonId = useId();
   const [projects, setProjects] = useState<readonly AwaitingProject[] | null>(null);
   const [loadFailure, setLoadFailure] = useState<ApiFailure | null>(null);
   const [version, setVersion] = useState(0);
   const [working, setWorking] = useState<string | null>(null);
   const [refusals, setRefusals] = useState<Record<string, ApiFailure>>({});
-  const [confirmed, setConfirmed] = useState<ConfirmedProject | null>(null);
+  const [confirmed, setConfirmed] = useState<readonly ConfirmedProject[]>([]);
   const [discarding, setDiscarding] = useState<AwaitingProject | null>(null);
   const [reason, setReason] = useState("");
   const [discarded, setDiscarded] = useState<string | null>(null);
@@ -157,7 +189,7 @@ export function PendingProjectsSection({ api, onChanged }: PendingProjectsSectio
     api
       .confirmProject(project.id, payload)
       .then((result) => {
-        setConfirmed(result);
+        setConfirmed((current) => keepConfirmation(current, result));
         setProjects((current) => current?.filter((entry) => entry.id !== project.id) ?? null);
         onChanged();
       })
@@ -186,9 +218,15 @@ export function PendingProjectsSection({ api, onChanged }: PendingProjectsSectio
   return (
     <Panel id="aguardando" title={t("acesso_pending_title")} lead={t("acesso_pending_lead")}>
       <div className="flex flex-col gap-6">
-        {confirmed ? (
-          <ConfirmedNote result={confirmed} onDismiss={() => setConfirmed(null)} />
-        ) : null}
+        {confirmed.map((result) => (
+          <ConfirmedNote
+            key={result.id}
+            result={result}
+            onDismiss={() =>
+              setConfirmed((current) => current.filter((entry) => entry.id !== result.id))
+            }
+          />
+        ))}
         {discarded ? (
           <p role="status" className="text-small text-fg">
             {t("acesso_pending_discarded", { name: discarded })}
@@ -228,18 +266,7 @@ export function PendingProjectsSection({ api, onChanged }: PendingProjectsSectio
         busy={reason.trim() === "" || working !== null}
         onConfirm={() => discarding && discard(discarding)}
       >
-        <div className="flex flex-col gap-3">
-          <p className="text-small leading-body text-fg">{t("acesso_pending_discard_body")}</p>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={reasonId}>{t("acesso_pending_discard_reason")}</Label>
-            <Textarea
-              id={reasonId}
-              value={reason}
-              maxLength={1000}
-              onChange={(event) => setReason(event.target.value)}
-            />
-          </div>
-        </div>
+        <DiscardReason reason={reason} onChange={setReason} />
       </ConfirmDialog>
     </Panel>
   );
