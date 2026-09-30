@@ -16,7 +16,7 @@ export function RemoveRowButton({ label, onClick }: RemoveRowButtonProps) {
       className={cn(
         circleControl,
         transitionColors,
-        "size-6.5 flex-none justify-self-center text-fg-muted hover:bg-accent-soft hover:text-telha",
+        "size-6.5 flex-none justify-self-center text-fg-muted hover:bg-accent-soft hover:text-accent-press",
       )}
       onClick={onClick}
     >

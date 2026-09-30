@@ -20,7 +20,7 @@ export function Indicators({ report }: IndicatorsProps) {
           surfaceOutlined,
         )}
       >
-        <span className="mb-2.5 flex size-9 items-center justify-center rounded-md bg-accent-soft text-telha">
+        <span className="mb-2.5 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent-press">
           <Award size={20} strokeWidth={1.75} aria-hidden />
         </span>
         <p className="text-h2 leading-none font-black text-fg-strong">

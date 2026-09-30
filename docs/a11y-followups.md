@@ -219,7 +219,7 @@ eyebrows de seção de uma vez, com um teste de render fixando a hierarquia sem 
 
 ---
 
-## 11. Nove pares preenchimento/tinta abaixo de 4.5, todos hoje sem texto
+## 11. Nove pares preenchimento/tinta abaixo de 4.5, todos hoje sem texto — `GLYPH_ONLY` resolvido
 
 **O que é.** `scripts/contraste.mjs` reporta nove pares abaixo de 4.5:1. Nenhum é defeito hoje: ou
 são cruzamentos de estados que nunca coexistem (o scanner vê `bg-muted` e `text-on-brand` na mesma
@@ -235,6 +235,8 @@ texto e reprova — e a isenção está lá, escrita, dizendo que pode.
 **O que seria preciso.** Ou mover os sete para `accent-press` de uma vez (o hover fica um pouco mais
 escuro), ou um guard que confira que o elemento isento não tem filho de texto — o que exige
 renderizar, não varrer fonte.
+
+**Resolvido em [OBT-504](https://linear.app/shema-obt/issue/OBT-504).** Os oito arquivos (a lista tinha oito) passaram para `accent-press` e `GLYPH_ONLY` saiu; o teste vale para todo o `src/`. Os cruzamentos de estados que nunca coexistem seguem fora do escopo.
 
 ---
 

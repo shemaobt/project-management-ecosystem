@@ -248,17 +248,6 @@ describe("o realce suave carrega o proprio rotulo, e nao e o telha que o carrega
     );
   });
 
-  const GLYPH_ONLY = [
-    "src/components/common/ImageUpload.tsx",
-    "src/components/common/RemoveRowButton.tsx",
-    "src/components/pages/eten/Indicators.tsx",
-    "src/components/pages/ficha/tabs/equipe/PeopleField.tsx",
-    "src/components/pages/ficha/tabs/necessidades/NeedRow.tsx",
-    "src/components/pages/intercessores/CountryGroup.tsx",
-    "src/components/pages/projetos/SavedViews/SavedViewRow.tsx",
-    "src/components/pages/ritmo/MeetingCard.tsx",
-  ];
-
   const CLASS_STRING = /"([^"\n]*)"|`([^`]*)`/gu;
   const UTILITY = /(?:^|\s)((?:[a-z-]+(?:\[[^\]]*\])?:)*)((?:bg|text)-[a-z][a-z0-9-]*)(?![\w/-])/gu;
 
@@ -287,15 +276,18 @@ describe("o realce suave carrega o proprio rotulo, e nao e o telha que o carrega
       .filter((entry) => paintsTelhaOnSoft(entry.source))
       .map((entry) => entry.path);
 
-  it("onde o par carrega um rótulo, a tinta é accent-press", () => {
-    expect(painters().filter((path) => !GLYPH_ONLY.includes(path))).toEqual([]);
+  it("nenhum arquivo do src pinta telha sobre accent-soft, com ou sem rótulo", () => {
+    expect(painters()).toEqual([]);
   });
 
-  it("a isenção é só para quem desenha ícone, e 3.69 basta a um objeto gráfico", () => {
-    expect(contrast("shema-telha", "accent-soft")).toBeGreaterThanOrEqual(
-      AA_NON_TEXT,
-    );
-    expect(painters().sort()).toEqual([...GLYPH_ONLY].sort());
+  it("o detector pega o par quando ele volta, inclusive no :hover", () => {
+    expect(paintsTelhaOnSoft('"bg-accent-soft text-telha"')).toBe(true);
+    expect(
+      paintsTelhaOnSoft('"text-fg-muted hover:bg-accent-soft hover:text-telha"'),
+    ).toBe(true);
+    expect(
+      paintsTelhaOnSoft('"hover:bg-accent-soft hover:text-accent-press"'),
+    ).toBe(false);
   });
 });
 
