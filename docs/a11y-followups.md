@@ -148,6 +148,8 @@ atenção que a cor consiga carregar.
 
 ## 7. Falta um tom quieto para superfície escura (`on-dark-muted`)
 
+**Resolvido em OBT-500 (30/set/2026):** `--fg-on-dark-muted` = `--shema-areia`, utilitária `text-on-dark-muted`, aplicada nos rótulos, no aviso e nos controles do globo; o valor segue como proposta a ratificar (Levi ou designer). O 2.91 abaixo coincide com o areia sobre a pílula composta no canvas claro (2.92), que a pílula nunca pisa; sobre a noite real, renderizado, o areia mede 10.49. O texto original fica como registro.
+
 **O que é.** FE-19 já registrou que `text-areia` é o único tom de tinta que não migrou para a camada
 semântica, porque `on-dark` é branco cheio e não existe nada mais quieto. FE-43 tornou isso mais
 visível: os rótulos do painel do globo eram `text-areia` sobre a pílula translúcida e mediam **2.91**,
