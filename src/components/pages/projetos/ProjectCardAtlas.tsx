@@ -7,8 +7,8 @@ import { cn } from "../../../utils/cn";
 import { getDeadlineInfo } from "../../../utils/recency";
 import { StatusDot } from "../../common/StatusBadge";
 import { getLocationDisplay } from "../../../utils/region";
-import { cardHealthDots } from "./card";
-import { cardPriority, cardProgress, cardStale } from "./derived";
+import { cardHealthDots, cardStaleNotice, deadlineText } from "./card";
+import { cardPriority, cardProgress } from "./derived";
 import { OpenableCard } from "./OpenableCard";
 
 const STAMP_TONES: Record<ProjectPriority, string> = {
@@ -42,7 +42,7 @@ export function ProjectCardAtlas({ project, onOpen }: ProjectCardAtlasProps) {
   const progress = cardProgress(project);
   const priority = cardPriority(project);
   const deadline = getDeadlineInfo(project.deadline);
-  const stale = cardStale(project);
+  const stale = cardStaleNotice(project);
   const location = getLocationDisplay(project);
   const locationText = location.withheld
     ? t(location.regionLabelKey)
@@ -131,7 +131,7 @@ export function ProjectCardAtlas({ project, onOpen }: ProjectCardAtlasProps) {
               📖 {project.portion}
             </span>
           )}
-          {stale && stale !== "em-dia" && (
+          {stale && (
             <span className="mt-0.5 rounded-pill bg-accent-soft px-[7px] py-0.5 text-[10px] font-bold tracking-button uppercase text-accent-press">
               {t(STALE_LABEL_KEYS[stale])}
             </span>
@@ -187,11 +187,7 @@ export function ProjectCardAtlas({ project, onOpen }: ProjectCardAtlasProps) {
             deadline.cls === "soon" && "text-deadline-soon",
           )}
         >
-          {deadline.days !== null
-            ? deadline.days < 0
-              ? `${Math.abs(deadline.days)}${t("days_overdue")}`
-              : `${deadline.days}${t("days_remaining")}`
-            : "—"}
+          {deadlineText(deadline, t) ?? "—"}
         </div>
       </div>
     </OpenableCard>

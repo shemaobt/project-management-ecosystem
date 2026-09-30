@@ -18,12 +18,18 @@ export function cardProgress(project: Project): number {
   return project.derived?.progress ?? getProgress(project);
 }
 
-export function cardPriority(project: Project): ProjectPriority {
-  return project.derived?.priority ?? getPriority(project);
+export function cardPriority(
+  project: Project,
+  now: Date = new Date(),
+): ProjectPriority {
+  return project.derived?.priority ?? getPriority(project, now);
 }
 
-export function cardStale(project: Project): StaleStatus | null {
-  return project.derived ? project.derived.stale : getStaleStatus(project);
+export function cardStale(
+  project: Project,
+  now: Date = new Date(),
+): StaleStatus | null {
+  return project.derived ? project.derived.stale : getStaleStatus(project, now);
 }
 
 export function cardHealth(project: Project): OverallHealth {

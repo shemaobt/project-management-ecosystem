@@ -268,6 +268,88 @@ describe("o cartão lido pela árvore de acessibilidade", () => {
   });
 });
 
+describe("o prazo e o selo de atualização, que o Atlas mostra, também são ditos", () => {
+  const NOW = new Date("2026-09-30T12:00:00");
+  const pending = (over: Partial<Project>) =>
+    makeProject({
+      id: "pendente",
+      languageName: "Língua Pendente",
+      status: "em-andamento",
+      translatedUnits: 3,
+      totalUnits: 25,
+      ...over,
+    });
+
+  it("o resumo de um projeto atrasado diz o prazo vencido", () => {
+    const summary = cardSummary(
+      pending({ deadline: "2026-09-20" }),
+      i18n.t,
+      NOW,
+    );
+
+    expect(summary).toContain("Prazo: 10d em atraso.");
+  });
+
+  it("o prazo próximo também é dito, e o folgado ou ausente não", () => {
+    expect(
+      cardSummary(pending({ deadline: "2026-10-30" }), i18n.t, NOW),
+    ).toContain("Prazo: 30d restantes.");
+    expect(
+      cardSummary(pending({ deadline: "2027-06-30" }), i18n.t, NOW),
+    ).not.toContain("Prazo");
+    expect(cardSummary(pending({ deadline: "" }), i18n.t, NOW)).not.toContain(
+      "Prazo",
+    );
+  });
+
+  it("o selo de sem notícias é dito, e o em dia não", () => {
+    const at = (date: string) =>
+      cardSummary(
+        pending({
+          progressHistory: [
+            {
+              date,
+              translatedUnits: 3,
+              communityCheckedUnits: 0,
+              approvedUnits: 0,
+            },
+          ],
+        }),
+        i18n.t,
+        NOW,
+      );
+
+    expect(at("2026-07-20")).toContain("Sem notícias 60+ dias.");
+    expect(at("2026-04-01")).toContain("Crítico 120+ dias.");
+    expect(at("2026-09-10")).not.toMatch(/Sem notícias|Crítico 120|Em dia/u);
+  });
+
+  it("o que o cartão do Atlas escreve é o que o resumo diz", () => {
+    const card = onlyCard(
+      atlas(
+        pending({
+          deadline: "2020-01-01",
+          progressHistory: [
+            {
+              date: "2020-01-01",
+              translatedUnits: 3,
+              communityCheckedUnits: 0,
+              approvedUnits: 0,
+            },
+          ],
+        }),
+      ),
+    );
+    const shown = spokenText(card.button);
+    const overdue = shown.match(/\d+d em atraso/u)?.[0];
+
+    expect(overdue).toBeDefined();
+    expect(shown).toContain("Crítico 120+ dias");
+    expect(card.description).toContain(`Prazo: ${overdue}.`);
+    expect(card.description).toContain("Crítico 120+ dias.");
+  });
+});
+
 describe("cada cartão da lista aponta para o próprio resumo", () => {
   const views: Record<string, (page: Project[]) => ReactElement> = {
     Diário: (page) =>

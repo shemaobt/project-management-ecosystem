@@ -1,8 +1,15 @@
 import type { TFunction } from "i18next";
-import type { OverallHealth, Project } from "../../../types/project";
+import { STALE_LABEL_KEYS } from "../../../constants/status";
+import type {
+  DeadlineInfo,
+  OverallHealth,
+  Project,
+  StaleStatus,
+} from "../../../types/project";
 import { formatDayMonth, formatNumber } from "../../../utils/format";
+import { getDeadlineInfo } from "../../../utils/recency";
 import { healthDotPhrase, priorityPhrase } from "../../common/StatusBadge";
-import { cardLastProgressUpdate, cardPriority } from "./derived";
+import { cardLastProgressUpdate, cardPriority, cardStale } from "./derived";
 
 export const QUOTE_MAX_LENGTH = 140;
 
@@ -106,6 +113,24 @@ export function cardHealthDots(project: Project): CardHealthDot[] {
   }));
 }
 
+export function cardStaleNotice(
+  project: Project,
+  now: Date = new Date(),
+): StaleStatus | null {
+  const stale = cardStale(project, now);
+  return stale === "em-dia" ? null : stale;
+}
+
+export function deadlineText(
+  deadline: DeadlineInfo,
+  t: TFunction,
+): string | null {
+  if (deadline.days === null) return null;
+  return deadline.days < 0
+    ? `${Math.abs(deadline.days)}${t("days_overdue")}`
+    : `${deadline.days}${t("days_remaining")}`;
+}
+
 export interface FunnelStage {
   count: string;
   label: string;
@@ -138,13 +163,26 @@ export function cardFunnel(project: Project, t: TFunction): CardFunnel {
 /**
  * What a screen reader hears after the card's name. A `role="button"` makes everything inside
  * the card presentational, so this sentence is the card's only spoken content: it is built from
- * the pin's and the dots' own phrases and the Diário footer's funnel, so the ear hears what the
- * eye sees, and changing what the card says aloud is this one function.
+ * the pin's and the dots' own phrases, the Atlas's stale stamp and deadline when they flag
+ * something, and the Diário footer's funnel, so the ear hears what the eye sees, and changing
+ * what the card says aloud is this one function.
  */
-export function cardSummary(project: Project, t: TFunction): string {
+export function cardSummary(
+  project: Project,
+  t: TFunction,
+  now: Date = new Date(),
+): string {
   const { translated, checked, approved } = cardFunnel(project, t);
+  const stale = cardStaleNotice(project, now);
+  const deadline = getDeadlineInfo(project.deadline, now);
+  const pressingDeadline =
+    deadline.cls === "overdue" || deadline.cls === "soon"
+      ? deadlineText(deadline, t)
+      : null;
   return [
-    priorityPhrase(t, cardPriority(project)),
+    priorityPhrase(t, cardPriority(project, now)),
+    ...(stale ? [t(STALE_LABEL_KEYS[stale])] : []),
+    ...(pressingDeadline ? [`${t("d_deadline")}: ${pressingDeadline}`] : []),
     ...cardHealthDots(project).map((dot) =>
       healthDotPhrase(t, t(dot.labelKey), dot.state),
     ),
