@@ -37,32 +37,34 @@ export function FilterSection({
 
   return (
     <div className="mb-1.5">
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={bodyId}
-        onClick={onToggle}
-        className={cn(
-          "flex w-full cursor-pointer items-center justify-between rounded-[10px] px-2.5 py-2",
-          "text-tag font-bold tracking-button uppercase text-fg-muted",
-          "transition-colors duration-fast ease-out hover:bg-muted hover:text-fg-strong",
-          open && "text-fg-strong",
-        )}
-      >
-        <span className="text-left">{title}</span>
-        <span
+      <h3 className="leading-body">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={bodyId}
+          onClick={onToggle}
           className={cn(
-            "inline-flex size-[18px] items-center justify-center text-fg-subtle",
-            open && "text-telha",
+            "flex w-full cursor-pointer items-center justify-between rounded-[10px] px-2.5 py-2",
+            "text-tag font-bold tracking-button uppercase text-fg-muted",
+            "transition-colors duration-fast ease-out hover:bg-muted hover:text-fg-strong",
+            open && "text-fg-strong",
           )}
         >
-          {open ? (
-            <Minus size={12} strokeWidth={2} />
-          ) : (
-            <Plus size={12} strokeWidth={2} />
-          )}
-        </span>
-      </button>
+          <span className="text-left">{title}</span>
+          <span
+            className={cn(
+              "inline-flex size-[18px] items-center justify-center text-fg-subtle",
+              open && "text-telha",
+            )}
+          >
+            {open ? (
+              <Minus size={12} strokeWidth={2} />
+            ) : (
+              <Plus size={12} strokeWidth={2} />
+            )}
+          </span>
+        </button>
+      </h3>
       {open && (
         <div
           id={bodyId}

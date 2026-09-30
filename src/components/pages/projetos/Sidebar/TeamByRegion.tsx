@@ -37,10 +37,10 @@ export function TeamByRegion({ baseline, counts }: TeamByRegionProps) {
   return (
     <div className="mt-1 px-0.5">
       <div className="mt-4 mb-2 flex items-center justify-between">
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-[0.18em] uppercase text-fg-subtle">
+        <h2 className="inline-flex items-center gap-1.5 text-[10px] leading-body font-bold tracking-[0.18em] uppercase text-fg-subtle">
           <Globe size={14} strokeWidth={1.75} />
           {t("sb_regional_team")}
-        </span>
+        </h2>
       </div>
       <div className="flex flex-col gap-2">
         {cards.map(({ key, labelKey, team }) => {
