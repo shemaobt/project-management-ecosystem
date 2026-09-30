@@ -6,7 +6,10 @@ import {
   appOfInvitedRole,
   canAdministerAccess,
   canSubmitRegions,
+  holdsFormRole,
+  holdsShemaGrant,
   invitableRoles,
+  isFormOnly,
   isRegionalRole,
   revokesLastRegional,
 } from "../access";
@@ -73,5 +76,37 @@ describe("o convite", () => {
     expect(appOfInvitedRole("admin")).toBeNull();
     expect(appOfInvitedRole("lider")).toBeNull();
     expect(appOfInvitedRole("")).toBeNull();
+  });
+});
+
+describe("o que cada papel vê do formulário — OBT-544", () => {
+  it("só papel do formulário é mesa ou gestor, e nada mais", () => {
+    expect(isFormOnly(["mesa"])).toBe(true);
+    expect(isFormOnly(["gestor"])).toBe(true);
+    expect(isFormOnly(["gestor", "mesa"])).toBe(true);
+    expect(isFormOnly(["admin"])).toBe(false);
+    expect(isFormOnly(["mesa", "equipe"])).toBe(false);
+    expect(isFormOnly(["coordinator", "mesa"])).toBe(false);
+    expect(isFormOnly([])).toBe(false);
+  });
+
+  it("a entrada Círculo de Recursos é de mesa, gestor e admin — os papéis que o formulário concede", () => {
+    for (const role of GRANTABLE_ROLES["resource-request-form"]) {
+      expect(holdsFormRole([role]), role).toBe(true);
+    }
+    for (const role of ["globalStrategist", "coordinator", "obtLab", "resourceCircle", "equipe"] as const) {
+      expect(holdsFormRole([role]), role).toBe(false);
+    }
+    expect(holdsFormRole(["globalStrategist", "admin", "gestor"])).toBe(true);
+  });
+
+  it("o organograma só é pedido por quem tem grant do Shemá — a porta dos outros é só a sessão", () => {
+    for (const role of GRANTABLE_ROLES.shema) {
+      expect(holdsShemaGrant([role]), role).toBe(true);
+    }
+    for (const role of ["mesa", "gestor", "equipe"] as const) {
+      expect(holdsShemaGrant([role]), role).toBe(false);
+    }
+    expect(holdsShemaGrant(["mesa", "gestor"])).toBe(false);
   });
 });

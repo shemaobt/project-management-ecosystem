@@ -1,6 +1,8 @@
 import {
   ACCESS_APPS,
   ADMIN_ROLE,
+  FORM_APP,
+  FORM_SEATS,
   GRANTABLE_ROLES,
   SHEMA_APP,
 } from "../constants/access";
@@ -15,6 +17,18 @@ export function canAdministerAccess({
   roles: readonly SessionRole[];
 }): boolean {
   return roles.includes(ADMIN_ROLE);
+}
+
+export function holdsShemaGrant(roles: readonly SessionRole[]): boolean {
+  return roles.some((role) => GRANTABLE_ROLES[SHEMA_APP].includes(role));
+}
+
+export function holdsFormRole(roles: readonly SessionRole[]): boolean {
+  return roles.some((role) => GRANTABLE_ROLES[FORM_APP].includes(role));
+}
+
+export function isFormOnly(roles: readonly SessionRole[]): boolean {
+  return roles.length > 0 && roles.every((role) => FORM_SEATS.includes(role));
 }
 
 export function isRegionalRole(role: string): role is RoleKey {

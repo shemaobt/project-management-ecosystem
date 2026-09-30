@@ -55,6 +55,7 @@ const session = (over: Partial<NonNullable<AuthSession>>): AuthSession => ({
     regionScope: [],
     name: null,
   },
+  apps: { resourceRequestForm: null },
   visibleRegions: [],
   canSeeRegion: () => false,
   signIn: noop,

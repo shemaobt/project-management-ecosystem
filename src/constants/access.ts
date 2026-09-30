@@ -4,7 +4,7 @@ import { GLOBAL_STRATEGIST_ROLE, ROLES, SESSION_ROLES } from "./roles";
 
 export const SHEMA_APP: AccessAppKey = "shema";
 
-const FORM_APP: AccessAppKey = "resource-request-form";
+export const FORM_APP: AccessAppKey = "resource-request-form";
 
 export const ACCESS_APPS: readonly AccessAppKey[] = [SHEMA_APP, FORM_APP];
 
@@ -15,7 +15,7 @@ export const APP_LABEL_KEYS: Record<AccessAppKey, string> = {
 
 export const ADMIN_ROLE: SessionRole = "admin";
 
-const FORM_SEATS: readonly SessionRole[] = ["gestor", "mesa"];
+export const FORM_SEATS: readonly SessionRole[] = ["gestor", "mesa"];
 
 const SHEMA_GRANTS: readonly SessionRole[] = [
   GLOBAL_STRATEGIST_ROLE,

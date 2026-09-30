@@ -12,8 +12,9 @@ import {
   toApiFailure,
 } from "../services/api";
 import { useRegionsStore } from "../stores/regionsStore";
+import { holdsShemaGrant } from "../utils/access";
 import { ANONYMOUS, apiSessionReducer, personaOf } from "./apiSession";
-import { AuthContext, scopeRegions, type AuthSession } from "./session";
+import { AuthContext, NO_APPS, scopeRegions, type AuthSession } from "./session";
 
 export function ApiAuthProvider({ children }: { children: ReactNode }) {
   const [{ status, signed, failure }, dispatch] = useReducer(
@@ -25,9 +26,11 @@ export function ApiAuthProvider({ children }: { children: ReactNode }) {
   const regionsHydrated = useRegionsStore((state) => state.hydrated);
   const hydrateRegions = useRegionsStore((state) => state.hydrate);
 
+  const readsOrgChart = holdsShemaGrant(signed?.session.roles ?? []);
+
   useEffect(() => {
-    if (status === "ready") void hydrateRegions();
-  }, [status, hydrateRegions]);
+    if (status === "ready" && readsOrgChart) void hydrateRegions();
+  }, [status, readsOrgChart, hydrateRegions]);
 
   useEffect(
     () =>
@@ -62,6 +65,7 @@ export function ApiAuthProvider({ children }: { children: ReactNode }) {
     return {
       status,
       user: { ...persona, name: signed?.session.name ?? null },
+      apps: signed?.session.apps ?? NO_APPS,
       visibleRegions,
       canSeeRegion: (key) =>
         visibleRegions.some((region) => region.key === key),

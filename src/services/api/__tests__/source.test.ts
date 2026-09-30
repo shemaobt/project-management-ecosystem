@@ -115,6 +115,14 @@ describe("as fixtures como test doubles", () => {
     expect(fixture).not.toHaveProperty("accessAPI");
   });
 
+  it("os pedidos do formulário não têm dublê: em fixture o namespace resolve para nada", () => {
+    expect(INTEGRATED.resourceRequests).toBe("api");
+    expect(INTEGRATED_BY.resourceRequests).toBe("BE-24 · BE-26 · OBT-544");
+    expect(resolveSource("resourceRequests")).toBe("fixtures");
+    expect(resolved.resourceRequestsAPI).toBeNull();
+    expect(fixture).not.toHaveProperty("resourceRequestsAPI");
+  });
+
   it("e é a fixture, o mesmo objeto, que cada namespace resolvido serve", () => {
     for (const [name, , double, served] of PAIRS) {
       expect(served, name).toBe(double);

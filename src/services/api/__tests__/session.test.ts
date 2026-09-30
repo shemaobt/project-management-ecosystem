@@ -104,19 +104,21 @@ function refusal(payload: unknown): unknown {
 }
 
 describe("GET /api/shema/session, como a BE-17 responde", () => {
-  it("lê os quatro campos da sessão, e a lista na ordem em que o servidor mandou", () => {
+  it("lê os cinco campos da sessão, e a lista na ordem em que o servidor mandou", () => {
     expect(
       readSession({
         role: "coordinator",
         roles: ["coordinator", "admin", "mesa"],
         regionScope: ["south-america"],
         name: "Nome do Organograma",
+        apps: { resourceRequestForm: "https://formulario.exemplo.org" },
       }),
     ).toEqual({
       role: "coordinator",
       roles: ["coordinator", "admin", "mesa"],
       regionScope: ["south-america"],
       name: "Nome do Organograma",
+      apps: { resourceRequestForm: "https://formulario.exemplo.org" },
     });
   });
 
@@ -312,6 +314,7 @@ describe("entrar e sair", () => {
       roles: ["obtLab"],
       regionScope: ["africa"],
       name: "Ana",
+      apps: { resourceRequestForm: null },
     });
   });
 
