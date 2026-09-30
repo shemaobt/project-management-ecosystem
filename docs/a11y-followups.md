@@ -195,6 +195,11 @@ movimento essencial — cabe numa issue própria, curta.
 **O que seria preciso.** Um bloco em `@layer base` que zere duração e transform sob
 `prefers-reduced-motion: reduce`, e um teste de fonte que impeça a próxima animação de escapar dele.
 
+**Resolvido em OBT-502 (30/set/2026).** Um bloco `@media (prefers-reduced-motion: reduce)` no fim de
+`src/index.css` (fora de `@layer`, para vencer as utilitárias) tira o que desloca e mantém os fades; o
+globo começa parado; `src/styles/__tests__/reducedMotion.test.ts` reprova a animação que escapar. Ver
+CLAUDE.md §7.3.
+
 ---
 
 ## 10. Projetos tem um heading e mais nada
