@@ -48,7 +48,7 @@ confirmar que o campo em foco não fica embaixo do teclado.
 
 ## 3. `role="button"` no cartão inteiro apaga o conteúdo dele do leitor de tela
 
-**Resolvido em [OBT-495](https://linear.app/shema-obt/issue/OBT-495)** (30/set/2026): os dois cartões viram botão por um só componente (`OpenableCard`), com o nome curto "Abrir o projeto {idioma}" e um resumo `sr-only` fora do botão ligado por `aria-describedby` — prioridade, as três dimensões de saúde e as três contagens do funil. O conteúdo do resumo aguarda a Karina.
+**Resolvido em [OBT-495](https://linear.app/shema-obt/issue/OBT-495)** (30/set/2026): os dois cartões viram botão por um só componente (`OpenableCard`), com o nome curto "Abrir o projeto {idioma}" e um resumo `sr-only` fora do botão ligado por `aria-describedby` — prioridade, o selo de sem notícias e o prazo quando sinalizam algo, as três dimensões de saúde e as três contagens do funil. O conteúdo do resumo é provisório e segue em [OBT-550](https://linear.app/shema-obt/issue/OBT-550).
 
 **O que é.** `ProjectCardAtlas` e `ProjectCardDiario` são `<article role="button" tabindex="0">`. Pela
 especificação ARIA, `button` é um papel de **filhos apresentacionais**: tudo dentro dele sai da árvore
