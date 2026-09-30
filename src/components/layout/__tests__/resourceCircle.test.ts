@@ -136,6 +136,7 @@ describe("conta só do formulário — render por papel", () => {
   it("sem o endereço do formulário, a entrada some e o aviso diz por quê", () => {
     const html = visit(["mesa"], null);
     expect(entryOf(html)).toBe(false);
+    expect(html).not.toContain("<nav");
     expect(html).toContain(i18n.t("rr_form_unavailable", { admin: i18n.t("role_admin") }));
     expect(areasOf(html)).toEqual([]);
   });

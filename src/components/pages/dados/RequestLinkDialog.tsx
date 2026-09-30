@@ -28,13 +28,13 @@ import {
 import { RequestLinkForm } from "./RequestLinkForm";
 import { RequestLinkList } from "./RequestLinkList";
 
-export interface IssuedRequestLinkPanelProps {
+interface IssuedRequestLinkPanelProps {
   issued: IssuedRequestLink;
   formBase: string;
   onDismiss: () => void;
 }
 
-export function IssuedRequestLinkPanel({ issued, formBase, onDismiss }: IssuedRequestLinkPanelProps) {
+function IssuedRequestLinkPanel({ issued, formBase, onDismiss }: IssuedRequestLinkPanelProps) {
   const { t } = useTranslation();
 
   return (
@@ -74,6 +74,7 @@ export interface RequestLinkDialogBodyProps {
   refusal: string | null;
   links: readonly RequestLink[] | null;
   linksError: string | null;
+  revokeError: string | null;
   onIssue: (payload: RequestLinkPayload) => void;
   onDismissIssued: () => void;
   onRevoke: (link: RequestLink) => void;
@@ -87,6 +88,7 @@ export function RequestLinkDialogBody({
   refusal,
   links,
   linksError,
+  revokeError,
   onIssue,
   onDismissIssued,
   onRevoke,
@@ -114,6 +116,11 @@ export function RequestLinkDialogBody({
         <p className="text-micro font-bold tracking-button uppercase text-fg-muted">
           {t("rr_links_title")}
         </p>
+        {revokeError ? (
+          <p role="alert" className="text-small font-semibold text-accent-press">
+            {revokeError}
+          </p>
+        ) : null}
         <RequestLinkList links={links} error={linksError} onRevoke={onRevoke} onRetry={onRetry} />
       </div>
     </div>
@@ -133,6 +140,7 @@ function RequestLinkPanel({ api, formBase }: RequestLinkPanelProps) {
   const [issuing, setIssuing] = useState(false);
   const [refusal, setRefusal] = useState<ApiFailure | null>(null);
   const [revoking, setRevoking] = useState<RequestLink | null>(null);
+  const [revokeFailure, setRevokeFailure] = useState<ApiFailure | null>(null);
   const [reads, setReads] = useState(0);
 
   useEffect(() => {
@@ -171,11 +179,12 @@ function RequestLinkPanel({ api, formBase }: RequestLinkPanelProps) {
 
   const revoke = async (link: RequestLink) => {
     setRevoking(null);
+    setRevokeFailure(null);
     try {
       const revoked = await api.revokeLink(link.id);
       setLinks((current) => current?.map((row) => (row.id === link.id ? revoked : row)) ?? current);
     } catch (raw) {
-      setRefusal(toApiFailure(raw));
+      setRevokeFailure(toApiFailure(raw));
     }
   };
 
@@ -188,6 +197,7 @@ function RequestLinkPanel({ api, formBase }: RequestLinkPanelProps) {
         refusal={refusal ? failureMessage(refusal, t) : null}
         links={links}
         linksError={linksFailure ? failureMessage(linksFailure, t) : null}
+        revokeError={revokeFailure ? failureMessage(revokeFailure, t) : null}
         onIssue={(payload) => void issue(payload)}
         onDismissIssued={() => setIssued(null)}
         onRevoke={setRevoking}

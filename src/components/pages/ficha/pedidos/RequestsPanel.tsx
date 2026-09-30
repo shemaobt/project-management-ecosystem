@@ -14,6 +14,11 @@ import { LoadingSpinner } from "../../../common/LoadingSpinner";
 import { Badge } from "../../../ui";
 import { RecordPanel } from "../RecordPanel";
 
+function endorsementKey(card: RequestCard): string {
+  if (card.endorsed) return "rr_card_endorsed";
+  return card.stage === "triagem" ? "rr_card_awaiting_endorsement" : "rr_card_not_endorsed";
+}
+
 function RequestRow({ card }: { card: RequestCard }) {
   const { t } = useTranslation();
   const locale = t("locale");
@@ -45,7 +50,7 @@ function RequestRow({ card }: { card: RequestCard }) {
         {card.submitted_at
           ? [
               t("rr_card_sent_on", { date: formatDate(utcDay(card.submitted_at), locale) }),
-              card.endorsed ? t("rr_card_endorsed") : t("rr_card_awaiting_endorsement"),
+              t(endorsementKey(card)),
             ].join(" · ")
           : t("rr_card_started_on", { date: formatDate(utcDay(card.created_at), locale) })}
       </span>

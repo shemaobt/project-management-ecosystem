@@ -477,26 +477,26 @@ const INVITE_STATUSES: readonly InviteStatus[] = [
   "revoked",
 ];
 
-function refuseVocabulary(): never {
+export function refuseVocabulary(): never {
   throw failure("invalid", null, UNKNOWN_VOCABULARY);
 }
 
-function fieldsOf(value: unknown): Record<string, unknown> {
+export function fieldsOf(value: unknown): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     refuseVocabulary();
   }
   return Object.fromEntries(Object.entries(value));
 }
 
-function textOf(value: unknown): string {
+export function textOf(value: unknown): string {
   return typeof value === "string" ? value : refuseVocabulary();
 }
 
-function optionalTextOf(value: unknown): string | null {
+export function optionalTextOf(value: unknown): string | null {
   return value === null || value === undefined ? null : textOf(value);
 }
 
-function listOf(value: unknown): unknown[] {
+export function listOf(value: unknown): unknown[] {
   return Array.isArray(value) ? value : refuseVocabulary();
 }
 

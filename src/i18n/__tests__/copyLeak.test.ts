@@ -170,7 +170,7 @@ const { IntercessoresPage } = await import(
   "../../components/pages/intercessores/IntercessoresPage"
 );
 
-const ROUTES: [string, () => ReactElement][] = [
+const ROUTES: [string, () => ReactElement | null][] = [
   ["the area nav", TopNav],
   ["/ritmo", RitmoPage],
   ["/oracao", OracaoPage],
@@ -180,7 +180,7 @@ const ROUTES: [string, () => ReactElement][] = [
   ["/oracao/intercessores", IntercessoresPage],
 ];
 
-function markup(page: () => ReactElement): string {
+function markup(page: () => ReactElement | null): string {
   return renderToStaticMarkup(
     createElement(
       MemoryRouter,
@@ -190,7 +190,7 @@ function markup(page: () => ReactElement): string {
   );
 }
 
-function render(page: () => ReactElement): string[] {
+function render(page: () => ReactElement | null): string[] {
   return readableText(markup(page));
 }
 

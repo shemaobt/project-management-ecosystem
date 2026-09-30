@@ -25,6 +25,9 @@ export function TopNav() {
   const { t } = useTranslation();
   const { user, apps } = useAuth();
   const formBase = holdsFormRole(user.roles) ? apps.resourceRequestForm : null;
+  const areas = !isFormOnly(user.roles);
+
+  if (!areas && formBase === null) return null;
 
   return (
     <nav
@@ -34,9 +37,8 @@ export function TopNav() {
         "border-b border-line px-(--container-pad)",
       )}
     >
-      {isFormOnly(user.roles)
-        ? null
-        : NAV_ITEMS.map((item) => (
+      {areas
+        ? NAV_ITEMS.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -46,7 +48,8 @@ export function TopNav() {
             >
               {t(item.labelKey)}
             </NavLink>
-          ))}
+          ))
+        : null}
       {formBase ? <ResourceCircleEntry base={formBase} className={NAV_ITEM} /> : null}
     </nav>
   );

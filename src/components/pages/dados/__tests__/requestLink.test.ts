@@ -49,6 +49,7 @@ const body = (over: {
   formBase?: string | null;
   issued?: IssuedRequestLink | null;
   links?: readonly RequestLink[] | null;
+  revokeError?: string | null;
 }) =>
   renderToStaticMarkup(
     createElement(RequestLinkDialogBody, {
@@ -58,6 +59,7 @@ const body = (over: {
       refusal: null,
       links: over.links === undefined ? [LINK] : over.links,
       linksError: null,
+      revokeError: over.revokeError ?? null,
       onIssue: noop,
       onDismissIssued: noop,
       onRevoke: noop,
@@ -151,6 +153,13 @@ describe("a lista dos links emitidos", () => {
     expect(dead).not.toContain(i18n.t("intake_revoke"));
     expect(dead).toContain(i18n.t("intake_status_expired"));
     expect(dead).toContain(i18n.t("intake_status_revoked"));
+  });
+
+  it("uma revogação recusada fala, mesmo com o link recém-emitido na tela, e a lista fica", () => {
+    const html = body({ issued: ISSUED, revokeError: "O servidor recusou." });
+    expect(html).toContain('role="alert"');
+    expect(html).toContain("O servidor recusou.");
+    expect(html).toContain(LINK.email);
   });
 
   it("carregando não é lista vazia", () => {

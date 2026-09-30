@@ -85,10 +85,14 @@ describe("o painel dos pedidos na ficha — a projeção da BE-24", () => {
     expect(html).toContain(i18n.t("rr_card_endorsed"));
   });
 
-  it("um pedido enviado sem endosso diz que espera o líder", () => {
-    expect(panel([{ ...SENT, endorsed: false }])).toContain(
-      i18n.t("rr_card_awaiting_endorsement"),
-    );
+  it("sem endosso, o pedido na triagem espera o líder; o recusado sem endosso não espera nada", () => {
+    const waiting = panel([{ ...SENT, stage: "triagem", endorsed: false }]);
+    expect(waiting).toContain(i18n.t("rr_card_awaiting_endorsement"));
+    expect(waiting).not.toContain(i18n.t("rr_card_not_endorsed"));
+
+    const declined = panel([{ ...SENT, stage: "recusado", endorsed: false, decision: "declined" }]);
+    expect(declined).toContain(i18n.t("rr_card_not_endorsed"));
+    expect(declined).not.toContain(i18n.t("rr_card_awaiting_endorsement"));
   });
 
   it("o rascunho aberto diz que está em preenchimento, sem etapa nem endosso, e sem nome inventado", () => {

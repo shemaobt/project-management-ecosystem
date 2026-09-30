@@ -20,7 +20,7 @@ export const STAGE_LABEL_KEYS: Record<RequestStage, string> = {
   ...DECISION_STAGE_LABEL_KEYS,
 };
 
-export type RequestTone = "neutral" | "accent" | "green" | "azul";
+type RequestTone = "neutral" | "accent" | "green" | "azul";
 
 export const STAGE_TONES: Record<RequestStage, RequestTone> = {
   triagem: "azul",
