@@ -276,7 +276,7 @@ describe("o realce suave carrega o proprio rotulo, e nao e o telha que o carrega
       .filter((entry) => paintsTelhaOnSoft(entry.source))
       .map((entry) => entry.path);
 
-  it("nenhum arquivo do src pinta telha sobre accent-soft, com ou sem rótulo", () => {
+  it("nenhuma string de classe do src pinta telha sobre accent-soft, com ou sem rótulo", () => {
     expect(painters()).toEqual([]);
   });
 
