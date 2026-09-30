@@ -31,6 +31,7 @@ export function AtlasView({
         <Globe
           projects={projects}
           locationsWithheld={locationsWithheld}
+          listBelow
           onSelect={onSelect}
         />
       )}

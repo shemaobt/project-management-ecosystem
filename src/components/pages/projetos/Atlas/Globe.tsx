@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   GLOBE_INITIAL_ROTATION,
   type GlobeFocusPoint,
@@ -34,10 +35,17 @@ interface Rotation {
 export interface GlobeProps {
   projects: readonly Project[];
   locationsWithheld: number | null;
+  listBelow: boolean;
   onSelect?: (project: Project) => void;
 }
 
-export function Globe({ projects, locationsWithheld, onSelect }: GlobeProps) {
+export function Globe({
+  projects,
+  locationsWithheld,
+  listBelow,
+  onSelect,
+}: GlobeProps) {
+  const { t } = useTranslation();
   const [rotation, setRotation] = useState<Rotation>({
     ...GLOBE_INITIAL_ROTATION,
   });
@@ -238,6 +246,12 @@ export function Globe({ projects, locationsWithheld, onSelect }: GlobeProps) {
           style={{ backgroundImage: STAR_LAYER }}
         />
 
+        <p className="sr-only">
+          {t(listBelow ? "atlas_illustration_list" : "atlas_illustration", {
+            count: projects.length,
+          })}
+        </p>
+
         <GlobeControls
           autoRotate={autoRotate}
           onToggleRotate={() => setAutoRotate((previous) => !previous)}
@@ -247,6 +261,7 @@ export function Globe({ projects, locationsWithheld, onSelect }: GlobeProps) {
         <SensitiveNotice count={locationsWithheld} />
 
         <svg
+          aria-hidden="true"
           ref={svgRef}
           viewBox={`-${R + 30} -${R + 30} ${2 * (R + 30)} ${2 * (R + 30)}`}
           className="relative z-1 block h-auto w-full max-w-[640px] cursor-grab select-none active:cursor-grabbing"
