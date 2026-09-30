@@ -35,7 +35,11 @@ const projects = [
 
 const atlas = () =>
   renderToStaticMarkup(
-    createElement(AtlasView, { projects, locationsWithheld: null }),
+    createElement(AtlasView, {
+      projects,
+      locationsWithheld: null,
+      onSelect: () => undefined,
+    }),
   );
 
 const inicio = () =>
@@ -88,7 +92,11 @@ describe("o globo do Atlas é uma ilustração para o leitor de tela", () => {
     );
     const view = () =>
       renderToStaticMarkup(
-        createElement(AtlasView, { projects: many, locationsWithheld: null }),
+        createElement(AtlasView, {
+          projects: many,
+          locationsWithheld: null,
+          onSelect: () => undefined,
+        }),
       );
     const pt = view();
     expect(pt).toContain("os mesmos 31 projetos, 30 por vez");
@@ -115,6 +123,7 @@ describe("o globo do Atlas é uma ilustração para o leitor de tela", () => {
         createElement(AtlasView, {
           projects: projects.slice(0, 1),
           locationsWithheld: null,
+          onSelect: () => undefined,
         }),
       );
     expect(one()).toContain("traz o mesmo projeto.");

@@ -1,17 +1,15 @@
 import { Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { STALE_LABEL_KEYS } from "../../../constants/status";
-import type {
-  OverallHealth,
-  Project,
-  ProjectPriority,
-} from "../../../types/project";
+import type { Project, ProjectPriority } from "../../../types/project";
 import { objectiveTagTone } from "../../../styles";
 import { cn } from "../../../utils/cn";
 import { getDeadlineInfo } from "../../../utils/recency";
 import { StatusDot } from "../../common/StatusBadge";
 import { getLocationDisplay } from "../../../utils/region";
-import { cardPriority, cardProgress, cardStale } from "./derived";
+import { cardHealthDots, cardStaleNotice, deadlineText } from "./card";
+import { cardPriority, cardProgress } from "./derived";
+import { OpenableCard } from "./OpenableCard";
 
 const STAMP_TONES: Record<ProjectPriority, string> = {
   default: "bg-verde text-on-dark",
@@ -36,46 +34,29 @@ const tagPill =
 
 export interface ProjectCardAtlasProps {
   project: Project;
-  onClick?: () => void;
+  onOpen: () => void;
 }
 
-export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
+export function ProjectCardAtlas({ project, onOpen }: ProjectCardAtlasProps) {
   const { t } = useTranslation();
   const progress = cardProgress(project);
   const priority = cardPriority(project);
   const deadline = getDeadlineInfo(project.deadline);
-  const stale = cardStale(project);
+  const stale = cardStaleNotice(project);
   const location = getLocationDisplay(project);
   const locationText = location.withheld
     ? t(location.regionLabelKey)
     : project.location.split("—")[0].trim();
   const types = project.translationType.slice(0, 2);
-  const healthDots: { state: OverallHealth; label: string }[] = [
-    { state: project.healthEmotional || "na", label: t("d_emotional") },
-    { state: project.healthRelational || "na", label: t("d_relational") },
-    { state: project.healthSpiritual || "na", label: t("d_spiritual") },
-  ];
 
   return (
-    <article
-      onClick={onClick}
-      role={onClick ? "button" : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={
-        onClick
-          ? (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onClick();
-              }
-            }
-          : undefined
-      }
+    <OpenableCard
+      project={project}
+      onOpen={onOpen}
       className={cn(
-        "grid grid-cols-[84px_minmax(0,1fr)_200px_140px_80px] items-center gap-5 rounded-md border border-line bg-elevated px-5.5 py-4.5",
+        "grid cursor-pointer grid-cols-[84px_minmax(0,1fr)_200px_140px_80px] items-center gap-5 rounded-md border border-line bg-elevated px-5.5 py-4.5",
         "transition-all duration-[180ms] ease-out hover:-translate-y-px hover:border-telha hover:shadow-card",
         "max-lg:grid-cols-[70px_1fr] max-lg:gap-3.5",
-        onClick && "cursor-pointer",
         CARD_TONES[priority],
       )}
     >
@@ -150,7 +131,7 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
               📖 {project.portion}
             </span>
           )}
-          {stale && stale !== "em-dia" && (
+          {stale && (
             <span className="mt-0.5 rounded-pill bg-accent-soft px-[7px] py-0.5 text-[10px] font-bold tracking-button uppercase text-accent-press">
               {t(STALE_LABEL_KEYS[stale])}
             </span>
@@ -186,8 +167,12 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
       </div>
 
       <div className="flex items-center gap-1 max-lg:col-span-full">
-        {healthDots.map((dot) => (
-          <StatusDot key={dot.label} state={dot.state} label={dot.label} />
+        {cardHealthDots(project).map((dot) => (
+          <StatusDot
+            key={dot.labelKey}
+            state={dot.state}
+            label={t(dot.labelKey)}
+          />
         ))}
       </div>
 
@@ -202,13 +187,9 @@ export function ProjectCardAtlas({ project, onClick }: ProjectCardAtlasProps) {
             deadline.cls === "soon" && "text-deadline-soon",
           )}
         >
-          {deadline.days !== null
-            ? deadline.days < 0
-              ? `${Math.abs(deadline.days)}${t("days_overdue")}`
-              : `${deadline.days}${t("days_remaining")}`
-            : "—"}
+          {deadlineText(deadline, t) ?? "—"}
         </div>
       </div>
-    </article>
+    </OpenableCard>
   );
 }

@@ -9,7 +9,7 @@ const PAGE_SIZE = 30;
 export interface AtlasViewProps {
   projects: readonly Project[];
   locationsWithheld: number | null;
-  onSelect?: (project: Project) => void;
+  onSelect: (project: Project) => void;
 }
 
 export function AtlasView({
@@ -40,7 +40,7 @@ export function AtlasView({
           <ProjectCardAtlas
             key={project.id}
             project={project}
-            onClick={onSelect ? () => onSelect(project) : undefined}
+            onOpen={() => onSelect(project)}
           />
         ))}
       </div>
