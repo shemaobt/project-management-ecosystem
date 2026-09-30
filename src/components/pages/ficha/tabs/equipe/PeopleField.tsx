@@ -77,7 +77,7 @@ export function PeopleField({
                 aria-label={t("f_people_remove", { name: person })}
                 onClick={() => onChange(removePerson(value, index))}
                 className={cn(
-                  "inline-flex size-5 cursor-pointer items-center justify-center rounded-pill text-fg-muted transition-colors duration-fast ease-out hover:bg-accent-soft hover:text-telha",
+                  "inline-flex size-5 cursor-pointer items-center justify-center rounded-pill text-fg-muted transition-colors duration-fast ease-out hover:bg-accent-soft hover:text-accent-press",
                   touchTargetPseudo,
                 )}
               >

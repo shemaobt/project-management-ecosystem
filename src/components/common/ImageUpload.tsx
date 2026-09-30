@@ -110,7 +110,7 @@ export function ImageUpload({
           className={cn(
             circleControl,
             transitionColors,
-            "absolute top-1.5 right-1.5 size-6.5 bg-elevated/85 text-fg hover:bg-accent-soft hover:text-telha",
+            "absolute top-1.5 right-1.5 size-6.5 bg-elevated/85 text-fg hover:bg-accent-soft hover:text-accent-press",
           )}
           onClick={() => onChange(null)}
         >
