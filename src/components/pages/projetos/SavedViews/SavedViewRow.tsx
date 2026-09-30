@@ -96,7 +96,7 @@ export function SavedViewRow({
           className={cn(
             "flex size-8 shrink-0 items-center justify-center border-l border-line text-fg-subtle",
             transitionColors,
-            "hover:bg-accent-soft hover:text-telha",
+            "hover:bg-accent-soft hover:text-accent-press",
           )}
         >
           <Pencil size={13} strokeWidth={1.75} />
@@ -108,7 +108,7 @@ export function SavedViewRow({
           className={cn(
             "flex size-8 shrink-0 items-center justify-center border-l border-line text-fg-subtle",
             transitionColors,
-            "hover:bg-accent-soft hover:text-telha",
+            "hover:bg-accent-soft hover:text-accent-press",
           )}
         >
           <Trash2 size={13} strokeWidth={1.75} />

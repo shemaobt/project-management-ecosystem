@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../contexts/AuthContext";
 import type { AccessAPI } from "../../../services/api";
 import { canAdministerAccess } from "../../../utils/access";
+import { prefersReducedMotion } from "../../../utils/motion";
 import { HistorySection } from "./HistorySection";
 import { InvitesSection, type InvitePrefill } from "./InvitesSection";
 import { NotAuthorized } from "./NotAuthorized";
@@ -25,7 +26,8 @@ function AccessScreen({ api }: AcessoPageProps) {
 
   const invite = (email: string) => {
     setPrefill((current) => ({ email, nonce: current.nonce + 1 }));
-    document.getElementById("convites")?.scrollIntoView({ behavior: "smooth" });
+    const behavior = prefersReducedMotion() ? "auto" : "smooth";
+    document.getElementById("convites")?.scrollIntoView({ behavior });
   };
 
   return (

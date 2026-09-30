@@ -1,6 +1,9 @@
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
-import { DEFAULT_PRAYER_VISIBILITY, isPrayerVisibility } from "../../../constants/prayer";
+import {
+  DEFAULT_PRAYER_VISIBILITY,
+  isPrayerVisibility,
+} from "../../../constants/prayer";
 import type { IntakeField } from "../../../types/forms";
 import type { BookProgressItem } from "../../../types/project";
 import { BookTable } from "../ficha/tabs/progresso/BookTable";
@@ -39,7 +42,9 @@ export function IntakeFieldInput({
   const prayerVisibilityField = isPrayerVisibilityField(field);
 
   const hasOwnControlId =
-    field.type === "text" || field.type === "longText" || field.type === "period";
+    field.type === "text" ||
+    field.type === "longText" ||
+    field.type === "period";
   const labelId = hasOwnControlId ? undefined : fieldId;
   const rawChoice = asString(value);
   const currentPrayerVisibility = isPrayerVisibility(rawChoice)
@@ -114,7 +119,7 @@ export function IntakeFieldInput({
               key={option}
               className="flex cursor-pointer items-start gap-2.5 rounded-md border border-line p-3"
             >
-              <Radio value={option} className="mt-0.5" />
+              <Radio value={option} label={option} className="mt-0.5" />
               <span className="block min-w-0 text-small font-semibold text-fg">
                 {option}
               </span>

@@ -151,7 +151,7 @@ export function NeedRow({
             type="button"
             aria-label={t("need_remove")}
             onClick={onRemove}
-            className="mb-1 inline-flex size-8 cursor-pointer items-center justify-center rounded-pill text-fg-muted transition-colors duration-fast ease-out hover:bg-accent-soft hover:text-telha"
+            className="mb-1 inline-flex size-8 cursor-pointer items-center justify-center rounded-pill text-fg-muted transition-colors duration-fast ease-out hover:bg-accent-soft hover:text-accent-press"
           >
             <X size={15} strokeWidth={2.25} />
           </button>

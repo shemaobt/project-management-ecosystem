@@ -16,12 +16,17 @@ export function RadioGroup({
   );
 }
 
-export function Radio({
-  className,
-  ...props
-}: ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>) {
+export interface RadioProps extends Omit<
+  ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>,
+  "aria-label"
+> {
+  label: string;
+}
+
+export function Radio({ label, className, ...props }: RadioProps) {
   return (
     <RadioGroupPrimitive.Item
+      aria-label={label}
       className={cn(
         `flex size-4 shrink-0 items-center justify-center rounded-pill border border-line-strong bg-elevated ${transitionColors} data-[state=checked]:border-telha disabled:cursor-not-allowed disabled:opacity-50`,
         className,
@@ -48,15 +53,17 @@ export function RadioButton({
   );
 }
 
-export interface RadioFieldProps
-  extends ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item> {
-  label: string;
-}
+export type RadioFieldProps = RadioProps;
 
-export function RadioField({ label, id, className, ...props }: RadioFieldProps) {
+export function RadioField({
+  label,
+  id,
+  className,
+  ...props
+}: RadioFieldProps) {
   return (
     <label className={cn(optionLabel, className)} htmlFor={id}>
-      <Radio id={id} {...props} />
+      <Radio id={id} label={label} {...props} />
       <span>{label}</span>
     </label>
   );

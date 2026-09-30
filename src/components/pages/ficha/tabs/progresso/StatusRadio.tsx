@@ -35,7 +35,11 @@ export function StatusRadio({ value, anchor, onChange }: StatusRadioProps) {
             value === option.value ? option.activeCard : "border-line",
           )}
         >
-          <Radio id={`ficha-status-${option.value}`} value={option.value} />
+          <Radio
+            id={`ficha-status-${option.value}`}
+            value={option.value}
+            label={t(option.labelKey)}
+          />
           <span className="text-small font-semibold text-fg">
             {t(option.labelKey)}
           </span>

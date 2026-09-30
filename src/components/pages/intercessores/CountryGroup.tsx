@@ -96,7 +96,7 @@ export function IntercessorRow({
             className={cn(
               circleControl,
               transitionColors,
-              "size-6.5 flex-none text-fg-muted hover:bg-accent-soft hover:text-telha disabled:opacity-50",
+              "size-6.5 flex-none text-fg-muted hover:bg-accent-soft hover:text-accent-press disabled:opacity-50",
             )}
           >
             <ActionIcon size={14} strokeWidth={1.75} />
@@ -111,7 +111,7 @@ export function IntercessorRow({
           className={cn(
             circleControl,
             transitionColors,
-            "size-6.5 flex-none text-fg-muted hover:bg-accent-soft hover:text-telha",
+            "size-6.5 flex-none text-fg-muted hover:bg-accent-soft hover:text-accent-press",
           )}
         >
           <Pencil size={14} strokeWidth={1.75} />
