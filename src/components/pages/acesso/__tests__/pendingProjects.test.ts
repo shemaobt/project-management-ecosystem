@@ -23,7 +23,8 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
 const { default: i18n } = await import("../../../../i18n");
-const { ConfirmedNote, PendingProjectForm, PendingState } = await import("../PendingProjects");
+const { ConfirmedNote, PendingState } = await import("../PendingProjects");
+const { PendingProjectForm } = await import("../PendingProjectForm");
 
 beforeEach(async () => {
   await i18n.changeLanguage("pt");
