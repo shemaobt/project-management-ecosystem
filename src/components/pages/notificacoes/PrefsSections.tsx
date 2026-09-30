@@ -139,7 +139,11 @@ export function WhenSection({ prefs, handlers }: PrefsSectionProps) {
             prefs.when === option.value && "border-telha bg-accent-soft",
           )}
         >
-          <Radio value={option.value} className="mt-0.5" />
+          <Radio
+            value={option.value}
+            label={`${t(option.labelKey)}. ${t(option.subKey)}`}
+            className="mt-0.5"
+          />
           <span className="min-w-0">
             <span className="block text-[13px] leading-[1.2] font-semibold text-fg-strong">
               {t(option.labelKey)}
