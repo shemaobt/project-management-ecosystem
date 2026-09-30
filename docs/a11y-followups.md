@@ -199,6 +199,8 @@ movimento essencial — cabe numa issue própria, curta.
 
 ## 10. Projetos tem um heading e mais nada
 
+> **Resolvido em OBT-503 (30/set/2026).** A barra lateral de Projetos ganhou a hierarquia h1 → h2 (*Visões salvas*, *Time por região*, *Filtros* `sr-only`) → h3 (cada grupo de filtro), e `headingOutline.test.ts` fixa a hierarquia sem pulo por área (Equipe, ETEN, Formulários, Oração, Intercessores, Ritmo e a barra de Projetos). O levantamento dos `text-eyebrow` mostrou que os das outras áreas são kicker acima de um título que já é heading, e ficam `p`. Resta, sem ser pulo: os cartões do Ritmo são `h2` irmãos de *As reuniões*. Regra em CLAUDE.md §7.2.
+
 **O que é.** Navegando por headings, a tela principal do produto oferece uma parada: o `<h1>`
 "Projetos". Os títulos de seção da barra lateral ("Visões salvas", "Time por região", cada grupo de
 filtro) são `<p class="text-eyebrow">`, não headings — visualmente são títulos, semanticamente não
