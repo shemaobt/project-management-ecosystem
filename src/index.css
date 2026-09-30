@@ -475,9 +475,9 @@
 /* OBT-502 */
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --animate-slide-up: fade-in var(--duration) var(--ease-out);
-    --animate-slide-in-right: fade-in var(--duration) var(--ease-out);
-    --animate-slide-in-left: fade-in var(--duration) var(--ease-out);
+    --animate-slide-up: fade-in 280ms var(--ease-out);
+    --animate-slide-in-right: fade-in 280ms var(--ease-out);
+    --animate-slide-in-left: fade-in 280ms var(--ease-out);
     --animate-spin: spin-still 1.6s ease-in-out infinite;
   }
 
