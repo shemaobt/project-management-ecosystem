@@ -105,6 +105,8 @@ pelos dois sem atenuante; e decidir se `Checkbox`/`Radio` podem ser usados sem r
 
 ## 5. O globo do Atlas é só para mouse
 
+**Resolvido em [OBT-498](https://linear.app/shema-obt/issue/OBT-498) (30/set/2026): o globo é ilustração.** O SVG recebeu `aria-hidden`, uma frase `sr-only` diz que o mapa é ilustrativo e onde estão os mesmos projetos, e o pausar e os atalhos BR/AF/SE continuam focáveis, fora da subárvore escondida, com nome. O texto abaixo é o registro original.
+
 **O que é.** O SVG do globo tem 244 nós e **zero elementos focáveis dentro**. Os medalhões e os
 marcadores de projeto abrem só com clique e arrasto.
 

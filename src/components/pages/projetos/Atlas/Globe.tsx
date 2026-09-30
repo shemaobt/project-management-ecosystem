@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   GLOBE_INITIAL_ROTATION,
   type GlobeFocusPoint,
@@ -34,10 +35,24 @@ interface Rotation {
 export interface GlobeProps {
   projects: readonly Project[];
   locationsWithheld: number | null;
+  listPageSize: number | null;
   onSelect?: (project: Project) => void;
 }
 
-export function Globe({ projects, locationsWithheld, onSelect }: GlobeProps) {
+function illustrationKey(count: number, listPageSize: number | null) {
+  if (listPageSize === null) return "atlas_illustration";
+  return count > listPageSize
+    ? "atlas_illustration_list_paged"
+    : "atlas_illustration_list";
+}
+
+export function Globe({
+  projects,
+  locationsWithheld,
+  listPageSize,
+  onSelect,
+}: GlobeProps) {
+  const { t } = useTranslation();
   const [rotation, setRotation] = useState<Rotation>({
     ...GLOBE_INITIAL_ROTATION,
   });
@@ -238,6 +253,14 @@ export function Globe({ projects, locationsWithheld, onSelect }: GlobeProps) {
           style={{ backgroundImage: STAR_LAYER }}
         />
 
+        <p className="sr-only">
+          {t(illustrationKey(projects.length, listPageSize), {
+            count: projects.length,
+            page: listPageSize,
+            more: t("load_more"),
+          })}
+        </p>
+
         <GlobeControls
           autoRotate={autoRotate}
           onToggleRotate={() => setAutoRotate((previous) => !previous)}
@@ -247,6 +270,7 @@ export function Globe({ projects, locationsWithheld, onSelect }: GlobeProps) {
         <SensitiveNotice count={locationsWithheld} />
 
         <svg
+          aria-hidden="true"
           ref={svgRef}
           viewBox={`-${R + 30} -${R + 30} ${2 * (R + 30)} ${2 * (R + 30)}`}
           className="relative z-1 block h-auto w-full max-w-[640px] cursor-grab select-none active:cursor-grabbing"

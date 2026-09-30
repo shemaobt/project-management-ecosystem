@@ -37,8 +37,10 @@ export function GlobeControls({
         className={controlButton}
         onClick={onToggleRotate}
         title={t("atlas_autorotate")}
+        aria-label={t("atlas_autorotate")}
+        aria-pressed={autoRotate}
       >
-        {autoRotate ? "❚❚" : "▶"}
+        <span aria-hidden>{autoRotate ? "❚❚" : "▶"}</span>
       </button>
       <div className="my-1 w-px bg-branco/20" />
       {GLOBE_FOCUS_POINTS.map((point) => (
@@ -47,6 +49,7 @@ export function GlobeControls({
           type="button"
           className={cn(controlButton, "text-[10px]")}
           onClick={() => onFocus(point)}
+          aria-label={t(point.nameKey)}
         >
           {point.label}
         </button>
@@ -105,7 +108,10 @@ export function SensitiveNotice({ count }: { count: number | null }) {
 export function GlobeHint() {
   const { t } = useTranslation();
   return (
-    <div className="pointer-events-none absolute bottom-[18px] left-1/2 -translate-x-1/2 font-serif text-tag italic tracking-[0.04em] text-on-dark/55">
+    <div
+      aria-hidden
+      className="pointer-events-none absolute bottom-[18px] left-1/2 -translate-x-1/2 font-serif text-tag italic tracking-[0.04em] text-on-dark/55"
+    >
       <span>↔ {t("atlas_hint")}</span>
     </div>
   );
