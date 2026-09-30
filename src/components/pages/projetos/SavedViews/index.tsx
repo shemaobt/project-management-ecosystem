@@ -94,10 +94,10 @@ export function SavedViews({ counts }: SavedViewsProps) {
   return (
     <div className="px-0.5">
       <div className="mt-4 mb-2 flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-[0.18em] text-fg-subtle uppercase">
+        <h2 className="inline-flex items-center gap-1.5 text-[10px] leading-body font-bold tracking-[0.18em] text-fg-subtle uppercase">
           <Bookmark size={12} strokeWidth={1.75} />
           {t("sb_saved_views")}
-        </span>
+        </h2>
         {savable && (
           <div className="flex items-center gap-1">
             <button

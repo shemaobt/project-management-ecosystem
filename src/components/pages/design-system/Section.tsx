@@ -9,7 +9,7 @@ export function Section({
 }) {
   return (
     <section className="flex flex-col gap-4">
-      <p className="text-eyebrow uppercase text-fg-muted">{title}</p>
+      <h2 className="text-eyebrow leading-body uppercase text-fg-muted">{title}</h2>
       {children}
     </section>
   );
