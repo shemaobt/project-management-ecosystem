@@ -48,6 +48,8 @@ confirmar que o campo em foco não fica embaixo do teclado.
 
 ## 3. `role="button"` no cartão inteiro apaga o conteúdo dele do leitor de tela
 
+**Resolvido em [OBT-495](https://linear.app/shema-obt/issue/OBT-495)** (30/set/2026): os dois cartões viram botão por um só componente (`OpenableCard`), com o nome curto "Abrir o projeto {idioma}" e um resumo `sr-only` fora do botão ligado por `aria-describedby` — prioridade, as três dimensões de saúde e as três contagens do funil. O conteúdo do resumo aguarda a Karina.
+
 **O que é.** `ProjectCardAtlas` e `ProjectCardDiario` são `<article role="button" tabindex="0">`. Pela
 especificação ARIA, `button` é um papel de **filhos apresentacionais**: tudo dentro dele sai da árvore
 de acessibilidade. Medido no Chrome, com `Accessibility.getFullAXTree` sobre um cartão do Diário: o nó
@@ -130,8 +132,8 @@ O canal **visual** continua sendo só cor: um ponto de 8px, e as oito prioridade
 cores — `canceled`, `paused`, `unknown` e o caso comum pintam todas o mesmo `bg-status-na`. Quem não
 distingue cores, e quem usa o produto sem passar o mouse, vê quatro estados diferentes como um só.
 
-**Ver também o item 3:** dentro dos dois cartões, nem o canal de texto que FE-43 deu ao alfinete
-chega ao leitor de tela.
+**Ver também o item 3**, resolvido em OBT-495: o canal de texto que FE-43 deu ao alfinete chega ao
+leitor de tela pelo resumo do cartão. O canal visual continua sendo só cor.
 
 **Onde.** `src/components/common/StatusBadge.tsx` (`PriorityPin`, `PRIORITY_TONES` em
 `src/styles/badges.ts`), consumido por `src/components/pages/projetos/Journal/ProjectCardDiario.tsx`.
