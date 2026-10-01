@@ -26,10 +26,11 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("sessionStorage", tabStorage);
 vi.stubGlobal("window", { localStorage: storage, sessionStorage: tabStorage });
 
-const { readerOf, storesWipedOn } = await import("../sessionWipe");
+const { matchReader, readerOf, storesWipedOn } = await import("../sessionWipe");
 const { forgetTokens, setTokens } = await import("../../services/api/tokens");
 const { useProjectsStore } = await import("../projectsStore");
 const { useFiltersStore } = await import("../filtersStore");
+const { useFormsStore } = await import("../formsStore");
 const { makeProject } = await import("../../utils/__tests__/factory");
 
 beforeEach(() => {
@@ -42,7 +43,8 @@ describe("o que a sessão deixa no navegador", () => {
     expect(storesWipedOn("signedOut")).toHaveLength(8);
     expect(storesWipedOn("expired")).toHaveLength(4);
     expect(storesWipedOn("signedIn")).toHaveLength(0);
-    expect(storesWipedOn("signedIn", false)).toHaveLength(4);
+    expect(storesWipedOn("signedIn", "other")).toHaveLength(8);
+    expect(storesWipedOn("signedIn", "unknown")).toHaveLength(4);
   });
 
   it("ao sair, a lista de projetos some da memória e do armazenamento", () => {
@@ -87,5 +89,22 @@ describe("uma expiração seguida de outra pessoa", () => {
 
     setTokens({ accessToken: token("user-b"), refreshToken: "r" });
     expect(useFiltersStore.getState().search).toBe("");
+  });
+});
+
+describe("a aba fechada e outra pessoa entra", () => {
+  it("o que foi lido para a conta anterior não fica para a próxima", () => {
+    setTokens({ accessToken: token("user-a"), refreshToken: "r" });
+    useFormsStore.setState({ hydrated: true });
+    // Closing the tab fires nothing: the next event this browser sees is the next sign-in.
+    setTokens({ accessToken: token("user-c"), refreshToken: "r" });
+
+    expect(useFormsStore.getState().hydrated).toBe(false);
+  });
+
+  it("sem saber quem estava, apaga o que se lê de novo e guarda o rascunho", () => {
+    expect(matchReader(null, "user-a")).toBe("unknown");
+    expect(matchReader("user-a", "user-a")).toBe("same");
+    expect(matchReader("user-a", "user-b")).toBe("other");
   });
 });

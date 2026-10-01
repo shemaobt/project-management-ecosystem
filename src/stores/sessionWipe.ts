@@ -86,24 +86,37 @@ function rememberReader(reader: string | null): void {
   }
 }
 
+/** Whether the account signing in is the one whose data this browser holds. */
+export type ReaderMatch = "same" | "other" | "unknown";
+
+export function matchReader(last: string | null, reader: string | null): ReaderMatch {
+  if (last === null || reader === null) return "unknown";
+  return last === reader ? "same" : "other";
+}
+
 /**
- * The stores a session event empties (INT-12 · OBT-417). `sameReader` matters only on a
- * sign-in: somebody other than whoever left drafts behind gets none of them.
+ * The stores a session event empties (INT-12 · OBT-417). On a sign-in it depends on who:
+ * closing the tab fires no event at all, which is the ordinary way a phone changes hands, and
+ * the read stores persist `hydrated` beside their data, so a sign-in is the only moment left to
+ * clear them (PR #83 review). Another account gets nothing of the last one; an account the
+ * browser cannot place gets no read data — it is read again — while drafts, which cannot be read
+ * again, wait for a reader the browser can tell apart.
  */
-export function storesWipedOn(event: SessionEvent, sameReader = true): readonly Wipe[] {
+export function storesWipedOn(event: SessionEvent, match: ReaderMatch = "same"): readonly Wipe[] {
   if (event === "signedOut") return [...READ_FOR_THE_READER, ...TYPED_BY_THE_READER];
   if (event === "expired") return READ_FOR_THE_READER;
-  return sameReader ? [] : TYPED_BY_THE_READER;
+  if (match === "other") return [...READ_FOR_THE_READER, ...TYPED_BY_THE_READER];
+  if (match === "unknown") return READ_FOR_THE_READER;
+  return [];
 }
 
 onSessionEvent((event) => {
-  let sameReader = true;
+  let match: ReaderMatch = "same";
   if (event === "signedIn") {
     const reader = readerOf(accessToken());
-    const last = lastReader();
-    sameReader = last === null || last === reader;
+    match = matchReader(lastReader(), reader);
     rememberReader(reader);
   }
   if (event === "signedOut") rememberReader(null);
-  for (const wipe of storesWipedOn(event, sameReader)) wipe();
+  for (const wipe of storesWipedOn(event, match)) wipe();
 });
