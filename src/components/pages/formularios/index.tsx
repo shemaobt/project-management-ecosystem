@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { FIELD_FORMS } from "../../../constants/forms";
+import { projectListAvailable } from "../../../services/api";
 import { useFormsStore } from "../../../stores/formsStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { ReceivedSubmission } from "../../../types/forms";
@@ -10,6 +11,7 @@ import { formOf, formReadiness, reportingFor, selectableProjects } from "../../.
 import { toLocalIsoDate } from "../../../utils/format";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { ProjectListNotServed } from "../../common/ProjectListNotServed";
 import { Button } from "../../ui";
 import { FormCard } from "./FormCard";
 import { PendingProjects } from "./PendingProjects";
@@ -26,12 +28,15 @@ export interface FormulariosViewProps {
    */
   submissions?: readonly ReceivedSubmission[] | null;
   now?: Date;
+  /** `false` where the build withholds the project list (INT-12): every block here is a project's. */
+  served?: boolean;
 }
 
 export function FormulariosView({
   projects,
   submissions = [],
   now,
+  served = true,
 }: FormulariosViewProps) {
   const { t } = useTranslation();
   const [picked, setPicked] = useState("");
@@ -84,7 +89,7 @@ export function FormulariosView({
             {t("forms_lead")}
           </p>
         </div>
-        {project ? (
+        {served && project ? (
           <ProjectSelector
             projects={sorted}
             value={project.id}
@@ -93,7 +98,9 @@ export function FormulariosView({
         ) : null}
       </header>
 
-      {projects === null ? (
+      {!served ? (
+        <ProjectListNotServed />
+      ) : projects === null ? (
         <div className="flex justify-center py-16">
           <LoadingSpinner size="lg" label={t("loading")} />
         </div>
@@ -170,6 +177,7 @@ export function FormulariosPage() {
     <FormulariosView
       projects={hydrated && !formsLoading ? projects : null}
       submissions={formsRead ? submissions : null}
+      served={projectListAvailable}
     />
   );
 }

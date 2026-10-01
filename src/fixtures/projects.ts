@@ -21,3 +21,12 @@ export function loadProject(id: string): Project | null {
   const project = projects.find((candidate) => candidate.id === id);
   return project ? structuredClone(project) : null;
 }
+
+/**
+ * `false` in a build that talks to the server (INT-12 · OBT-417): `vite.config.ts` swaps the
+ * data files for empty stand-ins there, so the list the screens below read is empty because it
+ * was withheld, not because there are no projects — and the screens must say which.
+ */
+export function shipsProjectData(): boolean {
+  return projects.length > 0;
+}

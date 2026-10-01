@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
   failureMessage,
   membersAPI,
+  projectListAvailable,
   toApiFailure,
 } from "../../../services/api";
 import { useProjectsStore } from "../../../stores/projectsStore";
@@ -13,6 +14,7 @@ import { formatDate } from "../../../utils/format";
 import { selectableProjects } from "../../../utils/forms";
 import { ConfirmDialog } from "../../common/ConfirmDialog";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { ProjectListNotServed } from "../../common/ProjectListNotServed";
 import { Button } from "../../ui";
 import { MembersPanel } from "../ficha/tabs/equipe/ProjectMembers";
 import { ProjectSelector } from "../formularios/ProjectSelector";
@@ -164,7 +166,9 @@ export function MembershipSection({ person }: MembershipSectionProps) {
       <p className="max-w-[68ch] text-small leading-normal text-fg-muted">
         {t("acesso_members_gap", { person: name })}
       </p>
-      {!hydrated ? (
+      {!projectListAvailable ? (
+        <ProjectListNotServed />
+      ) : !hydrated ? (
         loadFailure ? (
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-small text-fg-muted">

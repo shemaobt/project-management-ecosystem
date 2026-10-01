@@ -24,3 +24,9 @@ jobs:
 
       - name: Run TypeScript type check
         run: npx tsc -b
+
+      - name: Build without fixture data
+        run: npm run build
+
+      - name: Fixture projects stay out of the bundle
+        run: npm run check:bundle
