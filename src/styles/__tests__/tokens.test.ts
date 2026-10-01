@@ -6,6 +6,7 @@ import { MEETING_STATES } from "../../constants/meetings";
 import {
   HEALTH_DOT_TONES,
   HEALTH_TONES,
+  PRIORITY_TONES,
   REPORTING_TONES,
   RHYTHM_TONES,
   STALE_TONES,
@@ -16,6 +17,7 @@ import {
   NEED_URGENCIES,
   NEED_URGENCY_TONES,
   OVERALL_HEALTH_STATES,
+  PROJECT_PRIORITIES,
   STALE_STATUSES,
 } from "../../constants/project";
 import {
@@ -486,6 +488,18 @@ describe("os selos de saúde e de atualização se leem onde quer que apareçam"
           tone,
           "um véu sobre o selo inteiro apaga o glifo junto com o preenchimento",
         ).not.toMatch(/\bopacity-/u);
+        expect(
+          contrast(colour(tone, "text"), colour(tone, "bg")),
+        ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);
+      });
+    }
+  });
+
+  describe("o alfinete de prioridade, que ganhou glifo e carrega a mesma exigência do ponto", () => {
+    for (const priority of PROJECT_PRIORITIES) {
+      it(`${priority} passa de 4.5 sobre o próprio preenchimento e não usa véu`, () => {
+        const tone = PRIORITY_TONES[priority];
+        expect(tone).not.toMatch(/\bopacity-/u);
         expect(
           contrast(colour(tone, "text"), colour(tone, "bg")),
         ).toBeGreaterThanOrEqual(AA_SMALL_TEXT);

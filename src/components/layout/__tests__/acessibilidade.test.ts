@@ -32,6 +32,7 @@ const { MEETING_STATES } = await import("../../../constants/meetings");
 const {
   HEALTH_LABEL_KEYS,
   PRIORITY_LABEL_KEYS,
+  PRIORITY_SYMBOLS,
   RHYTHM_LABEL_KEYS,
   STALE_LABEL_KEYS,
 } = await import("../../../constants/status");
@@ -190,10 +191,22 @@ describe("nenhum estado é distinguível só por cor", () => {
     for (const priority of PROJECT_PRIORITIES) {
       const html = markup(createElement(PriorityPin, { priority }));
       const label = i18n.t(PRIORITY_LABEL_KEYS[priority]);
-      expect(html, priority).toContain("sr-only");
-      expect(html, priority).toContain(label);
-      expect(html, priority).not.toContain("aria-hidden");
+      expect(html, priority).toContain(
+        `<span class="sr-only">${label}</span>`,
+      );
+      expect(html, priority).toContain(`title="${label}"`);
     }
+  });
+
+  it("o glifo do alfinete é aria-hidden e cada prioridade tem o seu", () => {
+    const glyphs = PROJECT_PRIORITIES.map((priority) => {
+      const html = markup(createElement(PriorityPin, { priority }));
+      const hidden = [...html.matchAll(/<span aria-hidden="true">([^<]*)<\/span>/gu)];
+      expect(hidden, priority).toHaveLength(1);
+      expect(hidden[0][1], priority).toBe(PRIORITY_SYMBOLS[priority]);
+      return hidden[0][1];
+    });
+    expect(new Set(glyphs).size).toBe(PROJECT_PRIORITIES.length);
   });
 
   it("e as oito prioridades têm oito frases, já que só têm cinco cores", () => {

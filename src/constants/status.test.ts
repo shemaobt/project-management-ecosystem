@@ -18,6 +18,7 @@ import {
 import {
   HEALTH_LABEL_KEYS,
   HEALTH_SYMBOLS,
+  PRIORITY_SYMBOLS,
   PRAYER_LABEL_KEYS,
   PRAYER_STATES,
   RHYTHM_LABEL_KEYS,
@@ -52,6 +53,26 @@ describe("cada estado tem uma chave i18n e um símbolo", () => {
     ["prayer", PRAYER_STATES, PRAYER_LABEL_KEYS],
   ] as const)("%s", (_kind, states, keys) => {
     expect(Object.keys(keys).sort()).toEqual([...states].sort());
+  });
+
+  it("priority symbols", () => {
+    expect(Object.keys(PRIORITY_SYMBOLS).sort()).toEqual([...PROJECT_PRIORITIES].sort());
+  });
+
+  it("priority symbols são os da decisão da OBT-499, um por situação", () => {
+    expect(PRIORITY_SYMBOLS).toEqual({
+      critical: "!",
+      warning: "~",
+      completed: "✓",
+      planned: "+",
+      default: "›",
+      paused: "‖",
+      canceled: "×",
+      unknown: "?",
+    });
+    expect(new Set(Object.values(PRIORITY_SYMBOLS)).size).toBe(
+      PROJECT_PRIORITIES.length,
+    );
   });
 
   it("health symbols", () => {
