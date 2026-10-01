@@ -1,13 +1,16 @@
 import type { TFunction } from "i18next";
-import { STALE_LABEL_KEYS } from "../../../constants/status";
 import type {
   DeadlineInfo,
   OverallHealth,
   Project,
   StaleStatus,
 } from "../../../types/project";
-import { formatDayMonth, formatNumber } from "../../../utils/format";
-import { getDeadlineInfo } from "../../../utils/recency";
+import {
+  formatDate,
+  formatDayMonth,
+  formatNumber,
+} from "../../../utils/format";
+import { unitTypeLabel } from "../../../utils/progress";
 import { healthDotPhrase, priorityPhrase } from "../../common/StatusBadge";
 import { cardLastProgressUpdate, cardPriority, cardStale } from "./derived";
 
@@ -162,33 +165,31 @@ export function cardFunnel(project: Project, t: TFunction): CardFunnel {
 
 /**
  * What a screen reader hears after the card's name. A `role="button"` makes everything inside
- * the card presentational, so this sentence is the card's only spoken content: it is built from
- * the pin's and the dots' own phrases, the Atlas's stale stamp and deadline when they flag
- * something, and the Diário footer's funnel, so the ear hears what the eye sees, and changing
- * what the card says aloud is this one function.
+ * the card presentational, so this sentence is the card's only spoken content, and it is the
+ * same for both cards: the pin's phrase, the three dots' phrases, the translated count with the
+ * project's own unit, and the full day of the last update, year included (OBT-550). Changing what the card says
+ * aloud is this one function.
  */
 export function cardSummary(
   project: Project,
   t: TFunction,
   now: Date = new Date(),
 ): string {
-  const { translated, checked, approved } = cardFunnel(project, t);
-  const stale = cardStaleNotice(project, now);
-  const deadline = getDeadlineInfo(project.deadline, now);
-  const pressingDeadline =
-    deadline.cls === "overdue" || deadline.cls === "soon"
-      ? deadlineText(deadline, t)
-      : null;
+  const lastUpdate = cardLastProgressUpdate(project);
+  const updated = lastUpdate ? formatDate(lastUpdate, t("locale")) : null;
   return [
     priorityPhrase(t, cardPriority(project, now)),
-    ...(stale ? [t(STALE_LABEL_KEYS[stale])] : []),
-    ...(pressingDeadline ? [`${t("d_deadline")}: ${pressingDeadline}`] : []),
     ...cardHealthDots(project).map((dot) =>
       healthDotPhrase(t, t(dot.labelKey), dot.state),
     ),
-    [translated, checked, approved]
-      .map((stage) => `${stage.count} ${stage.label}`)
-      .join(", "),
+    t("card_say_progress", {
+      translated: project.translatedUnits,
+      total: project.totalUnits,
+      unit: unitTypeLabel(project),
+    }),
+    updated
+      ? t("card_say_updated", { date: updated })
+      : t("card_say_no_update"),
   ]
     .map((phrase) => `${phrase}.`)
     .join(" ");

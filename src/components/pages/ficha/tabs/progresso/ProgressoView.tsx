@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { DEFAULT_UNIT_TYPE } from "../../../../../constants/project";
 import { materializeDraft } from "../../../../../stores/recordStore";
 import type { StaleStatus } from "../../../../../types/project";
 import { cn } from "../../../../../utils/cn";
 import {
   getProgress,
+  unitTypeLabel,
   withRolledAggregates,
 } from "../../../../../utils/progress";
 import { Progress } from "../../../../ui";
@@ -187,7 +187,7 @@ export function ProgressoView({ draft }: ProgressoViewProps) {
     draft.saved && project.status !== draft.saved.status
       ? project.status
       : null;
-  const unitLabel = (project.totalUnitsType || DEFAULT_UNIT_TYPE).toLowerCase();
+  const unitLabel = unitTypeLabel(project);
   const progress = Math.round(getProgress(project));
   const communityRate = Math.round(
     getUnitShare(project.communityCheckedUnits, project.translatedUnits) * 100,

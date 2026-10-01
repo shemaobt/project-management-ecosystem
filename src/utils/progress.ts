@@ -1,4 +1,7 @@
-import { EXPLICIT_PROJECT_STATUSES } from "../constants/project";
+import {
+  DEFAULT_UNIT_TYPE,
+  EXPLICIT_PROJECT_STATUSES,
+} from "../constants/project";
 import type {
   BookProgressItem,
   OtherProgressItem,
@@ -14,6 +17,12 @@ import type {
 type CountedProgressItem = BookProgressItem | OtherProgressItem;
 
 const toNumber = (value: unknown): number => Number(value) || 0;
+
+export function unitTypeLabel(
+  project: Pick<Project, "totalUnitsType">,
+): string {
+  return (project.totalUnitsType || DEFAULT_UNIT_TYPE).toLowerCase();
+}
 
 export function getProgress(project: Project): number {
   return project.totalUnits > 0
