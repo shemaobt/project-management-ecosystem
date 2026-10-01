@@ -1,6 +1,12 @@
 import axios from "axios";
 import { ACCESS_APPS, GRANTABLE_ROLES } from "../../constants/access";
+import {
+  NOTIF_DEFAULTS,
+  isNotificationScope,
+  isNotificationWhen,
+} from "../../constants/notifications";
 import { REGIONS } from "../../constants/regions";
+import { DECISION_STAGE_LABEL_KEYS } from "../../constants/requests";
 import { SESSION_ROLES } from "../../constants/roles";
 import type {
   AccessAppKey,
@@ -24,6 +30,11 @@ import type {
 } from "../../types/access";
 import type { EtenCreditEntry, EtenYearReport } from "../../types/eten";
 import type {
+  NotificationPrefs,
+  PanelEntry,
+  ProjectNotificationKind,
+} from "../../types/notification";
+import type {
   IntakeForm,
   IntakeLink,
   IntakeLinkCreated,
@@ -46,6 +57,8 @@ import type {
 } from "../../types/prayer";
 import type { Project, ProjectMember, ProjectRef } from "../../types/project";
 import type { Region, RegionKey, RegionTeam, RoleChange } from "../../types/region";
+import type { RequestDecisionStage } from "../../types/request";
+import type { ImportError } from "../../utils/export";
 import type { SaveOutcome } from "../../types/team";
 import type {
   AuthenticatedAccount,
@@ -57,6 +70,7 @@ import type {
 import { API_BASE_URL, REQUEST_TIMEOUT_MS, http, refreshSession } from "./client";
 import { failure, toApiFailure, UNKNOWN_VOCABULARY } from "./errors";
 import { forgetTokens, refreshToken, setTokens } from "./tokens";
+import { toLocalIsoDate } from "../../utils/format";
 
 const SHEMA = "/shema";
 
@@ -735,10 +749,15 @@ export interface PrayerPulseFile {
 
 const PULSE_FALLBACK_NAME = "pulso-de-oracao.txt";
 
-export function pulseFileName(disposition: unknown): string {
-  if (typeof disposition !== "string") return PULSE_FALLBACK_NAME;
+/** The name a `Content-Disposition: attachment; filename="…"` gives, or `fallback`. */
+export function attachmentFileName(disposition: unknown, fallback: string): string {
+  if (typeof disposition !== "string") return fallback;
   const match = /filename="([^"]+)"/u.exec(disposition);
-  return match?.[1] ?? PULSE_FALLBACK_NAME;
+  return match?.[1] ?? fallback;
+}
+
+export function pulseFileName(disposition: unknown): string {
+  return attachmentFileName(disposition, PULSE_FALLBACK_NAME);
 }
 
 export const prayerPulseAPI = {
@@ -755,3 +774,242 @@ export const prayerPulseAPI = {
 };
 
 export type PrayerPulseAPI = typeof prayerPulseAPI;
+
+/**
+ * The bell's panel, its read mark and the preferences, on the server (INT-11 · OBT-416, BE-15).
+ * The server routed every notice when it was written, so the console reads its own slice and
+ * filters nothing by role or region again. A row this console cannot read is dropped rather
+ * than guessed at: a kind outside the seven, or a request notice whose stage is not a decision.
+ */
+const NOTICES = `${SHEMA}/notifications`;
+
+const PROJECT_NOTICE_KINDS: readonly ProjectNotificationKind[] = [
+  "field",
+  "health",
+  "need",
+  "stale",
+  "prayer",
+];
+
+export interface ServedPanel {
+  readonly entries: PanelEntry[];
+  /** The ids the server already counts as seen — read state lives there, not in this browser. */
+  readonly readIds: string[];
+}
+
+function isDecisionStage(value: unknown): value is RequestDecisionStage {
+  return typeof value === "string" && Object.hasOwn(DECISION_STAGE_LABEL_KEYS, value);
+}
+
+export function readPanelEntry(raw: unknown): PanelEntry | null {
+  const row = fieldsOf(raw);
+  const id = textOf(row.id);
+  // The panel speaks in local days (`notificationAge`); the server stamps an instant.
+  const instant = new Date(textOf(row.createdAt));
+  if (id === "" || Number.isNaN(instant.getTime())) return null;
+  const date = toLocalIsoDate(instant);
+  const urgent = row.urgent === true;
+  const projectId = optionalTextOf(row.projectId);
+  if (row.kind === "requestArrival" || row.kind === "requestDecision") {
+    const requestName = optionalTextOf(row.requestName) ?? "";
+    if (row.kind === "requestArrival") {
+      return {
+        kind: "requestArrival",
+        id,
+        urgent,
+        audience: [],
+        projectId,
+        date,
+        requestName,
+        requestStage: "triagem",
+      };
+    }
+    if (!isDecisionStage(row.requestStage)) return null;
+    return {
+      kind: "requestDecision",
+      id,
+      urgent,
+      audience: [],
+      projectId,
+      date,
+      requestName,
+      requestStage: row.requestStage,
+    };
+  }
+  const kind = PROJECT_NOTICE_KINDS.find((candidate) => candidate === row.kind);
+  if (kind === undefined) return null;
+  return { origin: "server", id, kind, urgent, projectId, date, body: textOf(row.body) };
+}
+
+export function readServedPanel(payload: unknown): ServedPanel {
+  const entries: PanelEntry[] = [];
+  const readIds: string[] = [];
+  for (const raw of listOf(payload)) {
+    const entry = readPanelEntry(raw);
+    if (entry === null) continue;
+    entries.push(entry);
+    if (fieldsOf(raw).isRead === true) readIds.push(entry.id);
+  }
+  return { entries, readIds };
+}
+
+/**
+ * The server keeps `when` and `scope` as free text and answers `""` for an account that never
+ * saved; this console's vocabulary is what the screen offers, so an empty or unknown value
+ * reads as the screen's own default rather than as no choice at all.
+ */
+export function readNotificationPrefs(payload: unknown): NotificationPrefs {
+  const data = fieldsOf(payload);
+  const channels = fieldsOf(data.channels);
+  const when = textOf(data.when);
+  const scope = textOf(data.scope);
+  return {
+    enabled: data.enabled !== false,
+    channels: {
+      email: channels.email === true,
+      push: channels.push === true,
+      whatsapp: channels.whatsapp === true,
+    },
+    when: isNotificationWhen(when) ? when : NOTIF_DEFAULTS.when,
+    scope: isNotificationScope(scope) ? scope : NOTIF_DEFAULTS.scope,
+    emailAddr: textOf(data.emailAddr),
+    phoneAddr: textOf(data.phoneAddr),
+    customProjectIds: listOf(data.customProjectIds).filter(
+      (value): value is string => typeof value === "string",
+    ),
+  };
+}
+
+export const notificationsAPI = {
+  async list(): Promise<ServedPanel> {
+    const { data } = await http.get<unknown>(NOTICES);
+    return readServedPanel(data);
+  },
+
+  async markRead(ids: readonly string[]): Promise<void> {
+    await http.post(`${NOTICES}/read`, { ids });
+  },
+
+  async prefs(): Promise<NotificationPrefs> {
+    const { data } = await http.get<unknown>(`${NOTICES}/prefs`);
+    return readNotificationPrefs(data);
+  },
+
+  async savePrefs(prefs: NotificationPrefs): Promise<NotificationPrefs> {
+    const { data } = await http.put<unknown>(`${NOTICES}/prefs`, prefs);
+    return readNotificationPrefs(data);
+  },
+};
+
+export type NotificationsAPI = typeof notificationsAPI;
+
+/**
+ * The projects export and import, on the server (INT-11 · OBT-416, BE-14). **The server builds
+ * the file**: the console no longer assembles one, so the privacy filters have one home. The
+ * export is a download with real progress; the import sends the file's bytes untouched, because
+ * reading, recognising and checking them is the server's (`import_projects.py`).
+ */
+export type TransferFormat = "json" | "csv";
+
+export interface TransferProgress {
+  readonly loaded: number;
+  /** `null` when the server did not state the size — the screen then counts bytes only. */
+  readonly total: number | null;
+}
+
+export interface ExportedFile {
+  readonly blob: Blob;
+  readonly fileName: string;
+}
+
+/** What the import answered: applied whole, or refused whole with the file's own reason. */
+export type ImportAnswer =
+  | { readonly ok: true; readonly applied: number; readonly ignoredFields: string[] }
+  | { readonly ok: false; readonly error: ImportError };
+
+/**
+ * BE-14's 400 names its refusal with the very keys the dialog already words (`ImportRefusal`
+ * in `shema_transfer.py`), plus the item or the id. Anything else is not a refusal of the
+ * file and travels as a failure, so a 409 or a 403 is never read as a broken record.
+ */
+export function readImportRefusal(payload: unknown): ImportError | null {
+  const body = fieldsOf(payload);
+  switch (body.key) {
+    case "import_invalid_json":
+    case "import_is_export":
+    case "import_not_list":
+      return { key: body.key };
+    case "import_bad_record":
+      return typeof body.index === "number" ? { key: body.key, index: body.index } : null;
+    case "import_duplicate_id":
+      return typeof body.id === "string" ? { key: body.key, id: body.id } : null;
+    default:
+      return null;
+  }
+}
+
+const LOCAL_DAY_HEADER = "X-Shema-Local-Date";
+
+const EXPORT_FALLBACK_NAME: Record<TransferFormat, string> = {
+  json: "shema-projetos.json",
+  csv: "shema-projetos.csv",
+};
+
+export const transferAPI = {
+  async exportProjects(
+    format: TransferFormat,
+    language: PulseLanguage,
+    onProgress: (progress: TransferProgress) => void,
+  ): Promise<ExportedFile> {
+    const response = await http.get<Blob>(`${SHEMA}/export/projects`, {
+      params: { format, lang: language },
+      responseType: "blob",
+      // A large export on a field connection outlives the default timeout; progress is what
+      // tells the person it is still moving, so no clock cuts it short.
+      timeout: 0,
+      onDownloadProgress: (event) =>
+        onProgress({
+          loaded: event.loaded,
+          total: typeof event.total === "number" && event.total > 0 ? event.total : null,
+        }),
+    });
+    return {
+      blob: response.data,
+      fileName: attachmentFileName(
+        response.headers["content-disposition"],
+        EXPORT_FALLBACK_NAME[format],
+      ),
+    };
+  },
+
+  async importProjects(raw: string): Promise<ImportAnswer> {
+    // A 400 is the file's refusal and its body names why; it is let through here because the
+    // client's error path keeps only `detail` and `code`, and the key is what the dialog words.
+    const response = await http.post<unknown>(`${SHEMA}/import/projects`, raw, {
+      headers: {
+        "Content-Type": "application/json",
+        [LOCAL_DAY_HEADER]: toLocalIsoDate(),
+      },
+      validateStatus: (status) => (status >= 200 && status < 300) || status === 400,
+    });
+    if (response.status === 400) {
+      const refusal = readImportRefusal(response.data);
+      if (refusal === null) throw failure("invalid", textOrNull(fieldsOf(response.data).detail));
+      return { ok: false, error: refusal };
+    }
+    const answer = fieldsOf(response.data);
+    return {
+      ok: true,
+      applied: typeof answer.applied === "number" ? answer.applied : 0,
+      ignoredFields: listOf(answer.ignoredFields ?? []).filter(
+        (value): value is string => typeof value === "string",
+      ),
+    };
+  },
+};
+
+function textOrNull(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}
+
+export type TransferAPI = typeof transferAPI;
