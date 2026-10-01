@@ -2,9 +2,16 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ROLE_DEFINITIONS } from "../../../constants/roles";
 import { useAuth } from "../../../contexts/AuthContext";
-import { prayerAPI, prayerPulseAPI, resolveSource } from "../../../services/api";
+import {
+  failureMessage,
+  prayerAPI,
+  prayerPulseAPI,
+  resolveSource,
+  toApiFailure,
+} from "../../../services/api";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { PrayerRequest } from "../../../types/prayer";
+import type { ApiFailure } from "../../../types/session";
 import {
   buildPrayerRequests,
   countPrayerIndicators,
@@ -21,25 +28,33 @@ import { PulseButton } from "./PulseButton";
 import { RequestCard } from "./RequestCard";
 import { SubNav } from "./SubNav";
 
+/**
+ * The wall as it stands for this reader — one union, so a view can never be handed a list
+ * *and* a failure at once. The failure is kept raw and worded at render by `failureMessage`,
+ * the single owner of that reading: a 403 on this wall is a scope answer, never "try again".
+ */
+export type WallLoad =
+  | { readonly status: "loading" }
+  | { readonly status: "ready"; readonly requests: readonly PrayerRequest[] }
+  | { readonly status: "failed"; readonly failure: ApiFailure };
+
 export interface OracaoViewProps {
-  /** The wall as served — `null` while it loads. Never built here from whole projects. */
-  requests: readonly PrayerRequest[] | null;
-  /** The wall could not be read; the page says so instead of showing an empty wall. */
-  unreachable?: boolean;
+  /** Never built here from whole projects against the server (INT-06). */
+  wall: WallLoad;
   /** The Pulse control, when the reader may generate one (INT-06). */
   pulse?: ReactNode;
   initialContinent?: ContinentFilterValue;
 }
 
 export function OracaoView({
-  requests: served,
-  unreachable = false,
+  wall,
   pulse,
   initialContinent = ALL_CONTINENTS,
 }: OracaoViewProps) {
   const { t } = useTranslation();
   const [continent, setContinent] = useState(initialContinent);
 
+  const served = wall.status === "ready" ? wall.requests : null;
   const requests = useMemo(() => served ?? [], [served]);
   const groups = useMemo(() => groupPrayerRequests(requests), [requests]);
   const indicators =
@@ -76,7 +91,9 @@ export function OracaoView({
 
       <Indicators indicators={indicators} />
 
-      {unreachable && <EmptyState message={t("oracao_unreachable")} />}
+      {wall.status === "failed" && (
+        <EmptyState message={failureMessage(wall.failure, t)} />
+      )}
 
       {served !== null && (
         <>
@@ -109,11 +126,6 @@ export function OracaoView({
   );
 }
 
-type WallLoad =
-  | { readonly status: "loading" }
-  | { readonly status: "ready"; readonly requests: readonly PrayerRequest[] }
-  | { readonly status: "unreachable" };
-
 /**
  * **Against the server the wall is the server's** (INT-06 · OBT-411). `GET /prayer/requests`
  * answers only what the teams authorized for the network, inside the reader's scope, with
@@ -141,8 +153,8 @@ function LiveOracaoPage() {
       (requests) => {
         if (current) setWall({ status: "ready", requests });
       },
-      () => {
-        if (current) setWall({ status: "unreachable" });
+      (raw: unknown) => {
+        if (current) setWall({ status: "failed", failure: toApiFailure(raw) });
       },
     );
     return () => {
@@ -150,14 +162,12 @@ function LiveOracaoPage() {
     };
   }, []);
 
-  const requests = wall.status === "ready" ? wall.requests : null;
   return (
     <OracaoView
-      requests={requests}
-      unreachable={wall.status === "unreachable"}
+      wall={wall}
       pulse={
-        sendsPulse && prayerPulseAPI !== null && requests !== null ? (
-          <PulseButton api={prayerPulseAPI} count={requests.length} />
+        sendsPulse && prayerPulseAPI !== null && wall.status === "ready" ? (
+          <PulseButton api={prayerPulseAPI} count={wall.requests.length} />
         ) : undefined
       }
     />
@@ -173,9 +183,12 @@ function FixtureOracaoPage() {
     void hydrate();
   }, [hydrate]);
 
-  const requests = useMemo(
-    () => (hydrated ? buildPrayerRequests(projects) : null),
+  const wall = useMemo<WallLoad>(
+    () =>
+      hydrated
+        ? { status: "ready", requests: buildPrayerRequests(projects) }
+        : { status: "loading" },
     [hydrated, projects],
   );
-  return <OracaoView requests={requests} />;
+  return <OracaoView wall={wall} />;
 }

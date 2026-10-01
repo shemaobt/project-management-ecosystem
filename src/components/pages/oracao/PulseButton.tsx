@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { pulseLanguage, type PrayerPulseAPI, type PrayerPulseFile } from "../../../services/api";
+import {
+  failureMessage,
+  pulseLanguage,
+  toApiFailure,
+  type PrayerPulseAPI,
+  type PrayerPulseFile,
+} from "../../../services/api";
+import type { ApiFailure } from "../../../types/session";
 import { downloadTextFile } from "../../../utils/export";
 import { Button } from "../../ui/Button";
 import {
@@ -16,11 +23,16 @@ import {
 type Preview =
   | { readonly status: "loading" }
   | { readonly status: "ready"; readonly file: PrayerPulseFile }
-  | { readonly status: "unreachable" };
+  | { readonly status: "failed"; readonly failure: ApiFailure };
 
 export interface PulseButtonProps {
   api: PrayerPulseAPI;
-  /** How many requests the wall shows — the same scope the server renders the file from. */
+  /**
+   * How many requests the wall shows. Verified against BE-09, not assumed: the Pulse is
+   * `list_prayer_requests(db, scope)` rendered (`generate_prayer_pulse.py`), the very function
+   * `/prayer/requests` answers with, so the two differ only if a request is authorized or
+   * withdrawn between the two reads — and then the file below is the truth, not this number.
+   */
   count: number;
 }
 
@@ -44,7 +56,7 @@ export function PulseButton({ api, count }: PulseButtonProps) {
     setPreview({ status: "loading" });
     void api.generate(pulseLanguage(i18n.language)).then(
       (file) => setPreview({ status: "ready", file }),
-      () => setPreview({ status: "unreachable" }),
+      (raw: unknown) => setPreview({ status: "failed", failure: toApiFailure(raw) }),
     );
   }
 
@@ -69,13 +81,14 @@ export function PulseButton({ api, count }: PulseButtonProps) {
             {preview.status === "loading" && (
               <p className="text-small text-fg-muted">{t("oracao_pulse_loading")}</p>
             )}
-            {preview.status === "unreachable" && (
+            {preview.status === "failed" && (
               <p role="alert" className="text-small text-fg-muted">
-                {t("oracao_pulse_unreachable")}
+                {failureMessage(preview.failure, t)}
               </p>
             )}
             {preview.status === "ready" && (
               <pre
+                role="region"
                 aria-label={t("oracao_pulse_preview")}
                 tabIndex={0}
                 className="max-h-[50vh] overflow-auto rounded-lg bg-muted p-3.5 text-micro whitespace-pre-wrap text-fg"

@@ -146,7 +146,9 @@ const areas: Record<string, () => string> = {
         MemoryRouter,
         null,
         createElement(OracaoView, {
-          requests: buildPrayerRequests([
+          wall: {
+            status: "ready",
+            requests: buildPrayerRequests([
             makeProject({
               id: "brazil",
               location: "Brazil",
@@ -154,7 +156,8 @@ const areas: Record<string, () => string> = {
               prayerRequests: "Orem pelos anciãos.",
               prayerVisibility: "rede",
             }),
-          ]),
+            ]),
+          },
         }),
       ),
     ),

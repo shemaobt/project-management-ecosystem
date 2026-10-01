@@ -38,7 +38,10 @@ const view = (
       MemoryRouter,
       { initialEntries: ["/oracao"] },
       createElement(OracaoView, {
-        requests: projects === null ? null : buildPrayerRequests(projects),
+        wall:
+          projects === null
+            ? { status: "loading" }
+            : { status: "ready", requests: buildPrayerRequests(projects) },
         initialContinent,
       }),
     ),
@@ -195,13 +198,25 @@ describe("OracaoView", () => {
 });
 
 describe("o mural contra o servidor (INT-06)", () => {
-  const served = () => buildPrayerRequests([brazil, asia]);
+  const served = () => ({
+    status: "ready" as const,
+    requests: buildPrayerRequests([brazil, asia]),
+  });
+  const failed = (status: number | null) => ({
+    status: "failed" as const,
+    failure: {
+      kind: status === 403 ? ("forbidden" as const) : ("offline" as const),
+      status,
+      code: null,
+      detail: null,
+    },
+  });
   const render = (props: Record<string, unknown>) =>
     renderToStaticMarkup(
       createElement(
         MemoryRouter,
         { initialEntries: ["/oracao"] },
-        createElement(OracaoView, { requests: served(), ...props }),
+        createElement(OracaoView, { wall: served(), ...props }),
       ),
     );
 
@@ -212,15 +227,24 @@ describe("o mural contra o servidor (INT-06)", () => {
   it("mostra o controle do Pulso quando há quem o gere e há o que enviar", () => {
     const pulse = createElement("button", null, "PULSO");
     expect(render({ pulse })).toContain("PULSO");
-    expect(render({ pulse, requests: [] })).not.toContain("PULSO");
+    expect(
+      render({ pulse, wall: { status: "ready", requests: [] } }),
+    ).not.toContain("PULSO");
     expect(render({})).not.toContain("PULSO");
   });
 
   it("um mural que não pôde ser lido diz isso, e não finge estar vazio", () => {
-    const html = render({ requests: null, unreachable: true });
+    const html = render({ wall: failed(null) });
 
-    expect(html).toContain(i18n.t("oracao_unreachable"));
+    expect(html).toContain(i18n.t("net_offline"));
     expect(html).not.toContain(i18n.t("oracao_empty"));
+  });
+
+  it("uma recusa do servidor é escopo, e não um convite a tentar de novo", () => {
+    const html = render({ wall: failed(403) });
+
+    expect(html).toContain(i18n.t("net_forbidden"));
+    expect(html).not.toContain(i18n.t("net_offline"));
   });
 });
 
