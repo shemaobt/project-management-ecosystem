@@ -5,7 +5,6 @@ import {
   SESSION_ROLE_LABEL_KEYS,
   useAuth,
 } from "../../../contexts/AuthContext";
-import { projectListAvailable } from "../../../services/api";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import { useRegionsStore } from "../../../stores/regionsStore";
 import type { Project } from "../../../types/project";
@@ -25,8 +24,7 @@ const editKey = (regionKey: RegionKey, role: RoleKey) => `${regionKey}:${role}`;
 
 export interface EquipeViewProps {
   regions: readonly Region[] | null;
-  /** `null` where the build withholds the project list (INT-12): the regions carry no count. */
-  projects?: readonly Project[] | null;
+  projects?: readonly Project[];
   changes?: readonly RoleChange[];
   onSave: (drafts: ReturnType<typeof draftsFor>) => Promise<TeamSaveResult>;
 }
@@ -45,7 +43,6 @@ export function EquipeView({
   const visible = useMemo(() => regions ?? [], [regions]);
 
   const counts = useMemo(() => {
-    if (projects === null) return null;
     const tally = new Map<RegionKey, number>();
     for (const project of projects) {
       const key = getRegion(project);
@@ -124,7 +121,7 @@ export function EquipeView({
                 <RegionRoles
                   key={region.key}
                   region={region}
-                  count={counts === null ? null : (counts.get(region.key) ?? 0)}
+                  count={counts.get(region.key) ?? 0}
                   draft={drafts[region.key] ?? region.team}
                   changes={changes}
                   onChange={(role, holder) => {
@@ -206,7 +203,7 @@ export function EquipePage() {
   return (
     <EquipeView
       regions={hydrated ? visible : null}
-      projects={projectListAvailable ? projects : null}
+      projects={projects}
       changes={changes}
       onSave={(drafts) => saveTeams(drafts, changedBy)}
     />

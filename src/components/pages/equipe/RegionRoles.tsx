@@ -12,8 +12,7 @@ import { Input, Label } from "../../ui";
 
 export interface RegionRolesProps {
   region: Region;
-  /** `null` where the build does not serve the project list (INT-12) — no count is drawn. */
-  count: number | null;
+  count: number;
   draft: RegionTeam;
   changes: readonly RoleChange[];
   onChange: (role: RoleKey, holder: string) => void;
@@ -35,11 +34,9 @@ export function RegionRoles({
         <h3 className="text-h4 leading-tight font-black tracking-tight text-fg-strong">
           {t(region.labelKey)}
         </h3>
-        {count === null ? null : (
-          <span className="text-tag tabular-nums text-fg-subtle">
-            {t("equipe_projects_count", { count })}
-          </span>
-        )}
+        <span className="text-tag tabular-nums text-fg-subtle">
+          {t("equipe_projects_count", { count })}
+        </span>
       </header>
 
       <div className="flex flex-col gap-4">

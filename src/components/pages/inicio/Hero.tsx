@@ -1,15 +1,12 @@
 import { Trans, useTranslation } from "react-i18next";
 import type { Project } from "../../../types/project";
-import { ProjectListNotServed } from "../../common/ProjectListNotServed";
 import { IndicatorBand } from "./IndicatorBand";
 
 export interface HeroProps {
   projects: readonly Project[] | null;
-  /** `false` in a build that does not serve the project list — the band counts nothing then. */
-  served?: boolean;
 }
 
-export function Hero({ projects, served = true }: HeroProps) {
+export function Hero({ projects }: HeroProps) {
   const { t } = useTranslation();
 
   return (
@@ -35,7 +32,7 @@ export function Hero({ projects, served = true }: HeroProps) {
             {t("headline_sub")}
           </p>
         </div>
-        {served ? <IndicatorBand projects={projects} /> : <ProjectListNotServed />}
+        <IndicatorBand projects={projects} />
       </div>
     </section>
   );

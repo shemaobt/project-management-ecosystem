@@ -1,12 +1,7 @@
 import { RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  failureMessage,
-  formsAPI,
-  projectListAvailable,
-  toApiFailure,
-} from "../../../services/api";
+import { formsAPI, toApiFailure, failureMessage } from "../../../services/api";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { IntakeLink, IntakeLinkCreated } from "../../../types/forms";
 import type { Project } from "../../../types/project";
@@ -25,7 +20,6 @@ import {
 } from "../../ui";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { OneTimeLink } from "../../common/OneTimeLink";
-import { ProjectListNotServed } from "../../common/ProjectListNotServed";
 import {
   LINK_STATUS_LABEL_KEYS,
   LINK_STATUS_TONES,
@@ -43,11 +37,6 @@ export interface LeaderLinkDialogBodyProps {
   onMint: () => void;
   onRevoke: (linkId: string) => void;
   error: string | null;
-  /**
-   * `false` where the build withholds the project list (INT-12): a link minted for a sample id
-   * would be a real server link for a project that is not this one, so no picker is drawn.
-   */
-  served?: boolean;
 }
 
 export function LeaderLinkDialogBody({
@@ -60,7 +49,6 @@ export function LeaderLinkDialogBody({
   onMint,
   onRevoke,
   error,
-  served = true,
 }: LeaderLinkDialogBodyProps) {
   const { t } = useTranslation();
   const sorted = projects ? selectableProjects(projects) : [];
@@ -71,9 +59,7 @@ export function LeaderLinkDialogBody({
       <p className="text-small leading-body text-fg">{t("intake_scope")}</p>
       <p className="text-small leading-body text-fg">{t("intake_expiry")}</p>
 
-      {!served ? (
-        <ProjectListNotServed />
-      ) : projects === null ? (
+      {projects === null ? (
         <div className="flex justify-center py-6">
           <LoadingSpinner size="md" label={t("loading")} />
         </div>
@@ -259,7 +245,6 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
             onMint={mint}
             onRevoke={revoke}
             error={error}
-            served={projectListAvailable}
           />
         </DialogBody>
         <DialogFooter>
