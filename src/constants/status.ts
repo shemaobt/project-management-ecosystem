@@ -55,6 +55,17 @@ export const PRIORITY_LABEL_KEYS: Record<ProjectPriority, string> = {
   default: "priority_default",
 };
 
+export const PRIORITY_SYMBOLS: Record<ProjectPriority, string> = {
+  critical: "!",
+  warning: "~",
+  completed: "✓",
+  planned: "+",
+  default: "›",
+  paused: "‖",
+  canceled: "×",
+  unknown: "?",
+};
+
 export const HEALTH_SYMBOLS: Record<OverallHealth, string> = {
   boa: "✓",
   atencao: "!",

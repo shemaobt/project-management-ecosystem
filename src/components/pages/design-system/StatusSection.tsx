@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { PROJECT_PRIORITIES } from "../../../constants/project";
+import { PRIORITY_LABEL_KEYS } from "../../../constants/status";
 import { PriorityPin, StatusBadge, StatusDot } from "../../common/StatusBadge";
 import { Badge, Chip } from "../../ui";
 import { Section } from "./Section";
@@ -23,9 +26,8 @@ const RHYTHM = [
   { state: "new", label: "A iniciar" },
 ] as const;
 
-const PRIORITIES = ["critical", "warning", "completed", "planned"] as const;
-
 export function StatusSection() {
+  const { t } = useTranslation();
   const [chip, setChip] = useState(true);
 
   return (
@@ -51,13 +53,13 @@ export function StatusSection() {
           {HEALTH.map((h) => (
             <StatusDot key={h.state} {...h} />
           ))}
-          {PRIORITIES.map((p) => (
+          {PROJECT_PRIORITIES.map((p) => (
             <span
               key={p}
               className="flex items-center gap-1.5 text-micro text-fg-subtle"
             >
               <PriorityPin priority={p} />
-              {p}
+              {t(PRIORITY_LABEL_KEYS[p])}
             </span>
           ))}
         </div>
