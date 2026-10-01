@@ -37,7 +37,6 @@ const { filterProjects, matchesSearch } = await import("../../../utils/search");
 const { INDICATORS, indicatorCount } = await import(
   "../../../utils/indicators"
 );
-const { redactProjectForExport } = await import("../../../utils/privacy");
 const { EMPTY_FILTERS } = await import("../../../stores/filtersStore");
 
 const NOW = new Date("2026-09-20T12:00:00");
@@ -164,15 +163,4 @@ describe("a base de um projeto sensível não aparece em nenhum dos nove lugares
       }
     },
   );
-
-  it("o export — o décimo — nunca leva a base, nem para a coordenação", () => {
-    const t = i18n.t.bind(i18n);
-    for (const readAs of [undefined, "other", "coordination"] as const) {
-      const row = redactProjectForExport(
-        project({ sensitiveCountry: true, readAs }),
-        t,
-      );
-      expect(JSON.stringify(row)).not.toContain(BASE);
-    }
-  });
 });

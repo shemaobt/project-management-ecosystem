@@ -149,112 +149,154 @@ describe("o Link do líder declara escopo e validade, e agora gera de verdade", 
   });
 });
 
-describe("o Exportar mostra o aviso antes do download", () => {
-  it("carregando não vira zero — sem botões enquanto não há dados", () => {
-    const markup = renderToStaticMarkup(
-      createElement(ExportDialogBody, { projects: null, onDownload: noop }),
-    );
-
-    expect(markup).toContain(i18n.t("loading"));
-    expect(markup).not.toContain(i18n.t("export_json"));
-    expect(markup).not.toContain(i18n.t("export_count", { count: 0 }));
-  });
-
-  it("com dados, diz o que sai, o aviso, a contagem e o recolhimento", () => {
-    const markup = renderToStaticMarkup(
+describe("o Exportar é do servidor (INT-11)", () => {
+  const markup = (over: Partial<Parameters<typeof ExportDialogBody>[0]> = {}) =>
+    renderToStaticMarkup(
       createElement(ExportDialogBody, {
-        projects: [
-          project(),
-          project({ id: "guardado", sensitiveCountry: true }),
-        ],
+        available: true,
+        run: { status: "idle" },
         onDownload: noop,
+        ...over,
       }),
     );
 
-    expect(markup).toContain(i18n.t("export_contains"));
-    expect(markup).toContain(i18n.t("export_confidential"));
-    expect(markup).toContain(i18n.t("export_count", { count: 2 }));
-    // A list no server read for this person addresses the notice to nobody.
-    expect(markup).not.toContain(i18n.t("export_withheld_count", { count: 1 }));
-    expect(markup).toContain(i18n.t("export_json"));
-    expect(markup).toContain(i18n.t("export_csv"));
+  it("diz o que sai e o aviso antes do download, com os dois formatos", () => {
+    const out = markup();
+
+    expect(out).toContain(i18n.t("export_contains"));
+    expect(out).toContain(i18n.t("export_confidential"));
+    expect(out).toContain(i18n.t("export_json"));
+    expect(out).toContain(i18n.t("export_csv"));
   });
 
-  it("lida como coordenação, anuncia quantos saem recolhidos", () => {
-    const markup = renderToStaticMarkup(
-      createElement(ExportDialogBody, {
-        projects: [
-          project({ readAs: "coordination" }),
-          project({ id: "guardado", sensitiveCountry: true, readAs: "coordination" }),
-        ],
-        onDownload: noop,
-      }),
-    );
+  it("sem servidor não há exportação de reserva: diz isso e não oferece botão", () => {
+    const out = markup({ available: false });
 
-    expect(markup).toContain(i18n.t("export_withheld_count", { count: 1 }));
+    expect(out).toContain(i18n.t("export_needs_server"));
+    expect(out).not.toContain(i18n.t("export_json"));
   });
 
-  it("sem país sensível, não fala em recolhimento", () => {
-    const markup = renderToStaticMarkup(
-      createElement(ExportDialogBody, {
-        projects: [project()],
-        onDownload: noop,
-      }),
-    );
+  it("em andamento, mostra o progresso real e que dá para continuar trabalhando", () => {
+    const out = markup({
+      run: { status: "running", progress: { loaded: 512 * 1024, total: 1024 * 1024 } },
+    });
 
-    expect(markup).not.toContain(i18n.t("export_withheld_count", { count: 0 }));
+    expect(out).toContain('role="progressbar"');
+    expect(out).toContain('aria-valuenow="50"');
+    expect(out).toContain(i18n.t("export_keep_working"));
+    expect(out).not.toContain(i18n.t("export_json"));
+  });
+
+  it("sem o tamanho do arquivo, conta os bytes e não inventa porcentagem", () => {
+    const out = markup({
+      run: { status: "running", progress: { loaded: 3 * 1024, total: null } },
+    });
+
+    expect(out).toContain(i18n.t("export_progress_bytes", { size: "3 KB" }));
+    expect(out).not.toContain("aria-valuenow");
+  });
+
+  it("uma recusa do servidor tem a frase dela, e os botões voltam", () => {
+    const out = markup({
+      run: {
+        status: "failed",
+        failure: { kind: "forbidden", status: 403, code: null, detail: null },
+      },
+    });
+
+    expect(out).toContain(i18n.t("net_forbidden"));
+    expect(out).toContain(i18n.t("export_json"));
   });
 });
 
-describe("o Importar diz que é tudo ou nada, e recusa dizendo o porquê", () => {
-  it("antes do arquivo, explica a regra e oferece a escolha", () => {
-    const markup = renderToStaticMarkup(
+describe("o Importar mostra o efeito antes de aplicar, e recusa dizendo o porquê", () => {
+  const body = (over: Partial<Parameters<typeof ImportDialogBody>[0]> = {}) =>
+    renderToStaticMarkup(
       createElement(ImportDialogBody, {
+        target: "server",
+        allowed: true,
         pick: null,
+        applying: false,
+        refusal: null,
         onChoose: noop,
         onApply: noop,
+        ...over,
       }),
     );
+  const picked = (records: unknown[]) => {
+    const raw = JSON.stringify(records);
+    return { fileName: "backup", raw, result: parseProjectsImport(raw) };
+  };
 
-    expect(markup).toContain(i18n.t("import_desc"));
-    expect(markup).toContain(i18n.t("import_choose"));
-    expect(markup).not.toContain(i18n.t("import_apply"));
+  it("antes do arquivo, explica a regra e oferece a escolha", () => {
+    const out = body();
+
+    expect(out).toContain(i18n.t("import_desc"));
+    expect(out).toContain(i18n.t("import_choose"));
+    expect(out).not.toContain(i18n.t("import_apply_server"));
   });
 
-  it("com arquivo válido, mostra a contagem e pede a confirmação", () => {
-    const result = parseProjectsImport(
-      JSON.stringify([
+  it("quem não é coordenação não recebe o seletor — recebe de quem é a importação", () => {
+    const out = body({ allowed: false });
+
+    expect(out).toContain(i18n.t("import_coordination_only"));
+    expect(out).not.toContain(i18n.t("import_choose"));
+  });
+
+  it("contra o servidor, a prévia nomeia os projetos e diz as regras da gravação", () => {
+    const out = body({
+      pick: picked([
         { id: "a", languageName: "Tikuna" },
         { id: "b", languageName: "Kaingang" },
       ]),
-    );
-    const markup = renderToStaticMarkup(
-      createElement(ImportDialogBody, {
-        pick: { fileName: "backup", result },
-        onChoose: noop,
-        onApply: noop,
-      }),
-    );
+    });
 
-    expect(markup).toContain(i18n.t("import_ready", { count: 2 }));
-    expect(markup).toContain(i18n.t("confirm_import"));
-    expect(markup).toContain(i18n.t("import_apply"));
+    expect(out).toContain(i18n.t("import_ready", { count: 2 }));
+    expect(out).toContain("Tikuna");
+    expect(out).toContain("Kaingang");
+    expect(out).toContain(i18n.t("import_preview_kept"));
+    expect(out).toContain(i18n.t("import_preview_prayer"));
+    expect(out).toContain(i18n.t("import_preview_server_fields"));
+    expect(out).toContain(i18n.t("import_confirm_server"));
+    // The fixture's wholesale replace is not what the server does.
+    expect(out).not.toContain(i18n.t("confirm_import"));
+  });
+
+  it("uma lista longa nomeia dez e conta o resto", () => {
+    const records = Array.from({ length: 12 }, (_, index) => ({
+      id: `p${index}`,
+      languageName: `Língua ${index}`,
+    }));
+    const out = body({ pick: picked(records) });
+
+    expect(out).toContain("Língua 9");
+    expect(out).not.toContain("Língua 10");
+    expect(out).toContain(i18n.t("import_preview_more", { count: 2 }));
+  });
+
+  it("sem servidor, a importação local continua substituindo, e diz isso", () => {
+    const out = body({
+      target: "local",
+      pick: picked([{ id: "a", languageName: "Tikuna" }]),
+    });
+
+    expect(out).toContain(i18n.t("confirm_import"));
+    expect(out).toContain(i18n.t("import_apply"));
+    expect(out).not.toContain(i18n.t("import_preview_kept"));
   });
 
   it("com arquivo quebrado, nomeia o item e afirma que nada entrou", () => {
-    const result = parseProjectsImport(
-      JSON.stringify([{ id: "a", languageName: "Tikuna" }, { id: "b" }]),
-    );
-    const markup = renderToStaticMarkup(
-      createElement(ImportDialogBody, {
-        pick: { fileName: "quebrado", result },
-        onChoose: noop,
-        onApply: noop,
-      }),
-    );
+    const out = body({ pick: picked([{ id: "a", languageName: "Tikuna" }, { id: "b" }]) });
 
-    expect(markup).toContain(i18n.t("import_bad_record", { index: 2 }));
-    expect(markup).toContain(i18n.t("import_none_applied"));
-    expect(markup).not.toContain(i18n.t("import_apply"));
+    expect(out).toContain(i18n.t("import_bad_record", { index: 2 }));
+    expect(out).toContain(i18n.t("import_none_applied"));
+    expect(out).not.toContain(i18n.t("import_apply_server"));
+  });
+
+  it("uma recusa do servidor aparece com a frase dela e afirma que nada entrou", () => {
+    const out = body({ refusal: i18n.t("import_duplicate_id", { id: "a" }) });
+
+    expect(out).toContain(i18n.t("import_duplicate_id", { id: "a" }));
+    expect(out).toContain(i18n.t("import_none_applied"));
   });
 });

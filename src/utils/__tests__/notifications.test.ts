@@ -8,6 +8,7 @@ import type {
   NotificationPrefs,
   RequestArrivalNotification,
   RequestDecisionNotification,
+  ServedNotification,
 } from "../../types/notification";
 import type { NeedItem, Project } from "../../types/project";
 import { removeNeedAt } from "../needs";
@@ -16,7 +17,9 @@ import {
   buildNotifications,
   countUnread,
   isRequestNotice,
+  isServedNotice,
   notificationAge,
+  prefsHandlers,
   routedNotifications,
   routeNotifications,
   visibleNotifications,
@@ -635,5 +638,90 @@ describe("avisos do formulário (OBT-541)", () => {
     );
     expect(derived.some(isRequestNotice)).toBe(false);
     expect(entries.every(isRequestNotice)).toBe(true);
+  });
+});
+
+describe("o que o servidor serviu (INT-11)", () => {
+  const served = (
+    over: Partial<ServedNotification> = {},
+  ): ServedNotification => ({
+    origin: "server",
+    id: "n-1",
+    kind: "health",
+    urgent: false,
+    projectId: "mentored",
+    date: "2026-08-14",
+    body: "Tikuna was assessed.",
+    ...over,
+  });
+  const prefs = (over: Partial<NotificationPrefs> = {}): NotificationPrefs => ({
+    ...NOTIF_DEFAULTS,
+    ...over,
+  });
+  const listed = [
+    makeProject({ id: "mentored", mentor: "Pati & Marcos" }),
+    makeProject({ id: "other", mentor: "Rodolfo" }),
+  ];
+
+  it("é reconhecido pela origem, e um aviso de pedido não é", () => {
+    expect(isServedNotice(served())).toBe(true);
+  });
+
+  it("só os que mentoro pergunta o mentor aos projetos listados, pelo projectId", () => {
+    const entries = [served(), served({ id: "n-2", projectId: "other" })];
+    const kept = applyNotificationPrefs(
+      entries,
+      prefs({ scope: "mentored" }),
+      "Pati",
+      listed,
+    );
+
+    expect(kept.map((entry) => entry.id)).toEqual(["n-1"]);
+  });
+
+  it("um aviso servido sem projeto não passa no filtro de mentoria", () => {
+    const kept = applyNotificationPrefs(
+      [served({ projectId: null })],
+      prefs({ scope: "mentored" }),
+      "Pati",
+      listed,
+    );
+
+    expect(kept).toEqual([]);
+  });
+
+  it("só os urgentes e a lista personalizada valem igual para o servido", () => {
+    const entries = [served({ urgent: true }), served({ id: "n-2", projectId: "other" })];
+
+    expect(
+      applyNotificationPrefs(entries, prefs({ when: "urgent" }), null).map((e) => e.id),
+    ).toEqual(["n-1"]);
+    expect(
+      applyNotificationPrefs(
+        entries,
+        prefs({ scope: "custom", customProjectIds: ["other"] }),
+        null,
+      ).map((e) => e.id),
+    ).toEqual(["n-2"]);
+  });
+});
+
+describe("prefsHandlers — um dono para o que cada controle muda", () => {
+  it("as operações mudam o rascunho que receberam e nada mais", () => {
+    let current: NotificationPrefs = NOTIF_DEFAULTS;
+    const handlers = prefsHandlers((change) => {
+      current = change(current);
+    });
+
+    handlers.toggleChannel("whatsapp");
+    handlers.setWhen("urgent");
+    handlers.toggleCustomProject("a");
+    handlers.toggleCustomProject("b");
+    handlers.toggleCustomProject("a");
+
+    expect(current.channels.whatsapp).toBe(!NOTIF_DEFAULTS.channels.whatsapp);
+    expect(current.when).toBe("urgent");
+    expect(current.customProjectIds).toEqual(["b"]);
+    expect(NOTIF_DEFAULTS.customProjectIds).toEqual([]);
   });
 });
