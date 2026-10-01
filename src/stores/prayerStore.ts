@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { announceFailure, intercessorsAPI, toApiFailure } from "../services/api";
 import type { ConsentContext, IntercessorEntry } from "../types/prayer";
 import {
@@ -144,6 +144,11 @@ export const usePrayerStore = create<PrayerState>()(
     {
       name: INTERCESSORS_KEY,
       version: INTERCESSORS_VERSION,
+      // **The tab's session, never the device** (INT-06 · OBT-411). The network holds people's
+      // names and contacts, and a shared or borrowed phone is a normal circumstance in the
+      // field: closing the tab drops the list, and the next visit reads it again from the
+      // server, which is where it lives. `localStorage` kept it for good.
+      storage: createJSONStorage(() => sessionStorage),
       migrate: () => ({
         intercessors: [],
         withheldCount: 0,
