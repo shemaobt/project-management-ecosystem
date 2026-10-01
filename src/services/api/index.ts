@@ -82,6 +82,14 @@ export const membersAPI = pick<typeof fixture.membersAPI>(
 export const accessAPI: api.AccessAPI | null =
   resolveSource("access") === "api" ? api.accessAPI : null;
 
+/**
+ * The Prayer Pulse has no fixture (INT-06 · OBT-411): with no server there is nothing to render
+ * the file from, and a sample that looked like a real Pulse is exactly what must never be
+ * mistaken for one. `null` keeps the button off the wall in fixture mode — absent, not disabled.
+ */
+export const prayerPulseAPI: api.PrayerPulseAPI | null =
+  resolveSource("prayer") === "api" ? api.prayerPulseAPI : null;
+
 export const resourceRequestsAPI: ResourceRequestsAPI | null =
   resolveSource("resourceRequests") === "api" ? apiResourceRequestsAPI : null;
 
@@ -95,7 +103,7 @@ export {
 } from "../../fixtures";
 
 export { announceFailure, failureSentence } from "./announce";
-export { authAPI, readSession, sessionAPI } from "./endpoints";
+export { authAPI, pulseLanguage, readSession, sessionAPI } from "./endpoints";
 export { API_BASE_URL, REQUEST_TIMEOUT_MS, http } from "./client";
 export {
   FAILURE_MESSAGE_KEYS,
@@ -112,7 +120,7 @@ export {
 export { hasSession, onSessionEvent } from "./tokens";
 export { resolveSource } from "./source";
 export type { DataNamespace, DataSource } from "./source";
-export type { AccessAPI } from "./endpoints";
+export type { AccessAPI, PrayerPulseAPI, PrayerPulseFile, PulseLanguage } from "./endpoints";
 export type { ResourceRequestsAPI } from "./resourceRequests";
 export type { Translate } from "./errors";
 export type { ProjectBrowseQuery, ProjectBrowseResult } from "../../types/projectBrowse";

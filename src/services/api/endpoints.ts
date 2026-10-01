@@ -711,3 +711,47 @@ export const accessAPI = {
 };
 
 export type AccessAPI = typeof accessAPI;
+
+/** The two languages the Pulse is written in — the console's own locale spelling (BE-09). */
+export type PulseLanguage = "pt-BR" | "en";
+
+/** The Pulse is written in the language the console is showing; the server speaks both. */
+export function pulseLanguage(language: string): PulseLanguage {
+  return language.startsWith("en") ? "en" : "pt-BR";
+}
+
+/**
+ * The Prayer Pulse, generated on the server (INT-06 · OBT-411, BE-09). **The server writes the
+ * file and the screen only shows it**: `GET /shema/prayer/pulse` renders the wall inside the
+ * caller's scope — only requests the teams authorized for the network, sensitive countries
+ * already transformed — and generating changes nothing there. `resourceCircle` alone may call
+ * it. Its own namespace at the end of this file, as the no-collision rule asks.
+ */
+export interface PrayerPulseFile {
+  readonly text: string;
+  /** The name the server gives the file; the screen saves it under this name. */
+  readonly fileName: string;
+}
+
+const PULSE_FALLBACK_NAME = "pulso-de-oracao.txt";
+
+export function pulseFileName(disposition: unknown): string {
+  if (typeof disposition !== "string") return PULSE_FALLBACK_NAME;
+  const match = /filename="([^"]+)"/u.exec(disposition);
+  return match?.[1] ?? PULSE_FALLBACK_NAME;
+}
+
+export const prayerPulseAPI = {
+  async generate(language: PulseLanguage): Promise<PrayerPulseFile> {
+    const response = await http.get<string>(`${SHEMA}/prayer/pulse`, {
+      params: { lang: language },
+      responseType: "text",
+    });
+    return {
+      text: response.data,
+      fileName: pulseFileName(response.headers["content-disposition"]),
+    };
+  },
+};
+
+export type PrayerPulseAPI = typeof prayerPulseAPI;
