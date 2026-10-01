@@ -121,8 +121,9 @@ interface ImportPreviewProps {
 /**
  * What the file will do, before it does it (INT-11 · OBT-416). BE-14 has no dry run, so the
  * preview reads the file itself — how many records, which ones — and states the server's own
- * rules for a merge: a project the file does not name is left as it is, no prayer request is
- * published or withdrawn by a file, and what the server derives is not taken from one.
+ * rules for a merge, each checked against `import_projects.py`: a project the file does not name
+ * is left as it is; the file authorizes nothing (`NOT_FROM_A_FILE` drops the visibility, and a
+ * request it changes is unauthorized again); what the server derives is dropped and named.
  */
 function ImportPreview({ target, projects, applying, onApply }: ImportPreviewProps) {
   const { t } = useTranslation();
@@ -202,12 +203,19 @@ export function ImportDialog({ open, onOpenChange }: HeaderDialogProps) {
     setPick({ fileName: file.name, raw, result: parseProjectsImport(raw) });
   };
 
+  // The dialog may be closed while the file is in flight; the toast is what still reaches the
+  // person then, exactly as it does when the import succeeds.
+  const refuse = (sentence: string) => {
+    setRefusal(sentence);
+    toast(sentence);
+  };
+
   const applyOnServer = async (api: TransferAPI, chosen: ImportPick) => {
     setApplying(true);
     try {
       const answer = await api.importProjects(chosen.raw);
       if (!answer.ok) {
-        setRefusal(t(answer.error.key, { ...answer.error }));
+        refuse(t(answer.error.key, { ...answer.error }));
         return;
       }
       toast(t("import_done", { count: answer.applied }));
@@ -217,7 +225,7 @@ export function ImportDialog({ open, onOpenChange }: HeaderDialogProps) {
       setPick(null);
       onOpenChange(false);
     } catch (raw: unknown) {
-      setRefusal(failureMessage(toApiFailure(raw), t));
+      refuse(failureMessage(toApiFailure(raw), t));
     } finally {
       setApplying(false);
     }

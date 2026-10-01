@@ -30,6 +30,10 @@ export interface NotificationsFeed {
   prefs: NotificationPrefs;
   /** `false` while the saved preferences are still on their way — saving then would overwrite them. */
   prefsReady: boolean;
+  /** Why the saved preferences could not be read; the panel then says so instead of showing defaults as saved. */
+  prefsFailure: ApiFailure | null;
+  /** Asks for the saved preferences again, after a failed read. */
+  retryPrefs: () => void;
   savePrefs: (prefs: NotificationPrefs) => Promise<ApiFailure | null>;
   /** The projects the scope picker lists and *só os que mentoro* asks for a mentor. */
   projects: readonly Project[];
@@ -111,10 +115,14 @@ function useDerivedFeed(): NotificationsFeed {
     markRead,
     prefs,
     prefsReady: true,
+    prefsFailure: null,
+    retryPrefs: noRetry,
     savePrefs,
     projects,
   };
 }
+
+function noRetry(): void {}
 
 /**
  * Against the server (INT-11 · OBT-416, BE-15). The list, the read mark and the preferences are
@@ -129,6 +137,8 @@ function useServedFeed(api: NotificationsAPI): NotificationsFeed {
   const [failure, setFailure] = useState<ApiFailure | null>(null);
   const [seen, setSeen] = useState<ReadonlySet<string>>(new Set());
   const [prefs, setPrefs] = useState<NotificationPrefs | null>(null);
+  const [prefsFailure, setPrefsFailure] = useState<ApiFailure | null>(null);
+  const [prefsAttempt, setPrefsAttempt] = useState(0);
 
   useEffect(() => {
     let current = true;
@@ -169,16 +179,24 @@ function useServedFeed(api: NotificationsAPI): NotificationsFeed {
     let current = true;
     api.prefs().then(
       (saved) => {
-        if (current) setPrefs(saved);
+        if (!current) return;
+        setPrefs(saved);
+        setPrefsFailure(null);
       },
-      () => {
+      (raw: unknown) => {
         // Unread preferences stay unready, so a save cannot overwrite what was never read.
+        if (current) setPrefsFailure(toApiFailure(raw));
       },
     );
     return () => {
       current = false;
     };
-  }, [api]);
+  }, [api, prefsAttempt]);
+
+  const retryPrefs = useCallback(() => {
+    setPrefsFailure(null);
+    setPrefsAttempt((attempt) => attempt + 1);
+  }, []);
 
   const shownPrefs = prefs ?? NOTIF_DEFAULTS;
   const entries = useMemo(
@@ -228,6 +246,8 @@ function useServedFeed(api: NotificationsAPI): NotificationsFeed {
     markRead,
     prefs: shownPrefs,
     prefsReady: prefs !== null,
+    prefsFailure,
+    retryPrefs,
     savePrefs,
     projects,
   };

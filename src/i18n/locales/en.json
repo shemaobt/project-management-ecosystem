@@ -1410,10 +1410,11 @@
   "import_preview_more_one": "and {{count}} more project",
   "import_preview_more_other": "and {{count}} more projects",
   "import_preview_kept": "Projects not in the file stay as they are — nothing is deleted.",
-  "import_preview_prayer": "No prayer request is published or withdrawn by the file: that is always the team's decision on the record.",
+  "import_preview_prayer": "The file authorizes no prayer request: authorization is always the team's, on the record, and a request the file brings changed needs it again.",
   "import_preview_server_fields": "What the server derives — health, history, media — is not taken from the file and will be ignored.",
   "import_confirm_server": "Each project in the file will be saved over the record with the same id, and the ones that do not exist will be created. If one fails, none goes in.",
   "import_apply_server": "Import and save",
   "import_applying": "Importing…",
-  "import_ignored_fields": "The server does not take these from a file and ignored them: {{fields}}."
+  "import_ignored_fields": "The server does not take these from a file and ignored them: {{fields}}.",
+  "notif_prefs_unread": "Your saved preferences could not be read — what shows below is the default, not your choice, and Save stays closed until they are read."
 }

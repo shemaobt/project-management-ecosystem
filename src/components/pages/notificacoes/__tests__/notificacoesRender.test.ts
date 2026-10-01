@@ -277,6 +277,27 @@ describe("o painel contra o servidor (INT-11)", () => {
     expect(markup).toContain('href="/ficha/tikuna/identidade"');
   });
 
+  it("preferências que não puderam ser lidas não se passam por escolha salva", () => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        MemoryRouter,
+        null,
+        createElement(NotificationsPanelBody, {
+          entries: [],
+          prefsUnread: i18n.t("notif_prefs_unread"),
+          onRetryPrefs: () => {},
+          projects: [],
+          prefs: { ...NOTIF_DEFAULTS },
+          handlers,
+        }),
+      ),
+    );
+
+    expect(markup).toContain('role="alert"');
+    expect(markup).toContain(i18n.t("notif_prefs_unread"));
+    expect(markup).toContain(i18n.t("net_retry"));
+  });
+
   it("uma lista que não pôde ser lida diz por quê, em vez de girar para sempre", () => {
     const markup = servedView(null, "Sem conexão com o servidor.");
 

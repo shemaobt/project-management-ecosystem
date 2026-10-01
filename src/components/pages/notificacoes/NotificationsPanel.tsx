@@ -48,6 +48,9 @@ export interface NotificationsPanelBodyProps {
   entries: readonly PanelEntry[] | null;
   /** The sentence for a list that could not be read, in place of the spinner. */
   unreadable?: string | null;
+  /** Why the saved preferences are not what is shown, when they could not be read. */
+  prefsUnread?: string | null;
+  onRetryPrefs?: () => void;
   projects: readonly Project[];
   prefs: NotificationPrefs;
   handlers: NotificationPrefsHandlers;
@@ -57,6 +60,8 @@ export interface NotificationsPanelBodyProps {
 export function NotificationsPanelBody({
   entries,
   unreadable = null,
+  prefsUnread = null,
+  onRetryPrefs,
   projects,
   prefs,
   handlers,
@@ -66,6 +71,19 @@ export function NotificationsPanelBody({
 
   return (
     <DialogBody className="pt-6">
+      {prefsUnread !== null && (
+        <div
+          role="alert"
+          className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border-l-4 border-status-attention bg-status-attention-bg px-4 py-3 text-small leading-[1.45] text-status-attention-ink"
+        >
+          <p>{prefsUnread}</p>
+          {onRetryPrefs && (
+            <Button variant="secondary" size="sm" onClick={onRetryPrefs}>
+              {t("net_retry")}
+            </Button>
+          )}
+        </div>
+      )}
       <MasterSwitch prefs={prefs} handlers={handlers} />
       <SectionLabel number="01">{t("notif_sec_channels")}</SectionLabel>
       <ChannelsSection prefs={prefs} handlers={handlers} />
@@ -148,6 +166,12 @@ export function NotificationsPanel({
         </DialogHeader>
         <NotificationsPanelBody
           entries={feed.entries}
+          prefsUnread={
+            feed.prefsFailure === null
+              ? null
+              : `${t("notif_prefs_unread")} ${failureMessage(feed.prefsFailure, t)}`
+          }
+          onRetryPrefs={feed.retryPrefs}
           unreadable={feed.failure === null ? null : failureMessage(feed.failure, t)}
           projects={feed.projects}
           prefs={draft ?? saved}
