@@ -7,6 +7,7 @@ import {
   HEALTH_LABEL_KEYS,
   HEALTH_SYMBOLS,
   PRIORITY_LABEL_KEYS,
+  PRIORITY_SYMBOLS,
   type PrayerState,
 } from "../../constants/status";
 import {
@@ -66,12 +67,13 @@ export const prayerBadgeVariants = cva(pillBase, {
   variants: { state: PRAYER_TONES },
 });
 
-export const healthDotVariants = cva(
-  `${circleControl} size-4.5 text-[9px] font-black`,
-  { variants: { state: HEALTH_DOT_TONES } },
-);
+const glyphDot = `${circleControl} size-4.5 text-[9px] font-black`;
 
-export const priorityPinVariants = cva("size-2 rounded-pill", {
+export const healthDotVariants = cva(glyphDot, {
+  variants: { state: HEALTH_DOT_TONES },
+});
+
+export const priorityPinVariants = cva(glyphDot, {
   variants: { priority: PRIORITY_TONES },
 });
 
@@ -165,6 +167,7 @@ export function PriorityPin({ priority, className }: PriorityPinProps) {
       title={spoken}
       className={cn(priorityPinVariants({ priority }), className)}
     >
+      <span aria-hidden>{PRIORITY_SYMBOLS[priority]}</span>
       <span className="sr-only">{spoken}</span>
     </span>
   );

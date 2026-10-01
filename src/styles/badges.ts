@@ -63,12 +63,12 @@ export const REPORTING_TONES: Record<ReportingState, string> = {
 };
 
 export const PRIORITY_TONES: Record<ProjectPriority, string> = {
-  critical: "bg-status-critical",
-  warning: "bg-status-attention",
-  completed: "bg-status-good",
-  canceled: "bg-status-na",
-  paused: "bg-status-na",
-  planned: "bg-azul",
-  unknown: "bg-status-na",
-  default: "bg-status-na",
+  critical: "bg-status-critical text-on-dark",
+  warning: "bg-status-attention-fg text-on-dark",
+  completed: "bg-verde-claro-ink text-on-dark",
+  canceled: "bg-status-na text-on-light",
+  paused: "bg-status-na text-on-light",
+  planned: "bg-azul-ink text-on-dark",
+  unknown: "bg-status-na text-on-light",
+  default: "bg-status-na text-on-light",
 };
