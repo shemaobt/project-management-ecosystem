@@ -1,12 +1,14 @@
-import type { ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useNotificationStore } from "../../../stores/notificationStore";
+import { failureMessage } from "../../../services/api";
 import type {
-  AppNotification,
   NotificationPrefs,
   NotificationPrefsHandlers,
+  PanelEntry,
 } from "../../../types/notification";
 import type { Project } from "../../../types/project";
+import type { ApiFailure } from "../../../types/session";
+import { prefsHandlers } from "../../../utils/notifications";
 import {
   Button,
   Dialog,
@@ -25,6 +27,7 @@ import {
   ScopeSection,
   WhenSection,
 } from "./PrefsSections";
+import type { NotificationsFeed } from "./useNotifications";
 
 function SectionLabel({
   number,
@@ -42,7 +45,9 @@ function SectionLabel({
 }
 
 export interface NotificationsPanelBodyProps {
-  entries: readonly AppNotification[] | null;
+  entries: readonly PanelEntry[] | null;
+  /** The sentence for a list that could not be read, in place of the spinner. */
+  unreadable?: string | null;
   projects: readonly Project[];
   prefs: NotificationPrefs;
   handlers: NotificationPrefsHandlers;
@@ -51,6 +56,7 @@ export interface NotificationsPanelBodyProps {
 
 export function NotificationsPanelBody({
   entries,
+  unreadable = null,
   projects,
   prefs,
   handlers,
@@ -72,6 +78,7 @@ export function NotificationsPanelBody({
       <SectionLabel number="05">{t("notif_sec_log")}</SectionLabel>
       <NotificationLog
         entries={entries}
+        unreadable={unreadable}
         enabled={prefs.enabled}
         onNavigate={onNavigate}
       />
@@ -82,21 +89,51 @@ export function NotificationsPanelBody({
 export interface NotificationsPanelProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  entries: readonly AppNotification[] | null;
-  projects: readonly Project[];
+  feed: NotificationsFeed;
 }
 
+/**
+ * The preferences are a draft until *Salvar* (INT-11 · OBT-416): against the server a save is a
+ * request that can fail, so a toggle that took effect on click would claim a choice the server
+ * never kept. Closing without saving discards the draft; a refused save says why and keeps it.
+ */
 export function NotificationsPanel({
   open,
   onOpenChange,
-  entries,
-  projects,
+  feed,
 }: NotificationsPanelProps) {
   const { t } = useTranslation();
-  const store = useNotificationStore();
+  const [draft, setDraft] = useState<NotificationPrefs | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [refusal, setRefusal] = useState<ApiFailure | null>(null);
+  const saved = feed.prefs;
+  const handlers = useMemo(
+    () => prefsHandlers((change) => setDraft((before) => change(before ?? saved))),
+    [saved],
+  );
+
+  const close = (next: boolean) => {
+    if (!next) {
+      setDraft(null);
+      setRefusal(null);
+    }
+    onOpenChange(next);
+  };
+
+  const save = async () => {
+    if (draft === null) {
+      close(false);
+      return;
+    }
+    setSaving(true);
+    const failure = await feed.savePrefs(draft);
+    setSaving(false);
+    if (failure === null) close(false);
+    else setRefusal(failure);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={close}>
       <DialogContent size="narrow" closeLabel={t("btn_close")}>
         <DialogHeader>
           <div className="min-w-0">
@@ -110,18 +147,27 @@ export function NotificationsPanel({
           </div>
         </DialogHeader>
         <NotificationsPanelBody
-          entries={entries}
-          projects={projects}
-          prefs={store.prefs}
-          handlers={store}
-          onNavigate={() => onOpenChange(false)}
+          entries={feed.entries}
+          unreadable={feed.failure === null ? null : failureMessage(feed.failure, t)}
+          projects={feed.projects}
+          prefs={draft ?? saved}
+          handlers={handlers}
+          onNavigate={() => close(false)}
         />
         <DialogFooter>
-          <span className="flex-1 text-micro leading-[1.3] text-fg-muted">
-            {t("notif_foot")}
+          <span
+            role={refusal === null ? undefined : "alert"}
+            className="flex-1 text-micro leading-[1.3] text-fg-muted"
+          >
+            {refusal === null ? t("notif_foot") : failureMessage(refusal, t)}
           </span>
-          <Button size="sm" onClick={() => onOpenChange(false)}>
-            <span aria-hidden>✓</span> {t("notif_save")}
+          <Button
+            size="sm"
+            disabled={saving || !feed.prefsReady}
+            onClick={() => void save()}
+          >
+            <span aria-hidden>✓</span>{" "}
+            {t(saving ? "notif_saving" : "notif_save")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,5 +1,6 @@
 import type {
   NotificationChannel,
+  ProjectNotificationKind,
   NotificationKind,
   NotificationPrefs,
   NotificationScope,
@@ -100,3 +101,12 @@ export function isNotificationScope(value: string): value is NotificationScope {
 }
 
 export const NOTIFICATION_LOG_LIMIT = 30;
+
+/** The title a served project notice takes — its kind, in the reader's language (INT-11). */
+export const SERVED_NOTICE_TITLE_KEYS: Record<ProjectNotificationKind, string> = {
+  field: "notif_kind_field",
+  health: "notif_kind_health",
+  need: "notif_kind_need",
+  stale: "notif_kind_stale",
+  prayer: "notif_kind_prayer",
+};

@@ -7,8 +7,11 @@ import type { SessionRole } from "../contexts/AuthContext";
 import type {
   AppNotification,
   NotificationPrefs,
+  NotificationPrefsHandlers,
+  PanelEntry,
   ProjectNotification,
   RequestNotification,
+  ServedNotification,
 } from "../types/notification";
 import type { Project } from "../types/project";
 import type { RegionKey } from "../types/region";
@@ -153,9 +156,13 @@ export function buildNotifications(
 }
 
 export function isRequestNotice(
-  entry: AppNotification,
+  entry: PanelEntry,
 ): entry is RequestNotification {
   return entry.kind === "requestArrival" || entry.kind === "requestDecision";
+}
+
+export function isServedNotice(entry: PanelEntry): entry is ServedNotification {
+  return "origin" in entry && entry.origin === "server";
 }
 
 export interface NotificationRoute {
@@ -183,16 +190,31 @@ function mentorMatches(mentor: string, userName: string | null): boolean {
   return mentor.toLowerCase().includes(userName.trim().toLowerCase());
 }
 
-export function applyNotificationPrefs(
-  entries: readonly AppNotification[],
+/**
+ * The prefs over a list, fixture-derived or served (INT-11). A served project notice carries
+ * no mentor — the server wrote prose, not the record — so *só os que mentoro* asks the projects
+ * the panel already lists for the mentor, by the notice's `projectId`.
+ */
+export function applyNotificationPrefs<Entry extends PanelEntry>(
+  entries: readonly Entry[],
   prefs: NotificationPrefs,
   userName: string | null,
-): AppNotification[] {
+  projects: readonly Project[] = [],
+): Entry[] {
   if (!prefs.enabled) return [];
+  const mentored = new Set(
+    projects
+      .filter((project) => mentorMatches(project.mentor, userName))
+      .map((project) => project.id),
+  );
   return entries.filter((entry) => {
     if (prefs.when === "urgent" && !entry.urgent) return false;
     if (prefs.scope === "mentored") {
-      return !isRequestNotice(entry) && mentorMatches(entry.mentor, userName);
+      if (isRequestNotice(entry)) return false;
+      if (isServedNotice(entry)) {
+        return entry.projectId !== null && mentored.has(entry.projectId);
+      }
+      return mentorMatches(entry.mentor, userName);
     }
     if (prefs.scope === "custom") {
       return (
@@ -212,19 +234,51 @@ export function routedNotifications(
   return routeNotifications(buildNotifications(projects, now), route);
 }
 
-export function visibleNotifications(
-  routed: readonly AppNotification[],
+export function visibleNotifications<Entry extends PanelEntry>(
+  routed: readonly Entry[],
   prefs: NotificationPrefs,
   userName: string | null,
-): AppNotification[] {
-  return applyNotificationPrefs(routed, prefs, userName).slice(
+  projects: readonly Project[] = [],
+): Entry[] {
+  return applyNotificationPrefs(routed, prefs, userName, projects).slice(
     0,
     NOTIFICATION_LOG_LIMIT,
   );
 }
 
+/**
+ * The seven prefs operations over any holder of a `NotificationPrefs` — the store in fixture
+ * mode, the panel's unsaved draft against the server (INT-11). One owner for what each toggle
+ * means, so the two homes cannot drift.
+ */
+export function prefsHandlers(
+  update: (change: (prefs: NotificationPrefs) => NotificationPrefs) => void,
+): NotificationPrefsHandlers {
+  const patch = (fields: Partial<NotificationPrefs>) =>
+    update((prefs) => ({ ...prefs, ...fields }));
+  return {
+    setEnabled: (enabled) => patch({ enabled }),
+    toggleChannel: (channel) =>
+      update((prefs) => ({
+        ...prefs,
+        channels: { ...prefs.channels, [channel]: !prefs.channels[channel] },
+      })),
+    setWhen: (when) => patch({ when }),
+    setScope: (scope) => patch({ scope }),
+    setEmailAddr: (emailAddr) => patch({ emailAddr }),
+    setPhoneAddr: (phoneAddr) => patch({ phoneAddr }),
+    toggleCustomProject: (projectId) =>
+      update((prefs) => ({
+        ...prefs,
+        customProjectIds: prefs.customProjectIds.includes(projectId)
+          ? prefs.customProjectIds.filter((id) => id !== projectId)
+          : [...prefs.customProjectIds, projectId],
+      })),
+  };
+}
+
 export function countUnread(
-  entries: readonly AppNotification[],
+  entries: readonly PanelEntry[],
   readIds: readonly string[],
 ): number {
   const read = new Set(readIds);
