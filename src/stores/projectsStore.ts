@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { projectsAPI } from "../services/api";
+import { projectListAvailable, projectsAPI } from "../services/api";
 import type { Project } from "../types/project";
 import {
   createHydrationSlot,
@@ -11,7 +11,11 @@ import {
 
 const PROJECTS_KEY = "shema-projects-v1";
 
-export const PROJECTS_VERSION = 3;
+/**
+ * 4 since INT-12 (OBT-417): the bump discards every list an older build wrote — the whole
+ * fixture set, contacts and unauthorized prayer text included — the first time this store loads.
+ */
+export const PROJECTS_VERSION = 4;
 
 interface ProjectsState extends HydrationStatus {
   projects: Project[];
@@ -54,10 +58,12 @@ export const useProjectsStore = create<ProjectsState>()(
       name: PROJECTS_KEY,
       version: PROJECTS_VERSION,
       migrate: () => ({ projects: [], hydrated: false }),
-      partialize: (state) => ({
-        projects: state.projects,
-        hydrated: state.hydrated,
-      }),
+      // Kept in the browser only where the list is the demo itself; a server build writes
+      // nothing here, so a shared device never holds another reader's projects.
+      partialize: (state) =>
+        projectListAvailable
+          ? { projects: state.projects, hydrated: state.hydrated }
+          : { projects: [], hydrated: false },
     },
   ),
 );
