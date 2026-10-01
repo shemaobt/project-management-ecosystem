@@ -5,7 +5,11 @@ import type {
   Project,
   StaleStatus,
 } from "../../../types/project";
-import { formatDayMonth, formatNumber } from "../../../utils/format";
+import {
+  formatDate,
+  formatDayMonth,
+  formatNumber,
+} from "../../../utils/format";
 import { unitTypeLabel } from "../../../utils/progress";
 import { healthDotPhrase, priorityPhrase } from "../../common/StatusBadge";
 import { cardLastProgressUpdate, cardPriority, cardStale } from "./derived";
@@ -163,7 +167,7 @@ export function cardFunnel(project: Project, t: TFunction): CardFunnel {
  * What a screen reader hears after the card's name. A `role="button"` makes everything inside
  * the card presentational, so this sentence is the card's only spoken content, and it is the
  * same for both cards: the pin's phrase, the three dots' phrases, the translated count with the
- * project's own unit, and the day of the last update (OBT-550). Changing what the card says
+ * project's own unit, and the full day of the last update, year included (OBT-550). Changing what the card says
  * aloud is this one function.
  */
 export function cardSummary(
@@ -171,7 +175,8 @@ export function cardSummary(
   t: TFunction,
   now: Date = new Date(),
 ): string {
-  const updated = getCardDateLabel(project, t("locale"));
+  const lastUpdate = cardLastProgressUpdate(project);
+  const updated = lastUpdate ? formatDate(lastUpdate, t("locale")) : null;
   return [
     priorityPhrase(t, cardPriority(project, now)),
     ...cardHealthDots(project).map((dot) =>

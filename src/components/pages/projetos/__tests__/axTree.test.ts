@@ -298,12 +298,14 @@ describe("o resumo diz o que a Karina definiu, nesta ordem (OBT-550)", () => {
       NOW,
     ).split(/(?<=\.) /u);
 
-    expect(sentences).toHaveLength(6);
+    expect(sentences.length).toBeGreaterThanOrEqual(6);
     expect(sentences[1]).toMatch(/^Emocional/u);
     expect(sentences[2]).toMatch(/^Relacional/u);
     expect(sentences[3]).toMatch(/^Espiritual/u);
     expect(sentences[4]).toBe("3 de 25 capítulos traduzidos.");
-    expect(sentences[5]).toMatch(/^Atualizado em .*10/u);
+    expect(sentences.slice(5).join(" ")).toBe(
+      "Atualizado em 10 de set. de 2026.",
+    );
   });
 
   it("a unidade é a do projeto, com o padrão e a minúscula da aba Progresso", () => {
@@ -313,6 +315,15 @@ describe("o resumo diz o que a Karina definiu, nesta ordem (OBT-550)", () => {
     expect(cardSummary(pending({ totalUnitsType: "" }), i18n.t, NOW)).toContain(
       "3 de 25 livros traduzidos.",
     );
+  });
+
+  it("a data traz o ano, para um registro antigo não soar como um recente", () => {
+    expect(
+      cardSummary(pending(updatedOn("2024-04-13")), i18n.t, NOW),
+    ).toContain("Atualizado em 13 de abr. de 2024.");
+    expect(
+      cardSummary(pending(updatedOn("2024-04-13")), i18n.t, NOW),
+    ).not.toContain("..");
   });
 
   it("sem data de atualização, o resumo diz que não há", () => {
@@ -347,7 +358,7 @@ describe("o resumo diz o que a Karina definiu, nesta ordem (OBT-550)", () => {
         i18n.t,
         NOW,
       ),
-    ).toMatch(/3 of 25 chapters translated\. Updated .*10/u);
+    ).toMatch(/3 of 25 chapters translated\. Updated Sep 10, 2026\./u);
   });
 
   it("os dois cartões dizem o mesmo resumo", () => {
