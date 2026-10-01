@@ -151,7 +151,7 @@ Todas estão no Linear, com dono:
 | [OBT-554](https://linear.app/shema-obt/issue/OBT-554) | O aviso de oração usa o consentimento antigo | Levi |
 | [OBT-555](https://linear.app/shema-obt/issue/OBT-555) | Respostas por leitor sem `no-store` | Levi |
 | [OBT-556](https://linear.app/shema-obt/issue/OBT-556) | Achados menores do servidor (avisos guardados, 409, escopo da equipe, facetas, 422, texto livre, intercessores) | Levi |
-| [OBT-557](https://linear.app/shema-obt/issue/OBT-557) | Ritmo, Início, relatório anual e seletores sem a lista completa de projetos | Daniel |
+| [OBT-557](https://linear.app/shema-obt/issue/OBT-557) | As telas que liam a lista inteira passam a ler a busca do servidor; resta o cálculo local do Ritmo, dos indicadores e do relatório anual | Daniel |
 | [OBT-558](https://linear.app/shema-obt/issue/OBT-558) | Rascunho do intake e filtros com texto livre no navegador | Daniel |
 | [OBT-559](https://linear.app/shema-obt/issue/OBT-559) | Botão Importar para todos os papéis; avisos de projeto em inglês | Levi |
 | [OBT-384](https://linear.app/shema-obt/issue/OBT-384) | Deploy do console (FE-42) | Levi |

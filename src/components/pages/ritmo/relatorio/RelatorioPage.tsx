@@ -1,10 +1,10 @@
 import { useEffect, useId, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { projectListAvailable } from "../../../../services/api";
 import { useProjectsStore } from "../../../../stores/projectsStore";
 import { surfaceOutlined } from "../../../../styles";
 import type { Project } from "../../../../types/project";
+import type { ApiFailure } from "../../../../types/session";
 import {
   annualReportYears,
   buildAnnualReport,
@@ -16,7 +16,7 @@ import {
 import { cn } from "../../../../utils/cn";
 import { getRegionLabelKey } from "../../../../utils/region";
 import { LoadingSpinner } from "../../../common/LoadingSpinner";
-import { ProjectListNotServed } from "../../../common/ProjectListNotServed";
+import { ProjectsUnread } from "../../../common/ProjectsUnread";
 import {
   Label,
   Select,
@@ -77,8 +77,9 @@ export interface RelatorioViewProps {
   year: number;
   onYearChange: (year: number) => void;
   now?: Date;
-  /** `false` where the build withholds the project list (INT-12): the report counts nothing. */
-  served?: boolean;
+  /** Why the project list could not be read — said, with a retry, instead of a spinner. */
+  loadFailure?: ApiFailure | null;
+  onRetry?: () => void;
 }
 
 /**
@@ -92,7 +93,8 @@ export function RelatorioView({
   year,
   onYearChange,
   now = new Date(),
-  served = true,
+  loadFailure = null,
+  onRetry,
 }: RelatorioViewProps) {
   const { t } = useTranslation();
   const fieldId = useId();
@@ -136,8 +138,8 @@ export function RelatorioView({
         </div>
       </header>
 
-      {!served ? (
-        <ProjectListNotServed />
+      {projects === null && loadFailure && onRetry ? (
+        <ProjectsUnread failure={loadFailure} onRetry={onRetry} />
       ) : projects === null ? (
         <div className="flex justify-center py-16">
           <LoadingSpinner size="lg" label={t("loading")} />
@@ -191,6 +193,8 @@ export function RelatorioPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrate = useProjectsStore((state) => state.hydrate);
+  const loadFailure = useProjectsStore((state) => state.error);
+  const reload = useProjectsStore((state) => state.reload);
 
   useEffect(() => {
     void hydrate();
@@ -206,7 +210,8 @@ export function RelatorioPage() {
       projects={hydrated ? projects : null}
       year={year}
       onYearChange={(next) => void navigate(`/ritmo/relatorio/${next}`)}
-      served={projectListAvailable}
+      loadFailure={loadFailure}
+      onRetry={() => void reload()}
     />
   );
 }

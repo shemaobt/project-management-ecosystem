@@ -5,7 +5,6 @@ import {
   SESSION_ROLE_LABEL_KEYS,
   useAuth,
 } from "../../../contexts/AuthContext";
-import { projectListAvailable } from "../../../services/api";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import { useRegionsStore } from "../../../stores/regionsStore";
 import type { Project } from "../../../types/project";
@@ -25,7 +24,7 @@ const editKey = (regionKey: RegionKey, role: RoleKey) => `${regionKey}:${role}`;
 
 export interface EquipeViewProps {
   regions: readonly Region[] | null;
-  /** `null` where the build withholds the project list (INT-12): the regions carry no count. */
+  /** `null` while the list is unread, or if reading it failed: the regions then carry no count. */
   projects?: readonly Project[] | null;
   changes?: readonly RoleChange[];
   onSave: (drafts: ReturnType<typeof draftsFor>) => Promise<TeamSaveResult>;
@@ -189,6 +188,7 @@ export function EquipePage() {
   const saveTeams = useRegionsStore((state) => state.saveTeams);
   const projects = useProjectsStore((state) => state.projects);
   const hydrateProjects = useProjectsStore((state) => state.hydrate);
+  const projectsRead = useProjectsStore((state) => state.hydrated);
 
   useEffect(() => {
     void hydrateRegions();
@@ -206,7 +206,7 @@ export function EquipePage() {
   return (
     <EquipeView
       regions={hydrated ? visible : null}
-      projects={projectListAvailable ? projects : null}
+      projects={projectsRead ? projects : null}
       changes={changes}
       onSave={(drafts) => saveTeams(drafts, changedBy)}
     />
