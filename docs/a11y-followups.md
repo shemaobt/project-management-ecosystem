@@ -135,6 +135,8 @@ issue de produto.
 
 ## 6. Prioridade tem oito significados, cinco cores e uma forma só
 
+**Resolvido em OBT-499** (30/set/2026): o alfinete ganhou um glifo próprio por prioridade (`PRIORITY_SYMBOLS`, `size-4.5`) e preenchimentos que passam de 4.5:1; o texto abaixo fica como registro.
+
 **O que é.** FE-43 deu a `PriorityPin` um canal de texto (`title` + `sr-only`, oito frases próprias).
 O canal **visual** continua sendo só cor: um ponto de 8px, e as oito prioridades caem em cinco
 cores — `canceled`, `paused`, `unknown` e o caso comum pintam todas o mesmo `bg-status-na`. Quem não
