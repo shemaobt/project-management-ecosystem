@@ -16,8 +16,10 @@ function createMemoryStorage() {
 }
 
 const storage = createMemoryStorage();
+const tabStorage = createMemoryStorage();
 vi.stubGlobal("localStorage", storage);
-vi.stubGlobal("window", { localStorage: storage });
+vi.stubGlobal("sessionStorage", tabStorage);
+vi.stubGlobal("window", { localStorage: storage, sessionStorage: tabStorage });
 
 const { usePrayerStore } = await import("../prayerStore");
 const { resetIntercessorNetwork } = await import("../../fixtures/intercessors");
@@ -44,6 +46,7 @@ const JOAO = {
 
 const reset = () => {
   storage.clear();
+  tabStorage.clear();
   resetIntercessorNetwork();
   usePrayerStore.setState({
     intercessors: [],
@@ -54,7 +57,7 @@ const reset = () => {
 };
 
 const network = () => usePrayerStore.getState().intercessors;
-const persisted = () => storage.getItem(KEY) ?? "";
+const persisted = () => tabStorage.getItem(KEY) ?? "";
 
 describe("cadastrar na rede", () => {
   beforeEach(reset);
@@ -243,5 +246,22 @@ describe("a revisão depois de um ano (OBT-531)", () => {
 
     await usePrayerStore.getState().reload();
     expect(network().map((person) => person.id)).toEqual([ana.id]);
+  });
+});
+
+/**
+ * **A rede fica na aba, não no aparelho** (INT-06 · OBT-411). Nomes e contatos de
+ * intercessores não vão para o `localStorage`: um celular emprestado é situação
+ * normal no campo, e fechar a aba tem de levar a lista junto.
+ */
+describe("onde a rede fica guardada", () => {
+  beforeEach(async () => {
+    reset();
+    await usePrayerStore.getState().addIntercessor(ANA);
+  });
+
+  it("na sessão da aba, e nunca no armazenamento do aparelho", () => {
+    expect(persisted()).toContain("Ana Ribeiro");
+    expect(storage.getItem(KEY)).toBeNull();
   });
 });

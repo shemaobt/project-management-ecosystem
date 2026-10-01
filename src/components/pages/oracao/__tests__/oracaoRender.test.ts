@@ -25,6 +25,7 @@ const { default: i18n } = await import("../../../../i18n");
 const { MemoryRouter } = await import("react-router-dom");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
 const { OracaoView } = await import("..");
+const { buildPrayerRequests } = await import("../../../../utils/prayer");
 const { ALL_CONTINENTS } = await import("../ContinentFilter");
 type ContinentFilterValue = import("../ContinentFilter").ContinentFilterValue;
 
@@ -36,7 +37,13 @@ const view = (
     createElement(
       MemoryRouter,
       { initialEntries: ["/oracao"] },
-      createElement(OracaoView, { projects, initialContinent }),
+      createElement(OracaoView, {
+        wall:
+          projects === null
+            ? { status: "loading" }
+            : { status: "ready", requests: buildPrayerRequests(projects) },
+        initialContinent,
+      }),
     ),
   );
 
@@ -187,5 +194,71 @@ describe("OracaoView", () => {
     expect(markup).not.toContain('role="radiogroup"');
     expect(markup).not.toContain("Todas");
     expect(markup).toContain("Pedidos reunidos");
+  });
+});
+
+describe("o mural contra o servidor (INT-06)", () => {
+  const served = () => ({
+    status: "ready" as const,
+    requests: buildPrayerRequests([brazil, asia]),
+  });
+  const failed = (status: number | null) => ({
+    status: "failed" as const,
+    failure: {
+      kind: status === 403 ? ("forbidden" as const) : ("offline" as const),
+      status,
+      code: null,
+      detail: null,
+    },
+  });
+  const render = (props: Record<string, unknown>) =>
+    renderToStaticMarkup(
+      createElement(
+        MemoryRouter,
+        { initialEntries: ["/oracao"] },
+        createElement(OracaoView, { wall: served(), ...props }),
+      ),
+    );
+
+  it("diz em texto que só entra o que as equipes autorizaram", () => {
+    expect(render({})).toContain(i18n.t("oracao_authorized_only"));
+  });
+
+  it("mostra o controle do Pulso quando há quem o gere e há o que enviar", () => {
+    const pulse = createElement("button", null, "PULSO");
+    expect(render({ pulse })).toContain("PULSO");
+    expect(
+      render({ pulse, wall: { status: "ready", requests: [] } }),
+    ).not.toContain("PULSO");
+    expect(render({})).not.toContain("PULSO");
+  });
+
+  it("um mural que não pôde ser lido diz isso, e não finge estar vazio", () => {
+    const html = render({ wall: failed(null) });
+
+    expect(html).toContain(i18n.t("net_offline"));
+    expect(html).not.toContain(i18n.t("oracao_empty"));
+  });
+
+  it("uma recusa do servidor é escopo, e não um convite a tentar de novo", () => {
+    const html = render({ wall: failed(403) });
+
+    expect(html).toContain(i18n.t("net_forbidden"));
+    expect(html).not.toContain(i18n.t("net_offline"));
+  });
+});
+
+describe("o botão do Pulso", () => {
+  it("abre a confirmação em vez de salvar direto — fechado, ele é só o botão", async () => {
+    const { PulseButton } = await import("../PulseButton");
+    const html = renderToStaticMarkup(
+      createElement(PulseButton, {
+        api: { generate: () => new Promise<never>(() => {}) },
+        count: 2,
+      }),
+    );
+
+    expect(html).toContain(i18n.t("oracao_pulse_generate"));
+    expect(html).not.toContain(i18n.t("oracao_pulse_no_recall"));
   });
 });

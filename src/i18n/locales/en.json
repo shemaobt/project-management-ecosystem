@@ -1392,5 +1392,15 @@
   "convite_revoked_title": "This invitation was revoked",
   "convite_revoked_body": "The Platform admin withdrew this invitation. If you still need to come in, ask for a new one.",
   "convite_unknown_role_title": "This invitation is not for this console",
-  "convite_unknown_role_body": "It grants a role this console does not know. Ask the Platform admin for a new invitation."
+  "convite_unknown_role_body": "It grants a role this console does not know. Ask the Platform admin for a new invitation.",
+  "oracao_authorized_only": "Only the requests the teams authorized for the intercessor network appear here.",
+  "oracao_pulse_generate": "Generate the Prayer Pulse",
+  "oracao_pulse_title": "Prayer Pulse",
+  "oracao_pulse_count_one": "{{count}} request goes into this Pulse. Check the text below before saving.",
+  "oracao_pulse_count_other": "{{count}} requests go into this Pulse. Check the text below before saving.",
+  "oracao_pulse_no_recall": "Once sent to the network, the Pulse cannot be recalled. Withdrawing a request later only removes it from future Pulses.",
+  "oracao_pulse_loading": "Generating the Pulse preview…",
+  "oracao_pulse_preview": "Prayer Pulse text",
+  "oracao_pulse_cancel": "Cancel",
+  "oracao_pulse_save": "Save the Pulse"
 }
