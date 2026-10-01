@@ -238,3 +238,70 @@ describe("NotificationsPanelBody", () => {
     });
   });
 });
+
+describe("o painel contra o servidor (INT-11)", () => {
+  const servedView = (
+    entries: Parameters<typeof NotificationsPanelBody>[0]["entries"],
+    unreadable: string | null = null,
+  ) =>
+    renderToStaticMarkup(
+      createElement(
+        MemoryRouter,
+        null,
+        createElement(NotificationsPanelBody, {
+          entries,
+          unreadable,
+          projects: [],
+          prefs: { ...NOTIF_DEFAULTS },
+          handlers,
+        }),
+      ),
+    );
+
+  it("um aviso servido leva o tipo na língua da tela, a frase do servidor e o link da ficha", () => {
+    const markup = servedView([
+      {
+        origin: "server",
+        id: "n-1",
+        kind: "health",
+        urgent: true,
+        projectId: "tikuna",
+        date: "2026-08-14",
+        body: "Tikuna was assessed as critical on 2026-08-14.",
+      },
+    ]);
+
+    expect(markup).toContain(i18n.t("notif_kind_health"));
+    expect(markup).toContain("Tikuna was assessed as critical on 2026-08-14.");
+    expect(markup).toContain(i18n.t("notif_urgent_tag"));
+    expect(markup).toContain('href="/ficha/tikuna/identidade"');
+  });
+
+  it("preferências que não puderam ser lidas não se passam por escolha salva", () => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        MemoryRouter,
+        null,
+        createElement(NotificationsPanelBody, {
+          entries: [],
+          prefsUnread: i18n.t("notif_prefs_unread"),
+          onRetryPrefs: () => {},
+          projects: [],
+          prefs: { ...NOTIF_DEFAULTS },
+          handlers,
+        }),
+      ),
+    );
+
+    expect(markup).toContain('role="alert"');
+    expect(markup).toContain(i18n.t("notif_prefs_unread"));
+    expect(markup).toContain(i18n.t("net_retry"));
+  });
+
+  it("uma lista que não pôde ser lida diz por quê, em vez de girar para sempre", () => {
+    const markup = servedView(null, "Sem conexão com o servidor.");
+
+    expect(markup).toContain("Sem conexão com o servidor.");
+    expect(markup).not.toContain(i18n.t("loading"));
+  });
+});

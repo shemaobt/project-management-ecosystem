@@ -1,170 +1,16 @@
-import type { TFunction } from "i18next";
 import { isPrayerVisibility } from "../constants/prayer";
 import { HEALTH_LEVELS, PROJECT_STATUSES } from "../constants/project";
-import { HEALTH_LABEL_KEYS, STATUS_LABEL_KEYS } from "../constants/status";
 import { createEmptyProject } from "../fixtures/blank";
 import type { Project } from "../types/project";
-import { toLocalIsoDate } from "./format";
-import { redactProjectsForExport, type ExportedProject } from "./privacy";
-import { withheldNotice } from "./region";
-
-export interface ProjectsExport {
-  contains: string;
-  confidential: string;
-  generatedAt: string;
-  projectCount: number;
-  /** Addressed to coordination only, as the server's `withheld_note` — `null` for anybody else. */
-  locationsWithheld: number | null;
-  withheldNote: string | null;
-  records: ExportedProject[];
-}
-
-export type ExportFormat = "json" | "csv";
-
-function exportTimestamp(now: Date): string {
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  return `${toLocalIsoDate(now)} ${hours}:${minutes}`;
-}
-
-export function buildProjectsExport(
-  projects: readonly Project[],
-  t: TFunction,
-  now: Date = new Date(),
-): ProjectsExport {
-  const records = redactProjectsForExport(projects, t);
-  const withheld = withheldNotice(projects);
-  return {
-    contains: t("export_contains"),
-    confidential: t("export_confidential"),
-    generatedAt: exportTimestamp(now),
-    projectCount: records.length,
-    locationsWithheld: withheld,
-    withheldNote:
-      withheld === null
-        ? null
-        : t("export_withheld_count", { count: withheld }),
-    records,
-  };
-}
-
-export function exportFileName(
-  format: ExportFormat,
-  now: Date = new Date(),
-): string {
-  return `shema-projetos-${toLocalIsoDate(now)}.${format}`;
-}
-
-export function toJsonExport(data: ProjectsExport): string {
-  const { records, ...meta } = data;
-  return JSON.stringify({ meta, projects: records }, null, 2);
-}
-
-export const CSV_BOM = "\uFEFF";
-
-export const CSV_SEPARATOR = ";";
-
-const FORMULA_LEAD = /^[=+\-@\t\r]/u;
-const NEEDS_QUOTING = /[";\n\r]/u;
-
-function csvCell(value: string | number): string {
-  const text = String(value);
-  const guarded = FORMULA_LEAD.test(text) ? `'${text}` : text;
-  if (NEEDS_QUOTING.test(guarded)) {
-    return `"${guarded.replaceAll('"', '""')}"`;
-  }
-  return guarded;
-}
-
-const CSV_JOIN = " · ";
-
-interface CsvColumn {
-  headerKey: string;
-  cell: (record: ExportedProject, t: TFunction) => string | number;
-}
-
-const CSV_COLUMNS: readonly CsvColumn[] = [
-  { headerKey: "export_col_id", cell: (record) => record.id },
-  { headerKey: "f_lang_name", cell: (record) => record.languageName },
-  { headerKey: "f_lang_code", cell: (record) => record.languageCode },
-  { headerKey: "f_bridge", cell: (record) => record.bridgeLanguage },
-  { headerKey: "f_vitality", cell: (record) => record.vitalityStatus },
-  { headerKey: "f_speakers", cell: (record) => record.speakerCount },
-  { headerKey: "sb_team", cell: (record) => record.base },
-  { headerKey: "f_location", cell: (record) => record.location },
-  {
-    headerKey: "sb_sensitive",
-    cell: (record, t) => t(record.sensitiveCountry ? "bool_yes" : "bool_no"),
-  },
-  { headerKey: "sb_objective", cell: (record) => record.objective.join(CSV_JOIN) },
-  {
-    headerKey: "f_translation_type",
-    cell: (record) => record.translationType.join(CSV_JOIN),
-  },
-  {
-    headerKey: "sb_status",
-    cell: (record, t) => t(STATUS_LABEL_KEYS[record.status]),
-  },
-  { headerKey: "f_start", cell: (record) => record.startDate },
-  { headerKey: "f_deadline", cell: (record) => record.deadline },
-  { headerKey: "d_p_translated_short", cell: (record) => record.translatedUnits },
-  {
-    headerKey: "d_p_community_short",
-    cell: (record) => record.communityCheckedUnits,
-  },
-  { headerKey: "d_p_approved_short", cell: (record) => record.approvedUnits },
-  { headerKey: "f_total_planned", cell: (record) => record.totalUnits },
-  {
-    headerKey: "sb_health",
-    cell: (record, t) => t(HEALTH_LABEL_KEYS[record.overallHealth]),
-  },
-  { headerKey: "export_col_open_needs", cell: (record) => record.openNeeds },
-  {
-    headerKey: "export_col_prayer_shared",
-    cell: (record) => record.sharedPrayerRequests.join(CSV_JOIN),
-  },
-  { headerKey: "d_last_update", cell: (record) => record.lastUpdated },
-];
-
-export function toCsvExport(data: ProjectsExport, t: TFunction): string {
-  const preamble: (string | number)[][] = [
-    [data.contains],
-    [t("export_generated", { when: data.generatedAt })],
-    [data.confidential],
-    ...(data.withheldNote === null ? [] : [[data.withheldNote]]),
-    [],
-  ];
-  const header = CSV_COLUMNS.map((column) => t(column.headerKey));
-  const rows = data.records.map((record) =>
-    CSV_COLUMNS.map((column) => column.cell(record, t)),
-  );
-  const lines = [...preamble, header, ...rows].map((cells) =>
-    cells.map(csvCell).join(CSV_SEPARATOR),
-  );
-  return `${CSV_BOM}${lines.join("\r\n")}`;
-}
-
-export const EXPORT_MIME_TYPES: Record<ExportFormat, string> = {
-  json: "application/json;charset=utf-8",
-  csv: "text/csv;charset=utf-8",
-};
-
-export function serializeExport(
-  data: ProjectsExport,
-  format: ExportFormat,
-  t: TFunction,
-): string {
-  return format === "json" ? toJsonExport(data) : toCsvExport(data, t);
-}
 
 const REVOKE_DELAY_MS = 40_000;
 
-export function downloadTextFile(
-  fileName: string,
-  content: string,
-  mimeType: string,
-): void {
-  const blob = new Blob([content], { type: mimeType });
+/**
+ * Hands a file to the browser's own download. **The export file itself is never assembled
+ * here** since INT-11 (OBT-416): BE-14 builds it, so the privacy filters have one home, and
+ * this only saves what the server sent.
+ */
+export function downloadBlob(fileName: string, blob: Blob): void {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -173,6 +19,14 @@ export function downloadTextFile(
   anchor.click();
   anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
+}
+
+export function downloadTextFile(
+  fileName: string,
+  content: string,
+  mimeType: string,
+): void {
+  downloadBlob(fileName, new Blob([content], { type: mimeType }));
 }
 
 export type ImportError =

@@ -5,6 +5,7 @@ import type {
   NotificationPrefs,
   NotificationPrefsHandlers,
 } from "../types/notification";
+import { prefsHandlers } from "../utils/notifications";
 
 const NOTIFICATIONS_KEY = "shema-notifications-v1";
 
@@ -16,47 +17,20 @@ interface NotificationState extends NotificationPrefsHandlers {
   prefs: NotificationPrefs;
   readIds: string[];
   markRead: (ids: readonly string[]) => void;
+  setPrefs: (prefs: NotificationPrefs) => void;
 }
 
 type PersistedNotifications = Pick<NotificationState, "prefs" | "readIds">;
-
-function patched(
-  prefs: NotificationPrefs,
-  patch: Partial<NotificationPrefs>,
-): { prefs: NotificationPrefs } {
-  return { prefs: { ...prefs, ...patch } };
-}
 
 export const useNotificationStore = create<NotificationState>()(
   persist<NotificationState, [], [], PersistedNotifications>(
     (set) => ({
       prefs: NOTIF_DEFAULTS,
       readIds: [],
-      setEnabled: (enabled) =>
-        set((state) => patched(state.prefs, { enabled })),
-      toggleChannel: (channel) =>
-        set((state) =>
-          patched(state.prefs, {
-            channels: {
-              ...state.prefs.channels,
-              [channel]: !state.prefs.channels[channel],
-            },
-          }),
-        ),
-      setWhen: (when) => set((state) => patched(state.prefs, { when })),
-      setScope: (scope) => set((state) => patched(state.prefs, { scope })),
-      setEmailAddr: (emailAddr) =>
-        set((state) => patched(state.prefs, { emailAddr })),
-      setPhoneAddr: (phoneAddr) =>
-        set((state) => patched(state.prefs, { phoneAddr })),
-      toggleCustomProject: (projectId) =>
-        set((state) =>
-          patched(state.prefs, {
-            customProjectIds: state.prefs.customProjectIds.includes(projectId)
-              ? state.prefs.customProjectIds.filter((id) => id !== projectId)
-              : [...state.prefs.customProjectIds, projectId],
-          }),
-        ),
+      ...prefsHandlers((change) =>
+        set((state) => ({ prefs: change(state.prefs) })),
+      ),
+      setPrefs: (prefs) => set({ prefs }),
       markRead: (ids) =>
         set((state) => ({
           readIds: [...new Set([...state.readIds, ...ids])].slice(-READ_LIMIT),

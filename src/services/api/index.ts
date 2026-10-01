@@ -90,6 +90,19 @@ export const accessAPI: api.AccessAPI | null =
 export const prayerPulseAPI: api.PrayerPulseAPI | null =
   resolveSource("prayer") === "api" ? api.prayerPulseAPI : null;
 
+/**
+ * The bell's panel and the projects export and import have no fixture double (INT-11 ·
+ * OBT-416). With no server the bell derives its notices from the fixture projects, as it
+ * always did, and the import applies to the fixture store; the export has **no** client side at
+ * all — a second implementation of it would be a second place for the privacy filters to be
+ * wrong — so `null` is what the export dialog reads to say the export needs the server.
+ */
+export const notificationsAPI: api.NotificationsAPI | null =
+  resolveSource("notifications") === "api" ? api.notificationsAPI : null;
+
+export const transferAPI: api.TransferAPI | null =
+  resolveSource("transfer") === "api" ? api.transferAPI : null;
+
 export const resourceRequestsAPI: ResourceRequestsAPI | null =
   resolveSource("resourceRequests") === "api" ? apiResourceRequestsAPI : null;
 
@@ -120,7 +133,19 @@ export {
 export { hasSession, onSessionEvent } from "./tokens";
 export { resolveSource } from "./source";
 export type { DataNamespace, DataSource } from "./source";
-export type { AccessAPI, PrayerPulseAPI, PrayerPulseFile, PulseLanguage } from "./endpoints";
+export type {
+  AccessAPI,
+  ExportedFile,
+  ImportAnswer,
+  NotificationsAPI,
+  PrayerPulseAPI,
+  PrayerPulseFile,
+  PulseLanguage,
+  ServedPanel,
+  TransferAPI,
+  TransferFormat,
+  TransferProgress,
+} from "./endpoints";
 export type { ResourceRequestsAPI } from "./resourceRequests";
 export type { Translate } from "./errors";
 export type { ProjectBrowseQuery, ProjectBrowseResult } from "../../types/projectBrowse";

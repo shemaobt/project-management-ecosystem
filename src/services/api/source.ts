@@ -12,7 +12,9 @@ export type DataNamespace =
   | "forms"
   | "members"
   | "access"
-  | "resourceRequests";
+  | "resourceRequests"
+  | "notifications"
+  | "transfer";
 
 export type DataSource = "api" | "fixtures";
 
@@ -49,6 +51,8 @@ export const INTEGRATED_BY: Record<DataNamespace, string> = {
   members: "BE-18 · OBT-524",
   access: "BE-22 · FE-52",
   resourceRequests: "BE-24 · BE-26 · OBT-544",
+  notifications: "INT-11 · BE-15",
+  transfer: "INT-11 · BE-14",
 };
 
 export const INTEGRATED: Record<DataNamespace, DataSource> = {
@@ -66,6 +70,8 @@ export const INTEGRATED: Record<DataNamespace, DataSource> = {
   members: "api",
   access: "api",
   resourceRequests: "api",
+  notifications: "api",
+  transfer: "api",
 };
 
 export function parseOverride(raw: unknown): DataSource | null {

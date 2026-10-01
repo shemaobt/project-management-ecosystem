@@ -109,3 +109,23 @@ export type RequestNotification =
   | RequestDecisionNotification;
 
 export type AppNotification = ProjectNotification | RequestNotification;
+
+export type ProjectNotificationKind = ProjectNotification["kind"];
+
+/**
+ * A project notice as the server served it (INT-11 · OBT-416). BE-15 lists rows its writers
+ * already composed, so what arrives is the notice's own prose — never the fields the fixture
+ * derivation reads — and the panel shows that prose rather than re-deriving it. The two request
+ * kinds are not this shape: they carry a name and a stage, and become `RequestNotification`.
+ */
+export interface ServedNotification {
+  origin: "server";
+  id: string;
+  kind: ProjectNotificationKind;
+  urgent: boolean;
+  projectId: string | null;
+  date: string;
+  body: string;
+}
+
+export type PanelEntry = AppNotification | ServedNotification;

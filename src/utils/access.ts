@@ -19,6 +19,21 @@ export function canAdministerAccess({
   return roles.includes(ADMIN_ROLE);
 }
 
+const IMPORTING_ROLES: readonly SessionRole[] = [
+  "globalStrategist",
+  "coordinator",
+  ADMIN_ROLE,
+];
+
+/**
+ * Who may import a file of records — coordination, as BE-14's `import_projects` decides it:
+ * the global strategist, a coordinator, the `admin` role (INT-11 · OBT-416). Reflection only;
+ * an installation admin with none of these roles is the server's to admit.
+ */
+export function canImportProjects(roles: readonly SessionRole[]): boolean {
+  return roles.some((role) => IMPORTING_ROLES.includes(role));
+}
+
 export function holdsShemaGrant(roles: readonly SessionRole[]): boolean {
   return roles.some((role) => GRANTABLE_ROLES[SHEMA_APP].includes(role));
 }

@@ -4,13 +4,15 @@ import { Link } from "react-router-dom";
 import { NEED_CATEGORIES } from "../../../constants/project";
 import { DEFAULT_TAB } from "../../../constants/recordTabs";
 import { DECISION_STAGE_LABEL_KEYS } from "../../../constants/requests";
+import { SERVED_NOTICE_TITLE_KEYS } from "../../../constants/notifications";
 import { HEALTH_LABEL_KEYS } from "../../../constants/status";
-import type { AppNotification } from "../../../types/notification";
+import type { PanelEntry } from "../../../types/notification";
 import type { NeedCategory } from "../../../types/project";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
 import {
   isRequestNotice,
+  isServedNotice,
   notificationAge,
 } from "../../../utils/notifications";
 import { EmptyState } from "../../common/EmptyState";
@@ -21,7 +23,8 @@ function needCategoryLabel(category: NeedCategory, t: TFunction): string {
   return found ? t(found.labelKey) : category;
 }
 
-function summaryFor(entry: AppNotification, t: TFunction): string {
+function summaryFor(entry: PanelEntry, t: TFunction): string {
+  if (isServedNotice(entry)) return entry.body;
   switch (entry.kind) {
     case "field":
       return entry.fromField
@@ -50,7 +53,13 @@ function summaryFor(entry: AppNotification, t: TFunction): string {
   }
 }
 
-function titleFor(entry: AppNotification, t: TFunction): string {
+/**
+ * A served project notice is titled by its kind in the reader's language, and its body is the
+ * server's own sentence (INT-11): BE-15's writers compose the prose, in English today, and the
+ * fields the fixture title reads — language, base — do not travel.
+ */
+function titleFor(entry: PanelEntry, t: TFunction): string {
+  if (isServedNotice(entry)) return t(SERVED_NOTICE_TITLE_KEYS[entry.kind]);
   if (isRequestNotice(entry)) {
     return entry.requestName.trim() || t("notif_request_unnamed");
   }
@@ -74,13 +83,14 @@ function ageLabel(date: string, t: TFunction): string {
 const ROW = "flex items-center gap-3 border-b border-line px-1 py-2.5 last:border-b-0";
 
 interface LogRowProps {
-  entry: AppNotification;
+  entry: PanelEntry;
   onNavigate?: () => void;
 }
 
 function LogRow({ entry, onNavigate }: LogRowProps) {
   const content = <RowContent entry={entry} />;
-  if (isRequestNotice(entry) && entry.projectId !== null) {
+  const linked = isRequestNotice(entry) || isServedNotice(entry);
+  if (linked && entry.projectId !== null) {
     return (
       <Link
         to={`/ficha/${entry.projectId}/${DEFAULT_TAB}`}
@@ -97,7 +107,7 @@ function LogRow({ entry, onNavigate }: LogRowProps) {
   return <div className={ROW}>{content}</div>;
 }
 
-function RowContent({ entry }: { entry: AppNotification }) {
+function RowContent({ entry }: { entry: PanelEntry }) {
   const { t } = useTranslation();
 
   return (
@@ -132,17 +142,24 @@ function RowContent({ entry }: { entry: AppNotification }) {
 }
 
 export interface NotificationLogProps {
-  entries: readonly AppNotification[] | null;
+  entries: readonly PanelEntry[] | null;
+  /** Why the list could not be read — said instead of a spinner that never ends. */
+  unreadable?: string | null;
   enabled: boolean;
   onNavigate?: () => void;
 }
 
 export function NotificationLog({
   entries,
+  unreadable = null,
   enabled,
   onNavigate,
 }: NotificationLogProps) {
   const { t } = useTranslation();
+
+  if (entries === null && unreadable !== null) {
+    return <EmptyState className="px-6 py-8" message={unreadable} />;
+  }
 
   if (entries === null) {
     return (

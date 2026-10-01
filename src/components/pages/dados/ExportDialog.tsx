@@ -1,17 +1,14 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useProjectsStore } from "../../../stores/projectsStore";
-import type { Project } from "../../../types/project";
 import {
-  EXPORT_MIME_TYPES,
-  buildProjectsExport,
-  downloadTextFile,
-  exportFileName,
-  serializeExport,
-  type ExportFormat,
-} from "../../../utils/export";
-import { redactProjectsForExport } from "../../../utils/privacy";
-import { withheldNotice } from "../../../utils/region";
+  failureMessage,
+  pulseLanguage,
+  toApiFailure,
+  transferAPI,
+  type TransferFormat,
+  type TransferProgress,
+} from "../../../services/api";
+import { downloadBlob } from "../../../utils/export";
 import {
   Button,
   Dialog,
@@ -23,20 +20,21 @@ import {
   DialogTitle,
   toast,
 } from "../../ui";
+import { progressPercent, readableSize, type ExportRun } from "./exportProgress";
 
 export interface ExportDialogBodyProps {
-  projects: readonly Project[] | null;
-  onDownload: (format: ExportFormat) => void;
+  /** `false` without a server: there is no client-side export to fall back on. */
+  available: boolean;
+  run: ExportRun;
+  onDownload: (format: TransferFormat) => void;
 }
 
 export function ExportDialogBody({
-  projects,
+  available,
+  run,
   onDownload,
 }: ExportDialogBodyProps) {
   const { t } = useTranslation();
-  const records =
-    projects === null ? null : redactProjectsForExport(projects, t);
-  const withheld = projects === null ? null : withheldNotice(projects);
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -44,16 +42,17 @@ export function ExportDialogBody({
       <p className="text-small font-semibold leading-body text-fg-strong">
         {t("export_confidential")}
       </p>
-      {records === null ? (
-        <p className="text-small text-fg-muted">{t("loading")}</p>
+      {!available ? (
+        <p className="text-small leading-body text-fg-muted">
+          {t("export_needs_server")}
+        </p>
+      ) : run.status === "running" ? (
+        <ExportProgressLine progress={run.progress} />
       ) : (
         <>
-          <p className="text-small text-fg-muted">
-            {t("export_count", { count: records.length })}
-          </p>
-          {withheld !== null && (
-            <p className="text-small leading-body text-fg-muted">
-              {t("export_withheld_count", { count: withheld })}
+          {run.status === "failed" && (
+            <p role="alert" className="text-small leading-body text-fg">
+              {failureMessage(run.failure, t)}
             </p>
           )}
           <div className="flex flex-wrap gap-2.5 pt-1">
@@ -70,29 +69,76 @@ export function ExportDialogBody({
   );
 }
 
+function ExportProgressLine({ progress }: { progress: TransferProgress }) {
+  const { t } = useTranslation();
+  const percent = progressPercent(progress);
+  const size = readableSize(progress.loaded);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div
+        role="progressbar"
+        aria-label={t("export_running")}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent ?? undefined}
+        className="h-1.5 overflow-hidden rounded-pill bg-muted"
+      >
+        <div
+          className="h-full rounded-pill bg-telha transition-[width] duration-fast ease-out"
+          style={{ width: `${percent ?? 100}%` }}
+        />
+      </div>
+      <p aria-live="polite" className="text-small text-fg-muted">
+        {percent === null
+          ? t("export_progress_bytes", { size })
+          : t("export_progress_percent", {
+              percent,
+              size,
+              total: readableSize(progress.total ?? progress.loaded),
+            })}
+      </p>
+      <p className="text-micro leading-[1.4] text-fg-muted">
+        {t("export_keep_working")}
+      </p>
+    </div>
+  );
+}
+
 export interface HeaderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * The export is the server's (INT-11 · OBT-416, BE-14): the file is built there, reduced for
+ * everybody and headed with its provenance, and this dialog only asks for it and saves it. The
+ * run lives in this component, which the header keeps mounted, so closing the dialog does not
+ * stop a download — the person goes on working, and a toast says when the file is saved.
+ */
 export function ExportDialog({ open, onOpenChange }: HeaderDialogProps) {
-  const { t } = useTranslation();
-  const projects = useProjectsStore((state) => state.projects);
-  const hydrated = useProjectsStore((state) => state.hydrated);
-  const hydrate = useProjectsStore((state) => state.hydrate);
+  const { t, i18n } = useTranslation();
+  const [run, setRun] = useState<ExportRun>({ status: "idle" });
 
-  useEffect(() => {
-    if (open) void hydrate();
-  }, [open, hydrate]);
-
-  const handleDownload = (format: ExportFormat) => {
-    const data = buildProjectsExport(projects, t);
-    downloadTextFile(
-      exportFileName(format),
-      serializeExport(data, format, t),
-      EXPORT_MIME_TYPES[format],
-    );
-    toast(t("toast_exported"));
+  const handleDownload = (format: TransferFormat) => {
+    if (transferAPI === null || run.status === "running") return;
+    setRun({ status: "running", progress: { loaded: 0, total: null } });
+    transferAPI
+      .exportProjects(format, pulseLanguage(i18n.language), (progress) =>
+        setRun({ status: "running", progress }),
+      )
+      .then(
+        (file) => {
+          downloadBlob(file.fileName, file.blob);
+          setRun({ status: "idle" });
+          toast(t("toast_exported"));
+        },
+        (raw: unknown) => {
+          const failure = toApiFailure(raw);
+          setRun({ status: "failed", failure });
+          toast(failureMessage(failure, t));
+        },
+      );
   };
 
   return (
@@ -106,12 +152,17 @@ export function ExportDialog({ open, onOpenChange }: HeaderDialogProps) {
         </DialogHeader>
         <DialogBody>
           <ExportDialogBody
-            projects={hydrated ? projects : null}
+            available={transferAPI !== null}
+            run={run}
             onDownload={handleDownload}
           />
         </DialogBody>
         <DialogFooter>
-          <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+          >
             {t("btn_close")}
           </Button>
         </DialogFooter>
