@@ -70,10 +70,9 @@ describe("a tabela de troca", () => {
     const waiting = NAMESPACES.filter(
       (namespace) => INTEGRATED[namespace] === "fixtures",
     );
-    expect(waiting).toEqual([
-      "projects",
-      "prayer",
-    ]);
+    expect(waiting).toEqual(["projects"]);
+    expect(INTEGRATED.prayer).toBe("api");
+    expect(INTEGRATED_BY.prayer).toBe("INT-06 · BE-09");
   });
 
   it("os contornos do globo não são namespace de API nenhum", () => {

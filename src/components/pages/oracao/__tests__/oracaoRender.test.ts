@@ -25,6 +25,7 @@ const { default: i18n } = await import("../../../../i18n");
 const { MemoryRouter } = await import("react-router-dom");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
 const { OracaoView } = await import("..");
+const { buildPrayerRequests } = await import("../../../../utils/prayer");
 const { ALL_CONTINENTS } = await import("../ContinentFilter");
 type ContinentFilterValue = import("../ContinentFilter").ContinentFilterValue;
 
@@ -36,7 +37,10 @@ const view = (
     createElement(
       MemoryRouter,
       { initialEntries: ["/oracao"] },
-      createElement(OracaoView, { projects, initialContinent }),
+      createElement(OracaoView, {
+        requests: projects === null ? null : buildPrayerRequests(projects),
+        initialContinent,
+      }),
     ),
   );
 
@@ -187,5 +191,50 @@ describe("OracaoView", () => {
     expect(markup).not.toContain('role="radiogroup"');
     expect(markup).not.toContain("Todas");
     expect(markup).toContain("Pedidos reunidos");
+  });
+});
+
+describe("o mural contra o servidor (INT-06)", () => {
+  const served = () => buildPrayerRequests([brazil, asia]);
+  const render = (props: Record<string, unknown>) =>
+    renderToStaticMarkup(
+      createElement(
+        MemoryRouter,
+        { initialEntries: ["/oracao"] },
+        createElement(OracaoView, { requests: served(), ...props }),
+      ),
+    );
+
+  it("diz em texto que só entra o que as equipes autorizaram", () => {
+    expect(render({})).toContain(i18n.t("oracao_authorized_only"));
+  });
+
+  it("mostra o controle do Pulso quando há quem o gere e há o que enviar", () => {
+    const pulse = createElement("button", null, "PULSO");
+    expect(render({ pulse })).toContain("PULSO");
+    expect(render({ pulse, requests: [] })).not.toContain("PULSO");
+    expect(render({})).not.toContain("PULSO");
+  });
+
+  it("um mural que não pôde ser lido diz isso, e não finge estar vazio", () => {
+    const html = render({ requests: null, unreachable: true });
+
+    expect(html).toContain(i18n.t("oracao_unreachable"));
+    expect(html).not.toContain(i18n.t("oracao_empty"));
+  });
+});
+
+describe("o botão do Pulso", () => {
+  it("abre a confirmação em vez de salvar direto — fechado, ele é só o botão", async () => {
+    const { PulseButton } = await import("../PulseButton");
+    const html = renderToStaticMarkup(
+      createElement(PulseButton, {
+        api: { generate: () => new Promise<never>(() => {}) },
+        count: 2,
+      }),
+    );
+
+    expect(html).toContain(i18n.t("oracao_pulse_generate"));
+    expect(html).not.toContain(i18n.t("oracao_pulse_no_recall"));
   });
 });

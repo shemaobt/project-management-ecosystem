@@ -27,6 +27,7 @@ const { sessionFor } = await import("../acesso/__tests__/stubs");
 const { makeProject } = await import("../../../utils/__tests__/factory");
 const { createEmptyProject } = await import("../../../fixtures/blank");
 const { buildEtenReport } = await import("../../../utils/etenCredits");
+const { buildPrayerRequests } = await import("../../../utils/prayer");
 const { EquipeView } = await import("../equipe");
 const { EtenView } = await import("../eten");
 const { FormulariosView } = await import("../formularios");
@@ -145,7 +146,7 @@ const areas: Record<string, () => string> = {
         MemoryRouter,
         null,
         createElement(OracaoView, {
-          projects: [
+          requests: buildPrayerRequests([
             makeProject({
               id: "brazil",
               location: "Brazil",
@@ -153,7 +154,7 @@ const areas: Record<string, () => string> = {
               prayerRequests: "Orem pelos anciãos.",
               prayerVisibility: "rede",
             }),
-          ],
+          ]),
         }),
       ),
     ),
