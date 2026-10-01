@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { ROLE_DEFINITIONS } from "../../../constants/roles";
+import { useAuth } from "../../../contexts/AuthContext";
+import { prayerAPI, prayerPulseAPI, resolveSource } from "../../../services/api";
 import { useProjectsStore } from "../../../stores/projectsStore";
-import type { Project } from "../../../types/project";
+import type { PrayerRequest } from "../../../types/prayer";
 import {
   buildPrayerRequests,
   countPrayerIndicators,
@@ -14,28 +17,33 @@ import {
   type ContinentFilterValue,
 } from "./ContinentFilter";
 import { Indicators } from "./Indicators";
+import { PulseButton } from "./PulseButton";
 import { RequestCard } from "./RequestCard";
 import { SubNav } from "./SubNav";
 
 export interface OracaoViewProps {
-  projects: readonly Project[] | null;
+  /** The wall as served — `null` while it loads. Never built here from whole projects. */
+  requests: readonly PrayerRequest[] | null;
+  /** The wall could not be read; the page says so instead of showing an empty wall. */
+  unreachable?: boolean;
+  /** The Pulse control, when the reader may generate one (INT-06). */
+  pulse?: ReactNode;
   initialContinent?: ContinentFilterValue;
 }
 
 export function OracaoView({
-  projects,
+  requests: served,
+  unreachable = false,
+  pulse,
   initialContinent = ALL_CONTINENTS,
 }: OracaoViewProps) {
   const { t } = useTranslation();
   const [continent, setContinent] = useState(initialContinent);
 
-  const requests = useMemo(
-    () => buildPrayerRequests(projects ?? []),
-    [projects],
-  );
+  const requests = useMemo(() => served ?? [], [served]);
   const groups = useMemo(() => groupPrayerRequests(requests), [requests]);
   const indicators =
-    projects === null ? null : countPrayerIndicators(requests);
+    served === null ? null : countPrayerIndicators(requests);
   const active = groups.some((group) => group.region === continent)
     ? continent
     : ALL_CONTINENTS;
@@ -56,13 +64,21 @@ export function OracaoView({
         <p className="max-w-[70ch] font-serif text-[15px] leading-[1.6] text-fg-muted italic">
           {t("oracao_lead")}
         </p>
+        <p className="mt-2 max-w-[70ch] text-small font-semibold text-fg">
+          {t("oracao_authorized_only")}
+        </p>
+        {pulse !== undefined && served !== null && requests.length > 0 && (
+          <div className="mt-4">{pulse}</div>
+        )}
       </header>
 
       <SubNav />
 
       <Indicators indicators={indicators} />
 
-      {projects !== null && (
+      {unreachable && <EmptyState message={t("oracao_unreachable")} />}
+
+      {served !== null && (
         <>
           <ContinentFilter
             groups={groups}
@@ -93,7 +109,62 @@ export function OracaoView({
   );
 }
 
+type WallLoad =
+  | { readonly status: "loading" }
+  | { readonly status: "ready"; readonly requests: readonly PrayerRequest[] }
+  | { readonly status: "unreachable" };
+
+/**
+ * **Against the server the wall is the server's** (INT-06 · OBT-411). `GET /prayer/requests`
+ * answers only what the teams authorized for the network, inside the reader's scope, with
+ * sensitive countries already transformed — so nothing unauthorized is ever fetched to this
+ * page, and the wall is held in this component's state and nowhere else: no store, nothing
+ * persisted. Until INT-06 the page built the wall from the whole projects in `projectsStore`
+ * and filtered here, which is the hidden-but-present the issue forbids.
+ *
+ * In fixture mode the derivation from `projectsStore` stays, for §5.5's reason: it is what
+ * makes a consent withdrawn in the ficha leave the wall on the next render.
+ */
 export function OracaoPage() {
+  const live = resolveSource("prayer") === "api";
+  return live ? <LiveOracaoPage /> : <FixtureOracaoPage />;
+}
+
+function LiveOracaoPage() {
+  const { user } = useAuth();
+  const [wall, setWall] = useState<WallLoad>({ status: "loading" });
+  const sendsPulse = user.roles.includes(ROLE_DEFINITIONS.resourceCircle.key);
+
+  useEffect(() => {
+    let current = true;
+    prayerAPI.list().then(
+      (requests) => {
+        if (current) setWall({ status: "ready", requests });
+      },
+      () => {
+        if (current) setWall({ status: "unreachable" });
+      },
+    );
+    return () => {
+      current = false;
+    };
+  }, []);
+
+  const requests = wall.status === "ready" ? wall.requests : null;
+  return (
+    <OracaoView
+      requests={requests}
+      unreachable={wall.status === "unreachable"}
+      pulse={
+        sendsPulse && prayerPulseAPI !== null && requests !== null ? (
+          <PulseButton api={prayerPulseAPI} count={requests.length} />
+        ) : undefined
+      }
+    />
+  );
+}
+
+function FixtureOracaoPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrate = useProjectsStore((state) => state.hydrate);
@@ -102,5 +173,9 @@ export function OracaoPage() {
     void hydrate();
   }, [hydrate]);
 
-  return <OracaoView projects={hydrated ? projects : null} />;
+  const requests = useMemo(
+    () => (hydrated ? buildPrayerRequests(projects) : null),
+    [hydrated, projects],
+  );
+  return <OracaoView requests={requests} />;
 }
