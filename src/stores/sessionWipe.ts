@@ -1,5 +1,5 @@
 import { onSessionEvent } from "../services/api";
-import type { SessionEvent } from "../services/api/tokens";
+import { accessToken, type SessionEvent } from "../services/api/tokens";
 import { useAssessmentStore } from "./assessmentStore";
 import { useFiltersStore } from "./filtersStore";
 import { useFormsStore } from "./formsStore";
@@ -49,13 +49,61 @@ const TYPED_BY_THE_READER: readonly Wipe[] = [
   wipeOf(useFiltersStore),
 ];
 
-/** The stores a session event empties (INT-12 · OBT-417). */
-export function storesWipedOn(event: SessionEvent): readonly Wipe[] {
+/**
+ * Who the drafts in this browser belong to — the account id the access token names (`sub`).
+ * An expiry keeps the drafts for the person who most often signs back in to finish; this is what
+ * tells, at the next sign-in, whether that is who signed in (PR #83 review). Only the opaque id
+ * is kept, never a name.
+ */
+const LAST_READER_KEY = "shema-last-reader-v1";
+
+export function readerOf(token: string | null): string | null {
+  const payload = token?.split(".")[1];
+  if (!payload) return null;
+  try {
+    const json = atob(payload.replace(/-/gu, "+").replace(/_/gu, "/"));
+    const sub = (JSON.parse(json) as { sub?: unknown }).sub;
+    return typeof sub === "string" && sub !== "" ? sub : null;
+  } catch {
+    return null;
+  }
+}
+
+function lastReader(): string | null {
+  try {
+    return localStorage.getItem(LAST_READER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function rememberReader(reader: string | null): void {
+  try {
+    if (reader === null) localStorage.removeItem(LAST_READER_KEY);
+    else localStorage.setItem(LAST_READER_KEY, reader);
+  } catch {
+    // A browser that refuses storage keeps no drafts to hand over either.
+  }
+}
+
+/**
+ * The stores a session event empties (INT-12 · OBT-417). `sameReader` matters only on a
+ * sign-in: somebody other than whoever left drafts behind gets none of them.
+ */
+export function storesWipedOn(event: SessionEvent, sameReader = true): readonly Wipe[] {
   if (event === "signedOut") return [...READ_FOR_THE_READER, ...TYPED_BY_THE_READER];
   if (event === "expired") return READ_FOR_THE_READER;
-  return [];
+  return sameReader ? [] : TYPED_BY_THE_READER;
 }
 
 onSessionEvent((event) => {
-  for (const wipe of storesWipedOn(event)) wipe();
+  let sameReader = true;
+  if (event === "signedIn") {
+    const reader = readerOf(accessToken());
+    const last = lastReader();
+    sameReader = last === null || last === reader;
+    rememberReader(reader);
+  }
+  if (event === "signedOut") rememberReader(null);
+  for (const wipe of storesWipedOn(event, sameReader)) wipe();
 });

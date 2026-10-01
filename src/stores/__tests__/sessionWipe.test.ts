@@ -26,7 +26,7 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("sessionStorage", tabStorage);
 vi.stubGlobal("window", { localStorage: storage, sessionStorage: tabStorage });
 
-const { storesWipedOn } = await import("../sessionWipe");
+const { readerOf, storesWipedOn } = await import("../sessionWipe");
 const { forgetTokens, setTokens } = await import("../../services/api/tokens");
 const { useProjectsStore } = await import("../projectsStore");
 const { useFiltersStore } = await import("../filtersStore");
@@ -42,6 +42,7 @@ describe("o que a sessão deixa no navegador", () => {
     expect(storesWipedOn("signedOut")).toHaveLength(8);
     expect(storesWipedOn("expired")).toHaveLength(4);
     expect(storesWipedOn("signedIn")).toHaveLength(0);
+    expect(storesWipedOn("signedIn", false)).toHaveLength(4);
   });
 
   it("ao sair, a lista de projetos some da memória e do armazenamento", () => {
@@ -63,5 +64,28 @@ describe("o que a sessão deixa no navegador", () => {
     forgetTokens("expired");
 
     expect(useFiltersStore.getState().search).toBe("Morelia");
+  });
+});
+
+const token = (sub: string) =>
+  `h.${btoa(JSON.stringify({ sub })).replace(/\+/gu, "-").replace(/\//gu, "_").replace(/=+$/u, "")}.s`;
+
+describe("uma expiração seguida de outra pessoa", () => {
+  it("o token diz de quem é a sessão", () => {
+    expect(readerOf(token("user-a"))).toBe("user-a");
+    expect(readerOf("lixo")).toBeNull();
+  });
+
+  it("quem volta encontra o que digitou; outra pessoa, não", () => {
+    setTokens({ accessToken: token("user-a"), refreshToken: "r" });
+    useFiltersStore.setState({ search: "Morelia" });
+    forgetTokens("expired");
+
+    setTokens({ accessToken: token("user-a"), refreshToken: "r" });
+    expect(useFiltersStore.getState().search).toBe("Morelia");
+    forgetTokens("expired");
+
+    setTokens({ accessToken: token("user-b"), refreshToken: "r" });
+    expect(useFiltersStore.getState().search).toBe("");
   });
 });
