@@ -57,7 +57,7 @@ import { listMembers, myProjects, refuseRosterWrite } from "./members";
 import { buildPrayerRequests } from "../utils/prayer";
 import type { AssessmentDraft } from "../types/assessment";
 import { browseProjects } from "./projectBrowse";
-import { loadProject, loadProjects } from "./projects";
+import { loadProject, loadProjects, shipsProjectData } from "./projects";
 import {
   createRecord,
   patchRecord,
@@ -254,7 +254,7 @@ export const geoAPI = {
   },
 };
 
-export { createEmptyProject };
+export { createEmptyProject, shipsProjectData };
 
 export const fixtures = {
   projects: projectsAPI,
