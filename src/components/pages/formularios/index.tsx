@@ -5,11 +5,13 @@ import { FIELD_FORMS } from "../../../constants/forms";
 import { useFormsStore } from "../../../stores/formsStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { ReceivedSubmission } from "../../../types/forms";
+import type { ApiFailure } from "../../../types/session";
 import type { Project } from "../../../types/project";
 import { formOf, formReadiness, reportingFor, selectableProjects } from "../../../utils/forms";
 import { toLocalIsoDate } from "../../../utils/format";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { ProjectsUnread } from "../../common/ProjectsUnread";
 import { Button } from "../../ui";
 import { FormCard } from "./FormCard";
 import { PendingProjects } from "./PendingProjects";
@@ -26,12 +28,17 @@ export interface FormulariosViewProps {
    */
   submissions?: readonly ReceivedSubmission[] | null;
   now?: Date;
+  /** Why the project list could not be read — said, with a retry, instead of a spinner. */
+  loadFailure?: ApiFailure | null;
+  onRetry?: () => void;
 }
 
 export function FormulariosView({
   projects,
   submissions = [],
   now,
+  loadFailure = null,
+  onRetry,
 }: FormulariosViewProps) {
   const { t } = useTranslation();
   const [picked, setPicked] = useState("");
@@ -93,7 +100,9 @@ export function FormulariosView({
         ) : null}
       </header>
 
-      {projects === null ? (
+      {projects === null && loadFailure && onRetry ? (
+        <ProjectsUnread failure={loadFailure} onRetry={onRetry} />
+      ) : projects === null ? (
         <div className="flex justify-center py-16">
           <LoadingSpinner size="lg" label={t("loading")} />
         </div>
@@ -156,6 +165,8 @@ export function FormulariosPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrateProjects = useProjectsStore((state) => state.hydrate);
+  const loadFailure = useProjectsStore((state) => state.error);
+  const reloadProjects = useProjectsStore((state) => state.reload);
   const submissions = useFormsStore((state) => state.submissions);
   const formsRead = useFormsStore((state) => state.hydrated);
   const formsLoading = useFormsStore((state) => state.loading);
@@ -170,6 +181,8 @@ export function FormulariosPage() {
     <FormulariosView
       projects={hydrated && !formsLoading ? projects : null}
       submissions={formsRead ? submissions : null}
+      loadFailure={loadFailure}
+      onRetry={() => void reloadProjects()}
     />
   );
 }

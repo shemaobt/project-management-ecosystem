@@ -53,7 +53,13 @@ export function readsOnReturn(lastRead: number | null, now: number): boolean {
   return lastRead === null || now - lastRead > NOTIFICATION_STALE_MS;
 }
 
-function useScopedProjects(): { projects: readonly Project[]; hydrated: boolean } {
+/**
+ * `read` decides whether this hook asks for the list at all. Against the server the list is the
+ * whole scoped browse, and the bell sits on every page: reading it on mount would make every
+ * page open pay for it — Projetos included, racing that screen's own browse — on the field
+ * connection the issue names. So the served feed reads it only when something needs it (OBT-557).
+ */
+function useScopedProjects(read = true): { projects: readonly Project[]; hydrated: boolean } {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrate = useProjectsStore((state) => state.hydrate);
@@ -61,8 +67,8 @@ function useScopedProjects(): { projects: readonly Project[]; hydrated: boolean 
   const scope = user.regionScope;
 
   useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+    if (read) void hydrate();
+  }, [hydrate, read]);
 
   const scoped = useMemo(
     () =>
@@ -132,7 +138,6 @@ function noRetry(): void {}
  */
 function useServedFeed(api: NotificationsAPI): NotificationsFeed {
   const { user } = useAuth();
-  const { projects } = useScopedProjects();
   const [panel, setPanel] = useState<ServedPanel | null>(null);
   const [failure, setFailure] = useState<ApiFailure | null>(null);
   const [seen, setSeen] = useState<ReadonlySet<string>>(new Set());
@@ -199,6 +204,9 @@ function useServedFeed(api: NotificationsAPI): NotificationsFeed {
   }, []);
 
   const shownPrefs = prefs ?? NOTIF_DEFAULTS;
+  // The list is needed by *só os que mentoro* (a served notice carries no mentor) and by the
+  // picker, which the panel asks for itself when it opens.
+  const { projects } = useScopedProjects(shownPrefs.scope === "mentored");
   const entries = useMemo(
     () =>
       panel === null

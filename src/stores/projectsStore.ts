@@ -26,6 +26,12 @@ export const PROJECTS_VERSION = 4;
 
 interface ProjectsState extends HydrationStatus {
   projects: Project[];
+  /**
+   * How many of `projects` had their place reduced, **as the server counted it** — the same
+   * number the Projetos screen reads off its own browse (§5.1). `null` with no server: the
+   * fixture list was read for nobody, so `withheldNotice` answers for it.
+   */
+  locationsWithheld: number | null;
   hydrate: () => Promise<void>;
   reload: () => Promise<void>;
   saveProject: (project: Project) => void;
@@ -51,22 +57,31 @@ const EVERY_PROJECT_IN_REACH: ProjectBrowseQuery = {
   offset: 0,
 };
 
-export async function loadProjectList(): Promise<Project[]> {
-  return SERVED
-    ? (await projectBrowseAPI.browse(EVERY_PROJECT_IN_REACH)).items
-    : projectsAPI.list();
+export interface ProjectList {
+  projects: Project[];
+  locationsWithheld: number | null;
 }
+
+export async function loadProjectList(): Promise<ProjectList> {
+  if (!SERVED) return { projects: await projectsAPI.list(), locationsWithheld: null };
+  const page = await projectBrowseAPI.browse(EVERY_PROJECT_IN_REACH);
+  return { projects: page.items, locationsWithheld: page.locationsWithheld };
+}
+
+/** Whether the list is the server's — what tells a screen whose withheld count to trust. */
+export const PROJECT_LIST_SERVED = SERVED;
 
 export const useProjectsStore = create<ProjectsState>()(
   persist<ProjectsState, [], [], PersistedProjects>(
     (set, get) => {
       const slot = createHydrationSlot();
       const load = async () => {
-        set({ projects: await loadProjectList() });
+        set(await loadProjectList());
       };
 
       return {
         projects: [],
+        locationsWithheld: null,
         ...NOT_HYDRATED,
         hydrate: () => hydrateOnce(slot, get, set, load),
         reload: () => hydrateOnce(slot, get, set, load, true),

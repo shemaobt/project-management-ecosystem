@@ -5,6 +5,7 @@ import { formsAPI, toApiFailure, failureMessage } from "../../../services/api";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { IntakeLink, IntakeLinkCreated } from "../../../types/forms";
 import type { Project } from "../../../types/project";
+import type { ApiFailure } from "../../../types/session";
 import { selectableProjects } from "../../../utils/forms";
 import { formatDate } from "../../../utils/format";
 import {
@@ -20,6 +21,7 @@ import {
 } from "../../ui";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { OneTimeLink } from "../../common/OneTimeLink";
+import { ProjectsUnread } from "../../common/ProjectsUnread";
 import {
   LINK_STATUS_LABEL_KEYS,
   LINK_STATUS_TONES,
@@ -37,6 +39,9 @@ export interface LeaderLinkDialogBodyProps {
   onMint: () => void;
   onRevoke: (linkId: string) => void;
   error: string | null;
+  /** Why the project list could not be read — said, with a retry, instead of a spinner. */
+  loadFailure?: ApiFailure | null;
+  onRetry?: () => void;
 }
 
 export function LeaderLinkDialogBody({
@@ -49,6 +54,8 @@ export function LeaderLinkDialogBody({
   onMint,
   onRevoke,
   error,
+  loadFailure = null,
+  onRetry,
 }: LeaderLinkDialogBodyProps) {
   const { t } = useTranslation();
   const sorted = projects ? selectableProjects(projects) : [];
@@ -59,7 +66,9 @@ export function LeaderLinkDialogBody({
       <p className="text-small leading-body text-fg">{t("intake_scope")}</p>
       <p className="text-small leading-body text-fg">{t("intake_expiry")}</p>
 
-      {projects === null ? (
+      {projects === null && loadFailure && onRetry ? (
+        <ProjectsUnread failure={loadFailure} onRetry={onRetry} />
+      ) : projects === null ? (
         <div className="flex justify-center py-6">
           <LoadingSpinner size="md" label={t("loading")} />
         </div>
@@ -153,6 +162,8 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrate = useProjectsStore((state) => state.hydrate);
+  const loadFailure = useProjectsStore((state) => state.error);
+  const reloadProjects = useProjectsStore((state) => state.reload);
 
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [links, setLinks] = useState<readonly IntakeLink[] | null>(null);
@@ -245,6 +256,8 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
             onMint={mint}
             onRevoke={revoke}
             error={error}
+            loadFailure={loadFailure}
+            onRetry={() => void reloadProjects()}
           />
         </DialogBody>
         <DialogFooter>

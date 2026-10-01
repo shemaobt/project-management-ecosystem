@@ -33,6 +33,7 @@ import {
   scopesFor,
 } from "../../../utils/rhythm";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { ProjectsUnread } from "../../common/ProjectsUnread";
 import { Cascade, ListeningFlow } from "./Cascade";
 import { CelebrationCard, PulseCard } from "./EncounterCards";
 import { LogMeetingDialog } from "./LogMeetingDialog";
@@ -72,6 +73,8 @@ export function RitmoPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrateProjects = useProjectsStore((state) => state.hydrate);
+  const projectsFailure = useProjectsStore((state) => state.error);
+  const reloadProjects = useProjectsStore((state) => state.reload);
   const regions = useRegionsStore((state) => state.regions);
   const hydrateRegions = useRegionsStore((state) => state.hydrate);
   const regionsRead = useRegionsStore((state) => state.hydrated);
@@ -183,7 +186,12 @@ export function RitmoPage() {
         {t("ritmo_meetings_title")}
       </h2>
 
-      {!hydrated ? (
+      {!hydrated && projectsFailure ? (
+        <ProjectsUnread
+          failure={projectsFailure}
+          onRetry={() => void reloadProjects()}
+        />
+      ) : !hydrated ? (
         <div className="flex justify-center py-16">
           <LoadingSpinner size="lg" label={t("loading")} />
         </div>

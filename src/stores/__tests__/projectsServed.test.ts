@@ -100,6 +100,10 @@ describe("a lista inteira contra o servidor", () => {
     ]);
   });
 
+  it("o número de locais recolhidos é o que o servidor contou", () => {
+    expect(useProjectsStore.getState().locationsWithheld).toBe(1);
+  });
+
   it("nada dela fica guardado no navegador", () => {
     expect(storage.raw.get("shema-projects-v1") ?? "").not.toContain("op-7f3a");
   });

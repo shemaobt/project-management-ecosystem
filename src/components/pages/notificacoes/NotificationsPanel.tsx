@@ -1,6 +1,7 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { failureMessage } from "../../../services/api";
+import { useProjectsStore } from "../../../stores/projectsStore";
 import type {
   NotificationPrefs,
   NotificationPrefsHandlers,
@@ -121,6 +122,7 @@ export function NotificationsPanel({
   feed,
 }: NotificationsPanelProps) {
   const { t } = useTranslation();
+  const hydrateProjects = useProjectsStore((state) => state.hydrate);
   const [draft, setDraft] = useState<NotificationPrefs | null>(null);
   const [saving, setSaving] = useState(false);
   const [refusal, setRefusal] = useState<ApiFailure | null>(null);
@@ -129,6 +131,12 @@ export function NotificationsPanel({
     () => prefsHandlers((change) => setDraft((before) => change(before ?? saved))),
     [saved],
   );
+
+  // The scope picker lists the reader's projects; the list is read when the panel opens, not
+  // when the bell mounts on every page (OBT-557).
+  useEffect(() => {
+    if (open) void hydrateProjects();
+  }, [open, hydrateProjects]);
 
   const close = (next: boolean) => {
     if (!next) {

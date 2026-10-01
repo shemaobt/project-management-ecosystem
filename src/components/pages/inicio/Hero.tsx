@@ -4,9 +4,11 @@ import { IndicatorBand } from "./IndicatorBand";
 
 export interface HeroProps {
   projects: readonly Project[] | null;
+  /** `false` when the list could not be read — the band would otherwise spin forever (OBT-557). */
+  showBand?: boolean;
 }
 
-export function Hero({ projects }: HeroProps) {
+export function Hero({ projects, showBand = true }: HeroProps) {
   const { t } = useTranslation();
 
   return (
@@ -32,7 +34,7 @@ export function Hero({ projects }: HeroProps) {
             {t("headline_sub")}
           </p>
         </div>
-        <IndicatorBand projects={projects} />
+        {showBand ? <IndicatorBand projects={projects} /> : null}
       </div>
     </section>
   );
