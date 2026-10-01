@@ -19,15 +19,6 @@ export const projectsAPI = pick<typeof fixture.projectsAPI>(
   fixture.projectsAPI,
 );
 
-/**
- * Whether the whole-project list (`projectsAPI.list`) has anything behind it in this build
- * (INT-12 · OBT-417). The `projects` namespace is still fixture-backed — BE-05 never shipped the
- * plain list — and a server build withholds the fixture data, so there the screens that read the
- * list say it is not served yet instead of rendering an empty one as if there were no projects.
- */
-export const projectListAvailable: boolean =
-  resolveSource("projects") === "api" || fixture.shipsProjectData();
-
 export const projectBrowseAPI = pick<typeof fixture.projectBrowseAPI>(
   "projectsBrowse",
   apiProjectBrowseAPI,

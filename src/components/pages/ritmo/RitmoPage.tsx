@@ -7,7 +7,6 @@ import {
   RITMO_MEETINGS,
 } from "../../../constants/meetings";
 import { useAuth } from "../../../contexts/session";
-import { projectListAvailable } from "../../../services/api";
 import { useFormsStore } from "../../../stores/formsStore";
 import { draftKey, useRhythmStore } from "../../../stores/rhythmStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
@@ -34,7 +33,7 @@ import {
   scopesFor,
 } from "../../../utils/rhythm";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
-import { ProjectListNotServed } from "../../common/ProjectListNotServed";
+import { ProjectsUnread } from "../../common/ProjectsUnread";
 import { Cascade, ListeningFlow } from "./Cascade";
 import { CelebrationCard, PulseCard } from "./EncounterCards";
 import { LogMeetingDialog } from "./LogMeetingDialog";
@@ -74,6 +73,8 @@ export function RitmoPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrateProjects = useProjectsStore((state) => state.hydrate);
+  const projectsFailure = useProjectsStore((state) => state.error);
+  const reloadProjects = useProjectsStore((state) => state.reload);
   const regions = useRegionsStore((state) => state.regions);
   const hydrateRegions = useRegionsStore((state) => state.hydrate);
   const regionsRead = useRegionsStore((state) => state.hydrated);
@@ -185,26 +186,24 @@ export function RitmoPage() {
         {t("ritmo_meetings_title")}
       </h2>
 
-      {!hydrated ? (
+      {!hydrated && projectsFailure ? (
+        <ProjectsUnread
+          failure={projectsFailure}
+          onRetry={() => void reloadProjects()}
+        />
+      ) : !hydrated ? (
         <div className="flex justify-center py-16">
           <LoadingSpinner size="lg" label={t("loading")} />
         </div>
       ) : null}
 
-      {/* The meetings are scoped by the regions the project list has (`rhythmScopes`), so with
-          no list served there is no scope to draw a row for — and an empty agenda would say
-          there are no projects (INT-12 · OBT-417). */}
-      {hydrated && !projectListAvailable ? <ProjectListNotServed className="mb-4.5" /> : null}
-
-      {hydrated && projectListAvailable ? (
-        <PulseCard rows={pulseRows} read={pulsesRead} />
-      ) : null}
+      {hydrated ? <PulseCard rows={pulseRows} read={pulsesRead} /> : null}
 
       {hydrated && logReading ? (
         <LogUnread reading={logReading} onRetry={() => void reloadRhythm()} />
       ) : null}
 
-      {hydrated && projectListAvailable
+      {hydrated
         ? agenda.map(({ meeting, rows }) => (
             <MeetingCard key={meeting.id} meeting={meeting}>
               {logReading ? null : rows.length === 0 ? (

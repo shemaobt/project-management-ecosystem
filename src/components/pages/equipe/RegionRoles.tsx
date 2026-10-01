@@ -12,7 +12,7 @@ import { Input, Label } from "../../ui";
 
 export interface RegionRolesProps {
   region: Region;
-  /** `null` where the build does not serve the project list (INT-12) — no count is drawn. */
+  /** `null` until the project list is read — a count is never drawn before it (OBT-557). */
   count: number | null;
   draft: RegionTeam;
   changes: readonly RoleChange[];

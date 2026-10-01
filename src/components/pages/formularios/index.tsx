@@ -2,16 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { FIELD_FORMS } from "../../../constants/forms";
-import { projectListAvailable } from "../../../services/api";
 import { useFormsStore } from "../../../stores/formsStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { ReceivedSubmission } from "../../../types/forms";
+import type { ApiFailure } from "../../../types/session";
 import type { Project } from "../../../types/project";
 import { formOf, formReadiness, reportingFor, selectableProjects } from "../../../utils/forms";
 import { toLocalIsoDate } from "../../../utils/format";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
-import { ProjectListNotServed } from "../../common/ProjectListNotServed";
+import { ProjectsUnread } from "../../common/ProjectsUnread";
 import { Button } from "../../ui";
 import { FormCard } from "./FormCard";
 import { PendingProjects } from "./PendingProjects";
@@ -28,15 +28,17 @@ export interface FormulariosViewProps {
    */
   submissions?: readonly ReceivedSubmission[] | null;
   now?: Date;
-  /** `false` where the build withholds the project list (INT-12): every block here is a project's. */
-  served?: boolean;
+  /** Why the project list could not be read — said, with a retry, instead of a spinner. */
+  loadFailure?: ApiFailure | null;
+  onRetry?: () => void;
 }
 
 export function FormulariosView({
   projects,
   submissions = [],
   now,
-  served = true,
+  loadFailure = null,
+  onRetry,
 }: FormulariosViewProps) {
   const { t } = useTranslation();
   const [picked, setPicked] = useState("");
@@ -89,7 +91,7 @@ export function FormulariosView({
             {t("forms_lead")}
           </p>
         </div>
-        {served && project ? (
+        {project ? (
           <ProjectSelector
             projects={sorted}
             value={project.id}
@@ -98,8 +100,8 @@ export function FormulariosView({
         ) : null}
       </header>
 
-      {!served ? (
-        <ProjectListNotServed />
+      {projects === null && loadFailure && onRetry ? (
+        <ProjectsUnread failure={loadFailure} onRetry={onRetry} />
       ) : projects === null ? (
         <div className="flex justify-center py-16">
           <LoadingSpinner size="lg" label={t("loading")} />
@@ -163,6 +165,8 @@ export function FormulariosPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrateProjects = useProjectsStore((state) => state.hydrate);
+  const loadFailure = useProjectsStore((state) => state.error);
+  const reloadProjects = useProjectsStore((state) => state.reload);
   const submissions = useFormsStore((state) => state.submissions);
   const formsRead = useFormsStore((state) => state.hydrated);
   const formsLoading = useFormsStore((state) => state.loading);
@@ -177,7 +181,8 @@ export function FormulariosPage() {
     <FormulariosView
       projects={hydrated && !formsLoading ? projects : null}
       submissions={formsRead ? submissions : null}
-      served={projectListAvailable}
+      loadFailure={loadFailure}
+      onRetry={() => void reloadProjects()}
     />
   );
 }

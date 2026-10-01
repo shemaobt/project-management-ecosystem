@@ -1,15 +1,14 @@
 import { Trans, useTranslation } from "react-i18next";
 import type { Project } from "../../../types/project";
-import { ProjectListNotServed } from "../../common/ProjectListNotServed";
 import { IndicatorBand } from "./IndicatorBand";
 
 export interface HeroProps {
   projects: readonly Project[] | null;
-  /** `false` in a build that does not serve the project list — the band counts nothing then. */
-  served?: boolean;
+  /** `false` when the list could not be read — the band would otherwise spin forever (OBT-557). */
+  showBand?: boolean;
 }
 
-export function Hero({ projects, served = true }: HeroProps) {
+export function Hero({ projects, showBand = true }: HeroProps) {
   const { t } = useTranslation();
 
   return (
@@ -35,7 +34,7 @@ export function Hero({ projects, served = true }: HeroProps) {
             {t("headline_sub")}
           </p>
         </div>
-        {served ? <IndicatorBand projects={projects} /> : <ProjectListNotServed />}
+        {showBand ? <IndicatorBand projects={projects} /> : null}
       </div>
     </section>
   );
