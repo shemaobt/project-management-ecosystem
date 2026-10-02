@@ -186,7 +186,13 @@ describe("um aviso de antes dos fatos diz o tipo e nada do que dizia", () => {
     expect(en.every((line, index) => line !== pt[index])).toBe(true);
   });
 
-  it("uma saúde sem o dia cai na mesma linha genérica, em vez de uma frase pela metade", () => {
-    expect(say(served("health"))).toBe(i18n.t("notif_served_old_health"));
+  it("uma saúde sem o dia guarda o nome, como o projeto quieto sem os dias", async () => {
+    expect(say(served("health"))).toBe(
+      "Tikuna: a avaliação de saúde ficou crítica. Abra a ficha do projeto para ler a avaliação e decidir que apoio oferecer.",
+    );
+    expect(say(served("health"))).not.toBe(i18n.t("notif_served_old_health"));
+
+    await i18n.changeLanguage("en");
+    expect(say(served("health"))).toMatch(/^Tikuna was assessed as critical\. Open/);
   });
 });

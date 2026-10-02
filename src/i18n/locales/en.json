@@ -1402,6 +1402,7 @@
   "notif_kind_stale": "Project gone quiet",
   "notif_kind_prayer": "Prayer request",
   "notif_served_health": "{{name}} was assessed as critical on {{date}}. Open the project record to read the assessment and decide what support to offer.",
+  "notif_served_health_undated": "{{name}} was assessed as critical. Open the project record to read the assessment and decide what support to offer.",
   "notif_served_need_one": "{{who}} raised an urgent need: {{categories}}.",
   "notif_served_need_other": "{{who}} raised {{count}} urgent needs: {{categories}}.",
   "notif_served_need_money": "Estimated at {{amounts}}.",

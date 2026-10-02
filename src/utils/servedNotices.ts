@@ -40,7 +40,7 @@ export function servedNoticeSummary(entry: ServedNotification, t: TFunction): st
   switch (entry.kind) {
     case "health":
       return facts.assessedOn === null
-        ? t(OLD_NOTICE_SUMMARY_KEYS.health)
+        ? t("notif_served_health_undated", { name: opening })
         : t("notif_served_health", {
             name: opening,
             date: formatDate(facts.assessedOn, t("locale")),
