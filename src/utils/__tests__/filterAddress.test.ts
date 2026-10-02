@@ -7,6 +7,7 @@ import {
   encodeAddress,
   encodeView,
   encodeViewToUrl,
+  withPlacesKept,
   type ViewState,
 } from "../filterSerialisation";
 
@@ -57,5 +58,22 @@ describe("o endereço não leva lugar", () => {
 
     expect(shared.filters.team).toBe("YWAM Egypt");
     expect(shared.filters.status).toBe("em-andamento");
+  });
+});
+
+describe("ler o endereço de volta não derruba o lugar", () => {
+  it("Base + Status: o endereço traz o Status e a Base que a tela tinha continua", () => {
+    const fromAddress = decodeView(encodeAddress(view));
+    const kept = withPlacesKept(fromAddress.filters, view.filters);
+
+    expect(kept.status).toBe("em-andamento");
+    expect(kept.team).toBe("YWAM Egypt");
+    expect(kept.country).toBe("Egypt");
+  });
+
+  it("um lugar que o endereço traz — um link antigo — vence o da tela", () => {
+    const old = decodeView(new URLSearchParams("team=Outra%20Base"));
+
+    expect(withPlacesKept(old.filters, view.filters).team).toBe("Outra Base");
   });
 });

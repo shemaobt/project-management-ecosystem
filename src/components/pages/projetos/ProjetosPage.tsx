@@ -8,7 +8,11 @@ import { failureMessage } from "../../../services/api";
 import { EMPTY_FILTERS, useFiltersStore } from "../../../stores/filtersStore";
 import { usePrefsStore } from "../../../stores/prefsStore";
 import type { Project } from "../../../types/project";
-import { decodeView, encodeAddress } from "../../../utils/filterSerialisation";
+import {
+  decodeView,
+  encodeAddress,
+  withPlacesKept,
+} from "../../../utils/filterSerialisation";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button } from "../../ui";
@@ -73,7 +77,12 @@ export function ProjetosPage() {
     readUrl.current = true;
     if ([...params.keys()].length === 0) return;
     const shared = decodeView(params);
-    applyState(shared.filters, shared.search);
+    // The address carries no place (OBT-558), so the Base and País the screen already holds
+    // survive reading it back instead of being replaced by its empty ones.
+    applyState(
+      withPlacesKept(shared.filters, useFiltersStore.getState().filters),
+      shared.search,
+    );
     setSort(shared.sort);
     setMetaphor(shared.metaphor);
   }, [params, applyState, setSort, setMetaphor]);

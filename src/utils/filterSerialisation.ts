@@ -50,9 +50,21 @@ const FREE_TEXT_KEYS = [
  */
 const PLACE_KEYS = ["team", "country"] as const satisfies readonly (typeof FREE_TEXT_KEYS)[number][];
 
-
-function staysOutOfTheAddress(key: (typeof FREE_TEXT_KEYS)[number]): boolean {
-  return (PLACE_KEYS as readonly string[]).includes(key);
+/**
+ * What the screen applies when it reads the address back: the address's filters, with the place
+ * filters the address cannot carry taken from what the screen already holds. Without it, a reload
+ * or a *back* with Base + Status would bring the Status back and silently drop the Base (PR #86
+ * review). A place the address does carry — an old link — still wins.
+ */
+export function withPlacesKept(
+  fromAddress: ProjectFilters,
+  current: ProjectFilters,
+): ProjectFilters {
+  const kept = { ...fromAddress };
+  for (const key of PLACE_KEYS) {
+    if (!kept[key]) kept[key] = current[key];
+  }
+  return kept;
 }
 
 const ENUM_KEYS = [
@@ -136,9 +148,7 @@ export function encodeView(state: ViewState): URLSearchParams {
  */
 export function encodeAddress(state: ViewState): URLSearchParams {
   const params = encodeView(state);
-  for (const key of FREE_TEXT_KEYS) {
-    if (staysOutOfTheAddress(key)) params.delete(key);
-  }
+  for (const key of PLACE_KEYS) params.delete(key);
   return params;
 }
 
