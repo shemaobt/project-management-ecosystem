@@ -20,6 +20,7 @@ import {
   type ProjectDraft,
 } from "../../../stores/recordStore";
 import type { Project } from "../../../types/project";
+import { getLanguageNameDisplay } from "../../../utils/region";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import {
@@ -169,7 +170,15 @@ export function FichaPage() {
         carryDraft(recordId, filed?.id ?? null, result.report);
         toast.success(
           [
-            t("record_saved", { name: draft.values.languageName }),
+            t("record_saved", {
+              name: getLanguageNameDisplay(
+                {
+                  languageName: draft.values.languageName ?? "",
+                  languageNameWithheld: draft.values.languageNameWithheld,
+                },
+                t,
+              ),
+            }),
             savedSentence(written, result.report.withheld, t),
           ]
             .filter(Boolean)

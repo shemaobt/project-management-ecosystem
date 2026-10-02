@@ -55,3 +55,18 @@ describe("quem escreve o nome", () => {
     expect(mayWrite(recordAccess(open, false), "languageName")).toBe(true);
   });
 });
+
+describe("o dublê de servidor reduz o nome como o servidor", () => {
+  it("o nome público, ou a região quando falta, e nunca o nome real", async () => {
+    const { withhold } = await import("../../fixtures/reader");
+    const egypt = project({ languageName: "Sa'di of High Egypt", location: "Egypt", sensitiveCountry: true });
+
+    const unnamed = withhold(egypt);
+    expect(unnamed.languageName).not.toContain("Egypt");
+    expect(unnamed.languageNameWithheld).toBe(true);
+
+    const named = withhold({ ...egypt, publicLanguageName: "Sa'di" });
+    expect(named.languageName).toBe("Sa'di");
+    expect(named.publicLanguageName).toBeUndefined();
+  });
+});
