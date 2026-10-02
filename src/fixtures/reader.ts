@@ -48,6 +48,10 @@ export function withhold(project: Project): Project {
     mentorContact: "",
     sensitivity: "",
     coords: REGION_CENTROIDS[region],
+    // The server's rule for the name (OBT-560): the public one, or the region key.
+    languageName: project.publicLanguageName?.trim() || region,
+    languageNameWithheld: true,
+    publicLanguageName: undefined,
   };
 }
 

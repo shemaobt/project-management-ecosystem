@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { getLanguageNameDisplay } from "../../../utils/region";
 import type { Project } from "../../../types/project";
 import { cardSummary, openableCardProps } from "./card";
 
@@ -28,7 +29,7 @@ export function OpenableCard({
     <>
       <article
         {...openableCardProps({
-          label: t("card_open", { language: project.languageName }),
+          label: t("card_open", { language: getLanguageNameDisplay(project, t) }),
           describedBy: summaryId,
           onOpen,
         })}

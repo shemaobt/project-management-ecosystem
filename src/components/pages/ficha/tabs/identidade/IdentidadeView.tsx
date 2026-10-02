@@ -2,7 +2,10 @@ import { useTranslation } from "react-i18next";
 import { VITALITY_SCALE } from "../../../../../constants/project";
 import { formatNumber } from "../../../../../utils/format";
 import { hasPlottableCoords } from "../../../../../utils/identity";
-import { getLocationDisplay } from "../../../../../utils/region";
+import {
+  getLanguageNameDisplay,
+  getLocationDisplay,
+} from "../../../../../utils/region";
 import { Badge } from "../../../../ui";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { DetailItem, FieldGrid } from "../../fields";
@@ -30,13 +33,25 @@ export function IdentidadeView({ draft }: IdentidadeViewProps) {
   return (
     <FieldGrid>
       <DetailItem label={t("d_target")}>
-        {values.languageName || "—"}
+        {getLanguageNameDisplay(
+          {
+            languageName: values.languageName ?? "",
+            languageNameWithheld: values.languageNameWithheld,
+          },
+          t,
+        ) || "—"}
         {values.languageCode && (
           <em className="ml-1.5 font-serif font-normal text-fg-muted">
             ({values.languageCode})
           </em>
         )}
       </DetailItem>
+
+      {values.sensitiveCountry && !withheld && (
+        <DetailItem label={t("f_public_name")}>
+          {values.publicLanguageName || t("d_public_name_missing")}
+        </DetailItem>
+      )}
 
       <DetailItem label={t("d_bridge")} serif>
         {values.bridgeLanguage || "—"}

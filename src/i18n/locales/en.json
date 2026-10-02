@@ -1416,5 +1416,9 @@
   "import_apply_server": "Import and save",
   "import_applying": "Importing…",
   "import_ignored_fields": "The server does not take these from a file and ignored them: {{fields}}.",
-  "notif_prefs_unread": "Your saved preferences could not be read — what shows below is the default, not your choice, and Save stays closed until they are read."
+  "notif_prefs_unread": "Your saved preferences could not be read — what shows below is the default, not your choice, and Save stays closed until they are read.",
+  "sensitive_project_named": "Sensitive project — {{region}}",
+  "f_public_name": "Public language name",
+  "f_public_name_hint": "What every reader outside coordination sees instead of the language's name, because the name can name the place. While it is empty, \"Sensitive project\" shows with the region.",
+  "d_public_name_missing": "Not registered — other readers see \"Sensitive project\" with the region"
 }

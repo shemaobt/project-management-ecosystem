@@ -53,6 +53,24 @@ export function getRegionLabelKey(region: RegionKey): string {
   );
 }
 
+/**
+ * The language's name as the screen prints it (OBT-560). For a sensitive project read by
+ * anybody but coordination the server sends the public name coordination registered — or,
+ * while none is, the region key in its place, the convention `location` already follows.
+ * A key is not a name, so that case reads as words: *Projeto sensível — África*.
+ */
+export function getLanguageNameDisplay(
+  project: Pick<Project, "languageName" | "languageNameWithheld">,
+  t: (key: string, options?: Record<string, string>) => string,
+): string {
+  if (project.languageNameWithheld && isRegionKey(project.languageName)) {
+    return t("sensitive_project_named", {
+      region: t(getRegionLabelKey(project.languageName)),
+    });
+  }
+  return project.languageName;
+}
+
 export type MapPrecision = "exact" | "region";
 
 export interface MapPlacement {

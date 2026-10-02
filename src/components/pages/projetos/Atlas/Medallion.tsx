@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { Project, ProjectPriority } from "../../../../types/project";
 import { cn } from "../../../../utils/cn";
-import { getLocationDisplay } from "../../../../utils/region";
+import { getLanguageNameDisplay, getLocationDisplay } from "../../../../utils/region";
 import { cardPriority, cardProgress } from "../derived";
 
 const MEDALLION_TONES: Partial<Record<ProjectPriority, string>> = {
@@ -78,7 +78,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
       </div>
 
       <div className="mt-1 line-clamp-2 max-w-full text-center text-small leading-[1.15] font-bold tracking-[-0.005em] text-balance text-fg">
-        {project.languageName}
+        {getLanguageNameDisplay(project, t)}
       </div>
       <div className="mt-0.5 mb-2 text-center font-serif text-tag leading-[1.3] italic text-fg-muted">
         {location.withheld

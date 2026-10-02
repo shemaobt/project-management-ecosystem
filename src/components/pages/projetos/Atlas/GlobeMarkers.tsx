@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { getLanguageNameDisplay } from "../../../../utils/region";
 import { HEALTH_LABEL_KEYS } from "../../../../constants/status";
 import { cardHealth, cardPriority, cardStale } from "../derived";
 import { markerRadius, type AtlasMarkerSource } from "./markers";
@@ -58,7 +59,7 @@ export function GlobeMarkers({
             >
               <title>
                 {[
-                  project.languageName,
+                  getLanguageNameDisplay(project, t),
                   t(HEALTH_LABEL_KEYS[health]),
                   project.sensitiveCountry
                     ? t("atlas_sensitive_marker")

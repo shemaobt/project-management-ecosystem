@@ -178,6 +178,10 @@ interface WireRecord {
   sensitiveCountry: boolean;
   /** OBT-528, additive: the same bit for every reader — withheld from what leaves. */
   locationWithheld?: boolean;
+  /** OBT-560, additive: the name the other readers get for a sensitive project. */
+  publicLanguageName?: string | null;
+  /** OBT-560, additive: `languageName` is not the language's own. */
+  languageNameWithheld?: boolean;
   /** OBT-528, additive: who this record was built for. */
   readAs?: string;
   statusComments: string;
@@ -445,6 +449,8 @@ export function mapRecord(wire: WireRecord): Project {
     completedDate: maybe(wire.completedDate ?? null),
     sensitivity: wire.sensitivity,
     sensitiveCountry: wire.sensitiveCountry || wire.locationWithheld === true,
+    publicLanguageName: maybe(wire.publicLanguageName ?? null),
+    languageNameWithheld: wire.languageNameWithheld === true,
     readAs: readReadAs(wire.readAs),
     statusComments: wire.statusComments,
     statusGoal: wire.statusGoal,

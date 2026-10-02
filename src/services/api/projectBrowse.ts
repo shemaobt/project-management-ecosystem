@@ -76,6 +76,8 @@ interface WireProjectCard {
   derived: ProjectDerived | null;
   coords: [number, number];
   locationWithheld: boolean;
+  /** OBT-560, additive: `languageName` is not the language's own. */
+  languageNameWithheld?: boolean;
   /** OBT-528, additive: who this card was built for. */
   readAs?: string;
 }
@@ -168,6 +170,7 @@ function mapCard(wire: WireProjectCard): Project {
     // the same answer client-side whether or not this project ever had one saved.
     status: derived?.status ?? "desconhecido",
     sensitiveCountry: wire.locationWithheld,
+    languageNameWithheld: wire.languageNameWithheld === true,
     readAs: readReadAs(wire.readAs),
     statusComments: wire.statusComments,
     statusGoal: wire.statusGoal,
