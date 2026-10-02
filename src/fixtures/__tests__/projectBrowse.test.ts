@@ -189,7 +189,7 @@ describe("browseProjects — o mesmo que a BE-05 promete, do lado das fixtures",
     it("a Resource Circle não recebe o grupo de saúde", async () => {
       readAs("resourceCircle");
       const result = await browseProjects(BASE);
-      expect(result.counts.absent).toEqual(["health"]);
+      expect(result.counts.absent).toContain("health");
     });
 
     it("um filtro e uma ordem por saúde são ignorados, não recusados", async () => {
@@ -212,8 +212,32 @@ describe("browseProjects — o mesmo que a BE-05 promete, do lado das fixtures",
         ...BASE,
         filters: { ...EMPTY_FILTERS, health: "critica" },
       });
-      expect(result.counts.absent).toEqual([]);
+      expect(result.counts.absent).not.toContain("health");
       expect(result.matched).toBe(result.counts.health.critica);
+    });
+  });
+
+  describe("o grupo sensível é da coordenação, como no servidor (OBT-556)", () => {
+    it("quem não coordena região nenhuma não recebe o grupo, e o filtro é ignorado", async () => {
+      readAs("obtLab");
+      const plain = await browseProjects(BASE);
+      const asked = await browseProjects({
+        ...BASE,
+        filters: { ...EMPTY_FILTERS, sensitive: "yes" },
+      });
+      expect(plain.counts.absent).toContain("sensitive");
+      expect(asked.matched).toBe(plain.matched);
+    });
+
+    it("a coordenação recebe o grupo e o filtro vale", async () => {
+      readAs("globalStrategist");
+      const result = await browseProjects({
+        ...BASE,
+        filters: { ...EMPTY_FILTERS, sensitive: "yes" },
+      });
+      expect(result.counts.absent).not.toContain("sensitive");
+      expect(result.matched).toBe(result.counts.sensitive.yes);
+      expect(result.matched).toBeGreaterThan(0);
     });
   });
 });

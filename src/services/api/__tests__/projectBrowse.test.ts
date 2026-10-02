@@ -301,3 +301,33 @@ describe("um grupo que o servidor deixa de fora (OBT-553)", () => {
     expect(result.counts.absent).not.toContain("health");
   });
 });
+
+describe("a contagem de recolhidos é da coordenação (OBT-556)", () => {
+  const browse = (groups: Record<string, Record<string, number>>) => {
+    script = () => ({
+      status: 200,
+      data: { ...WIRE_PAGE, counts: { ...WIRE_PAGE.counts, groups } },
+    });
+    return projectBrowseAPI.browse({
+      filters: EMPTY_FILTERS,
+      search: "",
+      sort: DEFAULT_SORT,
+      limit: null,
+      offset: 0,
+    });
+  };
+
+  it("o grupo sensível que não veio é dito ausente", async () => {
+    const result = await browse(WIRE_PAGE.counts.groups);
+    expect(result.counts.absent).toContain("sensitive");
+  });
+
+  it("o grupo sensível que veio está presente, mesmo com locationsWithheld nulo", async () => {
+    const result = await browse({
+      ...WIRE_PAGE.counts.groups,
+      sensitive: { yes: 0, no: 1 },
+    });
+    expect(result.locationsWithheld).toBeNull();
+    expect(result.counts.absent).not.toContain("sensitive");
+  });
+});

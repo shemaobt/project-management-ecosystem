@@ -83,7 +83,10 @@ function withoutPrayerFields(project: Project): Project {
 
 /** The gated groups this persona is not told — `_facets_as_read` on the server. */
 function hiddenFacets(persona: SessionPersona): GatedFacet[] {
-  return readsHealth(persona) ? [] : ["health"];
+  const hidden: GatedFacet[] = [];
+  if (!readsHealth(persona)) hidden.push("health");
+  if (!coordinatesAnything(persona)) hidden.push("sensitive");
+  return hidden;
 }
 
 /**

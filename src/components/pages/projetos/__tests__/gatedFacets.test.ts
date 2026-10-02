@@ -99,3 +99,24 @@ describe("a faceta de saúde é da audiência de saúde (OBT-553)", () => {
     expect(sortKeysFor(true)).toEqual(SORT_KEYS);
   });
 });
+
+describe("o grupo Sensível é da coordenação (OBT-556)", () => {
+  it("some quando o servidor não o manda, qualquer que seja a sessão", () => {
+    expect(absentGroups(absent("sensitive"), true)).toEqual(["sensitive"]);
+    expect(absentGroups(absent("sensitive"), false)).toEqual(["health", "sensitive"]);
+  });
+
+  it("um link salvo com ?sensitive não deixa um filtro fantasma ativo", () => {
+    const filters = { ...EMPTY_FILTERS, sensitive: "yes" as const, eten: "yes" as const };
+    expect(withoutAbsentFilters(filters, absentGroups(absent("sensitive"), true))).toEqual({
+      ...EMPTY_FILTERS,
+      eten: "yes",
+    });
+  });
+
+  it("a seção Sensível não é desenhada", () => {
+    const ids = shownSections(ADVANCED_SECTIONS, ["sensitive"]).map((section) => section.id);
+    expect(ids).not.toContain("sensitive");
+    expect(ids).toHaveLength(ADVANCED_SECTIONS.length - 1);
+  });
+});

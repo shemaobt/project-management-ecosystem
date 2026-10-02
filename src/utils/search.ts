@@ -88,11 +88,16 @@ const FACET_GROUPS: readonly FacetGroup[] = [
 /**
  * The facet groups the server may leave out of `counts.groups` and `counts.groupAll` for a
  * reader who does not read what they count — `health` outside the health audience
- * (OBT-553). A group left out is not a group of zeros: it says nothing, the server ignores
- * its filter, and the sidebar does not draw it.
+ * (OBT-553), `sensitive` for whoever coordinates no region (OBT-556). A group left out is
+ * not a group of zeros: it says nothing, the server ignores its filter, and the sidebar
+ * does not draw it.
+ *
+ * `sensitive` is read off the group alone, never off `locationsWithheld`: that one is
+ * `null` for coordination too when the window holds no withheld project.
  */
 export const GATED_FACETS = [
   "health",
+  "sensitive",
 ] as const satisfies readonly FacetGroup[];
 
 export type GatedFacet = (typeof GATED_FACETS)[number];
