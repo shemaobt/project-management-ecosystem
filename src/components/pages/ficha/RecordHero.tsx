@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { cn } from "../../../utils/cn";
 import { DialogTitle } from "../../ui";
+import { getLanguageNameDisplay } from "../../../utils/region";
 import type { RecordMode } from "./types";
 import type { DraftHandle } from "./useDraft";
 
@@ -13,7 +14,13 @@ export interface RecordHeroProps {
 
 export function RecordHero({ mode, draft }: RecordHeroProps) {
   const { t } = useTranslation();
-  const name = draft.values.languageName ?? "";
+  const name = getLanguageNameDisplay(
+    {
+      languageName: draft.values.languageName ?? "",
+      languageNameWithheld: draft.values.languageNameWithheld,
+    },
+    t,
+  );
   const eyebrow = draft.isNew
     ? t("modal_new")
     : mode === "editar"
