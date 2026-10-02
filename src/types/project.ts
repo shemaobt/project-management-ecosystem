@@ -347,6 +347,16 @@ export interface Project {
   completedDate?: string;
   sensitivity: string;
   sensitiveCountry: boolean;
+  /**
+   * The name every reader but coordination reads for a sensitive project's language
+   * (OBT-560) — coordination writes it, beside the place. Absent when the server sent none.
+   */
+  publicLanguageName?: string;
+  /**
+   * `languageName` is not the language's own: the server put the public name there, or the
+   * region key when none is registered (OBT-560). `getLanguageNameDisplay` reads it.
+   */
+  languageNameWithheld?: boolean;
   statusComments: string;
   statusGoal: string;
   orgRole: string;
