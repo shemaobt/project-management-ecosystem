@@ -3,7 +3,7 @@ import { PRAYER_SOURCE_LABEL_KEYS } from "../../../constants/prayer";
 import type { PrayerRequest } from "../../../types/prayer";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
-import { getRegionLabelKey } from "../../../utils/region";
+import { getLanguageNameDisplay, getRegionLabelKey } from "../../../utils/region";
 
 export interface RequestCardProps {
   request: PrayerRequest;
@@ -24,7 +24,10 @@ export function RequestCard({ request }: RequestCardProps) {
     >
       <div className="mb-2.5 flex items-baseline justify-between gap-2.5">
         <span className="text-[17px] leading-[1.2] font-extrabold text-fg-strong">
-          {request.language}
+          {getLanguageNameDisplay(
+            { languageName: request.language, languageNameWithheld: request.languageNameWithheld },
+            t,
+          )}
         </span>
         <span className="shrink-0 text-[11px] leading-none font-semibold tracking-[0.04em] text-fg-subtle uppercase">
           {regionLabel}

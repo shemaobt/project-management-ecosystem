@@ -3,6 +3,7 @@ import { surfaceOutlined } from "../../../styles";
 import type { EtenYearReport } from "../../../types/eten";
 import { cn } from "../../../utils/cn";
 import { creditReason, locationLabel } from "./evidence";
+import { getLanguageNameDisplay } from "../../../utils/region";
 
 export interface CreditBreakdownProps {
   report: EtenYearReport;
@@ -42,7 +43,7 @@ export function CreditBreakdown({ report }: CreditBreakdownProps) {
             >
               <span className="min-w-0 flex-1">
                 <span className="font-semibold wrap-anywhere text-fg-strong">
-                  {snapshot.languageName}
+                  {getLanguageNameDisplay(snapshot, t)}
                 </span>{" "}
                 <span className="text-tag text-fg-subtle">
                   {locationLabel(snapshot.country, t)}

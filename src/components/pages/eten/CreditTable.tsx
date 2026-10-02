@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "../../ui";
 import { locationLabel, manualLabel, readingLabel } from "./evidence";
+import { getLanguageNameDisplay } from "../../../utils/region";
 
 const NUM = "text-right tabular-nums";
 const EVIDENCE = "mt-0.5 block text-tag font-normal text-fg-subtle";
@@ -80,7 +81,7 @@ export function CreditTable({ report }: CreditTableProps) {
           >
             <TableCell>
               <span className="font-semibold wrap-anywhere text-fg-strong">
-                {snapshot.languageName}
+                {getLanguageNameDisplay(snapshot, t)}
               </span>
               <span className="mt-0.5 block text-tag text-fg-subtle">
                 {locationLabel(snapshot.country, t)}
