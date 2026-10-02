@@ -225,10 +225,12 @@ o workflow tem um passo que falha o job quando qualquer um dos dois aparece na p
 
 ## 3. O primeiro deploy
 
-1. Mergeie na `main` (ou rode **Actions → Deploy (Cloud Run) → Run workflow** com `image_tag` **vazio**).
-   Disparado de uma branch que não é `main`, com `image_tag` vazio, o workflow constrói e faz deploy **daquela
-   branch** — é como se valida uma mudança de infraestrutura antes de mergear, e é mais uma razão para o
-   serviço não ser público.
+1. Mergeie na `main`. **O primeiro deploy só acontece pelo merge**: o GitHub só aceita `workflow_dispatch` de
+   um workflow que já exista na branch padrão (`workflow deploy.yml not found on the default branch`, confirmado
+   em 02/out/2026). A partir do segundo, **Actions → Deploy (Cloud Run) → Run workflow** com `image_tag`
+   **vazio** também serve; disparado de uma branch que não é `main`, constrói e faz deploy **daquela branch** —
+   é como se valida uma mudança de infraestrutura antes de mergear, e é mais uma razão para o serviço não ser
+   público.
 2. O que esperar ver, em ordem: `Required secrets and variables are set.` → `Target tag: <sha>` → build e push
    da imagem → `gcloud run deploy` criando a revisão → `Service is private: no allUsers, no allAuthenticatedUsers.`
    → `Deployed to: https://...` e o mesmo bloco no *summary* do job.
