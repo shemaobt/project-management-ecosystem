@@ -305,3 +305,35 @@ describe("o painel contra o servidor (INT-11)", () => {
     expect(markup).not.toContain(i18n.t("loading"));
   });
 });
+
+describe("o nome retido de um projeto sensível (OBT-562)", () => {
+  it("o título do aviso diz Projeto sensível, nunca a chave da região", () => {
+    const sensitive = makeProject({
+      id: "sensivel",
+      location: "Egypt",
+      sensitiveCountry: true,
+      languageName: "africa",
+      languageNameWithheld: true,
+      healthAssessmentDate: "2026-08-12",
+      healthEmotional: "critica",
+    });
+
+    const markup = renderToStaticMarkup(
+      createElement(NotificationsPanelBody, {
+        entries: visibleNotifications(
+          routedNotifications([sensitive], { roles: ["globalStrategist"], regions: null }, NOW),
+          NOTIF_DEFAULTS,
+          "Karina Marinho",
+        ),
+        projects: [sensitive],
+        prefs: NOTIF_DEFAULTS,
+        handlers,
+      }),
+    );
+
+    expect(markup).toContain(
+      i18n.t("sensitive_project_named", { region: i18n.t("continent_africa") }),
+    );
+    expect(markup).not.toContain("africa ·");
+  });
+});

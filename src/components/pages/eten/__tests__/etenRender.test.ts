@@ -484,3 +484,23 @@ describe("a tela mostra o relatório que recebeu, e não calcula nenhum número"
     expect(markup).not.toContain(i18n.t("loading"));
   });
 });
+
+describe("o nome retido de um projeto sensível (OBT-562)", () => {
+  it("uma chave de região no lugar do nome vira frase, e nunca aparece crua", () => {
+    const sensitive = {
+      ...createEmptyProject("sensivel"),
+      inETEN: true,
+      location: "Egypt",
+      sensitiveCountry: true,
+      languageName: "africa",
+      languageNameWithheld: true,
+    };
+
+    const markup = view([sensitive]);
+
+    expect(markup).toContain(
+      i18n.t("sensitive_project_named", { region: i18n.t("continent_africa") }),
+    );
+    expect(markup).not.toContain(">africa<");
+  });
+});
