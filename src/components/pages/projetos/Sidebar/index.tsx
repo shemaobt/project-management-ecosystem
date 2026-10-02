@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import type { FacetCounts, GatedFacet } from "../../../../utils/search";
+import type { GatedFacet } from "../../../../utils/gatedFacets";
+import type { FacetCounts } from "../../../../utils/search";
 import { Chips } from "./Chips";
 import { DetailedFilters } from "./Filters";
 import { ResultCount } from "./ResultCount";

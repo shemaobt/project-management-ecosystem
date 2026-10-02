@@ -15,7 +15,7 @@ import {
   encodeAddress,
   withPlacesKept,
 } from "../../../utils/filterSerialisation";
-import { absentGroups, withoutAbsentFilters } from "../../../utils/search";
+import { absentGroups, withoutAbsentFilters } from "../../../utils/gatedFacets";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button } from "../../ui";

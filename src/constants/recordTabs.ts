@@ -50,7 +50,7 @@ export const isRecordTab = (value: string): value is RecordTabId =>
  * handed every one of them empty, and an empty tab would say *nobody has assessed this
  * team* about a team that may have been.
  */
-export const HEALTH_TABS: readonly RecordTabId[] = ["saude"];
+const HEALTH_TABS: readonly RecordTabId[] = ["saude"];
 
 export const visibleTabs = (readsHealth: boolean): readonly RecordTabId[] =>
   readsHealth

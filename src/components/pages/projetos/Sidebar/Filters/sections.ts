@@ -15,11 +15,8 @@ import {
 import type { ProgressRange } from "../../../../../stores/filtersStore";
 import { PROGRESS_RANGES, YES_NO_VALUES } from "../../../../../stores/filtersStore";
 import type { HealthLevel } from "../../../../../types/project";
-import type {
-  FacetCounts,
-  FacetGroup,
-  GatedFacet,
-} from "../../../../../utils/search";
+import type { GatedFacet } from "../../../../../utils/gatedFacets";
+import type { FacetCounts, FacetGroup } from "../../../../../utils/search";
 
 export type FilterSectionId = Exclude<FacetGroup, "continent">;
 

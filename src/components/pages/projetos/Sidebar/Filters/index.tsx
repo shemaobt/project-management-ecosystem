@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFiltersStore } from "../../../../../stores/filtersStore";
 import { cn } from "../../../../../utils/cn";
-import type { FacetCounts, GatedFacet } from "../../../../../utils/search";
+import type { GatedFacet } from "../../../../../utils/gatedFacets";
+import type { FacetCounts } from "../../../../../utils/search";
 import { FilterSection } from "./FilterSection";
 import type { FilterSectionConfig } from "./sections";
 import {

@@ -16,12 +16,8 @@ import type {
   ProjectBrowseResult,
 } from "../../types/projectBrowse";
 import { encodeView } from "../../utils/filterSerialisation";
-import {
-  emptyCounts,
-  GATED_FACETS,
-  type FacetCounts,
-  type FacetGroup,
-} from "../../utils/search";
+import { GATED_FACETS } from "../../utils/gatedFacets";
+import { emptyCounts, type FacetCounts, type FacetGroup } from "../../utils/search";
 import { http } from "./client";
 import { readReadAs } from "./projectRecord";
 

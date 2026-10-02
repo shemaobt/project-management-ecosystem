@@ -9,11 +9,8 @@ import { computeDerived } from "../utils/projectDerived";
 import { withheldNotice } from "../utils/region";
 import { DEFAULT_SORT } from "../constants/sorting";
 import type { SessionPersona } from "../contexts/session";
-import {
-  filterProjects,
-  type FacetCounts,
-  type GatedFacet,
-} from "../utils/search";
+import type { GatedFacet } from "../utils/gatedFacets";
+import { filterProjects, type FacetCounts } from "../utils/search";
 import { loadProjects } from "./projects";
 import { applyRecordOverlay } from "./projectRecord";
 import { asReadBy, coordinatesAnything, readsHealth } from "./reader";

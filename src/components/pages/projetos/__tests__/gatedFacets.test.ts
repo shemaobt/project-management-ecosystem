@@ -23,9 +23,10 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { EMPTY_FILTERS } = await import("../../../../stores/filtersStore");
 const { SORT_KEYS, sortKeysFor } = await import("../../../../constants/sorting");
-const { absentGroups, emptyCounts, withoutAbsentFilters } = await import(
-  "../../../../utils/search"
+const { absentGroups, withoutAbsentFilters } = await import(
+  "../../../../utils/gatedFacets"
 );
+const { emptyCounts } = await import("../../../../utils/search");
 const { ADVANCED_SECTIONS, PRIMARY_SECTIONS, shownSections } = await import(
   "../Sidebar/Filters/sections"
 );
