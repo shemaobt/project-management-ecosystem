@@ -1,4 +1,5 @@
-import { OPEN_NEED_STATUSES } from "../constants/project";
+import type { TFunction } from "i18next";
+import { NEED_CATEGORIES, OPEN_NEED_STATUSES } from "../constants/project";
 import type {
   NeedCategory,
   NeedItem,
@@ -210,4 +211,10 @@ export function aggregateNeeds(
   }
 
   return rollup;
+}
+
+/** A need category in the reader's language — the server's own word when the catalogue has none. */
+export function needCategoryLabel(category: string, t: TFunction): string {
+  const found = NEED_CATEGORIES.find((candidate) => candidate.id === category);
+  return found ? t(found.labelKey) : category;
 }

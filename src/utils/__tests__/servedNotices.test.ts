@@ -24,7 +24,7 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
 const { default: i18n } = await import("../../i18n");
-const { servedNoticeSummary } = await import("../notifications");
+const { servedNoticeSummary } = await import("../servedNotices");
 
 const KINDS: ProjectNotificationKind[] = ["health", "need", "field", "prayer", "stale"];
 

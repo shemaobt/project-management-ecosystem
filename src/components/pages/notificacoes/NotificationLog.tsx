@@ -8,13 +8,13 @@ import { HEALTH_LABEL_KEYS } from "../../../constants/status";
 import type { PanelEntry } from "../../../types/notification";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
+import { needCategoryLabel } from "../../../utils/needs";
 import {
   isRequestNotice,
   isServedNotice,
-  needCategoryLabel,
   notificationAge,
-  servedNoticeSummary,
 } from "../../../utils/notifications";
+import { servedNoticeSummary } from "../../../utils/servedNotices";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 
