@@ -71,6 +71,7 @@ export SERVICE=project-management-ecosystem
 export SECRETS_PROJECT=shemaobt-secrets
 export SECRETS_PROJECT_NUMBER=384168199195
 export SECRET_NAME=project_management_ecosystem_env
+export GITHUB_REPO=shemaobt/project-management-ecosystem
 export DEPLOY_SA=pme-github-deployer@$PROJECT_ID.iam.gserviceaccount.com
 export RUNTIME_SA=pme-cloud-run@$PROJECT_ID.iam.gserviceaccount.com
 ```
@@ -132,7 +133,7 @@ repositório, pelo atributo `repository`:
 ```sh
 gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA" --project "$PROJECT_ID" \
   --role="roles/iam.workloadIdentityUser" \
-  --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/shemaobt/$REPO"
+  --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/$GITHUB_REPO"
 ```
 
 A conta de runtime **não recebe papel nenhum no projeto**. O único acesso que ela ganha é ao segredo, na
@@ -153,7 +154,7 @@ gcloud secrets create "$SECRET_NAME" \
 rm /tmp/pme.env
 ```
 
-**O valor não é placeholder.** `src/services/api/source.ts` já liga sete dos onze namespaces na API, e as rotas
+**O valor não é placeholder.** `src/services/api/source.ts` já liga a maior parte dos namespaces na API, e as rotas
 `/api/shema/*` que eles chamam existem hoje só no `tripod-backend-staging` — o deploy da branch `dev` do
 `shema-api`; o `tripod-backend` de produção responde 404 nelas. Quando o `shema-api` promover `dev` para `main`,
 a troca é uma versão nova do segredo (abaixo), sem rebuild. E a variável nunca pode faltar: o entrypoint recusa
@@ -177,8 +178,8 @@ printf 'BACKEND_URL=https://<novo-host>\n' | gcloud secrets versions add "$SECRE
 
 > **Referência cross-project é pelo número do projeto.** O segredo mora em `shemaobt-secrets` e o serviço em
 > outro projeto, e o Cloud Run quer `projects/<NÚMERO>/secrets/<nome>:latest` — é assim que o `shema-api` monta
-> os dele. O workflow lê o número da variável de repositório `GCP_SECRETS_PROJECT_REF` (e só cai no ID se ela
-> faltar):
+> os dele. O workflow lê o número da variável de repositório `GCP_SECRETS_PROJECT_REF` e **falha no primeiro
+> passo** se ela faltar:
 >
 > ```sh
 > gcloud projects describe "$SECRETS_PROJECT" --format='value(projectNumber)'   # 384168199195
@@ -320,7 +321,7 @@ tem fora do `beta`. O `gcloud logging read` acima funciona em qualquer uma.)
 |---|---|---|
 | Revisão não fica pronta e o log diz `docker-entrypoint: BACKEND_URL is not set — refusing to start` | **O mais provável na primeira vez.** O arquivo `/run/secrets/.env` não chegou (segredo não criado, nome errado, `--set-secrets` ausente) ou chegou vazio | Confira §2.4 e o `--set-secrets` da revisão: `gcloud run services describe "$SERVICE" --region "$REGION" --format=yaml \| grep -A5 volumeMounts` |
 | Log diz `BACKEND_URL='...' must be http(s)://<host>` | O valor existe mas não tem esquema | Nova versão do segredo com `https://` na frente (§2.4) e redeploy |
-| `PERMISSION_DENIED` ao acessar o segredo, ou a revisão falha citando Secret Manager | Falta `secretAccessor` **naquele segredo** para a SA de runtime, ou a variável `GCP_SECRETS_PROJECT_REF` sumiu e a referência saiu pelo ID | §2.4 — o binding, e a variável |
+| `PERMISSION_DENIED` ao acessar o segredo, ou a revisão falha citando Secret Manager | Falta `secretAccessor` **naquele segredo** para a SA de runtime, ou `GCP_SECRETS_PROJECT_REF` carrega um número que não é o do `shemaobt-secrets` | §2.4 — o binding, e a variável |
 | `Google Auth` falha com `unable to generate Google Cloud federated token` ou `PERMISSION_DENIED` em `iam.serviceAccounts.getAccessToken` | A pool não reconhece este repositório, ou o binding `workloadIdentityUser` da SA de deploy não cobre `attribute.repository/shemaobt/project-management-ecosystem` | O último comando do §2.3 |
 | `denied: Permission "artifactregistry.repositories.uploadArtifacts" denied` no push | SA de deploy sem `artifactregistry.writer`, ou o repositório não existe na região | §2.2 e §2.3 |
 | `Permission 'iam.serviceaccounts.actAs' denied on service account` | Falta `iam.serviceAccountUser` da SA de deploy **sobre a SA de runtime** | O terceiro comando do §2.3 |

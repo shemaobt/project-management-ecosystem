@@ -15,7 +15,6 @@ env:
   REGION: us-central1
   GAR_REPO: project-management-ecosystem
   FRONTEND_SERVICE: project-management-ecosystem
-  SECRETS_PROJECT: shemaobt-secrets
   SECRET_NAME: project_management_ecosystem_env
   SECRET_MOUNT_PATH: /run/secrets/.env
 
@@ -39,11 +38,13 @@ jobs:
           WIF_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           WIF_SERVICE_ACCOUNT: ${{ secrets.GCP_WORKLOAD_IDENTITY_SERVICE_ACCOUNT }}
           RUNTIME_SA: ${{ vars.CLOUD_RUN_RUNTIME_SA }}
+          SECRETS_PROJECT_REF: ${{ vars.GCP_SECRETS_PROJECT_REF }}
         run: |
           if [ -z "${GCP_PROJECT_ID}" ]; then echo "::error::GCP_PROJECT_ID is not set. gh secret set GCP_PROJECT_ID"; exit 1; fi
           if [ -z "${WIF_PROVIDER}" ]; then echo "::error::GCP_WORKLOAD_IDENTITY_PROVIDER is not set. gh secret set GCP_WORKLOAD_IDENTITY_PROVIDER — see docs/deploy.md §2.5"; exit 1; fi
           if [ -z "${WIF_SERVICE_ACCOUNT}" ]; then echo "::error::GCP_WORKLOAD_IDENTITY_SERVICE_ACCOUNT is not set. gh secret set GCP_WORKLOAD_IDENTITY_SERVICE_ACCOUNT — see docs/deploy.md §2.5"; exit 1; fi
           if [ -z "${RUNTIME_SA}" ]; then echo "::error::CLOUD_RUN_RUNTIME_SA is not set. gh variable set CLOUD_RUN_RUNTIME_SA --body <sa>@<project>.iam.gserviceaccount.com — see docs/deploy.md"; exit 1; fi
+          if [ -z "${SECRETS_PROJECT_REF}" ]; then echo "::error::GCP_SECRETS_PROJECT_REF is not set. gh variable set GCP_SECRETS_PROJECT_REF --body <número do projeto shemaobt-secrets> — see docs/deploy.md §2.4"; exit 1; fi
           echo "Required secrets and variables are set."
 
       - name: Resolve target image
@@ -125,7 +126,6 @@ jobs:
           RUNTIME_SA: ${{ vars.CLOUD_RUN_RUNTIME_SA }}
           SECRETS_PROJECT_REF: ${{ vars.GCP_SECRETS_PROJECT_REF }}
         run: |
-          SECRETS_REF="${SECRETS_PROJECT_REF:-${SECRETS_PROJECT}}"
           gcloud run deploy "${FRONTEND_SERVICE}" \
             --image "${IMAGE}" \
             --project "${PROJECT_ID}" \
@@ -134,7 +134,7 @@ jobs:
             --port 8080 \
             --no-allow-unauthenticated \
             --service-account "${RUNTIME_SA}" \
-            --set-secrets "${SECRET_MOUNT_PATH}=projects/${SECRETS_REF}/secrets/${SECRET_NAME}:latest" \
+            --set-secrets "${SECRET_MOUNT_PATH}=projects/${SECRETS_PROJECT_REF}/secrets/${SECRET_NAME}:latest" \
             --memory 256Mi \
             --cpu 1 \
             --concurrency 80 \

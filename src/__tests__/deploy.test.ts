@@ -71,11 +71,11 @@ describe("o segredo chega pelo arquivo que o entrypoint lê", () => {
     expect(stepRun("Deploy to Cloud Run")).toContain('--set-secrets "${SECRET_MOUNT_PATH}=');
   });
 
-  it("aponta para o projeto de segredos da org pelo nome completo do recurso", () => {
-    expect(workflowEnv("SECRETS_PROJECT")).toBe("shemaobt-secrets");
+  it("aponta para o projeto de segredos da org pelo número, exigido antes de qualquer build", () => {
+    expect(stepRun("Check required secrets")).toContain("GCP_SECRETS_PROJECT_REF is not set");
     const deploy = stepRun("Deploy to Cloud Run");
-    expect(deploy).toContain('SECRETS_REF="${SECRETS_PROJECT_REF:-${SECRETS_PROJECT}}"');
-    expect(deploy).toContain("projects/${SECRETS_REF}/secrets/${SECRET_NAME}:latest");
+    expect(deploy).toContain("projects/${SECRETS_PROJECT_REF}/secrets/${SECRET_NAME}:latest");
+    expect(deploy).not.toContain(":-");
   });
 
   it("não passa o valor por variável de ambiente", () => {
