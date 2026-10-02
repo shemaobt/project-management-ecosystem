@@ -106,7 +106,6 @@ export interface SaveAttempt {
   values: Partial<Project>;
   typed: Partial<Project>;
   isNew: boolean;
-  /** Whether the reader is in the health audience — the pastoral follow-up is theirs alone (OBT-553). */
   readsHealth: boolean;
 }
 

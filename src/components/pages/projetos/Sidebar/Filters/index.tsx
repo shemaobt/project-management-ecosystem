@@ -18,7 +18,6 @@ import {
 export interface DetailedFiltersProps {
   baseline: FacetCounts;
   counts: FacetCounts;
-  /** The gated groups this reader is not told — no section is drawn for them. */
   hidden: readonly GatedFacet[];
 }
 

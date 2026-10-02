@@ -57,7 +57,6 @@ export const visibleTabs = (readsHealth: boolean): readonly RecordTabId[] =>
     ? RECORD_TABS
     : RECORD_TABS.filter((tab) => !HEALTH_TABS.includes(tab));
 
-/** The number a tab wears among the tabs the reader sees — consecutive, with no hole where a tab is not theirs. */
 export const tabNumber = (
   tab: RecordTabId,
   tabs: readonly RecordTabId[] = RECORD_TABS,

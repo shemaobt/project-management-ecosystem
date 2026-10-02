@@ -16,7 +16,6 @@ export interface SidebarProps {
   shown: number;
   total: number;
   counts: FacetCounts;
-  /** The gated groups this reader is not told (`absentGroups`). */
   hidden: readonly GatedFacet[];
 }
 

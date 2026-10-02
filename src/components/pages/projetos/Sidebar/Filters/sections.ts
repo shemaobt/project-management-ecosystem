@@ -52,7 +52,6 @@ export const ADVANCED_SECTIONS: readonly FilterSectionConfig[] = [
   { id: "stale", titleKey: "sb_stale", criticalValues: ["critico"] },
 ];
 
-/** The sections minus the groups this reader is not told — drawn as absent, never as zeros (OBT-553). */
 export function shownSections(
   sections: readonly FilterSectionConfig[],
   hidden: readonly GatedFacet[],

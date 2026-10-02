@@ -78,7 +78,7 @@ function withoutPrayerFields(project: Project): Project {
   };
 }
 
-/** The gated groups this persona is not told — `_facets_as_read` on the server. */
+/** `_facets_as_read` on the server. */
 function hiddenFacets(persona: SessionPersona): GatedFacet[] {
   const hidden: GatedFacet[] = [];
   if (!readsHealth(persona)) hidden.push("health");
