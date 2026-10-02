@@ -33,6 +33,9 @@ import type {
   NotificationPrefs,
   PanelEntry,
   ProjectNotificationKind,
+  ServedNoticeFacts,
+  ServedNoticePlace,
+  ServedNoticeTotal,
 } from "../../types/notification";
 import type {
   IntakeForm,
@@ -797,6 +800,45 @@ export interface ServedPanel {
   readonly readIds: string[];
 }
 
+function countOf(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  return typeof value === "number" && Number.isInteger(value) && value >= 0
+    ? value
+    : refuseVocabulary();
+}
+
+function readNoticeTotal(value: unknown): ServedNoticeTotal {
+  const total = fieldsOf(value);
+  return { amount: textOf(total.amount), currency: textOf(total.currency) };
+}
+
+function readNoticePlace(value: unknown): ServedNoticePlace | null {
+  if (value === null || value === undefined) return null;
+  const place = fieldsOf(value);
+  return { location: textOf(place.location), locationWithheld: place.locationWithheld !== false };
+}
+
+/**
+ * The facts a project notice answers since OBT-559, or `null` for one written before. A region
+ * this console does not know reads as no region — the sentence then names no "where" — rather
+ * than failing the whole bell over one row.
+ */
+function readNoticeFacts(value: unknown, region: unknown): ServedNoticeFacts | null {
+  if (value === null || value === undefined) return null;
+  const facts = fieldsOf(value);
+  return {
+    languageName: optionalTextOf(facts.languageName) ?? "",
+    region: REGIONS.find((candidate) => candidate.key === region)?.key ?? null,
+    assessedOn: optionalTextOf(facts.assessedOn),
+    needCount: countOf(facts.needCount),
+    needCategories: facts.needCategories == null ? [] : listOf(facts.needCategories).map(textOf),
+    needTotals: facts.needTotals == null ? [] : listOf(facts.needTotals).map(readNoticeTotal),
+    submittedBy: optionalTextOf(facts.submittedBy),
+    daysSinceUpdate: countOf(facts.daysSinceUpdate),
+    place: readNoticePlace(facts.place),
+  };
+}
+
 function isDecisionStage(value: unknown): value is RequestDecisionStage {
   return typeof value === "string" && Object.hasOwn(DECISION_STAGE_LABEL_KEYS, value);
 }
@@ -838,7 +880,15 @@ export function readPanelEntry(raw: unknown): PanelEntry | null {
   }
   const kind = PROJECT_NOTICE_KINDS.find((candidate) => candidate === row.kind);
   if (kind === undefined) return null;
-  return { origin: "server", id, kind, urgent, projectId, date, body: textOf(row.body) };
+  return {
+    origin: "server",
+    id,
+    kind,
+    urgent,
+    projectId,
+    date,
+    facts: readNoticeFacts(row.facts, row.region),
+  };
 }
 
 export function readServedPanel(payload: unknown): ServedPanel {

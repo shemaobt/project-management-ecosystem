@@ -112,11 +112,47 @@ export type AppNotification = ProjectNotification | RequestNotification;
 
 export type ProjectNotificationKind = ProjectNotification["kind"];
 
+/** One currency's total among the urgent needs of one save — never a sum across currencies. */
+export interface ServedNoticeTotal {
+  amount: string;
+  currency: string;
+}
+
 /**
- * A project notice as the server served it (INT-11 · OBT-416). BE-15 lists rows its writers
- * already composed, so what arrives is the notice's own prose — never the fields the fixture
- * derivation reads — and the panel shows that prose rather than re-deriving it. The two request
- * kinds are not this shape: they carry a name and a stage, and become `RequestNotification`.
+ * Where an urgent need's project is, as the server let this reader read it: served only to a
+ * reader who reaches the project, and as it leaves — a withheld project's `location` is its
+ * region key, beside `locationWithheld`.
+ */
+export interface ServedNoticePlace {
+  location: string;
+  locationWithheld: boolean;
+}
+
+/**
+ * What a project notice says, as facts the panel words in the reader's language (OBT-559).
+ * `languageName` is `""` when the project is withheld and has no public name, and the sentence
+ * says *a project*; `region` is the coarse key every recipient reads. The rest is each kind's
+ * own: the day a health reading turned critical, the urgent needs of one save, who signed the
+ * Pulse, how many days a quiet project has been quiet (`null` when it never reported).
+ */
+export interface ServedNoticeFacts {
+  languageName: string;
+  region: RegionKey | null;
+  assessedOn: string | null;
+  needCount: number | null;
+  needCategories: string[];
+  needTotals: ServedNoticeTotal[];
+  submittedBy: string | null;
+  daysSinceUpdate: number | null;
+  place: ServedNoticePlace | null;
+}
+
+/**
+ * A project notice as the server served it (INT-11 · OBT-416). Since OBT-559 the server answers
+ * facts and no prose — the fields the fixture derivation reads still do not travel — and the
+ * panel words them in its reader's language. `facts` is `null` for a notice written before
+ * that, which says its kind and nothing it said. The two request kinds are not this shape: they
+ * carry a name and a stage, and become `RequestNotification`.
  */
 export interface ServedNotification {
   origin: "server";
@@ -125,7 +161,7 @@ export interface ServedNotification {
   urgent: boolean;
   projectId: string | null;
   date: string;
-  body: string;
+  facts: ServedNoticeFacts | null;
 }
 
 export type PanelEntry = AppNotification | ServedNotification;

@@ -110,3 +110,16 @@ export const SERVED_NOTICE_TITLE_KEYS: Record<ProjectNotificationKind, string> =
   stale: "notif_kind_stale",
   prayer: "notif_kind_prayer",
 };
+
+/**
+ * The line a served project notice written before OBT-559 takes: its kind, and nothing it said.
+ * The server answers such a row with no facts — its prose was written once, for whoever read it
+ * then, and an urgent need's named the place.
+ */
+export const OLD_NOTICE_SUMMARY_KEYS: Record<ProjectNotificationKind, string> = {
+  field: "notif_served_old_field",
+  health: "notif_served_old_health",
+  need: "notif_served_old_need",
+  stale: "notif_served_old_stale",
+  prayer: "notif_served_old_prayer",
+};
