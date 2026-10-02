@@ -337,3 +337,30 @@ describe("o nome retido de um projeto sensível (OBT-562)", () => {
     expect(markup).not.toContain("africa ·");
   });
 });
+
+describe("o seletor de projetos e o nome retido (OBT-562)", () => {
+  it("a lista personalizada também diz Projeto sensível", () => {
+    const sensitive = makeProject({
+      id: "sensivel",
+      location: "Egypt",
+      sensitiveCountry: true,
+      languageName: "africa",
+      languageNameWithheld: true,
+    });
+    const prefs: NotificationPrefs = { ...NOTIF_DEFAULTS, scope: "custom", customProjectIds: [] };
+
+    const markup = renderToStaticMarkup(
+      createElement(NotificationsPanelBody, {
+        entries: [],
+        projects: [sensitive],
+        prefs,
+        handlers,
+      }),
+    );
+
+    expect(markup).toContain(
+      i18n.t("sensitive_project_named", { region: i18n.t("continent_africa") }),
+    );
+    expect(markup).not.toContain("africa ·");
+  });
+});
