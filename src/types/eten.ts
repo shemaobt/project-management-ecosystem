@@ -38,6 +38,8 @@ export interface EtenManualEntry {
 export interface EtenYearSnapshot {
   projectId: string;
   languageName: string;
+  /** OBT-560: the server's bit that `languageName` is not the language's own. */
+  languageNameWithheld?: boolean;
   country: LocationDisplay;
   scopeUnits: number;
   approvedAtStart: number;

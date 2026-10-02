@@ -266,6 +266,7 @@ export function buildEtenReport(
     .map((project) => ({
       projectId: project.id,
       languageName: project.languageName,
+      languageNameWithheld: project.languageNameWithheld,
       country: getCountryDisplay(project),
       ...accountFor(project, year, ledger, now),
     }))

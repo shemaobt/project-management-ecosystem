@@ -32,6 +32,7 @@ type SharedFacts = Pick<
   | "region"
   | "projectId"
   | "language"
+  | "languageNameWithheld"
   | "base"
   | "country"
   | "locationWithheld"
@@ -44,6 +45,7 @@ function sharedFacts(project: Project): SharedFacts {
     region: getRegion(project),
     projectId: project.id,
     language: project.languageName || "—",
+    languageNameWithheld: project.languageNameWithheld,
     base: location.base,
     country: location.withheld ? "" : getCountry(project),
     locationWithheld: location.withheld,
@@ -142,6 +144,7 @@ export function buildNotifications(
       region: request.region,
       projectId: request.projectId,
       language: request.language,
+      languageNameWithheld: request.languageNameWithheld,
       base: request.base,
       country: request.country,
       locationWithheld: request.locationWithheld,
