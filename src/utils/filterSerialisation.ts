@@ -41,6 +41,20 @@ const FREE_TEXT_KEYS = [
   "vitality",
 ] as const satisfies readonly (keyof ProjectFilters)[];
 
+/**
+ * The free-text filters that name a place — a base, a country — and therefore never go into the
+ * address (OBT-558, 2/out/2026, Daniel). A URL travels: it sits in the history, in a link pasted
+ * into a chat, in a referrer, and a coordinator filtering by a sensitive base would leave that
+ * base in all of them. They still apply on screen and are still kept in the coordinator's own
+ * saved views, which never leave the browser; an old link that carries one is still read.
+ */
+const PLACE_KEYS = ["team", "country"] as const satisfies readonly (typeof FREE_TEXT_KEYS)[number][];
+
+
+function staysOutOfTheAddress(key: (typeof FREE_TEXT_KEYS)[number]): boolean {
+  return (PLACE_KEYS as readonly string[]).includes(key);
+}
+
 const ENUM_KEYS = [
   "objective",
   "status",
@@ -115,8 +129,21 @@ export function encodeView(state: ViewState): URLSearchParams {
   return params;
 }
 
+/**
+ * The view as the **address** carries it — the page's own URL and a shared link — which is
+ * `encodeView` less the place filters (`PLACE_KEYS`). `encodeView` itself stays whole: the
+ * server's browse needs every filter to answer, and that request never reaches the history.
+ */
+export function encodeAddress(state: ViewState): URLSearchParams {
+  const params = encodeView(state);
+  for (const key of FREE_TEXT_KEYS) {
+    if (staysOutOfTheAddress(key)) params.delete(key);
+  }
+  return params;
+}
+
 export function encodeViewToUrl(state: ViewState, origin: string): string {
-  const params = encodeView(state).toString();
+  const params = encodeAddress(state).toString();
   return params ? `${origin}?${params}` : origin;
 }
 

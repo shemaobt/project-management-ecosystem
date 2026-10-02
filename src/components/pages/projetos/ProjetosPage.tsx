@@ -8,7 +8,7 @@ import { failureMessage } from "../../../services/api";
 import { EMPTY_FILTERS, useFiltersStore } from "../../../stores/filtersStore";
 import { usePrefsStore } from "../../../stores/prefsStore";
 import type { Project } from "../../../types/project";
-import { decodeView, encodeView } from "../../../utils/filterSerialisation";
+import { decodeView, encodeAddress } from "../../../utils/filterSerialisation";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button } from "../../ui";
@@ -80,7 +80,7 @@ export function ProjetosPage() {
 
   useEffect(() => {
     if (!readUrl.current) return;
-    const next = encodeView({ filters, search, sort, metaphor });
+    const next = encodeAddress({ filters, search, sort, metaphor });
     if (next.toString() !== params.toString()) {
       setParams(next, { replace: true });
     }
