@@ -3,7 +3,9 @@ import { HEALTH_DIMENSIONS } from "../../../../../constants/health";
 import type { HealthRating, PrayerVisibility } from "../../../../../types/project";
 import { assessmentHistory, dimensionRating } from "../../../../../utils/health";
 import { getPrayerVisibility } from "../../../../../utils/prayer";
+import { mayWrite } from "../../../../../utils/recordAccess";
 import { CheckboxField, Input, Textarea } from "../../../../ui";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { Field, FieldGrid } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { AssessmentHistory } from "./AssessmentHistory";
@@ -18,6 +20,7 @@ export function SaudeForm({ draft }: SaudeFormProps) {
   const { t } = useTranslation();
   const values = draft.values;
   const pastoral = values.needsPastoralIntervention === "sim";
+  const notesLocked = !mayWrite(draft.place, "healthNotes");
 
   return (
     <div className="flex flex-col gap-5">
@@ -91,7 +94,8 @@ export function SaudeForm({ draft }: SaudeFormProps) {
             <Textarea
               {...control}
               rows={3}
-              value={values.healthNotes ?? ""}
+              value={notesLocked ? "" : (values.healthNotes ?? "")}
+              disabled={notesLocked}
               onChange={(event) => draft.set("healthNotes", event.target.value)}
             />
           )}
@@ -110,6 +114,10 @@ export function SaudeForm({ draft }: SaudeFormProps) {
           )}
         </Field>
       </FieldGrid>
+
+      {notesLocked && (
+        <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+      )}
 
       <PrayerConsent
         value={getPrayerVisibility(values)}

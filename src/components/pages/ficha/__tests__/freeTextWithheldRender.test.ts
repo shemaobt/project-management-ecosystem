@@ -27,6 +27,7 @@ const { makeProject } = await import("../../../../utils/__tests__/factory");
 const { recordAccess } = await import("../../../../utils/recordAccess");
 const { NecessidadesTab } = await import("../tabs/Necessidades");
 const { NotasTab } = await import("../tabs/Notas");
+const { SaudeTab } = await import("../tabs/Saude");
 
 const noop = () => {};
 
@@ -54,6 +55,9 @@ const handle = (access: ReturnType<typeof place>, values: Record<string, unknown
 
 const notas = (mode: "ver" | "editar", access: ReturnType<typeof place>, notes = "") =>
   renderToStaticMarkup(createElement(NotasTab, { mode, draft: handle(access, { notes }) }));
+
+const saude = (mode: "ver" | "editar", access: ReturnType<typeof place>, healthNotes = "") =>
+  renderToStaticMarkup(createElement(SaudeTab, { mode, draft: handle(access, { healthNotes }) }));
 
 const needs = (access: ReturnType<typeof place>, items: unknown[]) =>
   renderToStaticMarkup(
@@ -120,5 +124,40 @@ describe("a descrição de uma necessidade num registro recolhido (OBT-556)", ()
   it("a coordenação edita a descrição de uma necessidade salva", () => {
     const markup = needs(place(true, "coordination"), [saved]);
     expect(disabled(markup, "need-0-desc")).toBe(false);
+  });
+});
+
+describe("as notas sobre a saúde de um registro recolhido (OBT-556)", () => {
+  const withheld = place(true, "other");
+
+  it("na edição, quem lê saúde mas não é coordenação não digita num campo que o servidor recusa", () => {
+    const markup = saude("editar", withheld, "texto que não deveria aparecer");
+    expect(disabled(markup, "saude-notes")).toBe(true);
+    expect(markup).not.toContain("texto que não deveria aparecer");
+    expect(markup).toContain(NOTE.slice(0, 40));
+  });
+
+  it("na leitura, o branco é dito como recolhido, não some", () => {
+    expect(saude("ver", withheld)).toContain(NOTE.slice(0, 40));
+  });
+
+  it("a coordenação edita e lê as notas sobre a saúde", () => {
+    const coordination = place(true, "coordination");
+    const edit = saude("editar", coordination, "nota de saúde");
+    expect(disabled(edit, "saude-notes")).toBe(false);
+    expect(edit).not.toContain(NOTE.slice(0, 40));
+    expect(saude("ver", coordination, "nota de saúde")).toContain("nota de saúde");
+  });
+
+  it("um registro aberto sem notas sobre a saúde não mostra a nota de recolhido", () => {
+    expect(saude("ver", place(false, "other"))).not.toContain(NOTE.slice(0, 40));
+  });
+
+  it("a frase de recolhido nomeia as notas sobre a saúde, nas duas línguas", () => {
+    for (const lng of ["pt-BR", "en"]) {
+      const health = i18n.t("f_health_notes", { lng }).toLowerCase();
+      expect(i18n.t("f_free_text_coordination_only", { lng }).toLowerCase()).toContain(health);
+      expect(i18n.t("f_sensitive_on_pending", { lng }).toLowerCase()).toContain(health);
+    }
   });
 });
