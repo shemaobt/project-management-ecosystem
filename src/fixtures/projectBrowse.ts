@@ -7,10 +7,16 @@ import { healthScore } from "../utils/health";
 import { getProgress } from "../utils/progress";
 import { computeDerived } from "../utils/projectDerived";
 import { withheldNotice } from "../utils/region";
-import { filterProjects } from "../utils/search";
+import { DEFAULT_SORT } from "../constants/sorting";
+import type { SessionPersona } from "../contexts/session";
+import {
+  filterProjects,
+  type FacetCounts,
+  type GatedFacet,
+} from "../utils/search";
 import { loadProjects } from "./projects";
 import { applyRecordOverlay } from "./projectRecord";
-import { asReadBy, coordinatesAnything } from "./reader";
+import { asReadBy, coordinatesAnything, readsHealth } from "./reader";
 import { mockPersona } from "./session";
 
 export type { ProjectBrowseQuery, ProjectBrowseResult };
@@ -75,6 +81,34 @@ function withoutPrayerFields(project: Project): Project {
   };
 }
 
+/** The gated groups this persona is not told — `_facets_as_read` on the server. */
+function hiddenFacets(persona: SessionPersona): GatedFacet[] {
+  return readsHealth(persona) ? [] : ["health"];
+}
+
+/**
+ * What the persona may ask — `_query_as_read`: a filter or an order on a hidden group is
+ * ignored, as if the request had not carried it, never refused.
+ */
+function queryAsRead(
+  query: ProjectBrowseQuery,
+  hidden: readonly GatedFacet[],
+): ProjectBrowseQuery {
+  if (hidden.length === 0) return query;
+  const filters = { ...query.filters };
+  for (const group of hidden) filters[group] = null;
+  const sort =
+    hidden.includes("health") && query.sort === "health" ? DEFAULT_SORT : query.sort;
+  return { ...query, filters, sort };
+}
+
+function countsAsRead(
+  counts: FacetCounts,
+  hidden: readonly GatedFacet[],
+): FacetCounts {
+  return hidden.length === 0 ? counts : { ...counts, absent: hidden };
+}
+
 /**
  * Each card is built for the mock persona the way the server builds it for its reader
  * (OBT-528) — coordination reads the truth of a sensitive place, everybody else the region
@@ -83,9 +117,11 @@ function withoutPrayerFields(project: Project): Project {
  * region a reduced card names is the true one.
  */
 export async function browseProjects(
-  query: ProjectBrowseQuery,
+  asked: ProjectBrowseQuery,
 ): Promise<ProjectBrowseResult> {
   const persona = mockPersona();
+  const hidden = hiddenFacets(persona);
+  const query = queryAsRead(asked, hidden);
   // Anything the record double has been told, applied on top: inside one session the
   // list and the record read the same collection, exactly as they do against the API.
   const cards = applyRecordOverlay(loadProjects()).map((project) =>
@@ -102,7 +138,7 @@ export async function browseProjects(
 
   return {
     items,
-    counts: result.counts,
+    counts: countsAsRead(result.counts, hidden),
     matched: result.projects.length,
     total: result.total,
     locationsWithheld: withheldNotice(items, coordinatesAnything(persona)),

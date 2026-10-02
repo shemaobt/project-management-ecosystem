@@ -1,3 +1,5 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FULL_ACCESS } from "../../../../utils/recordAccess";
 
@@ -32,8 +34,17 @@ const {
 const { useProjectsStore, selectProject, PROJECTS_VERSION } = await import(
   "../../../../stores/projectsStore"
 );
-const { RECORD_TABS, DEFAULT_TAB, isRecordTab, tabNumber, TAB_LABEL_KEYS } =
-  await import("../../../../constants/recordTabs");
+const {
+  RECORD_TABS,
+  DEFAULT_TAB,
+  isRecordTab,
+  tabNumber,
+  TAB_LABEL_KEYS,
+  visibleTabs,
+} = await import("../../../../constants/recordTabs");
+const { default: i18n } = await import("../../../../i18n");
+const { Tabs } = await import("../../../ui");
+const { TabNav } = await import("../TabNav");
 const { TAB_COMPONENTS } = await import("../tabs");
 
 beforeEach(() => {
@@ -56,7 +67,7 @@ describe("as dez abas da ficha", () => {
       "notas",
       "materiais",
     ]);
-    expect(RECORD_TABS.map(tabNumber)).toEqual([
+    expect(RECORD_TABS.map((tab) => tabNumber(tab))).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
     ]);
   });
@@ -80,6 +91,36 @@ describe("as dez abas da ficha", () => {
     expect(isRecordTab("identidade")).toBe(true);
     expect(isRecordTab("coral")).toBe(false);
     expect(DEFAULT_TAB).toBe("identidade");
+  });
+});
+
+describe("a aba Saúde é da audiência de saúde (OBT-553)", () => {
+  const nav = (readsHealth: boolean) =>
+    renderToStaticMarkup(
+      createElement(
+        Tabs,
+        { value: DEFAULT_TAB },
+        createElement(TabNav, { tabs: visibleTabs(readsHealth), pending: [] }),
+      ),
+    );
+
+  it("quem não lê saúde não tem a aba, e as outras nove seguem em ordem", () => {
+    expect(visibleTabs(false)).toEqual(RECORD_TABS.filter((tab) => tab !== "saude"));
+    expect(visibleTabs(true)).toEqual(RECORD_TABS);
+  });
+
+  it("a numeração não deixa buraco onde a aba não é do leitor", () => {
+    const tabs = visibleTabs(false);
+    expect(tabs.map((tab) => tabNumber(tab, tabs))).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(tabNumber("necessidades", tabs)).toBe(6);
+    expect(tabNumber("necessidades")).toBe(7);
+  });
+
+  it("a navegação renderizada não traz a aba para quem não lê saúde", () => {
+    const label = i18n.t(TAB_LABEL_KEYS.saude);
+    expect(nav(true)).toContain(label);
+    expect(nav(false)).not.toContain(label);
+    expect(nav(false).match(/role="tab"/g)).toHaveLength(9);
   });
 });
 

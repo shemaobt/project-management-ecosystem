@@ -3,16 +3,19 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { CardMetaphor } from "../../../constants/metaphors";
 import { DEFAULT_TAB } from "../../../constants/recordTabs";
-import { DEFAULT_SORT } from "../../../constants/sorting";
+import { DEFAULT_SORT, sortKeysFor } from "../../../constants/sorting";
+import { useAuth } from "../../../contexts/AuthContext";
 import { failureMessage } from "../../../services/api";
 import { EMPTY_FILTERS, useFiltersStore } from "../../../stores/filtersStore";
 import { usePrefsStore } from "../../../stores/prefsStore";
 import type { Project } from "../../../types/project";
+import { canReadHealth } from "../../../utils/access";
 import {
   decodeView,
   encodeAddress,
   withPlacesKept,
 } from "../../../utils/filterSerialisation";
+import { absentGroups, withoutAbsentFilters } from "../../../utils/search";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button } from "../../ui";
@@ -71,6 +74,8 @@ export function ProjetosPage() {
   const setSort = usePrefsStore((state) => state.setSort);
   const setMetaphor = usePrefsStore((state) => state.setMetaphor);
   const readUrl = useRef(false);
+  const { user } = useAuth();
+  const readsHealth = canReadHealth(user.roles);
 
   useEffect(() => {
     if (readUrl.current) return;
@@ -124,6 +129,19 @@ export function ProjetosPage() {
     offset: 0,
   });
 
+  // A filter or an order on a group this reader is not told is one the server ignores, so
+  // it leaves the store — and with it the chip, *limpar tudo* and the address — rather
+  // than promise a narrowing the list does not show (OBT-553). A saved link carrying one
+  // is how it gets here.
+  const hidden = absentGroups(live.data?.counts ?? null, readsHealth);
+  const kept = withoutAbsentFilters(filters, hidden);
+  useEffect(() => {
+    if (kept !== filters) applyState(kept, search);
+  }, [kept, filters, search, applyState]);
+  useEffect(() => {
+    if (!sortKeysFor(readsHealth).includes(sort)) setSort(DEFAULT_SORT);
+  }, [readsHealth, sort, setSort]);
+
   const openRecord = (project: Project) => {
     navigate(`/ficha/${project.id}/${DEFAULT_TAB}`);
   };
@@ -169,9 +187,10 @@ export function ProjetosPage() {
         shown={matched}
         total={total}
         counts={data.counts}
+        hidden={hidden}
       />
       <section aria-label={t("projetos_results_label")}>
-        <Toolbar count={matched} total={total} />
+        <Toolbar count={matched} total={total} readsHealth={readsHealth} />
         {live.loading && (
           <p className="-mt-3 mb-3 text-tag text-fg-subtle">{t("loading")}</p>
         )}

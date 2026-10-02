@@ -5,9 +5,10 @@ import { SortControl } from "./SortControl";
 export interface ToolbarProps {
   count: number;
   total: number;
+  readsHealth: boolean;
 }
 
-export function Toolbar({ count, total }: ToolbarProps) {
+export function Toolbar({ count, total, readsHealth }: ToolbarProps) {
   const { t } = useTranslation();
 
   return (
@@ -26,7 +27,7 @@ export function Toolbar({ count, total }: ToolbarProps) {
       </p>
       <div className="flex items-center gap-3.5">
         <MetaphorPill />
-        <SortControl />
+        <SortControl readsHealth={readsHealth} />
       </div>
     </div>
   );

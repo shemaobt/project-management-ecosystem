@@ -44,5 +44,21 @@ export const TAB_MARKER_TONES: Record<RecordTabId, string> = {
 export const isRecordTab = (value: string): value is RecordTabId =>
   RECORD_TABS.some((tab) => tab === value);
 
-export const tabNumber = (tab: RecordTabId): number =>
-  RECORD_TABS.indexOf(tab) + 1;
+/**
+ * The tabs only the health audience reads (OBT-553). The Saúde tab is a team's health, its
+ * pastoral follow-up and the history of its assessments: a reader outside the audience is
+ * handed every one of them empty, and an empty tab would say *nobody has assessed this
+ * team* about a team that may have been.
+ */
+export const HEALTH_TABS: readonly RecordTabId[] = ["saude"];
+
+export const visibleTabs = (readsHealth: boolean): readonly RecordTabId[] =>
+  readsHealth
+    ? RECORD_TABS
+    : RECORD_TABS.filter((tab) => !HEALTH_TABS.includes(tab));
+
+/** The number a tab wears among the tabs the reader sees — consecutive, with no hole where a tab is not theirs. */
+export const tabNumber = (
+  tab: RecordTabId,
+  tabs: readonly RecordTabId[] = RECORD_TABS,
+): number => tabs.indexOf(tab) + 1;

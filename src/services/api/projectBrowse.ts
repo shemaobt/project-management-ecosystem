@@ -16,7 +16,12 @@ import type {
   ProjectBrowseResult,
 } from "../../types/projectBrowse";
 import { encodeView } from "../../utils/filterSerialisation";
-import { emptyCounts, type FacetCounts, type FacetGroup } from "../../utils/search";
+import {
+  emptyCounts,
+  GATED_FACETS,
+  type FacetCounts,
+  type FacetGroup,
+} from "../../utils/search";
 import { http } from "./client";
 import { readReadAs } from "./projectRecord";
 
@@ -212,7 +217,14 @@ function mapCounts(wire: WireFacetCounts): FacetCounts {
   }
   Object.assign(counts.preset, wire.presets);
   Object.assign(counts.groupAll, wire.groupAll);
-  return counts;
+  // A gated group the server left out is said, not zeroed (OBT-553): the zeros above
+  // would otherwise read as a group of empty options.
+  return {
+    ...counts,
+    absent: GATED_FACETS.filter(
+      (group) => !Object.prototype.hasOwnProperty.call(wire.groups, group),
+    ),
+  };
 }
 
 function mapPage(wire: WireProjectPage): ProjectBrowseResult {

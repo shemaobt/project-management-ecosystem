@@ -272,3 +272,32 @@ describe("as contagens, grupo por grupo", () => {
     ).toBeUndefined();
   });
 });
+
+describe("um grupo que o servidor deixa de fora (OBT-553)", () => {
+  const browse = (groups: Record<string, Record<string, number>>) => {
+    script = () => ({
+      status: 200,
+      data: { ...WIRE_PAGE, counts: { ...WIRE_PAGE.counts, groups } },
+    });
+    return projectBrowseAPI.browse({
+      filters: EMPTY_FILTERS,
+      search: "",
+      sort: DEFAULT_SORT,
+      limit: null,
+      offset: 0,
+    });
+  };
+
+  it("a saúde ausente é dita ausente, não lida como um grupo de zeros", async () => {
+    const result = await browse(WIRE_PAGE.counts.groups);
+    expect(result.counts.absent).toContain("health");
+  });
+
+  it("a saúde mandada, mesmo toda em zero, está presente", async () => {
+    const result = await browse({
+      ...WIRE_PAGE.counts.groups,
+      health: { boa: 0, atencao: 0, critica: 0, na: 0 },
+    });
+    expect(result.counts.absent).not.toContain("health");
+  });
+});

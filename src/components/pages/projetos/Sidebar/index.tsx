@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import type { FacetCounts } from "../../../../utils/search";
+import type { FacetCounts, GatedFacet } from "../../../../utils/search";
 import { Chips } from "./Chips";
 import { DetailedFilters } from "./Filters";
 import { ResultCount } from "./ResultCount";
@@ -15,9 +15,11 @@ export interface SidebarProps {
   shown: number;
   total: number;
   counts: FacetCounts;
+  /** The gated groups this reader is not told (`absentGroups`). */
+  hidden: readonly GatedFacet[];
 }
 
-export function Sidebar({ baseline, shown, total, counts }: SidebarProps) {
+export function Sidebar({ baseline, shown, total, counts, hidden }: SidebarProps) {
   const { t } = useTranslation();
 
   return (
@@ -35,7 +37,7 @@ export function Sidebar({ baseline, shown, total, counts }: SidebarProps) {
 
       <TeamByRegion baseline={baseline.continent} counts={counts.continent} />
 
-      <DetailedFilters baseline={baseline} counts={counts} />
+      <DetailedFilters baseline={baseline} counts={counts} hidden={hidden} />
     </aside>
   );
 }

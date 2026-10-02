@@ -4,9 +4,10 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   DEFAULT_TAB,
   isRecordTab,
-  RECORD_TABS,
+  visibleTabs,
   type RecordTabId,
 } from "../../../constants/recordTabs";
+import { useAuth } from "../../../contexts/AuthContext";
 import { failureMessage } from "../../../services/api";
 import {
   tabOfFirstError,
@@ -20,6 +21,7 @@ import {
   type ProjectDraft,
 } from "../../../stores/recordStore";
 import type { Project } from "../../../types/project";
+import { canReadHealth } from "../../../utils/access";
 import { getLanguageNameDisplay } from "../../../utils/region";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -68,9 +70,15 @@ export function FichaPage() {
   const moveDraft = useRecordStore((state) => state.updateDraft);
   const dropDraft = useRecordStore((state) => state.discardDraft);
 
+  // The session's roles and not the record's access: the tabs are known before the record
+  // is read, so a reader on /saude is not sent away while it loads (OBT-553).
+  const { user } = useAuth();
+  const tabs = visibleTabs(canReadHealth(user.roles));
+
   const draft = useDraft(recordId);
   const mode = readMode(params.get(MODE_PARAM), draft.isNew);
-  const active: RecordTabId = tab && isRecordTab(tab) ? tab : DEFAULT_TAB;
+  const shown = tab && isRecordTab(tab) && tabs.includes(tab) ? tab : null;
+  const active: RecordTabId = shown ?? DEFAULT_TAB;
 
   useEffect(() => {
     if (recordId === NEW_RECORD) {
@@ -81,15 +89,16 @@ export function FichaPage() {
   }, [recordId, open, forget]);
 
   useEffect(() => {
-    if (!tab || isRecordTab(tab)) return;
+    if (!tab || shown) return;
     navigate(`/ficha/${recordId}/${DEFAULT_TAB}`, { replace: true });
-  }, [tab, recordId, navigate]);
+  }, [tab, shown, recordId, navigate]);
 
   const close = () => {
     navigate("/projetos");
   };
 
   const goToTab = (next: RecordTabId) => {
+    if (!tabs.includes(next)) return;
     const search = params.toString();
     navigate(`/ficha/${recordId}/${next}${search ? `?${search}` : ""}`);
   };
@@ -241,7 +250,7 @@ export function FichaPage() {
   }
 
   const Tab = TAB_COMPONENTS[active];
-  const pending = RECORD_TABS.filter((option) =>
+  const pending = tabs.filter((option) =>
     draft.missing.some((field) => REQUIRED_FIELD_TAB[field] === option),
   );
 
@@ -253,7 +262,7 @@ export function FichaPage() {
           value={active}
           onValueChange={(next) => isRecordTab(next) && goToTab(next)}
         >
-          <TabNav pending={mode === "editar" ? pending : []} />
+          <TabNav tabs={tabs} pending={mode === "editar" ? pending : []} />
           <DialogBody className="max-h-[calc(100vh-330px)] pt-6">
             {outcome && (
               <div className="mb-5">
@@ -265,7 +274,7 @@ export function FichaPage() {
                 />
               </div>
             )}
-            {RECORD_TABS.map((option) => (
+            {tabs.map((option) => (
               <TabsContent key={option} value={option} className="pt-0">
                 {option === active && (
                   <Tab key={recordId} mode={mode} draft={draft} />

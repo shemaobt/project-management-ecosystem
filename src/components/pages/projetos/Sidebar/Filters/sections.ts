@@ -15,7 +15,11 @@ import {
 import type { ProgressRange } from "../../../../../stores/filtersStore";
 import { PROGRESS_RANGES, YES_NO_VALUES } from "../../../../../stores/filtersStore";
 import type { HealthLevel } from "../../../../../types/project";
-import type { FacetCounts, FacetGroup } from "../../../../../utils/search";
+import type {
+  FacetCounts,
+  FacetGroup,
+  GatedFacet,
+} from "../../../../../utils/search";
 
 export type FilterSectionId = Exclude<FacetGroup, "continent">;
 
@@ -50,6 +54,16 @@ export const ADVANCED_SECTIONS: readonly FilterSectionConfig[] = [
   { id: "hasMedia", titleKey: "sb_media" },
   { id: "stale", titleKey: "sb_stale", criticalValues: ["critico"] },
 ];
+
+/** The sections minus the groups this reader is not told — drawn as absent, never as zeros (OBT-553). */
+export function shownSections(
+  sections: readonly FilterSectionConfig[],
+  hidden: readonly GatedFacet[],
+): FilterSectionConfig[] {
+  return sections.filter(
+    (section) => !hidden.some((group) => group === section.id),
+  );
+}
 
 export interface FilterOptionSpec<V extends string = string> {
   value: V;

@@ -184,4 +184,36 @@ describe("browseProjects — o mesmo que a BE-05 promete, do lado das fixtures",
     expect(result.matched).toBe(0);
     expect(result.items).toHaveLength(0);
   });
+
+  describe("a saúde é da audiência de saúde, como no servidor (OBT-553)", () => {
+    it("a Resource Circle não recebe o grupo de saúde", async () => {
+      readAs("resourceCircle");
+      const result = await browseProjects(BASE);
+      expect(result.counts.absent).toEqual(["health"]);
+    });
+
+    it("um filtro e uma ordem por saúde são ignorados, não recusados", async () => {
+      readAs("resourceCircle");
+      const plain = await browseProjects(BASE);
+      const asked = await browseProjects({
+        ...BASE,
+        filters: { ...EMPTY_FILTERS, health: "critica" },
+        sort: "health",
+      });
+      expect(asked.matched).toBe(plain.matched);
+      expect(asked.items.map((project) => project.id)).toEqual(
+        plain.items.map((project) => project.id),
+      );
+    });
+
+    it("quem lê saúde recebe o grupo e o filtro vale", async () => {
+      readAs("obtLab");
+      const result = await browseProjects({
+        ...BASE,
+        filters: { ...EMPTY_FILTERS, health: "critica" },
+      });
+      expect(result.counts.absent).toEqual([]);
+      expect(result.matched).toBe(result.counts.health.critica);
+    });
+  });
 });
