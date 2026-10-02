@@ -14,7 +14,7 @@ import {
   type ReportedProject,
 } from "../../../../utils/annualReport";
 import { cn } from "../../../../utils/cn";
-import { getRegionLabelKey } from "../../../../utils/region";
+import { getLanguageNameDisplay, getRegionLabelKey } from "../../../../utils/region";
 import { LoadingSpinner } from "../../../common/LoadingSpinner";
 import { ProjectsUnread } from "../../../common/ProjectsUnread";
 import {
@@ -31,7 +31,7 @@ function ProjectLine({ project }: { project: ReportedProject }) {
 
   return (
     <li className="text-small leading-snug text-fg">
-      <span className="font-semibold text-fg-strong">{project.languageName}</span>
+      <span className="font-semibold text-fg-strong">{getLanguageNameDisplay(project, t)}</span>
       <span className="text-fg-subtle">
         {" · "}
         {project.location.withheld

@@ -262,3 +262,32 @@ describe("o botão do Pulso", () => {
     expect(html).not.toContain(i18n.t("oracao_pulse_no_recall"));
   });
 });
+
+describe("o nome retido de um projeto sensível (OBT-562)", () => {
+  it("o pedido no mural diz Projeto sensível, nunca a chave da região", async () => {
+    const { RequestCard } = await import("../RequestCard");
+    const html = renderToStaticMarkup(
+      createElement(RequestCard, {
+        request: {
+          id: "p-pr",
+          projectId: "p",
+          language: "africa",
+          languageNameWithheld: true,
+          base: "",
+          country: "",
+          region: "africa",
+          locationWithheld: true,
+          text: "Orem pela equipe.",
+          source: "Formulário",
+          answered: false,
+          date: "2026-08-10",
+        },
+      }),
+    );
+
+    expect(html).toContain(
+      i18n.t("sensitive_project_named", { region: i18n.t("continent_africa") }),
+    );
+    expect(html).not.toContain(">africa<");
+  });
+});

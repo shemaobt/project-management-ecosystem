@@ -18,6 +18,8 @@ import { getLeavingLocation, getRegion } from "./region";
 export interface ReportedProject {
   id: string;
   languageName: string;
+  /** OBT-560: `languageName` is not the language's own — `getLanguageNameDisplay` reads it. */
+  languageNameWithheld?: boolean;
   /** Read through the redaction owner: a sensitive project shows its region, never its country. */
   location: LocationDisplay;
 }
@@ -66,6 +68,7 @@ function reported(project: Project): ReportedProject {
   return {
     id: project.id,
     languageName: project.languageName,
+    languageNameWithheld: project.languageNameWithheld,
     location: reportedLocation(project),
   };
 }

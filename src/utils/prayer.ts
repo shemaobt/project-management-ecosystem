@@ -32,6 +32,7 @@ export function buildPrayerRequests(
     const shared = {
       projectId: project.id,
       language: project.languageName || "—",
+      languageNameWithheld: project.languageNameWithheld,
       base: location.base,
       country: location.withheld ? "" : getCountry(project),
       region: getRegion(project),

@@ -9,6 +9,7 @@ import type { PanelEntry } from "../../../types/notification";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
 import { needCategoryLabel } from "../../../utils/needs";
+import { getLanguageNameDisplay } from "../../../utils/region";
 import {
   isRequestNotice,
   isServedNotice,
@@ -58,7 +59,11 @@ function titleFor(entry: PanelEntry, t: TFunction): string {
   if (isRequestNotice(entry)) {
     return entry.requestName.trim() || t("notif_request_unnamed");
   }
-  return `${entry.language} · ${entry.base || "—"}`;
+  const name = getLanguageNameDisplay(
+    { languageName: entry.language, languageNameWithheld: entry.languageNameWithheld },
+    t,
+  );
+  return `${name} · ${entry.base || "—"}`;
 }
 
 function ageLabel(date: string, t: TFunction): string {

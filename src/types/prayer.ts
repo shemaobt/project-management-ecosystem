@@ -7,6 +7,9 @@ export interface PrayerRequest {
   id: string;
   projectId: string;
   language: string;
+  /** OBT-560: `language` is not the language's own name — the public one or the region key.
+   * `getLanguageNameDisplay` reads it. */
+  languageNameWithheld?: boolean;
   base: string;
   country: string;
   region: RegionKey;
