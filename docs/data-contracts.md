@@ -1206,6 +1206,14 @@ POST /api/shema/notifications/read     {ids: string[]}  -> 204
   `notifications` row). The entry answers `kind`, `projectId`, `requestName` and `requestStage` under
   the frozen type's own names, and `projectId` is `null` for a reader who does not reach the
   project. They are addressed per person, so region routing does not apply to them.
+- **The five project kinds are answered as facts** ([OBT-559](https://linear.app/shema-obt/issue/OBT-559)),
+  for the console to word in its reader's language (`ServedNotification.facts`): `title` and `body`
+  empty, `region` beside, and `facts` = `{languageName, assessedOn, needCount, needCategories,
+  needTotals: [{amount, currency}], submittedBy, daysSinceUpdate, place: {location, locationWithheld}
+  | null}`. The name is `""` for a withheld project with no public name. The place is an urgent
+  need's only, answered only to a reader who reaches the project, and it leaves as a withheld shape
+  does — a withheld project's place is its region key. A row written before OBT-559 answers
+  `facts: null` and nothing it said.
 
 **One schema consequence worth naming before BE-15 starts.** These notifications are *derived from
 the projects*, so their ids are not rows: the existing `notifications` table stores a row per
