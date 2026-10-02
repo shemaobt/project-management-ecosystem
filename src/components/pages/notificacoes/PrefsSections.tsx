@@ -12,7 +12,7 @@ import type {
 } from "../../../types/notification";
 import type { Project } from "../../../types/project";
 import { cn } from "../../../utils/cn";
-import { getLocationDisplay } from "../../../utils/region";
+import { getLanguageNameDisplay, getLocationDisplay } from "../../../utils/region";
 import {
   CheckboxField,
   Radio,
@@ -220,7 +220,7 @@ export function ScopeSection({ prefs, handlers, projects }: ScopeSectionProps) {
             {picker.map((project) => (
               <CheckboxField
                 key={project.id}
-                label={`${project.languageName || "—"} · ${
+                label={`${getLanguageNameDisplay(project, t) || "—"} · ${
                   getLocationDisplay(project).base || "—"
                 }`}
                 checked={prefs.customProjectIds.includes(project.id)}
