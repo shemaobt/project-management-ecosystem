@@ -25,6 +25,7 @@ export const TAB_FIELDS: Record<RecordTabId, readonly RecordField[]> = {
     "coords",
     "sensitiveCountry",
     "sensitivity",
+    "publicLanguageName",
   ],
   equipe: [
     "team",
@@ -109,6 +110,7 @@ export const TAB_FIELDS: Record<RecordTabId, readonly RecordField[]> = {
  */
 export const SERVER_WRITABLE: ReadonlySet<RecordField> = new Set<RecordField>([
   "languageName",
+  "publicLanguageName",
   "languageCode",
   "bridgeLanguage",
   "vitalityStatus",
@@ -168,8 +170,8 @@ export const SERVER_WRITABLE: ReadonlySet<RecordField> = new Set<RecordField>([
 ]);
 
 /**
- * What only a coordination reader writes, on **every** record — the place, the flag and
- * the reason beside it (`COORDINATION_WRITES` in shema-api's `shema_privacy.py`, OBT-528).
+ * What only a coordination reader writes, on **every** record — the place, the flag,
+ * the reason beside it and the public name of the language (OBT-560) (`COORDINATION_WRITES` in shema-api's `shema_privacy.py`, OBT-528).
  * The server refuses them with a 403 from anybody else.
  */
 export const COORDINATION_WRITES: ReadonlySet<RecordField> = new Set<RecordField>([
@@ -178,13 +180,16 @@ export const COORDINATION_WRITES: ReadonlySet<RecordField> = new Set<RecordField
   "coords",
   "sensitiveCountry",
   "sensitivity",
+  "publicLanguageName",
 ]);
 
 /**
- * What only coordination writes on a record whose place is **withheld** — the base and
- * the three contacts (`WITHHELD_WRITES`). *Não dá para editar o que não se vê.*
+ * What only coordination writes on a record whose place is **withheld** — the base, the
+ * three contacts and, since OBT-560, the language's name, which the others read as the
+ * public one (`WITHHELD_WRITES`). *Não dá para editar o que não se vê.*
  */
 export const WITHHELD_WRITES: ReadonlySet<RecordField> = new Set<RecordField>([
+  "languageName",
   "team",
   "ywamBase",
   "teamContact",
@@ -265,6 +270,7 @@ export const FIELD_LABEL_KEYS: Partial<Record<RecordField, string>> = {
   coords: "f_coords",
   sensitiveCountry: "f_sensitive",
   sensitivity: "f_sensitive",
+  publicLanguageName: "f_public_name",
   team: "d_facilitators",
   ywamBase: "f_ywam",
   teamLeader: "f_leader",

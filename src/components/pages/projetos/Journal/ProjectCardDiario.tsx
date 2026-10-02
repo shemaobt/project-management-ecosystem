@@ -12,7 +12,7 @@ import {
   getIdentityLabel,
   getSpeakerLabel,
 } from "../card";
-import { getLocationDisplay } from "../../../../utils/region";
+import { getLanguageNameDisplay, getLocationDisplay } from "../../../../utils/region";
 import { cardLastProgressUpdate, cardPriority } from "../derived";
 import { OpenableCard } from "../OpenableCard";
 import { ProgressRings } from "../ProgressRings";
@@ -84,7 +84,7 @@ export function ProjectCardDiario({
       <div className="mt-3 flex items-start justify-between gap-2.5 border-b border-dashed border-verde/18 pb-3">
         <div className="min-w-0">
           <div className="truncate font-serif text-[24px] leading-[1.1] font-bold tracking-[-0.01em] text-fg">
-            {project.languageName}
+            {getLanguageNameDisplay(project, t)}
           </div>
           <div className="mt-1 text-[10px] font-bold tracking-[0.16em] uppercase text-telha">
             {identity}

@@ -6,7 +6,7 @@ import { objectiveTagTone } from "../../../styles";
 import { cn } from "../../../utils/cn";
 import { getDeadlineInfo } from "../../../utils/recency";
 import { StatusDot } from "../../common/StatusBadge";
-import { getLocationDisplay } from "../../../utils/region";
+import { getLanguageNameDisplay, getLocationDisplay } from "../../../utils/region";
 import { cardHealthDots, cardStaleNotice, deadlineText } from "./card";
 import { cardPriority, cardProgress } from "./derived";
 import { OpenableCard } from "./OpenableCard";
@@ -81,7 +81,7 @@ export function ProjectCardAtlas({ project, onOpen }: ProjectCardAtlasProps) {
 
       <div className="flex min-w-0 flex-col gap-1">
         <div className="truncate font-sans text-lead leading-[1.1] font-bold tracking-[-0.01em] text-fg">
-          {project.languageName}
+          {getLanguageNameDisplay(project, t)}
         </div>
         <div className="flex flex-wrap items-center gap-2 text-micro text-fg-muted">
           <span className="inline-flex items-center gap-1">
@@ -102,7 +102,7 @@ export function ProjectCardAtlas({ project, onOpen }: ProjectCardAtlasProps) {
             <>
               <span className={metaDot} />
               <span className="font-serif italic">
-                {project.bridgeLanguage} → {project.languageName}
+                {project.bridgeLanguage} → {getLanguageNameDisplay(project, t)}
               </span>
             </>
           )}

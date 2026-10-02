@@ -7,7 +7,11 @@ import {
   isIsoShape,
   parseCoordinate,
 } from "../../../../../utils/identity";
-import { getLocationDisplay } from "../../../../../utils/region";
+import { mayWrite } from "../../../../../utils/recordAccess";
+import {
+  getLanguageNameDisplay,
+  getLocationDisplay,
+} from "../../../../../utils/region";
 import {
   Input,
   Select,
@@ -60,6 +64,9 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
 
   const code = values.languageCode ?? "";
   const locked = !draft.place.placeWritable;
+  // The others read a sensitive project's language by its public name (OBT-560), so the
+  // real one is not theirs to type over — the base's rule, *não dá para editar o que não se vê*.
+  const nameLocked = !mayWrite(draft.place, "languageName");
   const place = draft.saved ? getLocationDisplay(draft.saved) : null;
   const withheld = draft.place.withheld && place?.withheld === true;
   const shownLocation = withheld && place?.withheld
@@ -89,7 +96,18 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
           {(control) => (
             <Input
               {...control}
-              value={values.languageName ?? ""}
+              value={
+                nameLocked
+                  ? getLanguageNameDisplay(
+                      {
+                        languageName: values.languageName ?? "",
+                        languageNameWithheld: values.languageNameWithheld,
+                      },
+                      t,
+                    )
+                  : (values.languageName ?? "")
+              }
+              disabled={nameLocked}
               placeholder={t("placeholder_lang")}
               spellCheck={false}
               autoComplete="off"
@@ -237,6 +255,26 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
         disabled={locked}
         onChange={(next) => draft.set("sensitiveCountry", next)}
       />
+
+      {values.sensitiveCountry && !locked && (
+        <Field
+          id="ficha-public-name"
+          label={t("f_public_name")}
+          hint={t("f_public_name_hint")}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              value={values.publicLanguageName ?? ""}
+              spellCheck={false}
+              autoComplete="off"
+              onChange={(event) =>
+                draft.set("publicLanguageName", event.target.value)
+              }
+            />
+          )}
+        </Field>
+      )}
     </div>
   );
 }
