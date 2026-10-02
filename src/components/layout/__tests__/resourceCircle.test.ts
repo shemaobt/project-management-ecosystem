@@ -186,6 +186,31 @@ describe("o link de solicitação externa é só do Admin", () => {
   });
 });
 
+describe("o botão Importar é só de quem importa (OBT-559)", () => {
+  const importButton = (html: string) => html.includes(`${i18n.t("btn_import")}</button>`);
+
+  it("o estrategista global, a coordenação e o admin veem o botão", () => {
+    for (const role of ["globalStrategist", "coordinator", "admin"] as const) {
+      expect(importButton(visit([role])), role).toBe(true);
+    }
+  });
+
+  it("OBT Lab e Círculo de Recursos não veem o Importar, e continuam com as outras ações de dados", () => {
+    for (const role of ["obtLab", "resourceCircle"] as const) {
+      const html = visit([role]);
+      expect(importButton(html), role).toBe(false);
+      for (const key of DATA_ACTIONS.filter((key) => key !== "btn_import")) {
+        expect(html, `${role} · ${key}`).toContain(i18n.t(key));
+      }
+    }
+  });
+
+  it("quem soma um papel que importa a um que não importa recebe o botão", () => {
+    expect(importButton(visit(["obtLab", "coordinator"]))).toBe(true);
+    expect(importButton(visit(["resourceCircle", "obtLab"]))).toBe(false);
+  });
+});
+
 describe("o endereço do formulário vem da sessão, nunca de uma constante", () => {
   it("nenhum arquivo que vai para o ar escreve o host do formulário", () => {
     const shipped = [
