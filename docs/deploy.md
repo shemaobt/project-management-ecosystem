@@ -1,5 +1,9 @@
 # Deploy — Cloud Run via Artifact Registry
 
+**Status:** o setup único do §2 foi executado em 02/out/2026 no projeto `gen-lang-client-0886209230` ("OBT Lab",
+número `718681737495`), onde todo frontend da org já roda. O §2 é o registro do que existe e de como reconferir,
+não uma lista de trabalho. O que ainda falta está no §3 (primeiro deploy) e no §4 (provar o rollback).
+
 Runbook do console do Ecossistema Shemá. Escrito para quem executa **com as credenciais**, na ordem em que
 vai precisar. Quem lê isto às 22:00 provavelmente não é quem escreveu.
 
@@ -44,8 +48,8 @@ público de onda 1 é um vazamento, não uma demo.
 
 | Papel | Conta | Concedido por |
 |---|---|---|
-| Deploy (CI) | a service account de deploy do GitHub Actions (`GCP_SA_KEY`) | `roles/run.admin` no projeto |
-| Runtime do serviço | a service account de runtime (`CLOUD_RUN_RUNTIME_SA`) | não é invoker; só roda o contêiner |
+| Deploy (CI) | `pme-github-deployer@gen-lang-client-0886209230.iam.gserviceaccount.com`, assumida pelo GitHub Actions via Workload Identity Federation — **não existe chave JSON** | `roles/run.admin` + `roles/artifactregistry.writer` no projeto |
+| Runtime do serviço | `pme-cloud-run@gen-lang-client-0886209230.iam.gserviceaccount.com` (`CLOUD_RUN_RUNTIME_SA`) | não é invoker; só roda o contêiner e lê o segredo |
 | Pessoas | **preencher na primeira execução** — uma linha por conta Google, nome e e-mail | `roles/run.invoker` no serviço |
 
 > **A lista de pessoas é deliberadamente um espaço em branco, não um default.** Quem executa o setup a
@@ -55,24 +59,28 @@ público de onda 1 é um vazamento, não uma demo.
 
 ## 2. Setup único
 
-Só se faz uma vez. Rode com uma conta que tenha administração no projeto de runtime e no `shemaobt-secrets`.
+Feito em 02/out/2026. Só se refaz se algum recurso abaixo sumir. Rode com uma conta que tenha administração no
+projeto de runtime e no `shemaobt-secrets`.
 
 ```sh
-export PROJECT_ID=<projeto-de-runtime>          # o mesmo que vai para o secret GCP_PROJECT_ID
+export PROJECT_ID=gen-lang-client-0886209230     # o mesmo que está no secret GCP_PROJECT_ID
+export PROJECT_NUMBER=718681737495
 export REGION=us-central1
 export REPO=project-management-ecosystem
 export SERVICE=project-management-ecosystem
 export SECRETS_PROJECT=shemaobt-secrets
+export SECRETS_PROJECT_NUMBER=384168199195
 export SECRET_NAME=project_management_ecosystem_env
-export DEPLOY_SA=<sa-de-deploy>@$PROJECT_ID.iam.gserviceaccount.com
-export RUNTIME_SA=<sa-de-runtime>@$PROJECT_ID.iam.gserviceaccount.com
+export DEPLOY_SA=pme-github-deployer@$PROJECT_ID.iam.gserviceaccount.com
+export RUNTIME_SA=pme-cloud-run@$PROJECT_ID.iam.gserviceaccount.com
 ```
 
-**Antes de criar qualquer service account, procure a que já existe.** O `meaning-map-ui` já faz este mesmo
-caminho no mesmo projeto; reusar a conta dele é o padrão da casa e evita cunhar permissão nova.
+**O padrão da casa é uma service account de deploy por repositório** (`sound-necklace-github-deployer`,
+`facilit-desk-github-deployer`, …), todas assumidas pelo GitHub Actions via **Workload Identity Federation**
+pela pool `github-actions-pool`, que já existe no projeto. Nenhuma delas tem chave JSON, e esta também não.
 
 ```sh
-gcloud iam service-accounts list --project "$PROJECT_ID"
+gcloud iam service-accounts list --project "$PROJECT_ID" --filter='email~deployer'
 ```
 
 ### 2.1 APIs
@@ -97,11 +105,9 @@ A região tem de ser `us-central1`: é a que o workflow escreve no host da image
 
 ### 2.3 Service accounts e os papéis mínimos
 
-Crie **apenas** as que não existirem:
-
 ```sh
-gcloud iam service-accounts create <sa-de-deploy>  --project "$PROJECT_ID" --display-name "GitHub Actions deploy"
-gcloud iam service-accounts create <sa-de-runtime> --project "$PROJECT_ID" --display-name "Cloud Run runtime — console Shemá"
+gcloud iam service-accounts create pme-github-deployer --project "$PROJECT_ID" --display-name "Project Management Ecosystem GitHub deployer"
+gcloud iam service-accounts create pme-cloud-run       --project "$PROJECT_ID" --display-name "Project Management Ecosystem Cloud Run runtime"
 ```
 
 Deploy (o que o CI precisa, e nada além):
@@ -120,6 +126,15 @@ gcloud iam service-accounts add-iam-policy-binding "$RUNTIME_SA" \
 O terceiro comando é o que costuma faltar: `run.admin` deixa o CI criar a revisão, mas **fazer deploy *como*
 outra service account** exige `iam.serviceAccountUser` **sobre aquela conta** — não no projeto inteiro.
 
+O que deixa o GitHub Actions *ser* essa conta, sem chave, é a ligação da pool com o repositório — e só com este
+repositório, pelo atributo `repository`:
+
+```sh
+gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA" --project "$PROJECT_ID" \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/shemaobt/$REPO"
+```
+
 A conta de runtime **não recebe papel nenhum no projeto**. O único acesso que ela ganha é ao segredo, na
 próxima seção.
 
@@ -128,7 +143,7 @@ próxima seção.
 O conteúdo é o `.env` que o contêiner carrega. Hoje é uma linha:
 
 ```sh
-printf 'BACKEND_URL=https://<host-do-shema-api>\n' > /tmp/pme.env
+printf 'BACKEND_URL=https://tripod-backend-staging-f7ssqjozfq-uc.a.run.app\n' > /tmp/pme.env
 
 gcloud secrets create "$SECRET_NAME" \
   --replication-policy=automatic \
@@ -138,9 +153,11 @@ gcloud secrets create "$SECRET_NAME" \
 rm /tmp/pme.env
 ```
 
-Na onda 1 **não há backend atrás** — qualquer URL `https://` válida serve como placeholder, e o app inteiro
-funciona contra fixtures. O que não pode é a variável faltar: o entrypoint recusa subir, de propósito
-(`CLAUDE.md` §8, FE-41).
+**O valor não é placeholder.** `src/services/api/source.ts` já liga sete dos onze namespaces na API, e as rotas
+`/api/shema/*` que eles chamam existem hoje só no `tripod-backend-staging` — o deploy da branch `dev` do
+`shema-api`; o `tripod-backend` de produção responde 404 nelas. Quando o `shema-api` promover `dev` para `main`,
+a troca é uma versão nova do segredo (abaixo), sem rebuild. E a variável nunca pode faltar: o entrypoint recusa
+subir, de propósito (`CLAUDE.md` §8, FE-41).
 
 O acesso é **por segredo**, nunca no projeto:
 
@@ -158,43 +175,40 @@ valor novo entra no próximo deploy):
 printf 'BACKEND_URL=https://<novo-host>\n' | gcloud secrets versions add "$SECRET_NAME" --data-file=- --project "$SECRETS_PROJECT"
 ```
 
-> ⚠️ **Referência cross-project — confirme na primeira execução.** O segredo mora em `shemaobt-secrets` e o
-> serviço mora em outro projeto, então o `--set-secrets` usa o nome completo do recurso:
-> `projects/shemaobt-secrets/secrets/project_management_ecosystem_env:latest`. É essa a forma que o workflow
-> monta por padrão. **Se o `gcloud run deploy` recusar a referência pedindo o número do projeto**, descubra-o
-> e ponha na variável de repositório `GCP_SECRETS_PROJECT_REF` — o workflow a usa no lugar do ID, sem mais
-> nenhuma mudança:
+> **Referência cross-project é pelo número do projeto.** O segredo mora em `shemaobt-secrets` e o serviço em
+> outro projeto, e o Cloud Run quer `projects/<NÚMERO>/secrets/<nome>:latest` — é assim que o `shema-api` monta
+> os dele. O workflow lê o número da variável de repositório `GCP_SECRETS_PROJECT_REF` (e só cai no ID se ela
+> faltar):
 >
 > ```sh
-> gcloud projects describe "$SECRETS_PROJECT" --format='value(projectNumber)'
-> gh variable set GCP_SECRETS_PROJECT_REF --body <numero>
+> gcloud projects describe "$SECRETS_PROJECT" --format='value(projectNumber)'   # 384168199195
+> gh variable set GCP_SECRETS_PROJECT_REF --body "$SECRETS_PROJECT_NUMBER"
 > ```
 
 ### 2.5 Secrets e variables do GitHub
 
 No repositório `shemaobt/project-management-ecosystem`:
 
+Os mesmos três nomes que `sound-necklace`, `facilitator-desk` e `obt-mentor-companion` usam. **Não há
+`GCP_SA_KEY`**: a identidade vem do token OIDC do job, trocado pela pool.
+
 | Nome | Tipo | Valor |
 |---|---|---|
-| `GCP_PROJECT_ID` | secret | o ID do projeto de runtime |
-| `GCP_SA_KEY` | secret | JSON da chave da service account de **deploy** |
-| `CLOUD_RUN_RUNTIME_SA` | variable | e-mail da service account de **runtime** |
-| `GCP_SECRETS_PROJECT_REF` | variable (opcional) | número do projeto `shemaobt-secrets`, só se §2.4 pedir |
+| `GCP_PROJECT_ID` | secret | `gen-lang-client-0886209230` |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | secret | `projects/718681737495/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions` |
+| `GCP_WORKLOAD_IDENTITY_SERVICE_ACCOUNT` | secret | e-mail da service account de **deploy** (`$DEPLOY_SA`) |
+| `CLOUD_RUN_RUNTIME_SA` | variable | e-mail da service account de **runtime** (`$RUNTIME_SA`) |
+| `GCP_SECRETS_PROJECT_REF` | variable | `384168199195`, o número do `shemaobt-secrets` |
 
 ```sh
-gh secret   set GCP_PROJECT_ID        --body "$PROJECT_ID"
-gh secret   set GCP_SA_KEY            < chave.json
-gh variable set CLOUD_RUN_RUNTIME_SA  --body "$RUNTIME_SA"
+gh secret   set GCP_PROJECT_ID                        --body "$PROJECT_ID"
+gh secret   set GCP_WORKLOAD_IDENTITY_PROVIDER        --body "projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions"
+gh secret   set GCP_WORKLOAD_IDENTITY_SERVICE_ACCOUNT --body "$DEPLOY_SA"
+gh variable set CLOUD_RUN_RUNTIME_SA                  --body "$RUNTIME_SA"
+gh variable set GCP_SECRETS_PROJECT_REF               --body "$SECRETS_PROJECT_NUMBER"
 ```
 
-Gere a chave de deploy só se ainda não houver uma em uso, e **apague o arquivo local depois de subir**:
-
-```sh
-gcloud iam service-accounts keys create chave.json --iam-account "$DEPLOY_SA" --project "$PROJECT_ID"
-gh secret set GCP_SA_KEY < chave.json && rm chave.json
-```
-
-O primeiro passo do workflow (`Check required secrets`) falha com mensagem nomeada se qualquer um dos três
+O primeiro passo do workflow (`Check required secrets`) falha com mensagem nomeada se qualquer um dos
 obrigatórios estiver faltando. Falhar ali custa dez segundos; falhar no `gcloud run deploy` custa a leitura
 de um log.
 
@@ -304,7 +318,8 @@ tem fora do `beta`. O `gcloud logging read` acima funciona em qualquer uma.)
 |---|---|---|
 | Revisão não fica pronta e o log diz `docker-entrypoint: BACKEND_URL is not set — refusing to start` | **O mais provável na primeira vez.** O arquivo `/run/secrets/.env` não chegou (segredo não criado, nome errado, `--set-secrets` ausente) ou chegou vazio | Confira §2.4 e o `--set-secrets` da revisão: `gcloud run services describe "$SERVICE" --region "$REGION" --format=yaml \| grep -A5 volumeMounts` |
 | Log diz `BACKEND_URL='...' must be http(s)://<host>` | O valor existe mas não tem esquema | Nova versão do segredo com `https://` na frente (§2.4) e redeploy |
-| `PERMISSION_DENIED` ao acessar o segredo, ou a revisão falha citando Secret Manager | Falta `secretAccessor` **naquele segredo** para a SA de runtime, ou a referência cross-project está pelo ID onde a API quer o número | §2.4 — o binding, e depois o aviso do `GCP_SECRETS_PROJECT_REF` |
+| `PERMISSION_DENIED` ao acessar o segredo, ou a revisão falha citando Secret Manager | Falta `secretAccessor` **naquele segredo** para a SA de runtime, ou a variável `GCP_SECRETS_PROJECT_REF` sumiu e a referência saiu pelo ID | §2.4 — o binding, e a variável |
+| `Google Auth` falha com `unable to generate Google Cloud federated token` ou `PERMISSION_DENIED` em `iam.serviceAccounts.getAccessToken` | A pool não reconhece este repositório, ou o binding `workloadIdentityUser` da SA de deploy não cobre `attribute.repository/shemaobt/project-management-ecosystem` | O último comando do §2.3 |
 | `denied: Permission "artifactregistry.repositories.uploadArtifacts" denied` no push | SA de deploy sem `artifactregistry.writer`, ou o repositório não existe na região | §2.2 e §2.3 |
 | `Permission 'iam.serviceaccounts.actAs' denied on service account` | Falta `iam.serviceAccountUser` da SA de deploy **sobre a SA de runtime** | O terceiro comando do §2.3 |
 | `The user-provided container failed to start and listen on the port defined by the PORT environment variable` | Porta. O nginx desta imagem escuta **8080 fixo** (`nginx.conf`) e o workflow manda `--port 8080` | Não mude o `--port` sem mudar o `nginx.conf` junto; se mudou, reverta |

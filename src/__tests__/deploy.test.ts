@@ -41,6 +41,28 @@ describe("o deploy no Cloud Run não pode ficar público", () => {
   });
 });
 
+describe("o CI autentica por Workload Identity Federation, sem chave estática", () => {
+  it("não carrega chave JSON de service account", () => {
+    expect(workflow).not.toContain("credentials_json");
+    expect(workflow).not.toContain("GCP_SA_KEY");
+  });
+
+  it("pede o token OIDC do job e o troca pela identidade do deployer", () => {
+    expect(workflow).toContain("id-token: write");
+    const auth = stepRun("Google Auth");
+    expect(auth).toContain("id: auth");
+    expect(auth).toContain("workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}");
+    expect(auth).toContain("service_account: ${{ secrets.GCP_WORKLOAD_IDENTITY_SERVICE_ACCOUNT }}");
+  });
+
+  it("entra no Artifact Registry com o access token da identidade federada", () => {
+    const login = stepRun("Login to Artifact Registry");
+    expect(login).toContain("username: oauth2accesstoken");
+    expect(login).toContain("password: ${{ steps.auth.outputs.access_token }}");
+    expect(workflow).not.toContain("gcloud auth configure-docker");
+  });
+});
+
 describe("o segredo chega pelo arquivo que o entrypoint lê", () => {
   it("monta o segredo no caminho que docker-entrypoint.sh carrega", () => {
     const loaded = entrypoint.match(/\[ -f (\S+) \]/);
