@@ -3,6 +3,7 @@ import type { IntakeField } from "../../types/forms";
 import {
   classifyIntakeLinkProblem,
   clearIntakeDraft,
+  draftKeyOf,
   loadIntakeDraft,
   parseSubmitFaults,
   saveIntakeDraft,
@@ -24,10 +25,13 @@ function createMemoryStorage() {
 }
 
 const storage = createMemoryStorage();
+const tabStorage = createMemoryStorage();
 vi.stubGlobal("localStorage", storage);
+vi.stubGlobal("sessionStorage", tabStorage);
 
 beforeEach(() => {
   storage.clear();
+  tabStorage.clear();
 });
 
 const FIELDS: readonly IntakeField[] = [
@@ -105,12 +109,78 @@ describe("o rascunho sobrevive a uma falha — a promessa central da task", () =
       },
     };
     vi.stubGlobal("localStorage", broken);
+    vi.stubGlobal("sessionStorage", broken);
 
     expect(() => saveIntakeDraft("tok-x", 1, {})).not.toThrow();
     expect(saveIntakeDraft("tok-x", 1, {})).toBe(false);
     expect(loadIntakeDraft("tok-x")).toBeNull();
 
     vi.stubGlobal("localStorage", storage);
+    vi.stubGlobal("sessionStorage", tabStorage);
+  });
+});
+
+describe("o rascunho do líder fica na aba e não guarda o link (OBT-558)", () => {
+  const TOKEN = "k9X2-um-token-longo-e-aleatorio";
+
+  it("vai para a sessão da aba, nunca para o aparelho", () => {
+    saveIntakeDraft(TOKEN, 1, { prayerRequest: "Orem pela gravação." });
+
+    expect(tabStorage.getItem("shema-intake-draft-v2")).toContain("Orem pela gravação.");
+    expect(storage.getItem("shema-intake-draft-v2")).toBeNull();
+    expect(storage.getItem("shema-intake-draft-v1")).toBeNull();
+  });
+
+  it("é guardado sob um hash, então nada guardado abre o link", () => {
+    saveIntakeDraft(TOKEN, 1, { submittedBy: "Kuaray" });
+
+    const stored = tabStorage.getItem("shema-intake-draft-v2") ?? "";
+    expect(stored).not.toContain(TOKEN);
+    expect(stored).toContain(draftKeyOf(TOKEN));
+    expect(draftKeyOf(TOKEN)).toMatch(/^[0-9a-f]{16}$/u);
+    expect(draftKeyOf(TOKEN)).not.toBe(draftKeyOf(`${TOKEN}x`));
+  });
+
+  it("um rascunho da onda 1 é trazido uma vez, e a cópia antiga some do aparelho", () => {
+    storage.setItem(
+      "shema-intake-draft-v1",
+      JSON.stringify({
+        [TOKEN]: { definitionVersion: 2, answers: { submittedBy: "Ara" }, savedAt: "2026-09-30" },
+      }),
+    );
+
+    expect(loadIntakeDraft(TOKEN)).toEqual({
+      definitionVersion: 2,
+      answers: { submittedBy: "Ara" },
+    });
+    expect(storage.getItem("shema-intake-draft-v1")).toBeNull();
+  });
+
+  it("os rascunhos de outros links da onda 1 também saem do aparelho", () => {
+    storage.setItem(
+      "shema-intake-draft-v1",
+      JSON.stringify({
+        "outro-token": { definitionVersion: 1, answers: { prayerRequest: "x" }, savedAt: "2026-09-29" },
+      }),
+    );
+
+    expect(loadIntakeDraft(TOKEN)).toBeNull();
+    expect(storage.getItem("shema-intake-draft-v1")).toBeNull();
+  });
+
+  it("um navegador que recusa até o acesso ao armazenamento não derruba a tela", () => {
+    const refusing = Object.getOwnPropertyDescriptor(globalThis, "sessionStorage");
+    Object.defineProperty(globalThis, "sessionStorage", {
+      configurable: true,
+      get() {
+        throw new Error("SecurityError");
+      },
+    });
+
+    expect(saveIntakeDraft(TOKEN, 1, {})).toBe(false);
+    expect(loadIntakeDraft(TOKEN)).toBeNull();
+
+    if (refusing) Object.defineProperty(globalThis, "sessionStorage", refusing);
   });
 });
 

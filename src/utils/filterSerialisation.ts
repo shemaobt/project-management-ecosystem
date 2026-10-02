@@ -41,6 +41,32 @@ const FREE_TEXT_KEYS = [
   "vitality",
 ] as const satisfies readonly (keyof ProjectFilters)[];
 
+/**
+ * The free-text filters that name a place — a base, a country — and therefore never go into the
+ * address (OBT-558, 2/out/2026, Daniel). A URL travels: it sits in the history, in a link pasted
+ * into a chat, in a referrer, and a coordinator filtering by a sensitive base would leave that
+ * base in all of them. They still apply on screen and are still kept in the coordinator's own
+ * saved views, which never leave the browser; an old link that carries one is still read.
+ */
+const PLACE_KEYS = ["team", "country"] as const satisfies readonly (typeof FREE_TEXT_KEYS)[number][];
+
+/**
+ * What the screen applies when it reads the address back: the address's filters, with the place
+ * filters the address cannot carry taken from what the screen already holds. Without it, a reload
+ * or a *back* with Base + Status would bring the Status back and silently drop the Base (PR #86
+ * review). A place the address does carry — an old link — still wins.
+ */
+export function withPlacesKept(
+  fromAddress: ProjectFilters,
+  current: ProjectFilters,
+): ProjectFilters {
+  const kept = { ...fromAddress };
+  for (const key of PLACE_KEYS) {
+    if (!kept[key]) kept[key] = current[key];
+  }
+  return kept;
+}
+
 const ENUM_KEYS = [
   "objective",
   "status",
@@ -115,8 +141,19 @@ export function encodeView(state: ViewState): URLSearchParams {
   return params;
 }
 
+/**
+ * The view as the **address** carries it — the page's own URL and a shared link — which is
+ * `encodeView` less the place filters (`PLACE_KEYS`). `encodeView` itself stays whole: the
+ * server's browse needs every filter to answer, and that request never reaches the history.
+ */
+export function encodeAddress(state: ViewState): URLSearchParams {
+  const params = encodeView(state);
+  for (const key of PLACE_KEYS) params.delete(key);
+  return params;
+}
+
 export function encodeViewToUrl(state: ViewState, origin: string): string {
-  const params = encodeView(state).toString();
+  const params = encodeAddress(state).toString();
   return params ? `${origin}?${params}` : origin;
 }
 
