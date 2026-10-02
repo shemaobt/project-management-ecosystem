@@ -184,9 +184,23 @@ export const COORDINATION_WRITES: ReadonlySet<RecordField> = new Set<RecordField
 ]);
 
 /**
+ * The free text a team writes about itself — `FREE_TEXT_FIELDS` in shema-api's
+ * `shema_privacy.py` (OBT-556): any of it can say where the team is, so a withheld record
+ * hands it to everybody but coordination as `""`.
+ */
+export const FREE_TEXT_FIELDS: readonly RecordField[] = [
+  "notes",
+  "healthNotes",
+  "statusComments",
+  "scopeDetails",
+];
+
+/**
  * What only coordination writes on a record whose place is **withheld** — the base, the
- * three contacts and, since OBT-560, the language's name, which the others read as the
- * public one (`WITHHELD_WRITES`). *Não dá para editar o que não se vê.*
+ * three contacts, the free text (OBT-556) and, since OBT-560, the language's name, which
+ * the others read as the public one (`WITHHELD_WRITES`). *Não dá para editar o que não se vê.*
+ * The description of a saved need is the one nested member of the same rule — see
+ * `mayWriteNeedDescription` in `utils/recordAccess.ts`.
  */
 export const WITHHELD_WRITES: ReadonlySet<RecordField> = new Set<RecordField>([
   "languageName",
@@ -195,6 +209,20 @@ export const WITHHELD_WRITES: ReadonlySet<RecordField> = new Set<RecordField>([
   "teamContact",
   "teamLeaderContact",
   "mentorContact",
+  ...FREE_TEXT_FIELDS,
+]);
+
+/**
+ * What only the health audience writes of a team's health — the pastoral follow-up, the
+ * only part of it the record's own write takes (`PASTORAL_WRITES` in shema-api's
+ * `_health_audience.py`, OBT-553). A reader outside the audience (the Resource Circle)
+ * reads these empty, so a value typed over them would erase a follow-up unseen; the server
+ * refuses them with a 403 that names the field.
+ */
+export const PASTORAL_WRITES: ReadonlySet<RecordField> = new Set<RecordField>([
+  "needsPastoralIntervention",
+  "pastoralInterventionName",
+  "pastoralInterventionWhen",
 ]);
 
 /**

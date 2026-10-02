@@ -10,6 +10,8 @@ import {
   openNeeds,
   unacknowledgedNeeds,
 } from "../../../../../utils/needs";
+import { mayWriteNeedDescription } from "../../../../../utils/recordAccess";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { DetailItem } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { StatusBadge, UrgencyBadge } from "./NeedBadges";
@@ -150,6 +152,10 @@ export function NecessidadesView({ draft }: NecessidadesViewProps) {
         <DetailItem label={t("f_needs_notes")} full>
           {draft.values.needsNotes}
         </DetailItem>
+      )}
+
+      {!mayWriteNeedDescription(draft.place, true) && (
+        <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
       )}
     </div>
   );

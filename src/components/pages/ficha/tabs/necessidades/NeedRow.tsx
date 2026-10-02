@@ -42,6 +42,7 @@ export interface NeedRowProps {
   need: NeedItem;
   index: number;
   sensitiveCountry: boolean;
+  descriptionLocked: boolean;
   errors: RecordFieldError[];
   onChange: (patch: Partial<NeedItem>) => void;
   onStatus: (status: NeedStatus) => void;
@@ -52,6 +53,7 @@ export function NeedRow({
   need,
   index,
   sensitiveCountry,
+  descriptionLocked,
   errors,
   onChange,
   onStatus,
@@ -172,6 +174,7 @@ export function NeedRow({
               {...control}
               rows={2}
               value={need.description}
+              disabled={descriptionLocked}
               onChange={(event) => onChange({ description: event.target.value })}
             />
           )}

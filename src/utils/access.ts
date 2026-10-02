@@ -34,6 +34,25 @@ export function canImportProjects(roles: readonly SessionRole[]): boolean {
   return roles.some((role) => IMPORTING_ROLES.includes(role));
 }
 
+/**
+ * Who reads a team's health — `HEALTH_AUDIENCE` in shema-api's `_health_audience.py` (OBT-553):
+ * the global strategist, a coordinator and the OBT Lab. The Resource Circle and the Shemá
+ * `admin` role are outside it, and are handed every health field empty, as a project nobody
+ * has assessed. Reflection only, off the roles the session already carries: the server
+ * decides, and the `?health=` filter, the health order and the `health` facet it ignores or
+ * drops are what the screen reads back. An installation admin reads on the server and
+ * is not among the session's roles, so this does not claim it.
+ */
+const HEALTH_AUDIENCE: readonly SessionRole[] = [
+  "globalStrategist",
+  "coordinator",
+  "obtLab",
+];
+
+export function canReadHealth(roles: readonly SessionRole[]): boolean {
+  return roles.some((role) => HEALTH_AUDIENCE.includes(role));
+}
+
 export function holdsShemaGrant(roles: readonly SessionRole[]): boolean {
   return roles.some((role) => GRANTABLE_ROLES[SHEMA_APP].includes(role));
 }

@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { NeedItem, NeedStatus } from "../../../../../types/project";
+import { mayWriteNeedDescription } from "../../../../../utils/recordAccess";
 import {
   addNeed,
   openNeeds,
@@ -10,6 +11,7 @@ import {
   unacknowledgedNeeds,
 } from "../../../../../utils/needs";
 import { Button, Textarea } from "../../../../ui";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { Field } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { NeedRow } from "./NeedRow";
@@ -26,6 +28,9 @@ export function NecessidadesForm({ draft }: NecessidadesFormProps) {
   const rowErrors = draft.errorsFor("needsItems");
 
   const write = (next: NeedItem[]) => draft.set("needsItems", next);
+  const lockedAt = (need: NeedItem) =>
+    !mayWriteNeedDescription(draft.place, Boolean(need.id));
+  const anyLocked = needs.some(lockedAt);
 
   return (
     <div className="flex flex-col gap-5">
@@ -56,6 +61,7 @@ export function NecessidadesForm({ draft }: NecessidadesFormProps) {
                 need={need}
                 index={index}
                 sensitiveCountry={Boolean(draft.values.sensitiveCountry)}
+                descriptionLocked={lockedAt(need)}
                 errors={rowErrors.filter((error) => error.index === index)}
                 onChange={(patch) => write(setNeedAt(needs, index, patch))}
                 onStatus={(status: NeedStatus) =>
@@ -66,6 +72,10 @@ export function NecessidadesForm({ draft }: NecessidadesFormProps) {
             ))}
           </ul>
         </>
+      )}
+
+      {anyLocked && (
+        <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
       )}
 
       <div>

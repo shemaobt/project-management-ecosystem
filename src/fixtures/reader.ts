@@ -2,6 +2,7 @@ import { REGION_CENTROIDS } from "../constants/geo";
 import type { SessionPersona } from "../contexts/session";
 import type { Project, ReadAs } from "../types/project";
 import type { RegionKey } from "../types/region";
+import { canReadHealth } from "../utils/access";
 import { getRegion } from "../utils/region";
 
 /**
@@ -26,6 +27,10 @@ export function readerOf(persona: SessionPersona, region: RegionKey): ReadAs {
   return "other";
 }
 
+export function readsHealth(persona: SessionPersona): boolean {
+  return canReadHealth(persona.roles);
+}
+
 export function coordinatesAnything(persona: SessionPersona): boolean {
   if (coordinatesEverywhere(persona)) return true;
   return (
@@ -47,6 +52,13 @@ export function withhold(project: Project): Project {
     teamLeaderContact: "",
     mentorContact: "",
     sensitivity: "",
+    // The free text (OBT-556) and each need's description, which the server empties for
+    // everybody but coordination on a withheld record.
+    notes: "",
+    healthNotes: "",
+    statusComments: "",
+    scopeDetails: "",
+    needsItems: project.needsItems.map((need) => ({ ...need, description: "" })),
     coords: REGION_CENTROIDS[region],
     // The server's rule for the name (OBT-560): the public one, or the region key.
     languageName: project.publicLanguageName?.trim() || region,

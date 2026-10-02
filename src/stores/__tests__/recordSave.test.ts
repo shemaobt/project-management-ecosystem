@@ -174,12 +174,14 @@ const saving = (typed: Record<string, unknown>) => ({
   values: { ...typed } as never,
   typed: { ...typed } as never,
   isNew: false,
+  readsHealth: true,
 });
 
 const creating = (values: never, typed: Record<string, unknown> = {}) => ({
   values,
   typed: typed as never,
   isNew: true,
+  readsHealth: true,
 });
 
 const store = () => useProjectRecordStore.getState();
@@ -241,6 +243,7 @@ describe("cada aba escreve só o que é dela", () => {
       values: { ...record(), notes: "vai" } as never,
       typed: { notes: "vai" } as never,
       isNew: false,
+      readsHealth: true,
     });
 
     expect(outcome.kind).toBe("saved");
@@ -539,7 +542,7 @@ describe("a recusa do servidor cai na aba certa", () => {
   });
 });
 
-describe("o salvamento nunca envia campo que o leitor não pode gravar (OBT-532)", () => {
+describe("o salvamento nunca envia campo que o leitor não pode gravar (OBT-532, OBT-553, OBT-556)", () => {
   const patchBody = () => {
     const patch = sent.find((config) => config.method === "patch");
     return JSON.parse(String(patch?.data)) as Record<string, unknown>;
@@ -549,14 +552,20 @@ describe("o salvamento nunca envia campo que o leitor não pode gravar (OBT-532)
     queue = [ok({ readAs: "other", sensitiveCountry: true, team: "", ywamBase: "" })];
     store().forget();
     await store().open("p1");
-    queue = [ok({ readAs: "other", sensitiveCountry: true, notes: "vai" }, '"8"')];
+    queue = [ok({ readAs: "other", sensitiveCountry: true, mentor: "vai" }, '"8"')];
 
     const outcome = await store().save(
-      saving({ location: "Lugar Sintético", team: "Base Sintética", teamContact: "c", notes: "vai" }),
+      saving({
+        location: "Lugar Sintético",
+        team: "Base Sintética",
+        teamContact: "c",
+        notes: "texto livre",
+        mentor: "vai",
+      }),
     );
 
     expect(outcome.kind).toBe("saved");
-    expect(patchBody()).toEqual({ notes: "vai" });
+    expect(patchBody()).toEqual({ mentor: "vai" });
   });
 
   it("lido como coordenação, os mesmos campos viajam", async () => {
@@ -571,5 +580,73 @@ describe("o salvamento nunca envia campo que o leitor não pode gravar (OBT-532)
       location: "Lugar Sintético",
       team: "Base Sintética",
     });
+  });
+
+  const saved = (typed: Record<string, unknown>, readsHealth: boolean) => ({
+    ...saving(typed),
+    readsHealth,
+  });
+
+  const patches = () => sent.filter((config) => config.method === "patch");
+
+  it("quem não lê saúde não manda o acompanhamento pastoral, e o resto do save vai", async () => {
+    await openAt();
+    queue = [ok({ status: "pausado" }, '"8"')];
+    const outcome = await store().save(
+      saved(
+        {
+          status: "pausado",
+          needsPastoralIntervention: "sim",
+          pastoralInterventionName: "Pr. Ana",
+          pastoralInterventionWhen: "2026-10-02",
+        },
+        false,
+      ),
+    );
+
+    expect(outcome.kind).toBe("saved");
+    expect(Object.keys(patchBody())).toEqual(["status"]);
+  });
+
+  it("quem lê saúde manda o acompanhamento pastoral", async () => {
+    await openAt();
+    queue = [ok({ needsPastoralIntervention: "sim" }, '"8"')];
+    await store().save(saved({ needsPastoralIntervention: "sim" }, true));
+
+    expect(Object.keys(patchBody())).toEqual(["needsPastoralIntervention"]);
+  });
+
+  it("só o acompanhamento pastoral, para quem não lê saúde, não é um save", async () => {
+    await openAt();
+    const outcome = await store().save(
+      saved({ needsPastoralIntervention: "sim" }, false),
+    );
+
+    expect(outcome.kind).toBe("unchanged");
+    expect(patches()).toHaveLength(0);
+  });
+
+  it("o texto livre de um registro recolhido, lido como other, não sai", async () => {
+    queue = [ok({ sensitiveCountry: true, locationWithheld: true, readAs: "other" })];
+    store().forget();
+    await store().open("p1");
+    sent.length = 0;
+
+    const outcome = await store().save(
+      saved({ notes: "digitado", scopeDetails: "x", statusComments: "y", team: "z" }, true),
+    );
+
+    expect(outcome.kind).toBe("unchanged");
+    expect(patches()).toHaveLength(0);
+  });
+
+  it("o mesmo texto, num registro aberto lido como other, sai", async () => {
+    queue = [ok({ readAs: "other" })];
+    store().forget();
+    await store().open("p1");
+    queue = [ok({ notes: "digitado" }, '"8"')];
+    await store().save(saved({ notes: "digitado" }, true));
+
+    expect(patchBody()).toEqual({ notes: "digitado" });
   });
 });

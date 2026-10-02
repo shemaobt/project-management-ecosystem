@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { mayWrite } from "../../../../../utils/recordAccess";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { EmptyHint, NotesPanel } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 
@@ -8,11 +10,14 @@ export interface NotasViewProps {
 
 export function NotasView({ draft }: NotasViewProps) {
   const { t } = useTranslation();
-  const notes = draft.values.notes ?? "";
+  const withheld = !mayWrite(draft.place, "notes");
+  const notes = withheld ? "" : (draft.values.notes ?? "");
 
   return (
     <div className="flex flex-col gap-3">
-      {notes !== "" ? (
+      {withheld ? (
+        <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+      ) : notes !== "" ? (
         <NotesPanel>{notes}</NotesPanel>
       ) : (
         <EmptyHint>{t("notes_empty")}</EmptyHint>
