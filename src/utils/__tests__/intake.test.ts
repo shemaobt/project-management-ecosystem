@@ -155,6 +155,33 @@ describe("o rascunho do líder fica na aba e não guarda o link (OBT-558)", () =
     });
     expect(storage.getItem("shema-intake-draft-v1")).toBeNull();
   });
+
+  it("os rascunhos de outros links da onda 1 também saem do aparelho", () => {
+    storage.setItem(
+      "shema-intake-draft-v1",
+      JSON.stringify({
+        "outro-token": { definitionVersion: 1, answers: { prayerRequest: "x" }, savedAt: "2026-09-29" },
+      }),
+    );
+
+    expect(loadIntakeDraft(TOKEN)).toBeNull();
+    expect(storage.getItem("shema-intake-draft-v1")).toBeNull();
+  });
+
+  it("um navegador que recusa até o acesso ao armazenamento não derruba a tela", () => {
+    const refusing = Object.getOwnPropertyDescriptor(globalThis, "sessionStorage");
+    Object.defineProperty(globalThis, "sessionStorage", {
+      configurable: true,
+      get() {
+        throw new Error("SecurityError");
+      },
+    });
+
+    expect(saveIntakeDraft(TOKEN, 1, {})).toBe(false);
+    expect(loadIntakeDraft(TOKEN)).toBeNull();
+
+    if (refusing) Object.defineProperty(globalThis, "sessionStorage", refusing);
+  });
 });
 
 describe("validação do lado do cliente — a primeira leitura, não a última", () => {

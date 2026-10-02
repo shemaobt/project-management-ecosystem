@@ -46,9 +46,9 @@ export function draftKeyOf(token: string): string {
   return hash.toString(16).padStart(16, "0");
 }
 
-function readFrom(storage: Storage, key: string): DraftMap {
+function readFrom(storage: () => Storage, key: string): DraftMap {
   try {
-    const raw = storage.getItem(key);
+    const raw = storage().getItem(key);
     return raw ? (JSON.parse(raw) as DraftMap) : {};
   } catch {
     return {};
@@ -56,7 +56,7 @@ function readFrom(storage: Storage, key: string): DraftMap {
 }
 
 function readAll(): DraftMap {
-  return readFrom(sessionStorage, DRAFT_KEY);
+  return readFrom(() => sessionStorage, DRAFT_KEY);
 }
 
 function writeAll(drafts: DraftMap): boolean {
@@ -70,18 +70,20 @@ function writeAll(drafts: DraftMap): boolean {
 
 /**
  * Carries a wave-1 draft over the first time its link is opened in a tab, so a leader halfway
- * through does not lose the answers to a deploy, and removes the legacy copy at once.
+ * through does not lose the answers to a deploy — and then removes the whole legacy key, not only
+ * this link's entry: another leader's answers left on a shared phone would otherwise stay in
+ * `localStorage` until a link that may already have expired is opened again (PR #86 review).
  */
 function adoptLegacy(token: string): void {
   try {
-    const legacy = readFrom(localStorage, LEGACY_DRAFT_KEY);
-    if (!(token in legacy)) return;
-    const drafts = readAll();
-    drafts[draftKeyOf(token)] ??= legacy[token];
-    delete legacy[token];
-    writeAll(drafts);
-    if (Object.keys(legacy).length === 0) localStorage.removeItem(LEGACY_DRAFT_KEY);
-    else localStorage.setItem(LEGACY_DRAFT_KEY, JSON.stringify(legacy));
+    const legacy = readFrom(() => localStorage, LEGACY_DRAFT_KEY);
+    if (Object.keys(legacy).length === 0) return;
+    if (token in legacy) {
+      const drafts = readAll();
+      drafts[draftKeyOf(token)] ??= legacy[token];
+      writeAll(drafts);
+    }
+    localStorage.removeItem(LEGACY_DRAFT_KEY);
   } catch {
     // A browser that refuses storage holds no legacy draft to carry.
   }
