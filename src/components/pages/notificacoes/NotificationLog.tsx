@@ -1,31 +1,26 @@
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { Link } from "react-router-dom";
-import { NEED_CATEGORIES } from "../../../constants/project";
 import { DEFAULT_TAB } from "../../../constants/recordTabs";
 import { DECISION_STAGE_LABEL_KEYS } from "../../../constants/requests";
 import { SERVED_NOTICE_TITLE_KEYS } from "../../../constants/notifications";
 import { HEALTH_LABEL_KEYS } from "../../../constants/status";
 import type { PanelEntry } from "../../../types/notification";
-import type { NeedCategory } from "../../../types/project";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
+import { needCategoryLabel } from "../../../utils/needs";
 import { getLanguageNameDisplay } from "../../../utils/region";
 import {
   isRequestNotice,
   isServedNotice,
   notificationAge,
 } from "../../../utils/notifications";
+import { servedNoticeSummary } from "../../../utils/servedNotices";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 
-function needCategoryLabel(category: NeedCategory, t: TFunction): string {
-  const found = NEED_CATEGORIES.find((candidate) => candidate.id === category);
-  return found ? t(found.labelKey) : category;
-}
-
 function summaryFor(entry: PanelEntry, t: TFunction): string {
-  if (isServedNotice(entry)) return entry.body;
+  if (isServedNotice(entry)) return servedNoticeSummary(entry, t);
   switch (entry.kind) {
     case "field":
       return entry.fromField
@@ -55,9 +50,9 @@ function summaryFor(entry: PanelEntry, t: TFunction): string {
 }
 
 /**
- * A served project notice is titled by its kind in the reader's language, and its body is the
- * server's own sentence (INT-11): BE-15's writers compose the prose, in English today, and the
- * fields the fixture title reads — language, base — do not travel.
+ * A served project notice is titled by its kind in the reader's language (INT-11), and its line
+ * is worded here from the facts the server answers (OBT-559, `servedNoticeSummary`): the fields
+ * the fixture title reads — language, base — still do not travel.
  */
 function titleFor(entry: PanelEntry, t: TFunction): string {
   if (isServedNotice(entry)) return t(SERVED_NOTICE_TITLE_KEYS[entry.kind]);

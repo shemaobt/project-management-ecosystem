@@ -6,6 +6,7 @@ import type {
   AppNotification,
   NotificationPrefs,
   NotificationPrefsHandlers,
+  ServedNotification,
 } from "../../../../types/notification";
 import type { Project } from "../../../../types/project";
 
@@ -258,23 +259,50 @@ describe("o painel contra o servidor (INT-11)", () => {
       ),
     );
 
-  it("um aviso servido leva o tipo na língua da tela, a frase do servidor e o link da ficha", () => {
-    const markup = servedView([
-      {
-        origin: "server",
-        id: "n-1",
-        kind: "health",
-        urgent: true,
-        projectId: "tikuna",
-        date: "2026-08-14",
-        body: "Tikuna was assessed as critical on 2026-08-14.",
-      },
-    ]);
+  const critical: ServedNotification = {
+    origin: "server",
+    id: "n-1",
+    kind: "health",
+    urgent: true,
+    projectId: "tikuna",
+    date: "2026-08-14",
+    facts: {
+      languageName: "Tikuna",
+      region: "south-america",
+      assessedOn: "2026-08-14",
+      needCount: null,
+      needCategories: [],
+      needTotals: [],
+      submittedBy: null,
+      daysSinceUpdate: null,
+      place: null,
+    },
+  };
+
+  it("um aviso servido leva o tipo e a frase na língua da tela, e o link da ficha (OBT-559)", async () => {
+    const markup = servedView([critical]);
 
     expect(markup).toContain(i18n.t("notif_kind_health"));
-    expect(markup).toContain("Tikuna was assessed as critical on 2026-08-14.");
+    expect(markup).toContain("Tikuna: a avaliação de saúde ficou crítica em");
+    expect(markup).not.toContain("was assessed as critical");
     expect(markup).toContain(i18n.t("notif_urgent_tag"));
     expect(markup).toContain('href="/ficha/tikuna/identidade"');
+
+    await i18n.changeLanguage("en");
+    const english = servedView([critical]);
+
+    expect(english).toContain(i18n.t("notif_kind_health"));
+    expect(english).toContain("Tikuna was assessed as critical on");
+    expect(english).not.toContain("avaliação de saúde");
+  });
+
+  it("um aviso de antes dos fatos diz o tipo e nada do que dizia, sem link (OBT-559)", () => {
+    const markup = servedView([{ ...critical, projectId: null, facts: null }]);
+
+    expect(markup).toContain(i18n.t("notif_kind_health"));
+    expect(markup).toContain(i18n.t("notif_served_old_health"));
+    expect(markup).not.toContain("Tikuna");
+    expect(markup).not.toContain("/ficha/");
   });
 
   it("preferências que não puderam ser lidas não se passam por escolha salva", () => {

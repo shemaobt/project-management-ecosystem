@@ -60,13 +60,23 @@ const ROWS = [
   {
     id: "n-1",
     kind: "health",
-    title: "A health assessment needs attention",
-    body: "Tikuna was assessed as critical on 2026-09-30.",
+    title: "",
+    body: "",
     urgent: true,
     projectId: "tikuna-brazil",
     region: "south-america",
     createdAt: "2026-09-30T14:00:00Z",
     isRead: true,
+    facts: {
+      languageName: "Tikuna",
+      assessedOn: "2026-09-30",
+      needCount: null,
+      needCategories: [],
+      needTotals: [],
+      submittedBy: null,
+      daysSinceUpdate: null,
+      place: null,
+    },
   },
   {
     id: "n-2",
@@ -89,6 +99,37 @@ const ROWS = [
     requestName: "x",
     requestStage: "analise",
   },
+  {
+    id: "n-5",
+    kind: "need",
+    title: "",
+    body: "",
+    urgent: true,
+    projectId: null,
+    region: "a-region-this-console-does-not-know",
+    createdAt: "2026-09-28T10:00:00Z",
+    facts: {
+      languageName: "",
+      assessedOn: null,
+      needCount: 2,
+      needCategories: ["financial", "security"],
+      needTotals: [{ amount: "5000.00", currency: "BRL" }],
+      submittedBy: null,
+      daysSinceUpdate: null,
+      place: null,
+    },
+  },
+  {
+    id: "n-6",
+    kind: "need",
+    title: "",
+    body: "",
+    urgent: true,
+    projectId: null,
+    region: null,
+    createdAt: "2026-09-27T10:00:00Z",
+    facts: null,
+  },
 ];
 
 describe("o painel do sino", () => {
@@ -100,14 +141,14 @@ describe("o painel do sino", () => {
     expect(calls.map((call) => `${call.method} ${call.path}`)).toEqual([
       "get /shema/notifications",
     ]);
-    expect(panel.entries.map((entry) => entry.id)).toEqual(["n-1", "n-2"]);
+    expect(panel.entries.map((entry) => entry.id)).toEqual(["n-1", "n-2", "n-5", "n-6"]);
   });
 
   it("o lido vem do servidor, então vale em qualquer aparelho", () => {
     expect(readServedPanel(ROWS).readIds).toEqual(["n-1"]);
   });
 
-  it("um aviso de projeto chega com a frase do servidor; um de pedido, com nome e etapa", () => {
+  it("um aviso de projeto chega com os fatos, para a frase sair aqui; um de pedido, com nome e etapa", () => {
     const [health, decision] = readServedPanel(ROWS).entries;
 
     expect(health).toMatchObject({
@@ -115,13 +156,31 @@ describe("o painel do sino", () => {
       kind: "health",
       urgent: true,
       projectId: "tikuna-brazil",
-      body: "Tikuna was assessed as critical on 2026-09-30.",
+      facts: { languageName: "Tikuna", region: "south-america", assessedOn: "2026-09-30" },
     });
+    expect(health).not.toHaveProperty("body");
     expect(decision).toMatchObject({
       kind: "requestDecision",
       requestName: "Tradução do Evangelho",
       requestStage: "aprovado",
     });
+  });
+
+  it("uma região que o console não conhece vira nenhuma região, e um aviso antigo chega sem fatos (OBT-559)", () => {
+    const entries = readServedPanel(ROWS).entries;
+    const need = entries.find((entry) => entry.id === "n-5");
+    const old = entries.find((entry) => entry.id === "n-6");
+
+    expect(need).toMatchObject({
+      facts: {
+        region: null,
+        needCount: 2,
+        needCategories: ["financial", "security"],
+        needTotals: [{ amount: "5000.00", currency: "BRL" }],
+        place: null,
+      },
+    });
+    expect(old).toMatchObject({ kind: "need", projectId: null, facts: null });
   });
 
   it("um tipo desconhecido ou uma etapa que não é decisão cai fora em vez de ser adivinhada", () => {

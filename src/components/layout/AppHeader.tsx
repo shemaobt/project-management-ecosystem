@@ -18,7 +18,11 @@ import { ReceiveUpdateDialog } from "../pages/dados/ReceiveUpdateDialog";
 import { RequestLinkDialog } from "../pages/dados/RequestLinkDialog";
 import { toast } from "../ui";
 import { usePrefsStore } from "../../stores/prefsStore";
-import { canAdministerAccess, isFormOnly } from "../../utils/access";
+import {
+  canAdministerAccess,
+  canImportProjects,
+  isFormOnly,
+} from "../../utils/access";
 import { cn } from "../../utils/cn";
 
 const TB_BTN = cn(
@@ -52,6 +56,7 @@ export function AppHeader() {
   const { signOut, user, apps } = useAuth();
   const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
   const formOnly = isFormOnly(user.roles);
+  const imports = canImportProjects(user.roles);
   const requestLinks = canAdministerAccess(user) ? resourceRequestsAPI : null;
 
   const closeDialog = (open: boolean) => {
@@ -99,7 +104,9 @@ export function AppHeader() {
         <NotificationBell className={TB_BTN} />
         {formOnly
           ? null
-          : HEADER_ACTIONS.map((action) => (
+          : HEADER_ACTIONS.filter(
+              (action) => action.key !== "import" || imports,
+            ).map((action) => (
               <button
                 key={action.key}
                 type="button"
