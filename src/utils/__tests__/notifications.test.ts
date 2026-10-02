@@ -651,7 +651,7 @@ describe("o que o servidor serviu (INT-11)", () => {
     urgent: false,
     projectId: "mentored",
     date: "2026-08-14",
-    body: "Tikuna was assessed.",
+    facts: null,
     ...over,
   });
   const prefs = (over: Partial<NotificationPrefs> = {}): NotificationPrefs => ({
