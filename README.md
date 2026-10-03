@@ -67,11 +67,11 @@ docker run --rm -p 8080:8080 -e BACKEND_URL=http://host.docker.internal:8000 pro
 
 ## Deploy
 
-**No ar em [https://project-management-ecosystem-f7ssqjozfq-uc.a.run.app](https://project-management-ecosystem-f7ssqjozfq-uc.a.run.app)** — privado: sem `roles/run.invoker` na sua conta Google a resposta é 403, e o jeito de abrir é o `gcloud run services proxy` logo abaixo.
+**No ar em [https://project-management-ecosystem-f7ssqjozfq-uc.a.run.app](https://project-management-ecosystem-f7ssqjozfq-uc.a.run.app).**
 
 Um merge na `main` dispara [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): a imagem da seção acima é construída, empurrada para o **Artifact Registry** em `us-central1` e entregue ao Cloud Run como o serviço `project-management-ecosystem`. A tag é **o SHA do commit** (e `latest` junto, por conveniência) — o deploy sempre aponta para uma tag imutável, nunca para `latest`, e por isso um rollback é redeploy de uma tag conhecida: **Actions → Deploy (Cloud Run) → Run workflow** com o campo `image_tag` preenchido pula build e push e só redeploya.
 
-**O serviço não é público.** Sobe com `--no-allow-unauthenticated`, o acesso é `roles/run.invoker` para contas nomeadas, e um passo do workflow falha o job se `allUsers` ou `allAuthenticatedUsers` aparecerem na política de IAM. Não é zelo genérico: esta URL mostra 127 projetos reais, equipes reais e países reais, alguns deles `sensitiveCountry`. Para abrir o app, `gcloud run services proxy project-management-ecosystem --region us-central1`.
+**O serviço é público**, como todo frontend da org (`--allow-unauthenticated`): quem entra é decidido pelo login do próprio app, contra o `shema-api`, e não pelo IAM do Cloud Run. A OBT-384 pedia o contrário; a decisão de abrir, tomada por Henok em 02/out/2026, está no `CLAUDE.md` §8 e em `docs/deploy.md` §1. Um passo do workflow confere depois do deploy que a URL responde 200 sem credencial e que `/api` chega ao backend — um deploy verde com a URL em 403 era o modo de falha que custou um deploy ao `sound-necklace`.
 
 `BACKEND_URL` chega pelo `.env` **montado** em `/run/secrets/.env`, a partir de um segredo do projeto `shemaobt-secrets` concedido **por segredo** à service account de runtime — é o caminho que o entrypoint da seção anterior já lê, e é o que mantém o valor fora da definição do serviço.
 

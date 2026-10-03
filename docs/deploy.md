@@ -1,7 +1,7 @@
 # Deploy — Cloud Run via Artifact Registry
 
 **Status:** no ar desde 02/out/2026 em `https://project-management-ecosystem-f7ssqjozfq-uc.a.run.app` (primeiro deploy
-e rollback provados no mesmo dia). O setup único do §2 foi executado em 02/out/2026 no projeto `gen-lang-client-0886209230` ("OBT Lab",
+e rollback provados no mesmo dia), **público** desde a mesma data. O setup único do §2 foi executado em 02/out/2026 no projeto `gen-lang-client-0886209230` ("OBT Lab",
 número `718681737495`), onde todo frontend da org já roda. O §2 é o registro do que existe e de como reconferir,
 não uma lista de trabalho. O que ainda falta está no §3 (primeiro deploy) e no §4 (provar o rollback).
 
@@ -17,46 +17,30 @@ O que este deploy é, em quatro linhas:
   sempre para uma tag imutável. `latest` é conveniência de inspeção; rollback é redeploy de uma tag conhecida.
 - O contêiner recebe o `.env` **montado** em `/run/secrets/.env`, vindo do Secret Manager do projeto
   `shemaobt-secrets`. Sem ele o `docker-entrypoint.sh` **recusa subir**.
-- **O serviço não é público.** `--no-allow-unauthenticated` no deploy, e um passo do workflow falha o job se
-  aparecer `allUsers` ou `allAuthenticatedUsers` na política de IAM do serviço. Esse passo roda em **todo
-  deploy** — é ele que segura a propriedade de verdade.
-  `src/__tests__/deploy.test.ts` reprova `npm test` se alguém tirar qualquer um dos dois do workflow, o que
-  torna a caixa mais dura da DoD verificável sem credencial nenhuma — mas **não é um portão de merge**:
+- **O serviço é público**, como todo frontend da org: `--allow-unauthenticated` no deploy, e um passo do
+  workflow confere **em todo deploy** que a URL responde 200 sem credencial e que `/api` é respondido pelo
+  backend, não pelo fallback da SPA. `src/__tests__/deploy.test.ts` reprova `npm test` se alguém tirar a flag
+  ou o passo do workflow — mas **não é um portão de merge**:
   o `lint.yml` roda só ESLint e `tsc -b` no `pull_request`, então a suíte só roda quando alguém a roda.
   Na prática: **antes de mergear qualquer mudança no `deploy.yml`, rode `npm test`.** Ligar o vitest ao CI é
   uma linha no `lint.yml`, que é dono da FE-40 e não desta issue.
 
-## 1. A decisão de acesso — IAM, não IAP
+## 1. A decisão de acesso — público, como os irmãos
 
-**Mecanismo: IAM sobre o próprio Cloud Run.** O serviço sobe com `--no-allow-unauthenticated` e o acesso é
-`roles/run.invoker` concedido a **contas nomeadas**, uma a uma. Não há grupo curinga, não há
-`allAuthenticatedUsers` (que significa *qualquer conta Google do planeta*, não *qualquer pessoa da nossa
-organização*).
+**O serviço é público.** Sobe com `--allow-unauthenticated`, exatamente como `sound-necklace`,
+`facilitator-desk`, `meaning-map-ui` e os demais frontends da org. Quem entra é decidido pelo **login do
+próprio app** contra o `shema-api`, não pelo IAM do Cloud Run.
 
-Por que não IAP: IAP prático pede um HTTPS Load Balancer com domínio e certificado, e **domínio próprio está
-fora do escopo desta issue** (FE-42) — ele entra quando o cliente escolher o nome. Subir um LB agora seria
-infraestrutura sem dono para sustentar uma decisão que o domínio vai reabrir. IAM entrega hoje a propriedade
-que a issue exige (não público, titulares nomeados, revogação em um comando) e **IAP é o passo seguinte**,
-no mesmo dia em que o domínio existir: o serviço continua `--no-allow-unauthenticated`, o LB passa a ser o
-único invoker e o IAP passa a decidir quem entra.
+**Isto reabre a OBT-384.** A issue pedia o serviço fora do alcance público, e o primeiro deploy (02/out/2026,
+manhã) saiu assim: `--no-allow-unauthenticated`, `roles/run.invoker` por conta nomeada, e um passo que reprovava
+`allUsers`. Na mesma data Henok decidiu abrir: a URL precisa ser aberta no navegador por quem não tem `gcloud`,
+e o padrão da casa é público. O que a issue temia — 127 projetos reais, equipes e países sensíveis — continua
+verdadeiro e passa a ser responsabilidade do login do app e das regras de `CLAUDE.md` §6.1, não do IAM.
+O registro da decisão está no `CLAUDE.md` §8 e no comentário da issue.
 
-Por que isto importa mais aqui do que num frontend comum: esta URL mostra **127 projetos reais, nomes de
-equipes reais e países reais**, e alguns desses países são `sensitiveCountry` (`CLAUDE.md` §6.1). Fixture
-derivada do export do Notion continua sendo informação real sobre pessoas reais em lugares reais. Um deploy
-público de onda 1 é um vazamento, não uma demo.
-
-### Quem tem acesso
-
-| Papel | Conta | Concedido por |
-|---|---|---|
-| Deploy (CI) | `pme-github-deployer@gen-lang-client-0886209230.iam.gserviceaccount.com`, assumida pelo GitHub Actions via Workload Identity Federation — **não existe chave JSON** | `roles/run.admin` + `roles/artifactregistry.writer` no projeto |
-| Runtime do serviço | `pme-cloud-run@gen-lang-client-0886209230.iam.gserviceaccount.com` (`CLOUD_RUN_RUNTIME_SA`) | não é invoker; só roda o contêiner e lê o segredo |
-| Pessoas | **preencher na primeira execução** — uma linha por conta Google, nome e e-mail | `roles/run.invoker` no serviço |
-
-> **A lista de pessoas é deliberadamente um espaço em branco, não um default.** Quem executa o setup a
-> preenche com as contas que o cliente e a equipe aprovarem, e atualiza esta tabela no mesmo commit em que
-> rodar os `add-iam-policy-binding`. Uma lista vazia aqui significa *ninguém além do CI alcança o serviço* —
-> que é o estado seguro para começar, não um estado quebrado.
+**Como voltar a fechar**, se a decisão for revertida: `--no-allow-unauthenticated` no workflow, remover o
+binding `allUsers` com o comando do §6, e devolver o passo de IAM ao workflow — o commit `6153f00` e os
+anteriores dele carregam a versão privada completa, com o teste de contrato que a guardava.
 
 ## 2. Setup único
 
@@ -214,17 +198,6 @@ O primeiro passo do workflow (`Check required secrets`) falha com mensagem nomea
 obrigatórios estiver faltando. Falhar ali custa dez segundos; falhar no `gcloud run deploy` custa a leitura
 de um log.
 
-### 2.6 Conceder acesso às pessoas
-
-```sh
-gcloud run services add-iam-policy-binding "$SERVICE" \
-  --region "$REGION" --project "$PROJECT_ID" \
-  --member="user:<pessoa>@<dominio>" --role="roles/run.invoker"
-```
-
-Preencha a tabela do §1 no mesmo momento. **Nunca** `--member="allUsers"` nem `--member="allAuthenticatedUsers"`:
-o workflow tem um passo que falha o job quando qualquer um dos dois aparece na política.
-
 ## 3. O primeiro deploy
 
 1. Mergeie na `main`. **O primeiro deploy só acontece pelo merge**: o GitHub só aceita `workflow_dispatch` de
@@ -234,18 +207,11 @@ o workflow tem um passo que falha o job quando qualquer um dos dois aparece na p
    é como se valida uma mudança de infraestrutura antes de mergear, e é mais uma razão para o serviço não ser
    público.
 2. O que esperar ver, em ordem: `Required secrets and variables are set.` → `Target tag: <sha>` → build e push
-   da imagem → `gcloud run deploy` criando a revisão → `Service is private: no allUsers, no allAuthenticatedUsers.`
-   → `Deployed to: https://...` e o mesmo bloco no *summary* do job.
-3. Abrir a URL no browser sem estar autenticado devolve **403**. **Isso é o comportamento correto**, não uma
-   falha de deploy. Para ver o app:
-
-   ```sh
-   gcloud run services proxy "$SERVICE" --region "$REGION" --project "$PROJECT_ID"
-   ```
-
-   e abra `http://localhost:8080`. O proxy assina as requisições com a sua conta; ela precisa de
-   `roles/run.invoker` (§2.6). Em SDK mais antigo o comando é `gcloud beta run services proxy`.
-4. Confira que a revisão está mesmo privada e com o segredo montado:
+   da imagem → `gcloud run deploy` criando a revisão → `https://... answers 200.` →
+   `.../api/shema/session is answered by the backend rather than by the page.` → `Deployed to: https://...` e o
+   mesmo bloco no *summary* do job.
+3. Abra a URL no browser. Tem de servir a tela de entrada do app sem pedir conta Google.
+4. Confira que a revisão está com o segredo montado e pública:
 
    ```sh
    gcloud run services get-iam-policy "$SERVICE" --region "$REGION" --project "$PROJECT_ID"
@@ -279,15 +245,14 @@ uma imagem diferente (dependência transitiva que mudou, base image que andou) e
    gcloud run deploy "$SERVICE" \
      --image "$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/frontend:<sha>" \
      --project "$PROJECT_ID" --region "$REGION" --platform managed \
-     --port 8080 --no-allow-unauthenticated \
+     --port 8080 --allow-unauthenticated \
      --service-account "$RUNTIME_SA" \
      --set-secrets "/run/secrets/.env=projects/$SECRETS_PROJECT/secrets/$SECRET_NAME:latest" \
      --memory 256Mi --cpu 1 --concurrency 80 --timeout 60
    ```
 
-   Repetir a linha inteira não é enfeite: `gcloud run deploy` sem `--no-allow-unauthenticated` **preserva** a
-   política atual, mas sem `--set-secrets` e sem `--service-account` a revisão nova pode sair sem o que a
-   anterior tinha. Cole o comando como está.
+   Repetir a linha inteira não é enfeite: sem `--set-secrets` e sem `--service-account` a revisão nova pode
+   sair sem o que a anterior tinha. Cole o comando como está.
 
    > Esta é a **única cópia dos flags de deploy fora do workflow**, e existe porque o caminho de emergência
    > não pode depender do GitHub estar de pé. Quem mudar um flag em `.github/workflows/deploy.yml` muda este
@@ -327,34 +292,24 @@ tem fora do `beta`. O `gcloud logging read` acima funciona em qualquer uma.)
 | `denied: Permission "artifactregistry.repositories.uploadArtifacts" denied` no push | SA de deploy sem `artifactregistry.writer`, ou o repositório não existe na região | §2.2 e §2.3 |
 | `Permission 'iam.serviceaccounts.actAs' denied on service account` | Falta `iam.serviceAccountUser` da SA de deploy **sobre a SA de runtime** | O terceiro comando do §2.3 |
 | `The user-provided container failed to start and listen on the port defined by the PORT environment variable` | Porta. O nginx desta imagem escuta **8080 fixo** (`nginx.conf`) e o workflow manda `--port 8080` | Não mude o `--port` sem mudar o `nginx.conf` junto; se mudou, reverta |
-| O job passa mas `Assert the service is not publicly reachable` falha | Alguém concedeu `allUsers`/`allAuthenticatedUsers` ao serviço | Remova o binding (§6) e descubra quem o pôs antes de redeployar |
-| A URL devolve 403 no browser | Esperado | §3 passo 3 — `gcloud run services proxy`, e `run.invoker` para a pessoa |
+| `Verify the service is publicly reachable` falha com 403 | `--allow-unauthenticated` não conseguiu ligar `allUsers` a `run.invoker` e o `gcloud run deploy` **saiu 0 mesmo assim** — foi o que custou um deploy ao `sound-necklace` | A SA de deploy precisa de `roles/run.admin`; `run.developer` não tem `run.services.setIamPolicy`. Confira os papéis do §2.3 |
+| `Verify the service is publicly reachable` falha dizendo que `/api` devolveu o HTML do app | O `BACKEND_URL` não chegou à revisão e o `/api` caiu no fallback da SPA | Mesma trilha da primeira linha desta tabela: §2.4 e o `--set-secrets` |
 | `image_tag '...' has characters an Artifact Registry tag cannot carry` | Digitação no input do rollback | Cole o SHA de `gcloud artifacts docker images list` |
 | `A rollback names an immutable tag, never 'latest'` | `image_tag=latest` no rollback | `latest` anda a cada merge: a revisão que ele deployaria hoje não é a que deployaria amanhã, e o serviço deixa de dizer o que está rodando. Use o SHA |
 
-## 6. Acesso: conceder, revogar, auditar
+## 6. Acesso: auditar e fechar
 
 ```sh
-# quem alcança hoje
+# quem alcança hoje — o esperado é um único binding, allUsers em roles/run.invoker
 gcloud run services get-iam-policy "$SERVICE" --region "$REGION" --project "$PROJECT_ID"
 
-# conceder
-gcloud run services add-iam-policy-binding "$SERVICE" --region "$REGION" --project "$PROJECT_ID" \
-  --member="user:<pessoa>@<dominio>" --role="roles/run.invoker"
-
-# revogar
+# fechar o serviço, se a decisão do §1 for revertida
 gcloud run services remove-iam-policy-binding "$SERVICE" --region "$REGION" --project "$PROJECT_ID" \
-  --member="user:<pessoa>@<dominio>" --role="roles/run.invoker"
+  --member="allUsers" --role="roles/run.invoker"
 ```
 
-O passo `Assert the service is not publicly reachable` fecha a porta **no momento do deploy**; entre um
-deploy e o próximo não há vigilância nenhuma, e é o primeiro comando abaixo que responde quem alcança hoje.
-Vale rodá-lo sempre que alguém mexer em IAM no projeto.
+Fechar pelo comando acima sem trocar a flag do workflow dura até o próximo deploy: `--allow-unauthenticated`
+recoloca o `allUsers`. A troca é no workflow primeiro (§1), e o teste de contrato acompanha.
 
-Revogar tem efeito na próxima requisição — não há sessão a expirar, porque não há sessão: a autenticação é a
-identidade Google de quem chama. Atualize a tabela do §1 nas duas direções; uma lista de titulares que não
-bate com a política é pior do que não ter lista.
-
-Quando o domínio próprio chegar (fora do escopo da FE-42), o caminho é: HTTPS Load Balancer na frente,
-IAP ligado no backend service, `roles/run.invoker` do serviço restrito **só** à service account do LB, e esta
-seção passa a apontar para os titulares do IAP. O `--no-allow-unauthenticated` continua onde está.
+Quando o domínio próprio chegar (fora do escopo da FE-42), o caminho para restringir sem pedir `gcloud` de
+ninguém é HTTPS Load Balancer na frente com IAP ligado — é o que o §1 original desta página desenhava.

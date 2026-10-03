@@ -23,21 +23,24 @@ const stepRun = (name: string): string => {
   return end < 0 ? rest : rest.slice(0, end);
 };
 
-describe("o deploy no Cloud Run não pode ficar público", () => {
-  it("faz deploy com --no-allow-unauthenticated", () => {
-    expect(stepRun("Deploy to Cloud Run")).toContain("--no-allow-unauthenticated");
+describe("o deploy no Cloud Run é público, como os outros frontends da org", () => {
+  it("faz deploy com --allow-unauthenticated", () => {
+    expect(stepRun("Deploy to Cloud Run")).toContain("--allow-unauthenticated");
+    expect(workflow).not.toContain("--no-allow-unauthenticated");
   });
 
-  it("não carrega nenhum --allow-unauthenticated solto", () => {
-    expect(workflow.split("--no-allow-unauthenticated").join("")).not.toContain("--allow-unauthenticated");
-  });
-
-  it("relê a política de IAM depois do deploy e reprova allUsers e allAuthenticatedUsers", () => {
-    const guard = stepRun("Assert the service is not publicly reachable");
-    expect(guard).toContain("get-iam-policy");
-    expect(guard).toContain("allUsers");
-    expect(guard).toContain("allAuthenticatedUsers");
+  it("confere pela URL que o serviço responde 200 sem credencial, e nomeia o 403 como falha de IAM", () => {
+    const guard = stepRun("Verify the service is publicly reachable");
+    expect(guard).toContain("curl");
+    expect(guard).toContain('"$STATUS" = "403"');
+    expect(guard).toContain('"$STATUS" != "200"');
     expect(guard).toContain("exit 1");
+  });
+
+  it("confere que /api é respondido pelo backend e não pelo fallback da SPA", () => {
+    const guard = stepRun("Verify the service is publicly reachable");
+    expect(guard).toContain("/api/shema/session");
+    expect(guard).toContain('<div id="root">');
   });
 });
 
