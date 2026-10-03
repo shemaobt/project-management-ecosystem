@@ -67,6 +67,8 @@ docker run --rm -p 8080:8080 -e BACKEND_URL=http://host.docker.internal:8000 pro
 
 ## Deploy
 
+**No ar em [https://project-management-ecosystem-f7ssqjozfq-uc.a.run.app](https://project-management-ecosystem-f7ssqjozfq-uc.a.run.app)** — privado: sem `roles/run.invoker` na sua conta Google a resposta é 403, e o jeito de abrir é o `gcloud run services proxy` logo abaixo.
+
 Um merge na `main` dispara [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): a imagem da seção acima é construída, empurrada para o **Artifact Registry** em `us-central1` e entregue ao Cloud Run como o serviço `project-management-ecosystem`. A tag é **o SHA do commit** (e `latest` junto, por conveniência) — o deploy sempre aponta para uma tag imutável, nunca para `latest`, e por isso um rollback é redeploy de uma tag conhecida: **Actions → Deploy (Cloud Run) → Run workflow** com o campo `image_tag` preenchido pula build e push e só redeploya.
 
 **O serviço não é público.** Sobe com `--no-allow-unauthenticated`, o acesso é `roles/run.invoker` para contas nomeadas, e um passo do workflow falha o job se `allUsers` ou `allAuthenticatedUsers` aparecerem na política de IAM. Não é zelo genérico: esta URL mostra 127 projetos reais, equipes reais e países reais, alguns deles `sensitiveCountry`. Para abrir o app, `gcloud run services proxy project-management-ecosystem --region us-central1`.

@@ -1,6 +1,7 @@
 # Deploy — Cloud Run via Artifact Registry
 
-**Status:** o setup único do §2 foi executado em 02/out/2026 no projeto `gen-lang-client-0886209230` ("OBT Lab",
+**Status:** no ar desde 02/out/2026 em `https://project-management-ecosystem-f7ssqjozfq-uc.a.run.app` (primeiro deploy
+e rollback provados no mesmo dia). O setup único do §2 foi executado em 02/out/2026 no projeto `gen-lang-client-0886209230` ("OBT Lab",
 número `718681737495`), onde todo frontend da org já roda. O §2 é o registro do que existe e de como reconferir,
 não uma lista de trabalho. O que ainda falta está no §3 (primeiro deploy) e no §4 (provar o rollback).
 
