@@ -143,14 +143,14 @@ describe("o dublê da ficha responde ao leitor como o servidor (OBT-528)", () =>
         expect(outcome.failure.kind).toBe("forbidden");
       }
     }
-    expect(patchRecord(truth.id, { notes: "segue" }, version).ok).toBe(true);
+    expect(patchRecord(truth.id, { mentor: "segue" }, version).ok).toBe(true);
   });
 
   it("o overlay nunca guarda a forma reduzida", () => {
     const truth = sensitive();
     stored.set(MOCK_SESSION_KEY, "obtLab");
     const { version } = readRecord(truth.id);
-    const saved = patchRecord(truth.id, { notes: "segue" }, version);
+    const saved = patchRecord(truth.id, { mentor: "segue" }, version);
     expect(saved.ok && saved.record.project.team).toBe("");
 
     stored.set(MOCK_SESSION_KEY, "globalStrategist");
@@ -158,5 +158,86 @@ describe("o dublê da ficha responde ao leitor como o servidor (OBT-528)", () =>
     expect(reread.readAs).toBe("coordination");
     expect(reread.team).toBe(truth.team);
     expect(reread.location).toBe(truth.location);
+  });
+});
+
+describe("o dublê da ficha recusa o texto livre e o pastoral como o servidor (OBT-553, OBT-556)", () => {
+  const withNeed = () => {
+    stored.set(MOCK_SESSION_KEY, "globalStrategist");
+    const created = createRecord({
+      ...createEmptyProject("sintetico"),
+      languageName: "Sintético",
+      sensitiveCountry: true,
+      needsItems: [
+        { id: "n1", category: "equipment", urgency: "low", status: "open", description: "Precisamos de gravadores" },
+        { id: "n2", category: "equipment", urgency: "low", status: "open", description: "Precisamos de fones" },
+      ],
+    });
+    expect(created.ok).toBe(true);
+    return loadSeeded("sintetico");
+  };
+  const sensitive = () => loadProjects().find((project) => project.sensitiveCountry)!;
+  const open = () => loadProjects().find((project) => !project.sensitiveCountry)!;
+
+  const loadSeeded = (id: string) => {
+    stored.set(MOCK_SESSION_KEY, "globalStrategist");
+    return readRecord(id).project;
+  };
+
+  const refusedField = (outcome: ReturnType<typeof patchRecord>) =>
+    !outcome.ok && outcome.reason === "failed" ? outcome.failure.detail : null;
+
+  it("o texto livre de um registro recolhido é recusado nomeando o campo", () => {
+    const truth = sensitive();
+    stored.set(MOCK_SESSION_KEY, "obtLab");
+    const { version } = readRecord(truth.id);
+    for (const field of ["notes", "healthNotes", "statusComments", "scopeDetails"]) {
+      const outcome = patchRecord(truth.id, { [field]: "x" }, version);
+      expect(refusedField(outcome), field).toContain(field);
+    }
+  });
+
+  it("o mesmo texto, num registro aberto, é aceito", () => {
+    const truth = open();
+    stored.set(MOCK_SESSION_KEY, "obtLab");
+    const { version } = readRecord(truth.id);
+    expect(patchRecord(truth.id, { notes: "segue" }, version).ok).toBe(true);
+  });
+
+  it("a descrição devolvida vazia não muda nada; digitada por cima é recusada", () => {
+    const truth = withNeed();
+    stored.set(MOCK_SESSION_KEY, "obtLab");
+    const { version, project } = readRecord(truth.id);
+    expect(project.needsItems.every((need) => need.description === "")).toBe(true);
+
+    const back = project.needsItems.map((need) => ({ ...need }));
+    const kept = patchRecord(truth.id, { needsItems: back }, version);
+    expect(kept.ok).toBe(true);
+
+    const typedOver = project.needsItems.map((need, index) =>
+      index === 0 ? { ...need, description: "por cima" } : need,
+    );
+    const refused = patchRecord(truth.id, { needsItems: typedOver }, readRecord(truth.id).version);
+    expect(refusedField(refused)).toContain("needsItems.description");
+
+    stored.set(MOCK_SESSION_KEY, "globalStrategist");
+    const after = readRecord(truth.id).project;
+    expect(after.needsItems.map((need) => need.description)).toEqual(
+      truth.needsItems.map((need) => need.description),
+    );
+  });
+
+  it("o pastoral é recusado a quem não lê saúde e aceito a quem lê", () => {
+    const truth = open();
+    stored.set(MOCK_SESSION_KEY, "resourceCircle");
+    const { version } = readRecord(truth.id);
+    for (const field of ["needsPastoralIntervention", "pastoralInterventionName", "pastoralInterventionWhen"]) {
+      const outcome = patchRecord(truth.id, { [field]: "sim" }, version);
+      expect(refusedField(outcome), field).toContain(field);
+    }
+
+    stored.set(MOCK_SESSION_KEY, "obtLab");
+    const readable = readRecord(truth.id);
+    expect(patchRecord(truth.id, { needsPastoralIntervention: "sim" }, readable.version).ok).toBe(true);
   });
 });

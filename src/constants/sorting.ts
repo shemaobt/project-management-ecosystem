@@ -20,3 +20,11 @@ export const SORT_LABEL_KEYS: Record<SortKey, string> = {
 
 export const isSortKey = (value: string): value is SortKey =>
   SORT_KEYS.some((key) => key === value);
+
+/**
+ * The orders a reader may ask for. The health order is the health audience's (OBT-553):
+ * outside it the server falls back to the default, so offering it would name an order the
+ * list does not follow.
+ */
+export const sortKeysFor = (readsHealth: boolean): readonly SortKey[] =>
+  readsHealth ? SORT_KEYS : SORT_KEYS.filter((key) => key !== "health");

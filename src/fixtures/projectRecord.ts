@@ -9,9 +9,13 @@ import { applyAssessment } from "../utils/assessment";
 import { toLocalIsoDate } from "../utils/format";
 import { applyProgressUpdate } from "../utils/progress";
 import { computeDerived } from "../utils/projectDerived";
-import { mayWrite, recordAccess } from "../utils/recordAccess";
+import {
+  mayWrite,
+  mayWriteNeedDescription,
+  recordAccess,
+} from "../utils/recordAccess";
 import { loadProject, loadProjects } from "./projects";
-import { asReadBy } from "./reader";
+import { asReadBy, readsHealth } from "./reader";
 import { mockPersona } from "./session";
 
 /**
@@ -152,12 +156,36 @@ export function patchRecord(
     };
   }
 
-  // The server's refusal (OBT-528): a reader who is not coordination writes neither the
-  // place nor the flag, and on a withheld record neither the base nor the contacts.
-  const access = recordAccess(asAnswered(kept.project), false);
+  // The server's refusal (OBT-528, OBT-553, OBT-556): a reader who is not coordination
+  // writes neither the place nor the flag, on a withheld record neither the base, the
+  // contacts, the free text nor a saved need's description, and outside the health
+  // audience not the pastoral follow-up.
+  const access = recordAccess(
+    asAnswered(kept.project),
+    false,
+    readsHealth(mockPersona()),
+  );
   const refused = Object.keys(patch).filter(
     (field) => !mayWrite(access, field as keyof Project),
   );
+  const sentNeeds =
+    "needsItems" in patch ? (patch.needsItems as Project["needsItems"]) : null;
+  const heldNeeds = new Map(
+    kept.project.needsItems.map((need) => [need.id, need]),
+  );
+  const descriptionsLocked =
+    sentNeeds !== null && !mayWriteNeedDescription(access, true);
+  if (descriptionsLocked) {
+    const typedOver = sentNeeds.some((need) => {
+      const stored = need.id ? heldNeeds.get(need.id) : undefined;
+      return (
+        stored !== undefined &&
+        need.description !== "" &&
+        need.description !== stored.description
+      );
+    });
+    if (typedOver) refused.push("needsItems.description");
+  }
   if (refused.length > 0) {
     const forbidden: ApiFailure = {
       kind: "forbidden",
@@ -171,7 +199,15 @@ export function patchRecord(
   const merged = { ...clone(kept.project) } as Project;
   for (const field of allWritableFields()) {
     if (!(field in patch)) continue;
-    const value = patch[field];
+    // A description handed back as `""` is "not changed": the text and its prayer
+    // sharing stay intact (OBT-556).
+    const value =
+      field === "needsItems" && descriptionsLocked
+        ? sentNeeds.map((need) => {
+            const stored = need.id ? heldNeeds.get(need.id) : undefined;
+            return stored ? { ...need, description: stored.description } : need;
+          })
+        : patch[field];
     Object.assign(merged, { [field]: value ?? "" });
   }
   if ("team" in patch) merged.ywamBase = merged.team;

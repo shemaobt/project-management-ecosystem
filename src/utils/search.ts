@@ -17,6 +17,7 @@ import type {
   TranslationType,
 } from "../types/project";
 import type { RegionKey } from "../types/region";
+import type { GatedFacet } from "./gatedFacets";
 import { getOverallHealth } from "./health";
 import { hasPhotoContent, hasVideoContent } from "./media";
 import { hasOpenNeeds } from "./needs";
@@ -104,6 +105,8 @@ export interface FacetCounts {
   hasOpenNeeds: Record<YesNoFilter, number>;
   preset: Record<PresetId, number>;
   groupAll: Record<FacetGroup, number>;
+  /** The gated groups the server did not send — never the ones it sent empty. */
+  absent: readonly GatedFacet[];
 }
 
 export interface ProjectFilterResult {
@@ -182,6 +185,7 @@ export function emptyCounts(): FacetCounts {
     groupAll: Object.fromEntries(
       FACET_GROUPS.map((group) => [group, 0]),
     ) as Record<FacetGroup, number>,
+    absent: [],
   };
 }
 

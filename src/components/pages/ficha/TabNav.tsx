@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import {
-  RECORD_TABS,
   TAB_LABEL_KEYS,
   TAB_MARKER_TONES,
   tabNumber,
@@ -11,15 +10,16 @@ import { cn } from "../../../utils/cn";
 import { TabsList, TabsTrigger } from "../../ui";
 
 export interface TabNavProps {
+  tabs: readonly RecordTabId[];
   pending: readonly RecordTabId[];
 }
 
-export function TabNav({ pending }: TabNavProps) {
+export function TabNav({ tabs, pending }: TabNavProps) {
   const { t } = useTranslation();
 
   return (
     <TabsList className="gap-1.5 border-b border-line bg-muted px-8 py-3.5">
-      {RECORD_TABS.map((tab) => (
+      {tabs.map((tab) => (
         <TabsTrigger
           key={tab}
           value={tab}
@@ -38,7 +38,7 @@ export function TabNav({ pending }: TabNavProps) {
               TAB_MARKER_TONES[tab],
             )}
           >
-            {tabNumber(tab)}
+            {tabNumber(tab, tabs)}
           </span>
           {t(TAB_LABEL_KEYS[tab])}
           {pending.includes(tab) && (

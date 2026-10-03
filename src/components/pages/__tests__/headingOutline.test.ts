@@ -225,6 +225,7 @@ describe("Projetos: a barra lateral desce do h1 que a página dá", () => {
         shown: 0,
         total: 0,
         counts: emptyCounts(),
+        hidden: [],
       }),
     );
 

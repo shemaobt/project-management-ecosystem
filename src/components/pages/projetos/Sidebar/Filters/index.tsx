@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFiltersStore } from "../../../../../stores/filtersStore";
 import { cn } from "../../../../../utils/cn";
+import type { GatedFacet } from "../../../../../utils/gatedFacets";
 import type { FacetCounts } from "../../../../../utils/search";
 import { FilterSection } from "./FilterSection";
 import type { FilterSectionConfig } from "./sections";
@@ -11,14 +12,20 @@ import {
   PRIMARY_SECTIONS,
   buildFilterOptions,
   resolveSectionOptions,
+  shownSections,
 } from "./sections";
 
 export interface DetailedFiltersProps {
   baseline: FacetCounts;
   counts: FacetCounts;
+  hidden: readonly GatedFacet[];
 }
 
-export function DetailedFilters({ baseline, counts }: DetailedFiltersProps) {
+export function DetailedFilters({
+  baseline,
+  counts,
+  hidden,
+}: DetailedFiltersProps) {
   const { t } = useTranslation();
   const filters = useFiltersStore((state) => state.filters);
   const setFilter = useFiltersStore((state) => state.setFilter);
@@ -71,7 +78,7 @@ export function DetailedFilters({ baseline, counts }: DetailedFiltersProps) {
         </span>
       </div>
 
-      {PRIMARY_SECTIONS.map(renderSection)}
+      {shownSections(PRIMARY_SECTIONS, hidden).map(renderSection)}
 
       <button
         type="button"
@@ -99,7 +106,7 @@ export function DetailedFilters({ baseline, counts }: DetailedFiltersProps) {
 
       {showAdvanced && (
         <div id="sb-advanced-filters" className="mt-2">
-          {ADVANCED_SECTIONS.map(renderSection)}
+          {shownSections(ADVANCED_SECTIONS, hidden).map(renderSection)}
         </div>
       )}
     </div>

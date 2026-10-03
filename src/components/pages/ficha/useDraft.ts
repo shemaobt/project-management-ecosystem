@@ -10,8 +10,11 @@ import {
 import { useProjectRecordStore } from "../../../stores/projectRecordStore";
 import type { Project } from "../../../types/project";
 import type { RecordField, RecordFieldError } from "../../../types/projectRecord";
+import { useAuth } from "../../../contexts/AuthContext";
+import { canReadHealth } from "../../../utils/access";
 import {
   mayWrite,
+  mayWriteNeedDescription,
   recordAccess,
   type RecordAccess,
 } from "../../../utils/recordAccess";
@@ -40,17 +43,36 @@ export interface DraftHandle {
 const NO_ERRORS: RecordFieldError[] = [];
 const EMPTY_DRAFT: ProjectDraft = {};
 
+function withSavedDescriptions(
+  draft: ProjectDraft,
+  saved: Project | undefined,
+): ProjectDraft {
+  const needs = draft.needsItems;
+  if (!needs || !saved) return draft;
+  const held = new Map(saved.needsItems.map((need) => [need.id, need]));
+  const kept = needs.map((need) => {
+    const stored = need.id ? held.get(need.id) : undefined;
+    return stored ? { ...need, description: stored.description } : need;
+  });
+  return { ...draft, needsItems: kept };
+}
+
 export function writableDraft(
   draft: ProjectDraft | undefined,
   place: RecordAccess,
+  saved?: Project,
 ): ProjectDraft {
   if (!draft) return EMPTY_DRAFT;
   const kept = Object.entries(draft).filter(
     ([field]) => field !== "readAs" && mayWrite(place, field as RecordField),
   );
-  return kept.length === Object.keys(draft).length
-    ? draft
-    : (Object.fromEntries(kept) as ProjectDraft);
+  const writable =
+    kept.length === Object.keys(draft).length
+      ? draft
+      : (Object.fromEntries(kept) as ProjectDraft);
+  return mayWriteNeedDescription(place, true)
+    ? writable
+    : withSavedDescriptions(writable, saved);
 }
 
 export function useDraft(recordId: string): DraftHandle {
@@ -64,11 +86,20 @@ export function useDraft(recordId: string): DraftHandle {
   const isNew = recordId === NEW_RECORD;
   const stored = isNew ? undefined : record?.project;
 
-  const place = useMemo(() => recordAccess(stored, isNew), [stored, isNew]);
+  const { user } = useAuth();
+  const readsHealth = canReadHealth(user.roles);
+
+  const place = useMemo(
+    () => recordAccess(stored, isNew, readsHealth),
+    [stored, isNew, readsHealth],
+  );
 
   // A draft is kept per record, not per person: what somebody else typed into a field
   // this reader may not write is neither shown nor sent nor counted as a change.
-  const writable = useMemo(() => writableDraft(draft, place), [draft, place]);
+  const writable = useMemo(
+    () => writableDraft(draft, place, stored),
+    [draft, place, stored],
+  );
 
   const values = useMemo(
     () => ({

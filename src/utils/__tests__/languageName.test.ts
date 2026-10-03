@@ -44,15 +44,15 @@ describe("quem escreve o nome", () => {
   const coordination = project({ sensitiveCountry: true, readAs: "coordination" });
 
   it("o nome público é só da coordenação", () => {
-    expect(mayWrite(recordAccess(sensitive, false), "publicLanguageName")).toBe(false);
-    expect(mayWrite(recordAccess(coordination, false), "publicLanguageName")).toBe(true);
+    expect(mayWrite(recordAccess(sensitive, false, true), "publicLanguageName")).toBe(false);
+    expect(mayWrite(recordAccess(coordination, false, true), "publicLanguageName")).toBe(true);
   });
 
   it("o nome real de um projeto sensível não é de quem só vê o público", () => {
-    expect(mayWrite(recordAccess(sensitive, false), "languageName")).toBe(false);
-    expect(mayWrite(recordAccess(coordination, false), "languageName")).toBe(true);
+    expect(mayWrite(recordAccess(sensitive, false, true), "languageName")).toBe(false);
+    expect(mayWrite(recordAccess(coordination, false, true), "languageName")).toBe(true);
     const open = project({ sensitiveCountry: false, readAs: "other" });
-    expect(mayWrite(recordAccess(open, false), "languageName")).toBe(true);
+    expect(mayWrite(recordAccess(open, false, true), "languageName")).toBe(true);
   });
 });
 

@@ -3,7 +3,13 @@ import { useTranslation } from "react-i18next";
 import { SESSION_ROLE_LABEL_KEYS } from "../../../contexts/AuthContext";
 import { ROLE_DEFINITIONS } from "../../../constants/roles";
 
-export function CoordinationOnlyNote() {
+export interface CoordinationOnlyNoteProps {
+  textKey?: string;
+}
+
+export function CoordinationOnlyNote({
+  textKey = "f_location_coordination_only",
+}: CoordinationOnlyNoteProps) {
   const { t } = useTranslation();
 
   return (
@@ -14,7 +20,7 @@ export function CoordinationOnlyNote() {
         aria-hidden
         className="mt-px shrink-0 text-fg-muted"
       />
-      {t("f_location_coordination_only", {
+      {t(textKey, {
         global: t(SESSION_ROLE_LABEL_KEYS.globalStrategist),
         regional: t(ROLE_DEFINITIONS.coordinator.labelKey),
       })}

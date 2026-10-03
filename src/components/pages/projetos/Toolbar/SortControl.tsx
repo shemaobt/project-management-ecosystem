@@ -7,13 +7,17 @@ import {
   SelectValue,
 } from "../../../ui/Select";
 import {
-  SORT_KEYS,
   SORT_LABEL_KEYS,
   isSortKey,
+  sortKeysFor,
 } from "../../../../constants/sorting";
 import { usePrefsStore } from "../../../../stores/prefsStore";
 
-export function SortControl() {
+export interface SortControlProps {
+  readsHealth: boolean;
+}
+
+export function SortControl({ readsHealth }: SortControlProps) {
   const { t } = useTranslation();
   const value = usePrefsStore((state) => state.sort);
   const setSort = usePrefsStore((state) => state.setSort);
@@ -32,7 +36,7 @@ export function SortControl() {
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {SORT_KEYS.map((key) => (
+        {sortKeysFor(readsHealth).map((key) => (
           <SelectItem key={key} value={key}>
             {t(SORT_LABEL_KEYS[key])}
           </SelectItem>
