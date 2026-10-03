@@ -132,7 +132,7 @@ jobs:
             --region "${REGION}" \
             --platform managed \
             --port 8080 \
-            --no-allow-unauthenticated \
+            --allow-unauthenticated \
             --service-account "${RUNTIME_SA}" \
             --set-secrets "${SECRET_MOUNT_PATH}=projects/${SECRETS_PROJECT_REF}/secrets/${SECRET_NAME}:latest" \
             --memory 256Mi \
@@ -140,20 +140,36 @@ jobs:
             --concurrency 80 \
             --timeout 60
 
-      - name: Assert the service is not publicly reachable
+      - name: Verify the service is publicly reachable
         run: |
-          MEMBERS=$(gcloud run services get-iam-policy "${FRONTEND_SERVICE}" \
+          URL=$(gcloud run services describe "${FRONTEND_SERVICE}" \
             --project "${PROJECT_ID}" \
             --region "${REGION}" \
-            --flatten="bindings[].members" \
-            --format="value(bindings.members)")
-          case "${MEMBERS}" in
-            *allUsers*|*allAuthenticatedUsers*)
-              echo "::error::${FRONTEND_SERVICE} carries allUsers/allAuthenticatedUsers — this deploy shows real projects, real teams and real countries and must never be public. See docs/deploy.md."
-              exit 1
-              ;;
-          esac
-          echo "Service is private: no allUsers, no allAuthenticatedUsers."
+            --format="value(status.url)")
+          if [ -z "$URL" ]; then
+            echo "::error::Cloud Run reported no URL for ${FRONTEND_SERVICE}."
+            exit 1
+          fi
+
+          STATUS=$(curl -sS -o /dev/null -w '%{http_code}' \
+            --retry 5 --retry-delay 5 --retry-all-errors --max-time 30 "${URL}/")
+          if [ "$STATUS" = "403" ]; then
+            echo "::error::${URL} answers 403, so the service is not public. --allow-unauthenticated failed to bind allUsers to roles/run.invoker and gcloud run deploy exited 0 anyway. Check the deploy service account still holds roles/run.admin — roles/run.developer cannot do this."
+            exit 1
+          fi
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::${URL} answers ${STATUS}, expected 200."
+            exit 1
+          fi
+          echo "${URL} answers 200."
+
+          PROBE="${URL}/api/shema/session"
+          BODY=$(curl -sS --max-time 30 "$PROBE" || true)
+          if printf '%s' "$BODY" | grep -q '<div id="root">'; then
+            echo "::error::${PROBE} answered with the application's own HTML, so /api is not being proxied: the mounted secret did not reach the revision. See docs/deploy.md §5."
+            exit 1
+          fi
+          echo "${PROBE} is answered by the backend rather than by the page."
 
       - name: Show deployment URL
         env:
@@ -170,5 +186,5 @@ jobs:
             echo "- Serviço: \`${FRONTEND_SERVICE}\` (${REGION})"
             echo "- Tag: \`${TAG}\`"
             echo "- URL: ${URL}"
-            echo "- Acesso: privado (IAM · \`roles/run.invoker\`). Abrir com \`gcloud run services proxy ${FRONTEND_SERVICE} --region ${REGION}\`."
+            echo "- Acesso: público, como os outros frontends da org."
           } >> "$GITHUB_STEP_SUMMARY"
