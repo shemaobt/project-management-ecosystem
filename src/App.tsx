@@ -17,10 +17,12 @@ import { OracaoPage } from "./components/pages/oracao";
 import { ProjetosPage } from "./components/pages/projetos/ProjetosPage";
 import { RitmoPage } from "./components/pages/ritmo/RitmoPage";
 import { RelatorioPage } from "./components/pages/ritmo/relatorio/RelatorioPage";
+import { EsqueciPage } from "./components/pages/senha/EsqueciPage";
+import { RedefinirPage } from "./components/pages/senha/RedefinirPage";
 import { Toaster } from "./components/ui";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { accessAPI } from "./services/api";
+import { accessAPI, passwordAPI } from "./services/api";
 
 export default function App() {
   return (
@@ -30,6 +32,15 @@ export default function App() {
           <Routes>
             {accessAPI ? (
               <Route path="convite" element={<ConvitePage api={accessAPI} />} />
+            ) : null}
+            {/* No session either (OBT-570): whoever forgot the password cannot sign in,
+                and the e-mail's link must not land behind SessionGate, where the token
+                was being lost. Registered only with the API, like `convite`. */}
+            {passwordAPI ? (
+              <Route path="forgot-password" element={<EsqueciPage api={passwordAPI} />} />
+            ) : null}
+            {passwordAPI ? (
+              <Route path="reset-password" element={<RedefinirPage api={passwordAPI} />} />
             ) : null}
             {/* No session, no console: the leader link's whole page (§8, §9.13 —
                 the leader has no account, so this route must not reach SessionGate). */}

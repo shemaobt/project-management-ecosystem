@@ -1,5 +1,6 @@
 import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ApiFailure, ApiFailureKind } from "../../../../types/session";
 
@@ -70,9 +71,13 @@ const WORK = "o-que-estava-sendo-preenchido";
 function gate(value: AuthSession): string {
   return renderToStaticMarkup(
     createElement(
-      AuthContext.Provider,
-      { value },
-      createElement(SessionGate, null, WORK as ReactNode),
+      MemoryRouter,
+      null,
+      createElement(
+        AuthContext.Provider,
+        { value },
+        createElement(SessionGate, null, WORK as ReactNode),
+      ),
     ),
   );
 }
@@ -84,7 +89,11 @@ beforeEach(async () => {
 describe("a tela de entrada", () => {
   const markup = (over: Partial<Parameters<typeof EntrarView>[0]> = {}) =>
     renderToStaticMarkup(
-      createElement(EntrarView, { onSubmit: noop, failure: null, ...over }),
+      createElement(
+        MemoryRouter,
+        null,
+        createElement(EntrarView, { onSubmit: noop, failure: null, ...over }),
+      ),
     );
 
   it("diz o que é e o que a pessoa precisa ter", () => {

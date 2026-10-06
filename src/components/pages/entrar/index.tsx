@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import { passwordAPI } from "../../../services/api";
 import type { ApiFailure } from "../../../types/session";
 import { BrandMark } from "../../common/BrandMark";
 import { CredentialsForm } from "./CredentialsForm";
@@ -34,6 +36,17 @@ export function EntrarView({ onSubmit, failure }: EntrarViewProps) {
         </p>
 
         <CredentialsForm onSubmit={onSubmit} failure={failure} />
+
+        {passwordAPI ? (
+          <p className="mt-4 text-small leading-normal">
+            <Link
+              to="/forgot-password"
+              className="text-fg-muted underline underline-offset-2 hover:text-fg"
+            >
+              {t("senha_forgot_link")}
+            </Link>
+          </p>
+        ) : null}
 
         <p className="mt-6 border-t border-line pt-4 text-micro leading-[1.5] text-fg-subtle">
           {t("entrar_session_note")}

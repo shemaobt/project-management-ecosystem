@@ -106,6 +106,14 @@ export const transferAPI: api.TransferAPI | null =
 export const resourceRequestsAPI: ResourceRequestsAPI | null =
   resolveSource("resourceRequests") === "api" ? apiResourceRequestsAPI : null;
 
+/**
+ * Password recovery rides the session's own namespace (OBT-570): the two doors are
+ * `/auth/*`, and a fixture that pretended to mail a link would be a dead surface. `null`
+ * keeps the *esqueci a senha* link off the sign-in screen and both routes unregistered.
+ */
+export const passwordAPI: api.PasswordAPI | null =
+  resolveSource("session") === "api" ? api.passwordAPI : null;
+
 export const geoAPI = fixture.geoAPI;
 
 export {
@@ -138,6 +146,8 @@ export type {
   ExportedFile,
   ImportAnswer,
   NotificationsAPI,
+  PasswordAPI,
+  PasswordOutcome,
   PrayerPulseAPI,
   PrayerPulseFile,
   PulseLanguage,
