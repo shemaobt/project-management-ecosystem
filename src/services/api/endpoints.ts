@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ACCESS_APPS, GRANTABLE_ROLES } from "../../constants/access";
+import { ACCESS_APPS, GRANTABLE_ROLES, SHEMA_APP } from "../../constants/access";
 import {
   NOTIF_DEFAULTS,
   isNotificationScope,
@@ -64,6 +64,7 @@ import type { RequestDecisionStage } from "../../types/request";
 import type { ImportError } from "../../utils/export";
 import type { SaveOutcome } from "../../types/team";
 import type {
+  ApiFailure,
   AuthenticatedAccount,
   Credentials,
   SessionApps,
@@ -1063,3 +1064,42 @@ function textOrNull(value: unknown): string | null {
 }
 
 export type TransferAPI = typeof transferAPI;
+
+/**
+ * Password recovery (OBT-570). Both doors are the server's and need no session, so both
+ * ride on bare axios like `accessAPI.join`: through `http` a refused reset token — a 401,
+ * `InvalidTokenError` — would start a refresh and fire a session event for a person who has
+ * no session at all. `forgot` answers 200 whether or not the address exists, which is the
+ * server's own enumeration rule; nothing here could tell the two apart even if it wanted to.
+ */
+export type PasswordOutcome = { ok: true } | { ok: false; failure: ApiFailure };
+
+export const passwordAPI = {
+  async forgot(email: string): Promise<PasswordOutcome> {
+    try {
+      await axios.post(
+        guest("/auth/forgot-password"),
+        { email, app_key: SHEMA_APP },
+        { timeout: REQUEST_TIMEOUT_MS, headers: GUEST_HEADERS },
+      );
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, failure: toApiFailure(error) };
+    }
+  },
+
+  async reset(token: string, password: string): Promise<PasswordOutcome> {
+    try {
+      await axios.post(
+        guest("/auth/reset-password"),
+        { token, password },
+        { timeout: REQUEST_TIMEOUT_MS, headers: GUEST_HEADERS },
+      );
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, failure: toApiFailure(error) };
+    }
+  },
+};
+
+export type PasswordAPI = typeof passwordAPI;
