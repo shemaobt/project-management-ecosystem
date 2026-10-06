@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PasswordAPI } from "../../../../services/api";
+import type { ApiFailureKind } from "../../../../types/session";
 
 function createMemoryStorage() {
   const data = new Map<string, string>();
@@ -163,7 +164,8 @@ describe("o serviço, em axios cru", () => {
   });
 
   it("qualquer outra falha é rede: o formulário fica e o alerta diz o que houve", () => {
-    for (const kind of ["offline", "timeout", "server", "invalid", "unexpected"]) {
+    const kinds: ApiFailureKind[] = ["offline", "timeout", "server", "invalid", "unexpected"];
+    for (const kind of kinds) {
       expect(resetRefusal(kind), kind).toBe("network");
     }
   });

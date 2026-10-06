@@ -1,3 +1,4 @@
+import type { ApiFailureKind } from "../../../types/session";
 import { MIN_PASSWORD } from "../convite/invitation";
 
 /**
@@ -40,6 +41,6 @@ export type ResetRefusal = "refused" | "network";
  * already used — one sentence for the three, and the way out is a new link, never a retype.
  * Everything else is the network, and the form stays.
  */
-export function resetRefusal(kind: string): ResetRefusal {
+export function resetRefusal(kind: ApiFailureKind): ResetRefusal {
   return kind === "unauthorized" ? "refused" : "network";
 }
