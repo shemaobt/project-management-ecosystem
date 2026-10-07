@@ -20,14 +20,13 @@ export function canAdministerAccess({
 }
 
 const IMPORTING_ROLES: readonly SessionRole[] = [
-  "globalStrategist",
   "coordinator",
   ADMIN_ROLE,
 ];
 
 /**
  * Who may import a file of records — coordination, as BE-14's `import_projects` decides it:
- * the global strategist, a coordinator, the `admin` role (INT-11 · OBT-416). Reflection only;
+ * a coordinator, the `admin` role (INT-11 · OBT-416). Reflection only;
  * an installation admin with none of these roles is the server's to admit.
  */
 export function canImportProjects(roles: readonly SessionRole[]): boolean {
@@ -36,7 +35,7 @@ export function canImportProjects(roles: readonly SessionRole[]): boolean {
 
 /**
  * Who reads a team's health — `HEALTH_AUDIENCE` in shema-api's `_health_audience.py` (OBT-553):
- * the global strategist, a coordinator and the OBT Lab. The Resource Circle and the Shemá
+ * a coordinator and the OBT Lab. The Resource Circle and the Shemá
  * `admin` role are outside it, and are handed every health field empty, as a project nobody
  * has assessed. Reflection only, off the roles the session already carries: the server
  * decides, and the `?health=` filter, the health order and the `health` facet it ignores or
@@ -44,7 +43,6 @@ export function canImportProjects(roles: readonly SessionRole[]): boolean {
  * is not among the session's roles, so this does not claim it.
  */
 const HEALTH_AUDIENCE: readonly SessionRole[] = [
-  "globalStrategist",
   "coordinator",
   "obtLab",
 ];

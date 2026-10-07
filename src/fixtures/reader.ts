@@ -10,7 +10,7 @@ import { getRegion } from "../utils/region";
  * only: in fixture mode they stand in for the server, so the mock role decides here and
  * nowhere else. Screens never evaluate a role — they read the `readAs` a payload carries.
  */
-const COORDINATION_EVERYWHERE = ["globalStrategist", "admin"] as const;
+const COORDINATION_EVERYWHERE = ["admin"] as const;
 
 function coordinatesEverywhere(persona: SessionPersona): boolean {
   return COORDINATION_EVERYWHERE.some((role) => persona.roles.includes(role));

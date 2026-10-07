@@ -24,7 +24,6 @@ import { mockPersona } from "./session";
  * calendar day, and an undo of a period nobody logged.
  */
 const LOG_AUDIENCE: readonly SessionRole[] = [
-  "globalStrategist",
   "coordinator",
   "obtLab",
   "admin",
