@@ -16,14 +16,20 @@ import { getLocationDisplay } from "./region";
  * `placeWritable`: location, location 2, coordinates, the flag and the reason.
  * `baseWritable`: the base, the three contacts, the language's name and, on a withheld
  * record, the free text (OBT-556) and the description of a saved need.
- * `readsHealth`: the pastoral follow-up. Whether the reader is in the health audience
- * comes from the session's roles (`canReadHealth`), handed in by whoever builds this.
+ * `readsHealth`: the Saúde tab and the health fields. `writesHealth`: the pastoral
+ * follow-up — narrower since OBT-571, because the Resource Circle reads the health and
+ * writes none of it. Both come from the session's roles (`canReadHealth`,
+ * `canWriteHealth`), handed in by whoever builds this.
+ *
+ * A `trusted` payload (OBT-571) reads the truth of a sensitive place like coordination and
+ * writes nothing of the coordination's: not the place, and on a sensitive record not the base.
  */
 export interface RecordAccess {
   withheld: boolean;
   placeWritable: boolean;
   baseWritable: boolean;
   readsHealth: boolean;
+  writesHealth: boolean;
 }
 
 /**
@@ -35,6 +41,7 @@ export const FULL_ACCESS: RecordAccess = {
   placeWritable: true,
   baseWritable: true,
   readsHealth: true,
+  writesHealth: true,
 };
 
 const NO_ACCESS: RecordAccess = {
@@ -42,6 +49,7 @@ const NO_ACCESS: RecordAccess = {
   placeWritable: false,
   baseWritable: false,
   readsHealth: false,
+  writesHealth: false,
 };
 
 /**
@@ -52,8 +60,9 @@ export function recordAccess(
   saved: Project | undefined,
   isNew: boolean,
   readsHealth: boolean,
+  writesHealth: boolean,
 ): RecordAccess {
-  if (isNew) return { ...FULL_ACCESS, readsHealth };
+  if (isNew) return { ...FULL_ACCESS, readsHealth, writesHealth };
   if (!saved) return NO_ACCESS;
   const coordination = saved.readAs === "coordination";
   return {
@@ -61,13 +70,14 @@ export function recordAccess(
     placeWritable: coordination,
     baseWritable: coordination || !saved.sensitiveCountry,
     readsHealth,
+    writesHealth,
   };
 }
 
 export function mayWrite(access: RecordAccess, field: RecordField): boolean {
   if (COORDINATION_WRITES.has(field)) return access.placeWritable;
   if (WITHHELD_WRITES.has(field)) return access.baseWritable;
-  if (PASTORAL_WRITES.has(field)) return access.readsHealth;
+  if (PASTORAL_WRITES.has(field)) return access.writesHealth;
   return true;
 }
 

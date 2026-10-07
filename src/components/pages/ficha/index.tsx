@@ -169,6 +169,7 @@ export function FichaPage() {
       typed: draft.typed,
       isNew: draft.isNew,
       readsHealth: draft.place.readsHealth,
+      writesHealth: draft.place.writesHealth,
     });
 
     switch (result.kind) {

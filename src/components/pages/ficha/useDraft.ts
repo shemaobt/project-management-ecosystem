@@ -11,7 +11,7 @@ import { useProjectRecordStore } from "../../../stores/projectRecordStore";
 import type { Project } from "../../../types/project";
 import type { RecordField, RecordFieldError } from "../../../types/projectRecord";
 import { useAuth } from "../../../contexts/AuthContext";
-import { canReadHealth } from "../../../utils/access";
+import { canReadHealth, canWriteHealth } from "../../../utils/access";
 import {
   mayWrite,
   mayWriteNeedDescription,
@@ -88,10 +88,11 @@ export function useDraft(recordId: string): DraftHandle {
 
   const { user } = useAuth();
   const readsHealth = canReadHealth(user.roles);
+  const writesHealth = canWriteHealth(user.roles);
 
   const place = useMemo(
-    () => recordAccess(stored, isNew, readsHealth),
-    [stored, isNew, readsHealth],
+    () => recordAccess(stored, isNew, readsHealth, writesHealth),
+    [stored, isNew, readsHealth, writesHealth],
   );
 
   // A draft is kept per record, not per person: what somebody else typed into a field
