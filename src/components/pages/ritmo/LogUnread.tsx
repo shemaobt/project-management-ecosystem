@@ -1,6 +1,5 @@
 import { Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { SESSION_ROLE_LABEL_KEYS } from "../../../contexts/AuthContext";
 import { ROLE_DEFINITIONS } from "../../../constants/roles";
 import { Button } from "../../ui";
 
@@ -33,7 +32,6 @@ export function LogUnread({ reading, onRetry }: LogUnreadProps) {
           className="mt-px shrink-0 text-fg-muted"
         />
         {t("ritmo_log_forbidden", {
-          global: t(SESSION_ROLE_LABEL_KEYS.globalStrategist),
           coordinator: t(ROLE_DEFINITIONS.coordinator.labelKey),
           obtLab: t(ROLE_DEFINITIONS.obtLab.labelKey),
         })}

@@ -1,8 +1,6 @@
 import type { RoleKey } from "../types/role";
 import type { TeamBody, TeamBodyKey } from "../types/team";
 
-export const GLOBAL_ROLE_LABEL_KEY = "equipe_global";
-
 export const TEAM_BODIES: readonly TeamBody[] = [
   {
     key: "leadership",
