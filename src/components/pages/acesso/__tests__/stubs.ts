@@ -24,7 +24,7 @@ export function sessionFor(roles: SessionRole[]) {
     status: "ready" as const,
     user: {
       id: "u-admin",
-      role: roles[0] ?? ("globalStrategist" as const),
+      role: roles[0] ?? ("coordinator" as const),
       roles,
       regionScope: [],
       name: null,

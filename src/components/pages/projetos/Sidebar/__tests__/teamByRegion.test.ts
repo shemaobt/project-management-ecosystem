@@ -126,7 +126,7 @@ describe("region visibility follows the mocked session", () => {
     const cards = buildRegionPanel(
       projects,
       regions,
-      sessionGate(regions, MOCK_SESSION_PERSONAS.globalStrategist),
+      sessionGate(regions, MOCK_SESSION_PERSONAS.admin),
     );
     expect(cards).toHaveLength(orderRegionPanel(projects).length);
   });

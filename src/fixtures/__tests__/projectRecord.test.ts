@@ -153,7 +153,7 @@ describe("o dublê da ficha responde ao leitor como o servidor (OBT-528)", () =>
     const saved = patchRecord(truth.id, { mentor: "segue" }, version);
     expect(saved.ok && saved.record.project.team).toBe("");
 
-    stored.set(MOCK_SESSION_KEY, "globalStrategist");
+    stored.set(MOCK_SESSION_KEY, "admin");
     const reread = readRecord(truth.id).project;
     expect(reread.readAs).toBe("coordination");
     expect(reread.team).toBe(truth.team);
@@ -163,7 +163,7 @@ describe("o dublê da ficha responde ao leitor como o servidor (OBT-528)", () =>
 
 describe("o dublê da ficha recusa o texto livre e o pastoral como o servidor (OBT-553, OBT-556)", () => {
   const withNeed = () => {
-    stored.set(MOCK_SESSION_KEY, "globalStrategist");
+    stored.set(MOCK_SESSION_KEY, "admin");
     const created = createRecord({
       ...createEmptyProject("sintetico"),
       languageName: "Sintético",
@@ -180,7 +180,7 @@ describe("o dublê da ficha recusa o texto livre e o pastoral como o servidor (O
   const open = () => loadProjects().find((project) => !project.sensitiveCountry)!;
 
   const loadSeeded = (id: string) => {
-    stored.set(MOCK_SESSION_KEY, "globalStrategist");
+    stored.set(MOCK_SESSION_KEY, "admin");
     return readRecord(id).project;
   };
 
@@ -220,7 +220,7 @@ describe("o dublê da ficha recusa o texto livre e o pastoral como o servidor (O
     const refused = patchRecord(truth.id, { needsItems: typedOver }, readRecord(truth.id).version);
     expect(refusedField(refused)).toContain("needsItems.description");
 
-    stored.set(MOCK_SESSION_KEY, "globalStrategist");
+    stored.set(MOCK_SESSION_KEY, "admin");
     const after = readRecord(truth.id).project;
     expect(after.needsItems.map((need) => need.description)).toEqual(
       truth.needsItems.map((need) => need.description),

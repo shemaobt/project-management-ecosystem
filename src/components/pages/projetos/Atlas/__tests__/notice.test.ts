@@ -84,7 +84,7 @@ describe("o aviso de retidos só monta quando a contagem vem", () => {
     storage.setItem(MOCK_SESSION_KEY, "resourceCircle");
     expect((await projectBrowseAPI.browse(QUERY)).locationsWithheld).toBeNull();
 
-    storage.setItem(MOCK_SESSION_KEY, "globalStrategist");
+    storage.setItem(MOCK_SESSION_KEY, "admin");
     const coordination = await projectBrowseAPI.browse(QUERY);
     expect(coordination.locationsWithheld).toBe(
       coordination.items.filter((item) => item.sensitiveCountry).length,

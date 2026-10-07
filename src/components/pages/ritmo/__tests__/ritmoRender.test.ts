@@ -381,7 +381,6 @@ describe("o log das reuniões vem do servidor, e a tela diz quando não o tem", 
   it("sem acesso, nomeia de quem é o log pelos rótulos do organograma, sem oferecer tentar de novo", () => {
     const html = unread("forbidden");
 
-    expect(html).toContain(i18n.t("equipe_global"));
     expect(html).toContain(i18n.t("role_coordinator"));
     expect(html).toContain(i18n.t("role_obtlab"));
     expect(html).not.toContain(i18n.t("net_retry"));

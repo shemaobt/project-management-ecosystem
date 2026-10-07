@@ -74,7 +74,6 @@ describe("catalogues", () => {
     for (const catalogue of [ptBR, en]) {
       for (const key of ["entrar_no_role", "net_forbidden"] as const) {
         expect(catalogue[key], key).toContain(catalogue.role_admin);
-        expect(catalogue[key], key).not.toContain(catalogue.equipe_global);
       }
     }
   });
@@ -86,8 +85,6 @@ describe("catalogues", () => {
     expect(en.role_obtlab).toBe("Language Operations");
     expect(ptBR.role_resource).toBe("Intercessor");
     expect(en.role_resource).toBe("Intercessor");
-    expect(ptBR.equipe_global).toBe("Estrategista Global");
-    expect(en.equipe_global).toBe("Global Strategist");
   });
 
   it("names the four access roles, the Admin as the platform's and not the coordinator's", () => {

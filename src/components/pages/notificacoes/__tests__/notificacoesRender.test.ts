@@ -74,9 +74,11 @@ const view = (overrides: Partial<NotificationPrefs> = {}) => {
   return renderToStaticMarkup(
     createElement(NotificationsPanelBody, {
       entries: visibleNotifications(
+        // Every Shemá audience at once, with no region: what the retired see-all used to
+        // give the panel (OBT-572).
         routedNotifications(
           projects,
-          { roles: ["globalStrategist"], regions: null },
+          { roles: ["coordinator", "obtLab", "resourceCircle"], regions: null },
           NOW,
         ),
         prefs,
@@ -349,7 +351,7 @@ describe("o nome retido de um projeto sensível (OBT-562)", () => {
     const markup = renderToStaticMarkup(
       createElement(NotificationsPanelBody, {
         entries: visibleNotifications(
-          routedNotifications([sensitive], { roles: ["globalStrategist"], regions: null }, NOW),
+          routedNotifications([sensitive], { roles: ["coordinator"], regions: null }, NOW),
           NOTIF_DEFAULTS,
           "Karina Marinho",
         ),

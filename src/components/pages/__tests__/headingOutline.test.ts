@@ -48,7 +48,7 @@ const inApp = (element: ReturnType<typeof createElement>) =>
         AuthContext.Provider,
         {
           value: {
-            ...sessionFor(["globalStrategist"]),
+            ...sessionFor(["admin", "coordinator"]),
             canSeeRegion: () => true,
           },
         },

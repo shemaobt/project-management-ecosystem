@@ -30,7 +30,7 @@ const account = (shema: AccountGrants["apps"][number]["roles"]): AccountGrants =
 describe("quem administra o acesso", () => {
   it("é quem tem admin na lista — mesmo quando o papel principal é outro", () => {
     expect(canAdministerAccess({ roles: ["admin"] })).toBe(true);
-    expect(canAdministerAccess({ roles: ["globalStrategist", "admin", "gestor"] })).toBe(true);
+    expect(canAdministerAccess({ roles: ["coordinator", "admin", "gestor"] })).toBe(true);
   });
 
   it("e nenhum dos outros sete papéis", () => {
@@ -71,7 +71,6 @@ describe("o convite", () => {
 
   it("o app sai do papel convidado, e papel fora do vocabulário não tem app", () => {
     expect(appOfInvitedRole("obtLab")).toBe("shema");
-    expect(appOfInvitedRole("globalStrategist")).toBe("shema");
     expect(appOfInvitedRole("mesa")).toBe("resource-request-form");
     expect(appOfInvitedRole("admin")).toBeNull();
     expect(appOfInvitedRole("lider")).toBeNull();
@@ -94,10 +93,10 @@ describe("o que cada papel vê do formulário — OBT-544", () => {
     for (const role of GRANTABLE_ROLES["resource-request-form"]) {
       expect(holdsFormRole([role]), role).toBe(true);
     }
-    for (const role of ["globalStrategist", "coordinator", "obtLab", "resourceCircle", "equipe"] as const) {
+    for (const role of ["coordinator", "obtLab", "resourceCircle", "equipe"] as const) {
       expect(holdsFormRole([role]), role).toBe(false);
     }
-    expect(holdsFormRole(["globalStrategist", "admin", "gestor"])).toBe(true);
+    expect(holdsFormRole(["coordinator", "admin", "gestor"])).toBe(true);
   });
 
   it("o organograma só é pedido por quem tem grant do Shemá — a porta dos outros é só a sessão", () => {
