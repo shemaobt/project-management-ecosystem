@@ -37,7 +37,7 @@ const NOTE = i18n.t("f_free_text_coordination_only", {
 });
 
 const place = (sensitive: boolean, readAs: "other" | "coordination") =>
-  recordAccess(makeProject({ sensitiveCountry: sensitive, readAs }), false, true);
+  recordAccess(makeProject({ sensitiveCountry: sensitive, readAs }), false, true, true);
 
 const handle = (access: ReturnType<typeof place>, values: Record<string, unknown> = {}) => ({
   values: { ...makeEmptyProject(), ...values },

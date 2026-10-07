@@ -10,14 +10,15 @@ const persona = (
 ): SessionPersona => ({ id: "p", role: roles[0], roles, regionScope });
 
 describe("readerOf espelha o _scope.readership do servidor (OBT-528)", () => {
-  const cases: [string, SessionPersona, "coordination" | "other"][] = [
+  const cases: [string, SessionPersona, "coordination" | "trusted" | "other"][] = [
     ["admin (hipótese da 528), em qualquer região", persona(["admin"], null), "coordination"],
     ["coordinator na própria região", persona(["coordinator"], ["africa"]), "coordination"],
     ["coordinator fora da própria região", persona(["coordinator"], ["asia"]), "other"],
     ["coordinator com escopo global (null)", persona(["coordinator"], null), "coordination"],
     ["coordinator + obtLab na região da conta", persona(["coordinator", "obtLab"], ["africa"]), "coordination"],
     ["obtLab, mesmo na própria região", persona(["obtLab"], ["africa"]), "other"],
-    ["resourceCircle", persona(["resourceCircle"], ["africa"]), "other"],
+    ["resourceCircle, em qualquer região (OBT-571)", persona(["resourceCircle"], ["africa"]), "trusted"],
+    ["resourceCircle fora da própria região", persona(["resourceCircle"], ["asia"]), "trusted"],
   ];
 
   it.each(cases)("%s", (_name, who, expected) => {
