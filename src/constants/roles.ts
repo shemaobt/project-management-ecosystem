@@ -21,10 +21,7 @@ export const ROLE_DEFINITIONS: Record<RoleKey, RoleDefinition> = {
 
 export const ROLES: readonly RoleDefinition[] = Object.values(ROLE_DEFINITIONS);
 
-export const GLOBAL_STRATEGIST_ROLE = "globalStrategist" as const;
-
 export const SESSION_ROLES: readonly SessionRole[] = [
-  GLOBAL_STRATEGIST_ROLE,
   ...ROLES.map((role) => role.key),
   "admin",
   "gestor",

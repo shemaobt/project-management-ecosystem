@@ -6,7 +6,8 @@ import type { ApiFailure, SessionApps, SessionRole } from "../types/session";
 
 export type { SessionRole };
 
-export type MockRole = "globalStrategist" | RoleKey;
+/** The mocked session's personas: the three Shemá roles and the Admin, who is the only global reader left (OBT-572). */
+export type MockRole = "admin" | RoleKey;
 
 export type SessionStatus = "loading" | "anonymous" | "ready" | "expired";
 
@@ -38,7 +39,6 @@ export const UNASSIGNED_HOLDER_KEY = "sb_no_coordinator";
 export const NO_APPS: SessionApps = { resourceRequestForm: null };
 
 export const SESSION_ROLE_LABEL_KEYS: Record<SessionRole, string> = {
-  globalStrategist: "equipe_global",
   coordinator: ROLE_DEFINITIONS.coordinator.labelKey,
   obtLab: ROLE_DEFINITIONS.obtLab.labelKey,
   resourceCircle: ROLE_DEFINITIONS.resourceCircle.labelKey,

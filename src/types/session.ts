@@ -2,7 +2,6 @@ import type { RegionKey } from "./region";
 import type { RoleKey } from "./role";
 
 export type SessionRole =
-  | "globalStrategist"
   | RoleKey
   | "admin"
   | "gestor"
