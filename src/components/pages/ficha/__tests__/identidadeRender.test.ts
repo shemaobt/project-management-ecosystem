@@ -28,6 +28,9 @@ const { MOCK_SESSION_KEY, projectRecordAPI, projectsAPI } = await import(
 );
 const { REGION_CENTROIDS } = await import("../../../../constants/geo");
 const { ROLE_DEFINITIONS } = await import("../../../../constants/roles");
+const { SESSION_ROLE_LABEL_KEYS } = await import(
+  "../../../../contexts/AuthContext"
+);
 const { makeEmptyProject, missingRequired } = await import(
   "../../../../stores/recordStore"
 );
@@ -89,6 +92,7 @@ const disabled = (markup: string, id: string) =>
 const PHRASE = () =>
   i18n.t("f_location_coordination_only", {
     regional: i18n.t(ROLE_DEFINITIONS.coordinator.labelKey),
+    admin: i18n.t(SESSION_ROLE_LABEL_KEYS.admin),
   });
 
 const PLACE = "Peru, Vila Sintética";
