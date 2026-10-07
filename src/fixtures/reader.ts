@@ -2,7 +2,7 @@ import { REGION_CENTROIDS } from "../constants/geo";
 import type { SessionPersona } from "../contexts/session";
 import type { Project, ReadAs } from "../types/project";
 import type { RegionKey } from "../types/region";
-import { canReadHealth } from "../utils/access";
+import { canReadHealth, canWriteHealth } from "../utils/access";
 import { getRegion } from "../utils/region";
 
 /**
@@ -24,11 +24,18 @@ export function readerOf(persona: SessionPersona, region: RegionKey): ReadAs {
   ) {
     return "coordination";
   }
+  // The Resource Circle reads the truth and edits nothing of it (OBT-571); the OBT Lab
+  // stays `other`, by Daniel's decision, and keeps reading the region.
+  if (persona.roles.includes("resourceCircle")) return "trusted";
   return "other";
 }
 
 export function readsHealth(persona: SessionPersona): boolean {
   return canReadHealth(persona.roles);
+}
+
+export function writesHealth(persona: SessionPersona): boolean {
+  return canWriteHealth(persona.roles);
 }
 
 export function coordinatesAnything(persona: SessionPersona): boolean {
