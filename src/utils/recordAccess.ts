@@ -22,7 +22,8 @@ import { getLocationDisplay } from "./region";
  * `canWriteHealth`), handed in by whoever builds this.
  *
  * A `trusted` payload (OBT-571) reads the truth of a sensitive place like coordination and
- * writes nothing of the coordination's: not the place, and on a sensitive record not the base.
+ * writes **nothing** — Daniel, 7/oct/2026: the Resource Circle loses the `PATCH` it had, the
+ * description of a need included. `readOnly` is that bit, and `mayWrite` answers it first.
  */
 export interface RecordAccess {
   withheld: boolean;
@@ -30,6 +31,7 @@ export interface RecordAccess {
   baseWritable: boolean;
   readsHealth: boolean;
   writesHealth: boolean;
+  readOnly: boolean;
 }
 
 /**
@@ -42,6 +44,7 @@ export const FULL_ACCESS: RecordAccess = {
   baseWritable: true,
   readsHealth: true,
   writesHealth: true,
+  readOnly: false,
 };
 
 const NO_ACCESS: RecordAccess = {
@@ -50,6 +53,7 @@ const NO_ACCESS: RecordAccess = {
   baseWritable: false,
   readsHealth: false,
   writesHealth: false,
+  readOnly: true,
 };
 
 /**
@@ -65,16 +69,19 @@ export function recordAccess(
   if (isNew) return { ...FULL_ACCESS, readsHealth, writesHealth };
   if (!saved) return NO_ACCESS;
   const coordination = saved.readAs === "coordination";
+  const readOnly = saved.readAs === "trusted";
   return {
     withheld: getLocationDisplay(saved).withheld,
     placeWritable: coordination,
-    baseWritable: coordination || !saved.sensitiveCountry,
+    baseWritable: !readOnly && (coordination || !saved.sensitiveCountry),
     readsHealth,
-    writesHealth,
+    writesHealth: writesHealth && !readOnly,
+    readOnly,
   };
 }
 
 export function mayWrite(access: RecordAccess, field: RecordField): boolean {
+  if (access.readOnly) return false;
   if (COORDINATION_WRITES.has(field)) return access.placeWritable;
   if (WITHHELD_WRITES.has(field)) return access.baseWritable;
   if (PASTORAL_WRITES.has(field)) return access.writesHealth;
@@ -92,5 +99,6 @@ export function mayWriteNeedDescription(
   access: RecordAccess,
   saved: boolean,
 ): boolean {
+  if (access.readOnly) return false;
   return !saved || access.baseWritable;
 }

@@ -3,7 +3,8 @@ import { PASTORAL_WRITES } from "../../constants/recordFields";
 import { readReadAs } from "../../services/api/projectRecord";
 import type { RecordField } from "../../types/projectRecord";
 import { canReadHealth, canWriteHealth } from "../access";
-import { mayWrite, recordAccess } from "../recordAccess";
+import { mayWrite, mayWriteNeedDescription, recordAccess } from "../recordAccess";
+import { readMode } from "../../components/pages/ficha/recordMode";
 import { getLocationDisplay, readsTruth, withheldNotice } from "../region";
 import { makeProject } from "./factory";
 
@@ -12,6 +13,18 @@ import { makeProject } from "./factory";
  * nothing (Karina, 6/out). The server says so with a third `readAs`, `trusted`; this is the
  * console's half, and the OBT Lab stays `other`, by Daniel's decision.
  */
+const EVERY_WRITE: RecordField[] = [
+  "location",
+  "sensitiveCountry",
+  "team",
+  "notes",
+  "status",
+  "prayerRequests",
+  "needsItems",
+  "mentor",
+  "needsPastoralIntervention",
+];
+
 const sensitive = (readAs: "coordination" | "trusted" | "other") =>
   makeProject({ sensitiveCountry: true, location: "Peru", team: "Base Sintética", readAs });
 
@@ -39,22 +52,36 @@ describe("o terceiro readAs, trusted", () => {
     expect(withheldNotice([sensitive("other")])).toBeNull();
   });
 
-  it("trusted não edita nada da coordenação: nem o lugar, nem a base num registro sensível", () => {
+  it("trusted lê tudo e escreve nada num registro sensível — Daniel, 7/out: o RC perde o PATCH", () => {
     const access = recordAccess(sensitive("trusted"), false, true, false);
     expect(access.withheld).toBe(false);
+    expect(access.readOnly).toBe(true);
     expect(access.placeWritable).toBe(false);
     expect(access.baseWritable).toBe(false);
-    for (const field of ["location", "sensitiveCountry", "team", "notes"] as RecordField[]) {
+    for (const field of EVERY_WRITE) {
       expect(mayWrite(access, field), field).toBe(false);
     }
+    expect(mayWriteNeedDescription(access, true)).toBe(false);
+    expect(mayWriteNeedDescription(access, false)).toBe(false);
   });
 
-  it("num registro aberto, trusted segue escrevendo o que não é da coordenação, como other", () => {
+  it("num registro aberto também: o que other escrevia, trusted não escreve", () => {
     const open = makeProject({ sensitiveCountry: false, readAs: "trusted" });
     const access = recordAccess(open, false, true, false);
-    expect(access.baseWritable).toBe(true);
-    expect(mayWrite(access, "team")).toBe(true);
-    expect(mayWrite(access, "location")).toBe(false);
+    const asOther = recordAccess({ ...open, readAs: "other" }, false, true, false);
+    expect(access.baseWritable).toBe(false);
+    for (const field of EVERY_WRITE) {
+      expect(mayWrite(access, field), field).toBe(false);
+    }
+    expect(mayWrite(asOther, "team")).toBe(true);
+    expect(mayWrite(asOther, "status")).toBe(true);
+  });
+
+  it("mesmo pedindo ?modo=editar, a ficha de um leitor read-only abre em ver", () => {
+    expect(readMode("editar", false, true)).toBe("ver");
+    expect(readMode("editar", false, false)).toBe("editar");
+    expect(readMode(null, false, false)).toBe("ver");
+    expect(readMode(null, true, true)).toBe("editar");
   });
 });
 

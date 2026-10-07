@@ -996,7 +996,7 @@ PATCH  /api/shema/projects/{id}     {Partial<Project>} -> Project
 
 **The record is built for its reader (OBT-528).** Two additive keys travel with it: `readAs`
 (`"coordination"` · `"trusted"` · `"other"` — the middle one since OBT-571: the Resource Circle reads the
-truth, the health included, and writes nothing of the coordination's) and `locationWithheld` (the flag,
+truth, the health included, and writes nothing at all — no `PATCH`, Daniel 7/oct) and `locationWithheld` (the flag,
 for every reader). The console reads `readAs` closed — anything else, absence included, is no answer and
 reads withheld — and folds
 `locationWithheld` onto `sensitiveCountry`. A reader who is not coordination gets a **403** for
