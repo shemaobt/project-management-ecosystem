@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { HEALTH_DIMENSIONS } from "../../../constants/health";
 import { useAuth } from "../../../contexts/AuthContext";
 import { failureMessage } from "../../../services/api";
@@ -17,6 +17,7 @@ import { Completion } from "./Completion";
 import { DimensionStep } from "./DimensionStep";
 import { PrayerRequestStep } from "./PrayerRequestStep";
 import { SubmitOutcomeNote, type SubmitOutcome } from "./SubmitOutcomeNote";
+import { assessmentRedirect } from "./writerGate";
 
 const LAST_STEP = HEALTH_DIMENSIONS.length;
 
@@ -178,6 +179,11 @@ export function AvaliacaoPage() {
   const navigate = useNavigate();
   const { projectId = "" } = useParams();
   const { user } = useAuth();
+  // The server refuses the filing to whoever is outside `HEALTH_WRITERS` (OBT-571); a reader
+  // who typed or kept the address goes back to the forms before the record is even read, instead
+  // of walking the four dimensions to meet that refusal (OBT-579).
+  const redirect = assessmentRedirect(user.roles);
+  const writesHealth = redirect === null;
 
   const open = useProjectRecordStore((state) => state.open);
   const reload = useProjectRecordStore((state) => state.reload);
@@ -200,8 +206,9 @@ export function AvaliacaoPage() {
   );
 
   useEffect(() => {
+    if (!writesHealth) return;
     void open(projectId);
-  }, [projectId, open]);
+  }, [projectId, open, writesHealth]);
 
   const project =
     loading || recordId !== projectId
@@ -212,6 +219,8 @@ export function AvaliacaoPage() {
     () => drafts[projectId] ?? draftFor(projectId),
     [drafts, projectId, draftFor],
   );
+
+  if (redirect !== null) return <Navigate to={redirect} replace />;
 
   return (
     <AvaliacaoView
