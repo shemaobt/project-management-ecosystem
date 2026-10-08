@@ -33,7 +33,7 @@ const { default: i18n } = await import("../../../../i18n");
 const { AuthProvider } = await import("../../../../contexts/AuthContext");
 const { makeEmptyProject } = await import("../../../../stores/recordStore");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
-const { mayWriteStoryPlace, recordAccess } = await import("../../../../utils/recordAccess");
+const { recordAccess } = await import("../../../../utils/recordAccess");
 const { ObjetivoTab } = await import("../tabs/Objetivo");
 const { RecursosTab } = await import("../tabs/Recursos");
 const { EquipeTab } = await import("../tabs/Equipe");
@@ -42,10 +42,8 @@ const { MidiaTab } = await import("../tabs/Midia");
 
 const noop = () => {};
 
-const NOTE = i18n.t("f_free_text_coordination_only", {
-  regional: i18n.t("role_coordinator"),
-  admin: i18n.t("role_admin"),
-}).slice(0, 40);
+const NOTE = i18n.t("f_free_text_coordination_only").slice(0, 40);
+const PLACE_FIELD = `aria-label="${i18n.t("story_location_ph")}"`;
 
 type Reader = "other" | "coordination" | "trusted";
 
@@ -85,10 +83,9 @@ const tab = (
 
 /** Whether the first textarea or input carrying `attribute` (verbatim) is `disabled`. */
 const disabledField = (markup: string, attribute: string): boolean => {
-  const literal = attribute.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const found = markup.match(new RegExp(`<(textarea|input)[^>]*${literal}[^>]*>`));
-  expect(found, attribute).not.toBeNull();
-  return /\sdisabled=""/.test(found![0]);
+  const found = markup.match(/<(?:textarea|input)\b[^>]*>/g)?.find((tag) => tag.includes(attribute));
+  expect(found, attribute).toBeDefined();
+  return /\sdisabled=""/.test(found!);
 };
 
 describe("as observações do objetivo e do financeiro", () => {
@@ -140,19 +137,12 @@ describe("o local da gravação de uma história salva", () => {
   it("fica bloqueado para o OBT Lab, com a frase", () => {
     const markup = tab(ProgressoTab, "editar", "other", stories);
     expect(markup).toContain(NOTE);
-    expect(disabledField(markup, `aria-label="${i18n.t("story_location_ph")}"`)).toBe(true);
+    expect(disabledField(markup, PLACE_FIELD)).toBe(true);
   });
 
   it("é da coordenação", () => {
     const markup = tab(ProgressoTab, "editar", "coordination", stories);
-    expect(disabledField(markup, `aria-label="${i18n.t("story_location_ph")}"`)).toBe(false);
-  });
-
-  it("uma história nova é de quem a cria", () => {
-    const access = place("other");
-    expect(mayWriteStoryPlace(access, true)).toBe(false);
-    expect(mayWriteStoryPlace(access, false)).toBe(true);
-    expect(mayWriteStoryPlace(place("trusted"), false)).toBe(false);
+    expect(disabledField(markup, PLACE_FIELD)).toBe(false);
   });
 });
 

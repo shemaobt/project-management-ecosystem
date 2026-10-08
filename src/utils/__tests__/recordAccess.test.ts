@@ -166,4 +166,27 @@ describe("o rascunho de outra pessoa, no mesmo navegador", () => {
     const draft = { needsItems: [need({ id: "n1", description: "meu" })] };
     expect(writableDraft(draft, place, saved)).toBe(draft);
   });
+
+  it("o local de uma história salva volta ao que chegou, e o de uma nova fica (OBT-573)", () => {
+    const stories = makeProject({
+      sensitiveCountry: true,
+      readAs: "other",
+      storyProgress: [{ name: "Criacao", recordLocation: "" }],
+    });
+    const place = recordAccess(stories, false, true, true);
+    const kept = writableDraft(
+      {
+        storyProgress: [
+          { name: "Criacao", recordLocation: "digitado por outra pessoa", audioHours: 2 },
+          { name: "Abraao", recordLocation: "aqui" },
+        ],
+      },
+      place,
+      stories,
+    );
+    expect(kept.storyProgress).toEqual([
+      { name: "Criacao", recordLocation: "", audioHours: 2 },
+      { name: "Abraao", recordLocation: "aqui" },
+    ]);
+  });
 });

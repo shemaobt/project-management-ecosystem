@@ -18,6 +18,7 @@ import {
 import { ImageUpload } from "../../../../common/ImageUpload";
 import { RemoveRowButton } from "../../../../common/RemoveRowButton";
 import { Button, Input, toast } from "../../../../ui";
+import { mayWriteCaption } from "../../../../../utils/recordAccess";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import type { DraftHandle } from "../../useDraft";
 import {
@@ -36,9 +37,7 @@ export function MidiaForm({ draft }: MidiaFormProps) {
   const values = draft.values;
   const photos = photoSlots(values.mediaPhotos);
   const videos = values.mediaVideos ?? [];
-  // A sensitive project's captions are the coordination's (OBT-573): the OBT Lab reads them
-  // blank and does not type over them.
-  const captionsLocked = !draft.place.baseWritable;
+  const captionsLocked = !mayWriteCaption(draft.place);
 
   const decide = (granted: boolean) =>
     makeMediaAuthorization(granted, user.name, toLocalIsoDate());

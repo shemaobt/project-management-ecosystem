@@ -53,16 +53,14 @@ export function ObjetivoView({ draft }: ObjetivoViewProps) {
         )}
       </DetailItem>
 
-      {!readsFreeText(draft.place) ? (
+      {(!readsFreeText(draft.place) || values.objectiveNotes) && (
         <DetailItem label={t("f_notes")} full>
-          <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
-        </DetailItem>
-      ) : (
-        values.objectiveNotes && (
-          <DetailItem label={t("f_notes")} full>
+          {readsFreeText(draft.place) ? (
             <NotesPanel>{values.objectiveNotes}</NotesPanel>
-          </DetailItem>
-        )
+          ) : (
+            <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+          )}
+        </DetailItem>
       )}
 
       {phases.length > 0 && (

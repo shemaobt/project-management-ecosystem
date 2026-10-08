@@ -1,7 +1,6 @@
 import { Lock } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { SESSION_ROLE_LABEL_KEYS } from "../../../contexts/AuthContext";
-import { ROLE_DEFINITIONS } from "../../../constants/roles";
+import { roleLabelVars } from "./roleLabelVars";
 
 export interface CoordinationOnlyNoteProps {
   textKey?: string;
@@ -20,12 +19,7 @@ export function CoordinationOnlyNote({
         aria-hidden
         className="mt-px shrink-0 text-fg-muted"
       />
-      {t(textKey, {
-        regional: t(ROLE_DEFINITIONS.coordinator.labelKey),
-        admin: t(SESSION_ROLE_LABEL_KEYS.admin),
-        circle: t(ROLE_DEFINITIONS.resourceCircle.labelKey),
-        lab: t(ROLE_DEFINITIONS.obtLab.labelKey),
-      })}
+      {t(textKey, roleLabelVars(t))}
     </p>
   );
 }

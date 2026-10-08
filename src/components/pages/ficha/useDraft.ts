@@ -57,6 +57,24 @@ function withSavedDescriptions(
   return { ...draft, needsItems: kept };
 }
 
+/** The saved stories' places back on the rows that name them — `""` for a withheld reader. */
+function withSavedPlaces(
+  draft: ProjectDraft,
+  saved: Project | undefined,
+): ProjectDraft {
+  const stories = draft.storyProgress;
+  if (!stories || !saved) return draft;
+  const held = new Map<string, string[]>();
+  for (const row of saved.storyProgress ?? []) {
+    held.set(row.name, [...(held.get(row.name) ?? []), row.recordLocation ?? ""]);
+  }
+  const kept = stories.map((row) => {
+    const places = held.get(row.name);
+    return places?.length ? { ...row, recordLocation: places.shift() } : row;
+  });
+  return { ...draft, storyProgress: kept };
+}
+
 export function writableDraft(
   draft: ProjectDraft | undefined,
   place: RecordAccess,
@@ -72,7 +90,7 @@ export function writableDraft(
       : (Object.fromEntries(kept) as ProjectDraft);
   return mayWriteNeedDescription(place, true)
     ? writable
-    : withSavedDescriptions(writable, saved);
+    : withSavedPlaces(withSavedDescriptions(writable, saved), saved);
 }
 
 export function useDraft(recordId: string): DraftHandle {

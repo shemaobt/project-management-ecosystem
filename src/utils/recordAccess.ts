@@ -122,9 +122,12 @@ export function mayWriteNeedDescription(
  * stored one, and one typed over it is a 403. The server matches a row to a saved story by its
  * name, and so does `saved` here; a story with a new name is its author's own.
  */
-export function mayWriteStoryPlace(
-  access: RecordAccess,
-  saved: boolean,
-): boolean {
-  return mayWriteNeedDescription(access, saved);
+export const mayWriteStoryPlace = mayWriteNeedDescription;
+
+/**
+ * Whether the media captions may be typed — the coordination's on a withheld record
+ * (OBT-573), which hands the OBT Lab every caption as `""`; a saved one in the same terms.
+ */
+export function mayWriteCaption(access: RecordAccess): boolean {
+  return mayWriteNeedDescription(access, true);
 }

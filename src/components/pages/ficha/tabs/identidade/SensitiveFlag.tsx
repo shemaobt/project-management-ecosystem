@@ -1,8 +1,8 @@
 import { ShieldAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { ROLE_DEFINITIONS } from "../../../../../constants/roles";
 import { cn } from "../../../../../utils/cn";
 import { CheckboxField } from "../../../../ui";
+import { roleLabelVars } from "../../roleLabelVars";
 
 const CONSEQUENCES = [
   "f_sensitive_on_map",
@@ -65,10 +65,7 @@ export function SensitiveFlag({
                 <span aria-hidden className="text-telha">
                   ·
                 </span>
-                {t(key, {
-                  circle: t(ROLE_DEFINITIONS.resourceCircle.labelKey),
-                  lab: t(ROLE_DEFINITIONS.obtLab.labelKey),
-                })}
+                {t(key, roleLabelVars(t))}
               </li>
             ))}
           </ul>

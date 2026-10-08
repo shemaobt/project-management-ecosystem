@@ -64,18 +64,16 @@ export interface StoryTableProps {
    * Whether a row's recording place is kept from this reader — a saved story on a withheld
    * record, which the server answers as `""` and refuses to have typed over (OBT-573).
    */
-  placeLocked?: (name: string) => boolean;
+  placeLocked: (name: string) => boolean;
 }
 
-export function StoryTable({
-  rows,
-  onChange,
-  placeLocked = () => false,
-}: StoryTableProps) {
+export function StoryTable({ rows, onChange, placeLocked }: StoryTableProps) {
   const { t } = useTranslation();
 
   const patch = (index: number, patchValue: Partial<StoryProgressItem>) =>
     onChange(patchRow(rows, index, patchValue));
+  const lockedRows = rows.map((row) => placeLocked(row.name));
+  const locked = (index: number) => lockedRows[index];
 
   return (
     <div className={TABLE_FRAME}>
@@ -124,8 +122,8 @@ export function StoryTable({
               className="min-w-55 flex-1"
               aria-label={t("story_location_ph")}
               placeholder={t("story_location_ph")}
-              value={placeLocked(row.name) ? "" : (row.recordLocation ?? "")}
-              disabled={placeLocked(row.name)}
+              value={locked(index) ? "" : (row.recordLocation ?? "")}
+              disabled={locked(index)}
               onChange={(event) =>
                 patch(index, { recordLocation: event.target.value })
               }

@@ -36,16 +36,14 @@ export function RecursosView({ draft }: RecursosViewProps) {
         </DetailItem>
       )}
 
-      {!readsFreeText(draft.place) ? (
+      {(!readsFreeText(draft.place) || values.financialNotes) && (
         <DetailItem label={t("f_notes")} full>
-          <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
-        </DetailItem>
-      ) : (
-        values.financialNotes && (
-          <DetailItem label={t("f_notes")} full>
+          {readsFreeText(draft.place) ? (
             <NotesPanel>{values.financialNotes}</NotesPanel>
-          </DetailItem>
-        )
+          ) : (
+            <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+          )}
+        </DetailItem>
       )}
     </FieldGrid>
   );
