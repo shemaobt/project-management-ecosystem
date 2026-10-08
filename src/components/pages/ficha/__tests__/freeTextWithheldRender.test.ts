@@ -116,8 +116,13 @@ describe("a descrição de uma necessidade num registro recolhido (OBT-556)", ()
     expect(disabled(markup, "need-1-desc")).toBe(false);
   });
 
-  it("sem necessidade salva, não há nota para explicar nada", () => {
+  it("sem necessidade salva, a nota fica pelas observações das necessidades (OBT-573)", () => {
     const markup = needs(place(true, "other"), [fresh]);
+    expect(markup).toContain(NOTE.slice(0, 40));
+  });
+
+  it("num registro aberto, sem necessidade salva, não há nota para explicar nada", () => {
+    const markup = needs(place(false, "other"), [fresh]);
     expect(markup).not.toContain(NOTE.slice(0, 40));
   });
 

@@ -11,7 +11,17 @@ import {
 } from "../recordAccess";
 import { makeProject } from "./factory";
 
-const FREE_TEXT = ["notes", "healthNotes", "statusComments", "scopeDetails"] as const;
+const FREE_TEXT = [
+  "notes",
+  "healthNotes",
+  "statusComments",
+  "scopeDetails",
+  "objectiveNotes",
+  "financialNotes",
+  "needsNotes",
+  "partnerOrg",
+  "statusGoal",
+] as const;
 const PASTORAL = [
   "needsPastoralIntervention",
   "pastoralInterventionName",
@@ -89,11 +99,8 @@ describe("mayWrite e o texto livre de um registro recolhido (OBT-556)", () => {
     expect(mayWrite(recordAccess(openOther, false, true, true), field)).toBe(true);
   });
 
-  it("os outros textos livres não entram: o servidor os deixa visíveis", () => {
-    const access = recordAccess(withheldOther, false, true, true);
-    for (const field of ["statusGoal", "needsNotes", "objectiveNotes", "financialNotes", "partnerOrg"] as const) {
-      expect(mayWrite(access, field)).toBe(true);
-    }
+  it("as etapas seguem livres: o servidor ainda não as recolhe", () => {
+    expect(mayWrite(recordAccess(withheldOther, false, true, true), "phases")).toBe(true);
   });
 });
 
