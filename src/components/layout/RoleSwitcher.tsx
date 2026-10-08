@@ -20,6 +20,10 @@ export function RoleSwitcher() {
 
   if (!switchRole) return null;
 
+  // The label under the active pill is the persona's, not the head role's: the Admin persona
+  // opens by `coordinator` (OBT-572) and would otherwise read as one.
+  const active = PERSONAS.find(([, persona]) => persona.id === user.id)?.[0] ?? user.role;
+
   return (
     <aside className="fixed bottom-6 left-6 z-50 flex max-w-72 flex-col gap-2 rounded-lg bg-elevated p-4 shadow-lg">
       <span className="text-[11px] font-bold uppercase tracking-eyebrow text-fg-subtle">
@@ -29,7 +33,7 @@ export function RoleSwitcher() {
         {user.name ?? t(UNASSIGNED_HOLDER_KEY)}
       </span>
       <span className="text-micro text-fg-muted">
-        {t(SESSION_ROLE_LABEL_KEYS[user.role])} ·{" "}
+        {t(SESSION_ROLE_LABEL_KEYS[active])} ·{" "}
         {status === "loading"
           ? "carregando regiões…"
           : visibleRegions.length === 1
