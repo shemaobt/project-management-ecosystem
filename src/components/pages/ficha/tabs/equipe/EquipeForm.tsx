@@ -167,7 +167,10 @@ export function EquipeForm({ draft }: EquipeFormProps) {
       </FieldGrid>
 
       {locked ? (
-        <CoordinationOnlyNote />
+        <>
+          <CoordinationOnlyNote />
+          <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+        </>
       ) : (
         values.sensitiveCountry && <SensitiveContacts />
       )}

@@ -120,7 +120,8 @@ export function mayWriteNeedDescription(
  * `storyProgress.recordLocation` on the server (OBT-573). The progress tab sends the story
  * table whole, so a place a withheld reader received as `""` and hands back as `""` keeps the
  * stored one, and one typed over it is a 403. The server matches a row to a saved story by its
- * name, and so does `saved` here; a story with a new name is its author's own.
+ * name, and so does `saved` here: a story added in this edit is its author's own, and a saved
+ * one keeps its name locked beside its place (`StoryTable`), since a rename would read as new.
  */
 export const mayWriteStoryPlace = mayWriteNeedDescription;
 

@@ -120,6 +120,11 @@ describe("a organização parceira", () => {
     expect(disabledField(tab(EquipeTab, "editar", "other"), 'id="ficha-partner"')).toBe(true);
   });
 
+  it("e a frase que a explica é a do texto livre, ao lado da do local", () => {
+    expect(tab(EquipeTab, "ver", "other")).toContain(NOTE);
+    expect(tab(EquipeTab, "editar", "other")).toContain(NOTE);
+  });
+
   it("a coordenação lê e edita", () => {
     expect(tab(EquipeTab, "ver", "coordination", { partnerOrg: "Missao Parceira" })).toContain(
       "Missao Parceira",
@@ -140,9 +145,15 @@ describe("o local da gravação de uma história salva", () => {
     expect(disabledField(markup, PLACE_FIELD)).toBe(true);
   });
 
+  it("e o nome dela também, que o servidor usa para reconhecê-la", () => {
+    const markup = tab(ProgressoTab, "editar", "other", stories);
+    expect(disabledField(markup, `aria-label="${i18n.t("col_story")}"`)).toBe(true);
+  });
+
   it("é da coordenação", () => {
     const markup = tab(ProgressoTab, "editar", "coordination", stories);
     expect(disabledField(markup, PLACE_FIELD)).toBe(false);
+    expect(disabledField(markup, `aria-label="${i18n.t("col_story")}"`)).toBe(false);
   });
 });
 
@@ -162,6 +173,12 @@ describe("as legendas de fotos e vídeos", () => {
 });
 
 describe("as duas frases (texto nosso, não aprovado pela cliente)", () => {
+  it("o aviso de país sensível ainda manda não escrever o lugar no que segue à vista", () => {
+    for (const [lng, phases] of [["pt-BR", "etapas"], ["en", "phases"]] as const) {
+      expect(i18n.t("f_sensitive_on_pending", { lng }).toLowerCase()).toContain(phases);
+    }
+  });
+
   it("nomeiam os sete da pergunta 8 e o OBT Lab, nas duas línguas, sem o Estrategista Global", () => {
     const pieces = {
       "pt-BR": ["observações do objetivo", "organização parceira", "meta do status", "legendas", "local da gravação"],
@@ -174,7 +191,7 @@ describe("as duas frases (texto nosso, não aprovado pela cliente)", () => {
         for (const piece of pieces[lng]) expect(text.toLowerCase(), `${lng} ${key}`).toContain(piece);
         expect(text).toContain(lab);
         expect(text.toLowerCase()).not.toMatch(/estrategista|strategist/);
-        expect(text).not.toMatch(/continuam à vista|stays in plain sight/);
+        expect(text).not.toMatch(/legendas e observações do objetivo|captions and the notes on/);
       }
     }
   });

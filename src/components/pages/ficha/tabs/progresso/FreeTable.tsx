@@ -62,7 +62,9 @@ export interface StoryTableProps {
   onChange: (rows: StoryProgressItem[]) => void;
   /**
    * Whether a row's recording place is kept from this reader — a saved story on a withheld
-   * record, which the server answers as `""` and refuses to have typed over (OBT-573).
+   * record, which the server answers as `""` and refuses to have typed over (OBT-573). Its
+   * name is locked with it: the server knows a story by its name, so a rename would turn a
+   * saved story into a new one and take its place with the old name.
    */
   placeLocked: (name: string) => boolean;
 }
@@ -92,6 +94,7 @@ export function StoryTable({ rows, onChange, placeLocked }: StoryTableProps) {
               aria-label={t("col_story")}
               placeholder={t("col_story")}
               value={row.name}
+              disabled={locked(index)}
               onChange={(event) => patch(index, { name: event.target.value })}
             />
             <Input

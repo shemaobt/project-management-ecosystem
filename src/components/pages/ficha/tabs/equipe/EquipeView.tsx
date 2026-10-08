@@ -71,7 +71,10 @@ export function EquipeView({ draft }: EquipeViewProps) {
       </FieldGrid>
 
       {hidden ? (
-        <CoordinationOnlyNote />
+        <>
+          <CoordinationOnlyNote />
+          <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+        </>
       ) : (
         values.sensitiveCountry && <SensitiveContacts />
       )}
