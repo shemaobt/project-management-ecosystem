@@ -7,9 +7,12 @@ import {
 } from "../../contexts/AuthContext";
 import { cn } from "../../utils/cn";
 
-const SESSION_ROLES = Object.values(MOCK_SESSION_PERSONAS).map(
-  (persona) => persona.role,
-);
+// Keyed by the persona, not by its `role`: the Admin persona's head role is `coordinator`
+// (OBT-572), so the role alone would not tell the two apart.
+const PERSONAS = Object.entries(MOCK_SESSION_PERSONAS) as [
+  keyof typeof MOCK_SESSION_PERSONAS,
+  (typeof MOCK_SESSION_PERSONAS)[keyof typeof MOCK_SESSION_PERSONAS],
+][];
 
 export function RoleSwitcher() {
   const { t } = useTranslation();
@@ -34,19 +37,19 @@ export function RoleSwitcher() {
             : `${visibleRegions.length} regiões visíveis`}
       </span>
       <div className="flex flex-wrap gap-1.5">
-        {SESSION_ROLES.map((role) => (
+        {PERSONAS.map(([key, persona]) => (
           <button
-            key={role}
+            key={key}
             type="button"
-            onClick={() => switchRole(role)}
+            onClick={() => switchRole(key)}
             className={cn(
               "rounded-pill px-2.5 py-1 text-micro font-semibold transition-colors duration-fast ease-out",
-              role === user.role
+              persona.id === user.id
                 ? "bg-telha text-on-brand"
                 : "bg-muted text-fg-muted hover:text-fg",
             )}
           >
-            {t(SESSION_ROLE_LABEL_KEYS[role])}
+            {t(SESSION_ROLE_LABEL_KEYS[key])}
           </button>
         ))}
       </div>
