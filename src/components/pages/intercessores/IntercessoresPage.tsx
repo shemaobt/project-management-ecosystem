@@ -36,7 +36,7 @@ export interface IntercessoresViewProps {
   /**
    * Whether this reader writes the network — coordination and the Admin (OBT-574). The
    * Resource Circle reads it and reveals a contact; it gets no form, no edit, no removal and
-   * no review, which the server would refuse.
+   * no review, which the server would refuse — and so no way to open the two dialogs.
    */
   canWrite: boolean;
   onAdd: (draft: IntercessorCreateDraft) => Promise<boolean>;
@@ -248,25 +248,21 @@ export function IntercessoresView({
         {t("int_send_pending")} {t("int_footnote")}
       </p>
 
-      {canWrite ? (
-        <>
-          <EditIntercessorDialog
-            open={editingId !== null}
-            draft={editDraft}
-            revealing={revealing}
-            showing={editShowing}
-            onChange={setEditDraft}
-            onSubmit={submitEdit}
-            onClose={closeEdit}
-          />
+      <EditIntercessorDialog
+        open={editingId !== null}
+        draft={editDraft}
+        revealing={revealing}
+        showing={editShowing}
+        onChange={setEditDraft}
+        onSubmit={submitEdit}
+        onClose={closeEdit}
+      />
 
-          <RemoveIntercessorDialog
-            removing={removing}
-            onClose={() => setRemoving(null)}
-            onConfirm={onRemove}
-          />
-        </>
-      ) : null}
+      <RemoveIntercessorDialog
+        removing={removing}
+        onClose={() => setRemoving(null)}
+        onConfirm={onRemove}
+      />
     </section>
   );
 }
