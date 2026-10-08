@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { HEALTH_DIMENSIONS } from "../../../constants/health";
 import { useAuth } from "../../../contexts/AuthContext";
 import { failureMessage } from "../../../services/api";
@@ -9,6 +9,7 @@ import { useProjectRecordStore } from "../../../stores/projectRecordStore";
 import type { AssessmentDraft } from "../../../types/assessment";
 import type { Project } from "../../../types/project";
 import type { ApiFailure } from "../../../types/session";
+import { canWriteHealth } from "../../../utils/access";
 import { formatDate } from "../../../utils/format";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -178,6 +179,10 @@ export function AvaliacaoPage() {
   const navigate = useNavigate();
   const { projectId = "" } = useParams();
   const { user } = useAuth();
+  // The server refuses the filing to whoever is outside `HEALTH_WRITERS` (OBT-571); a reader
+  // who typed or kept the address goes back to the forms before the record is even read, instead
+  // of walking the four dimensions to meet that refusal (OBT-579).
+  const writesHealth = canWriteHealth(user.roles);
 
   const open = useProjectRecordStore((state) => state.open);
   const reload = useProjectRecordStore((state) => state.reload);
@@ -200,8 +205,9 @@ export function AvaliacaoPage() {
   );
 
   useEffect(() => {
+    if (!writesHealth) return;
     void open(projectId);
-  }, [projectId, open]);
+  }, [projectId, open, writesHealth]);
 
   const project =
     loading || recordId !== projectId
@@ -212,6 +218,8 @@ export function AvaliacaoPage() {
     () => drafts[projectId] ?? draftFor(projectId),
     [drafts, projectId, draftFor],
   );
+
+  if (!writesHealth) return <Navigate to="/formularios" replace />;
 
   return (
     <AvaliacaoView
