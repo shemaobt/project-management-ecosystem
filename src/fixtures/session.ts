@@ -1,7 +1,9 @@
 import type { MockRole, SessionPersona } from "../contexts/session";
+import type { RoleKey } from "../types/role";
 
+/** The head role is always one of the org chart's three — the Admin persona opens by `coordinator` (OBT-572). */
 export interface MockPersona extends SessionPersona {
-  role: MockRole;
+  role: RoleKey;
 }
 
 /**
