@@ -18,6 +18,7 @@ import {
 import { ImageUpload } from "../../../../common/ImageUpload";
 import { RemoveRowButton } from "../../../../common/RemoveRowButton";
 import { Button, Input, toast } from "../../../../ui";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import type { DraftHandle } from "../../useDraft";
 import {
   AuthToggle,
@@ -35,6 +36,9 @@ export function MidiaForm({ draft }: MidiaFormProps) {
   const values = draft.values;
   const photos = photoSlots(values.mediaPhotos);
   const videos = values.mediaVideos ?? [];
+  // A sensitive project's captions are the coordination's (OBT-573): the OBT Lab reads them
+  // blank and does not type over them.
+  const captionsLocked = !draft.place.baseWritable;
 
   const decide = (granted: boolean) =>
     makeMediaAuthorization(granted, user.name, toLocalIsoDate());
@@ -66,6 +70,9 @@ export function MidiaForm({ draft }: MidiaFormProps) {
         {t("media_auth_intro")}
       </p>
       {values.sensitiveCountry && <SensitiveMediaNote />}
+      {captionsLocked && (
+        <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+      )}
 
       <MediaHeading emoji="📸">{t("f_media_photos_title")}</MediaHeading>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -84,7 +91,8 @@ export function MidiaForm({ draft }: MidiaFormProps) {
             <Input
               aria-label={`${t("f_media_caption")} · ${t("f_media_photo_label")} ${index + 1}`}
               className="px-2 py-1.5 text-micro"
-              value={photo.caption}
+              value={captionsLocked ? "" : photo.caption}
+              disabled={captionsLocked}
               placeholder={t("f_media_caption")}
               onChange={(event) =>
                 patchPhoto(index, (current) => ({
@@ -124,7 +132,8 @@ export function MidiaForm({ draft }: MidiaFormProps) {
               />
               <Input
                 aria-label={`${t("f_media_caption")} · ${t("f_media_videos_title")} ${index + 1}`}
-                value={video.caption ?? ""}
+                value={captionsLocked ? "" : (video.caption ?? "")}
+                disabled={captionsLocked}
                 placeholder={t("f_media_caption")}
                 onChange={(event) =>
                   patchVideo(index, { ...video, caption: event.target.value })

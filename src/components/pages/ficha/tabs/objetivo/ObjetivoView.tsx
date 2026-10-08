@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { formatDate } from "../../../../../utils/format";
 import { getDeadlineInfo } from "../../../../../utils/recency";
+import { readsFreeText } from "../../../../../utils/recordAccess";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { Badge } from "../../../../ui";
 import { DetailItem, FieldGrid, NotesPanel, TagRow } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
@@ -51,10 +53,16 @@ export function ObjetivoView({ draft }: ObjetivoViewProps) {
         )}
       </DetailItem>
 
-      {values.objectiveNotes && (
+      {!readsFreeText(draft.place) ? (
         <DetailItem label={t("f_notes")} full>
-          <NotesPanel>{values.objectiveNotes}</NotesPanel>
+          <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
         </DetailItem>
+      ) : (
+        values.objectiveNotes && (
+          <DetailItem label={t("f_notes")} full>
+            <NotesPanel>{values.objectiveNotes}</NotesPanel>
+          </DetailItem>
+        )
       )}
 
       {phases.length > 0 && (

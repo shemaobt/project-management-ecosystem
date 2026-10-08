@@ -126,6 +126,7 @@ export function EquipeForm({ draft }: EquipeFormProps) {
             <Input
               {...control}
               value={values.partnerOrg ?? ""}
+              disabled={locked}
               autoComplete="off"
               onChange={(event) => draft.set("partnerOrg", event.target.value)}
             />

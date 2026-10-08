@@ -2,6 +2,8 @@ import { useTranslation } from "react-i18next";
 import { photoSlotSurface } from "../../../../../styles";
 import { cn } from "../../../../../utils/cn";
 import { hasPhotoContent, photoSlots } from "../../../../../utils/media";
+import { readsFreeText } from "../../../../../utils/recordAccess";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { PhotoSlotHint } from "../../../../common/ImageUpload";
 import type { DraftHandle } from "../../useDraft";
 import {
@@ -25,6 +27,9 @@ export function MidiaView({ draft }: MidiaViewProps) {
   return (
     <div className="flex flex-col gap-4">
       {values.sensitiveCountry && <SensitiveMediaNote />}
+      {!readsFreeText(draft.place) && (
+        <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+      )}
 
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3">
         {photos.map((photo, index) => {

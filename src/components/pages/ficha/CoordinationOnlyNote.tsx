@@ -23,6 +23,8 @@ export function CoordinationOnlyNote({
       {t(textKey, {
         regional: t(ROLE_DEFINITIONS.coordinator.labelKey),
         admin: t(SESSION_ROLE_LABEL_KEYS.admin),
+        circle: t(ROLE_DEFINITIONS.resourceCircle.labelKey),
+        lab: t(ROLE_DEFINITIONS.obtLab.labelKey),
       })}
     </p>
   );

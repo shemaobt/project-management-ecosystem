@@ -114,3 +114,17 @@ export function mayWriteNeedDescription(
   if (access.readOnly) return false;
   return !saved || access.baseWritable;
 }
+
+/**
+ * Whether a **saved** story's recording place may be typed over —
+ * `storyProgress.recordLocation` on the server (OBT-573). The progress tab sends the story
+ * table whole, so a place a withheld reader received as `""` and hands back as `""` keeps the
+ * stored one, and one typed over it is a 403. The server matches a row to a saved story by its
+ * name, and so does `saved` here; a story with a new name is its author's own.
+ */
+export function mayWriteStoryPlace(
+  access: RecordAccess,
+  saved: boolean,
+): boolean {
+  return mayWriteNeedDescription(access, saved);
+}

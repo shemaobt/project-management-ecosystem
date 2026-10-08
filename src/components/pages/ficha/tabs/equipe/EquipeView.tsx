@@ -59,7 +59,7 @@ export function EquipeView({ draft }: EquipeViewProps) {
           {shown(values.teamContact)}
         </DetailItem>
 
-        <DetailItem label={t("d_partner")}>{values.partnerOrg || "—"}</DetailItem>
+        <DetailItem label={t("d_partner")}>{shown(values.partnerOrg)}</DetailItem>
 
         <DetailItem label={t("d_translators")} full>
           <PeopleList value={values.translators} />

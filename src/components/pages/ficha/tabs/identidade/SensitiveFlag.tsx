@@ -1,5 +1,6 @@
 import { ShieldAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { ROLE_DEFINITIONS } from "../../../../../constants/roles";
 import { cn } from "../../../../../utils/cn";
 import { CheckboxField } from "../../../../ui";
 
@@ -64,7 +65,10 @@ export function SensitiveFlag({
                 <span aria-hidden className="text-telha">
                   ·
                 </span>
-                {t(key)}
+                {t(key, {
+                  circle: t(ROLE_DEFINITIONS.resourceCircle.labelKey),
+                  lab: t(ROLE_DEFINITIONS.obtLab.labelKey),
+                })}
               </li>
             ))}
           </ul>

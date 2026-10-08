@@ -4,7 +4,9 @@ import {
   OBJECTIVES,
   TRANSLATION_TYPES,
 } from "../../../../../constants/project";
+import { mayWrite } from "../../../../../utils/recordAccess";
 import { Input, Textarea } from "../../../../ui";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { CheckboxGroup, Field, FieldGrid, FieldGroup } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { PhasesEditor } from "./PhasesEditor";
@@ -20,6 +22,7 @@ export function ObjetivoForm({ draft }: ObjetivoFormProps) {
   const objective = values.objective ?? [];
   const scopeError =
     touched && objective.length === 0 ? t("f_required") : undefined;
+  const notesLocked = !mayWrite(draft.place, "objectiveNotes");
 
   return (
     <FieldGrid>
@@ -84,7 +87,8 @@ export function ObjetivoForm({ draft }: ObjetivoFormProps) {
         {(control) => (
           <Textarea
             {...control}
-            value={values.objectiveNotes ?? ""}
+            value={notesLocked ? "" : (values.objectiveNotes ?? "")}
+            disabled={notesLocked}
             placeholder={t("placeholder_objective_notes")}
             onChange={(event) =>
               draft.set("objectiveNotes", event.target.value)
@@ -92,6 +96,11 @@ export function ObjetivoForm({ draft }: ObjetivoFormProps) {
           />
         )}
       </Field>
+      {notesLocked && (
+        <div className="sm:col-span-2">
+          <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+        </div>
+      )}
     </FieldGrid>
   );
 }

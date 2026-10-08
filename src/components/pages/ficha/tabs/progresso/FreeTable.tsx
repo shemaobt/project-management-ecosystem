@@ -60,9 +60,18 @@ function AddRowFooter({ label, onAdd }: { label: string; onAdd: () => void }) {
 export interface StoryTableProps {
   rows: readonly StoryProgressItem[];
   onChange: (rows: StoryProgressItem[]) => void;
+  /**
+   * Whether a row's recording place is kept from this reader — a saved story on a withheld
+   * record, which the server answers as `""` and refuses to have typed over (OBT-573).
+   */
+  placeLocked?: (name: string) => boolean;
 }
 
-export function StoryTable({ rows, onChange }: StoryTableProps) {
+export function StoryTable({
+  rows,
+  onChange,
+  placeLocked = () => false,
+}: StoryTableProps) {
   const { t } = useTranslation();
 
   const patch = (index: number, patchValue: Partial<StoryProgressItem>) =>
@@ -115,7 +124,8 @@ export function StoryTable({ rows, onChange }: StoryTableProps) {
               className="min-w-55 flex-1"
               aria-label={t("story_location_ph")}
               placeholder={t("story_location_ph")}
-              value={row.recordLocation ?? ""}
+              value={placeLocked(row.name) ? "" : (row.recordLocation ?? "")}
+              disabled={placeLocked(row.name)}
               onChange={(event) =>
                 patch(index, { recordLocation: event.target.value })
               }
