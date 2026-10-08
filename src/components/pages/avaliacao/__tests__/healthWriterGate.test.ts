@@ -25,6 +25,7 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { AuthContext, NO_APPS } = await import("../../../../contexts/session");
 const { AvaliacaoPage } = await import("..");
+const { ASSESSMENT_REDIRECT, assessmentRedirect } = await import("../writerGate");
 
 type AuthSession = NonNullable<Parameters<typeof AuthContext.Provider>[0]["value"]>;
 
@@ -71,6 +72,17 @@ describe("a rota da Avaliação de Saúde é de quem a grava (OBT-579)", () => {
   it("o Círculo de Recursos, pela URL, não monta o questionário: a página redireciona", () => {
     const markup = visit(["resourceCircle"]);
     expect(markup).toBe("");
+  });
+
+  it("o destino do redirecionamento é a tela dos formulários, e só quem não grava o recebe", () => {
+    // The static renderer runs no effects, so a `<Navigate>` never lands on a route here;
+    // the destination is proven on the rule the page renders it from.
+    expect(ASSESSMENT_REDIRECT).toBe("/formularios");
+    expect(assessmentRedirect(["resourceCircle"])).toBe("/formularios");
+    expect(assessmentRedirect(["resourceCircle", "equipe"])).toBe("/formularios");
+    expect(assessmentRedirect(["coordinator"])).toBeNull();
+    expect(assessmentRedirect(["obtLab"])).toBeNull();
+    expect(assessmentRedirect(["resourceCircle", "coordinator"])).toBeNull();
   });
 
   it("a coordenação e o OBT Lab montam a página, que começa lendo o registro", () => {

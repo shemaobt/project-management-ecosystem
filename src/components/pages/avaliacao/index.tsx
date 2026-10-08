@@ -9,7 +9,6 @@ import { useProjectRecordStore } from "../../../stores/projectRecordStore";
 import type { AssessmentDraft } from "../../../types/assessment";
 import type { Project } from "../../../types/project";
 import type { ApiFailure } from "../../../types/session";
-import { canWriteHealth } from "../../../utils/access";
 import { formatDate } from "../../../utils/format";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -18,6 +17,7 @@ import { Completion } from "./Completion";
 import { DimensionStep } from "./DimensionStep";
 import { PrayerRequestStep } from "./PrayerRequestStep";
 import { SubmitOutcomeNote, type SubmitOutcome } from "./SubmitOutcomeNote";
+import { assessmentRedirect } from "./writerGate";
 
 const LAST_STEP = HEALTH_DIMENSIONS.length;
 
@@ -182,7 +182,8 @@ export function AvaliacaoPage() {
   // The server refuses the filing to whoever is outside `HEALTH_WRITERS` (OBT-571); a reader
   // who typed or kept the address goes back to the forms before the record is even read, instead
   // of walking the four dimensions to meet that refusal (OBT-579).
-  const writesHealth = canWriteHealth(user.roles);
+  const redirect = assessmentRedirect(user.roles);
+  const writesHealth = redirect === null;
 
   const open = useProjectRecordStore((state) => state.open);
   const reload = useProjectRecordStore((state) => state.reload);
@@ -219,7 +220,7 @@ export function AvaliacaoPage() {
     [drafts, projectId, draftFor],
   );
 
-  if (!writesHealth) return <Navigate to="/formularios" replace />;
+  if (redirect !== null) return <Navigate to={redirect} replace />;
 
   return (
     <AvaliacaoView
