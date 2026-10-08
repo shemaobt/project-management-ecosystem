@@ -10,7 +10,7 @@ import {
   isAssessed,
 } from "../../../../../utils/health";
 import { getPrayerVisibility } from "../../../../../utils/prayer";
-import { mayWrite } from "../../../../../utils/recordAccess";
+import { readsFreeText } from "../../../../../utils/recordAccess";
 import { StatusDot } from "../../../../common/StatusBadge";
 import { Badge } from "../../../../ui";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
@@ -28,7 +28,7 @@ export function SaudeView({ draft }: SaudeViewProps) {
   const locale = t("locale");
   const values = draft.values;
   const visibility = getPrayerVisibility(values);
-  const notesWithheld = !mayWrite(draft.place, "healthNotes");
+  const notesWithheld = !readsFreeText(draft.place);
 
   return (
     <div className="flex flex-col gap-5">

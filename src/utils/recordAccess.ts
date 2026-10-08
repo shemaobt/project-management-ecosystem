@@ -80,6 +80,18 @@ export function recordAccess(
   };
 }
 
+/**
+ * Whether the reader was handed the free text — notes, the health notes, the status comments,
+ * the scope details, a saved need's description — or `""` in its place. The server empties
+ * them on a **withheld** record for whoever does not read the truth (OBT-556), and `withheld`
+ * is exactly that bit; a `trusted` reader (OBT-571) is handed them whole. A view asks this,
+ * never `mayWrite`: that one is the write channel and answers `readOnly` first, so the Circle
+ * — who reads everything and writes nothing — would read every note as *coordination only*.
+ */
+export function readsFreeText(access: RecordAccess): boolean {
+  return !access.withheld;
+}
+
 export function mayWrite(access: RecordAccess, field: RecordField): boolean {
   if (access.readOnly) return false;
   if (COORDINATION_WRITES.has(field)) return access.placeWritable;
