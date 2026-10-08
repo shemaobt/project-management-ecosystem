@@ -102,7 +102,7 @@ describe("browseProjects — o mesmo que a BE-05 promete, do lado das fixtures",
   });
 
   it("a coordenação recebe a verdade do projeto sensível, carimbada como coordination", async () => {
-    readAs("globalStrategist");
+    readAs("admin");
     const result = await browseProjects(BASE);
     const flagged = result.items.filter((project) => project.sensitiveCountry);
     expect(flagged.length).toBeGreaterThan(0);
@@ -153,7 +153,7 @@ describe("browseProjects — o mesmo que a BE-05 promete, do lado das fixtures",
   });
 
   it("locationsWithheld conta só a janela devolvida, e nunca é 0", async () => {
-    readAs("globalStrategist");
+    readAs("admin");
     const all = await browseProjects(BASE);
     const sensitiveTotal = all.items.filter((p) => p.sensitiveCountry).length;
     expect(all.locationsWithheld).toBe(sensitiveTotal);
@@ -230,7 +230,7 @@ describe("browseProjects — o mesmo que a BE-05 promete, do lado das fixtures",
     });
 
     it("a coordenação recebe o grupo e o filtro vale", async () => {
-      readAs("globalStrategist");
+      readAs("admin");
       const result = await browseProjects({
         ...BASE,
         filters: { ...EMPTY_FILTERS, sensitive: "yes" },

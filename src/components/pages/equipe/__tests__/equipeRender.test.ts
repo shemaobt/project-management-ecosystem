@@ -89,11 +89,10 @@ describe("cada região mostra seus três papéis em campos editáveis", () => {
 });
 
 describe("as mesas aparecem com escopo e propósito", () => {
-  it("as três mesas e o papel global se leem na tela", () => {
+  it("as três mesas se leem na tela, e nenhum papel global (OBT-572)", () => {
     const markup = view([region("africa", "continent_africa")]);
 
-    expect(markup).toContain(i18n.t("equipe_global"));
-    expect(markup).toContain(i18n.t("equipe_global_scope"));
+    expect((markup.match(/<article/gu) ?? []).length).toBe(TEAM_BODIES.length);
     for (const body of TEAM_BODIES) {
       expect(markup, body.key).toContain(i18n.t(body.labelKey));
       expect(markup, body.key).toContain(i18n.t(body.purposeKey));

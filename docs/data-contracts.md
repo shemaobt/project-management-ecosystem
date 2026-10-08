@@ -525,8 +525,8 @@ the role whose responsibility it is.
 `{id, urgent, audience, projectId: string | null, date, requestName}`: `requestArrival`
 (`requestStage: "triagem"`, reaching `admin` and `gestor`) and `requestDecision`
 (`requestStage: "aprovado" | "condicional" | "revisar" | "recusado"`, reaching `equipe`, `admin`,
-`gestor` and `mesa` — every role that can start a request). `globalStrategist`'s see-all does not
-apply to them: they reach exactly their audience. They are **stored, not derived**, carry
+`gestor` and `mesa` — every role that can start a request). No role sees all (OBT-572 retired the
+`globalStrategist`): they reach exactly their audience. They are **stored, not derived**, carry
 no region, location, base or mentor, and **nothing from the evaluation** — the GATE-03 D4 ceiling.
 The derived five are `ProjectNotification`.
 
@@ -768,8 +768,8 @@ ETEN report and notifications.
 
 **Where redaction lives, stated once, because the types already encode it.** ~~A project read by
 someone allowed to open it is a *coordination* surface and carries the truth.~~ **Since OBT-528 /
-FE-48 the card and the record are built for their reader:** coordination (`globalStrategist`, the
-`coordinator` of the project's region) reads the truth of a sensitive place and everybody else its
+FE-48 the card and the record are built for their reader:** coordination (the `admin` role, the
+`coordinator` of the project's region — `globalStrategist` until OBT-572) reads the truth of a sensitive place and everybody else its
 region, and the payload says which with `readAs`. The console reads that answer
 (`getLocationDisplay`) and never evaluates a role. Every shape that *leaves* coordination carries the redaction **in its own type** —
 `PrayerRequest.locationWithheld`, `EtenYearSnapshot.country: LocationDisplay`,
@@ -1270,11 +1270,11 @@ the registry has none — the console accepts only `http(s)` and holds no consta
 
 **The roles list — BE-17 of the PME ([OBT-523](https://linear.app/shema-obt/issue/OBT-523)),
 27/sep/2026.** A person can hold several roles across the two apps the PME serves (OBT-522:
-the Admin today is also `globalStrategist` and `gestor`), so the session carries the whole set:
+the Admin today is also `gestor`), so the session carries the whole set:
 
-- **`SessionRole` is a closed vocabulary of eight keys, in the server's precedence order:**
-  `globalStrategist`, `coordinator`, `obtLab`, `resourceCircle` — the four personas the screens
-  were drawn for — then `admin` (OBT-522's Admin, *"Admin da plataforma"*, one role for both
+- **`SessionRole` is a closed vocabulary of seven keys, in the server's precedence order:**
+  `coordinator`, `obtLab`, `resourceCircle` — the three Shemá personas; `globalStrategist` was the
+  fourth until OBT-572 (7/oct/2026) retired it, with no account converted — then `admin` (OBT-522's Admin, *"Admin da plataforma"*, one role for both
   apps and **not** the installation's `is_platform_admin`), `gestor`, `mesa` (the form's two
   privileged seats), and `equipe`, which since OBT-524 is a **project membership**: the server
   answers it for an account that is a live member of at least one project (§9.14), and that is
@@ -1599,8 +1599,8 @@ Each of these is a real question with a named owner. None is an oversight.
    `src/contexts/AuthContext.tsx`, not under `src/types/`: §9.13's response body is the one shape
    on the wire that §1's frozen surface misses, and `contract.test.ts` cannot see it either,
    because it scans that directory. Half of it is frozen anyway — `SessionRole` is
-   `"globalStrategist" | RoleKey` and `regionScope` is `RegionKey[] | null` — so what lives loose
-   is the `globalStrategist` member and the persona envelope around them. Wave 1 has no second
+   `"globalStrategist" | RoleKey` (the first member retired by OBT-572) and `regionScope` is
+   `RegionKey[] | null` — so what lived loose was that member and the persona envelope around them. Wave 1 has no second
    reader: the session is mocked in the shell, and the types are the mock's own. INT-01 is the
    issue that gives the shape a server, and that is when it becomes `src/types/session.ts`, under
    the same guard as the other ten — which is what INT-01 did.

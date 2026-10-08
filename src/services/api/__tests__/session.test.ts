@@ -139,8 +139,8 @@ describe("GET /api/shema/session, como a BE-17 responde", () => {
   it("null em regionScope é global, e lista vazia não é a mesma coisa", () => {
     expect(
       readSession({
-        role: "globalStrategist",
-        roles: ["globalStrategist"],
+        role: "coordinator",
+        roles: ["coordinator"],
         regionScope: null,
       }),
     ).toMatchObject({ regionScope: null });
@@ -193,7 +193,6 @@ describe("GET /api/shema/session, como a BE-17 responde", () => {
 
   it("o vocabulário é o do servidor, na mesma ordem de precedência", () => {
     expect(SESSION_ROLES).toEqual([
-      "globalStrategist",
       "coordinator",
       "obtLab",
       "resourceCircle",

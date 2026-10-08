@@ -82,7 +82,7 @@ describe("o botão lê a instância aberta — BE-24 × BE-25", () => {
 
 describe("quem inicia um pedido na ficha", () => {
   it("o Admin, em qualquer projeto, sem esperar a membresia", () => {
-    expect(startPermission(["globalStrategist", "admin", "gestor"], null, false, "kadiweu")).toBe("yes");
+    expect(startPermission(["coordinator", "admin", "gestor"], null, false, "kadiweu")).toBe("yes");
     expect(startPermission(["admin"], null, true, "kadiweu")).toBe("yes");
   });
 

@@ -205,7 +205,7 @@ describe("readAccount falha fechado, como readSession", () => {
 
   it("o vocabulário concedível é o do servidor, na ordem da sessão", () => {
     expect(GRANTABLE_ROLES).toEqual({
-      shema: ["globalStrategist", "coordinator", "obtLab", "resourceCircle", "admin"],
+      shema: ["coordinator", "obtLab", "resourceCircle", "admin"],
       "resource-request-form": ["admin", "gestor", "mesa"],
     });
   });

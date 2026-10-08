@@ -24,7 +24,6 @@ const openOther = makeProject({ sensitiveCountry: false, readAs: "other" });
 
 describe("a audiência de saúde, lida das funções da sessão (OBT-553)", () => {
   const cases: [string, Parameters<typeof canReadHealth>[0], boolean][] = [
-    ["globalStrategist", ["globalStrategist"], true],
     ["coordinator", ["coordinator"], true],
     ["obtLab", ["obtLab"], true],
     ["resourceCircle", ["resourceCircle"], false],

@@ -30,7 +30,7 @@ export const ANONYMOUS: ApiSessionState = {
 
 const NOBODY: SessionPersona = {
   id: "",
-  role: "globalStrategist",
+  role: "coordinator",
   roles: [],
   regionScope: [],
 };

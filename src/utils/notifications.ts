@@ -177,12 +177,11 @@ export function routeNotifications(
   entries: readonly AppNotification[],
   route: NotificationRoute,
 ): AppNotification[] {
-  const global = route.roles.includes("globalStrategist");
   return entries.filter((entry) => {
     const addressed = entry.audience.some((key) => route.roles.includes(key));
     if (isRequestNotice(entry)) return addressed;
     return (
-      (global || addressed) &&
+      addressed &&
       (route.regions === null || route.regions.includes(entry.region))
     );
   });

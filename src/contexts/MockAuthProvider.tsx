@@ -22,13 +22,13 @@ import {
   type SessionUser,
 } from "./session";
 
-const GLOBAL_STRATEGIST_NAME = "Karina Marinho";
-
 export function resolvePersonaName(
   persona: MockPersona,
   regions: Region[],
 ): string | null {
-  if (persona.role === "globalStrategist") return GLOBAL_STRATEGIST_NAME;
+  // The Admin holds no seat on the org chart — and no region to look one up in — so the
+  // mock has no name to give her, whichever seat heads her list (OBT-572).
+  if (persona.roles.includes("admin")) return null;
   for (const key of persona.regionScope ?? []) {
     const holder = regions.find((region) => region.key === key)?.team[
       persona.role

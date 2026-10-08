@@ -1,6 +1,6 @@
 import type { AccessAppKey } from "../types/access";
 import type { SessionRole } from "../types/session";
-import { GLOBAL_STRATEGIST_ROLE, ROLES, SESSION_ROLES } from "./roles";
+import { ROLES, SESSION_ROLES } from "./roles";
 
 export const SHEMA_APP: AccessAppKey = "shema";
 
@@ -18,7 +18,6 @@ export const ADMIN_ROLE: SessionRole = "admin";
 export const FORM_SEATS: readonly SessionRole[] = ["gestor", "mesa"];
 
 const SHEMA_GRANTS: readonly SessionRole[] = [
-  GLOBAL_STRATEGIST_ROLE,
   ...ROLES.map((role) => role.key),
   ADMIN_ROLE,
 ];

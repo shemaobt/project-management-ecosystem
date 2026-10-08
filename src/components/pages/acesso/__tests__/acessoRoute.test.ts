@@ -59,9 +59,9 @@ const SCREEN = () => i18n.t("acesso_search_label");
 const DENIED = () => i18n.t("acesso_denied_title");
 
 describe("só o admin abre /acesso", () => {
-  it("cada um dos outros sete papéis recebe a página de não autorizado, e nada da tela", () => {
+  it("cada um dos outros seis papéis recebe a página de não autorizado, e nada da tela", () => {
     const others = SESSION_ROLES.filter((role) => role !== "admin");
-    expect(others).toHaveLength(7);
+    expect(others).toHaveLength(6);
     for (const role of others) {
       const out = visit([role]);
       expect(out, role).toContain(DENIED());
@@ -77,8 +77,8 @@ describe("só o admin abre /acesso", () => {
     expect(out).not.toContain(DENIED());
   });
 
-  it("a Admin de hoje — role globalStrategist, admin na lista — também: a guarda lê roles, não role", () => {
-    const out = visit(["globalStrategist", "admin", "gestor"]);
+  it("a Admin de hoje — role gestor, admin na lista — também: a guarda lê roles, não role", () => {
+    const out = visit(["gestor", "admin"]);
     expect(out).toContain(SCREEN());
   });
 

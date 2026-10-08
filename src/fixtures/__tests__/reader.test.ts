@@ -11,7 +11,6 @@ const persona = (
 
 describe("readerOf espelha o _scope.readership do servidor (OBT-528)", () => {
   const cases: [string, SessionPersona, "coordination" | "other"][] = [
-    ["globalStrategist, em qualquer região", persona(["globalStrategist"], null), "coordination"],
     ["admin (hipótese da 528), em qualquer região", persona(["admin"], null), "coordination"],
     ["coordinator na própria região", persona(["coordinator"], ["africa"]), "coordination"],
     ["coordinator fora da própria região", persona(["coordinator"], ["asia"]), "other"],
@@ -26,7 +25,7 @@ describe("readerOf espelha o _scope.readership do servidor (OBT-528)", () => {
   });
 
   it("o aviso da coleção vai a quem coordena alguma região, e a ninguém mais", () => {
-    expect(coordinatesAnything(persona(["globalStrategist"], null))).toBe(true);
+    expect(coordinatesAnything(persona(["admin"], null))).toBe(true);
     expect(coordinatesAnything(persona(["coordinator"], ["asia"]))).toBe(true);
     expect(coordinatesAnything(persona(["coordinator"], []))).toBe(false);
     expect(coordinatesAnything(persona(["obtLab"], ["africa"]))).toBe(false);
@@ -69,7 +68,7 @@ describe("a redução do dublê é a do LeavingShape", () => {
       readAs: "other",
       team: "Base Sintética",
     });
-    expect(asReadBy(sensitive, persona(["globalStrategist"], null))).toMatchObject({
+    expect(asReadBy(sensitive, persona(["admin"], null))).toMatchObject({
       readAs: "coordination",
       team: "Base Sintética",
     });

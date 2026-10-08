@@ -18,19 +18,16 @@ const PERSONA_ROLES = Object.values(MOCK_SESSION_PERSONAS).map(
 );
 
 describe("mocked session", () => {
-  it("gives the global strategist every region", async () => {
+  it("gives the Admin, who has no region scope, every region", async () => {
     const regions = await regionsAPI.list();
-    const visible = scopeRegions(
-      regions,
-      MOCK_SESSION_PERSONAS.globalStrategist,
-    );
+    const visible = scopeRegions(regions, MOCK_SESSION_PERSONAS.admin);
     expect(visible).toHaveLength(regions.length);
     expect(visible.length).toBeGreaterThan(1);
   });
 
-  it("gives a scoped role fewer regions than the global strategist", async () => {
+  it("gives a scoped role fewer regions than the Admin", async () => {
     const regions = await regionsAPI.list();
-    const global = scopeRegions(regions, MOCK_SESSION_PERSONAS.globalStrategist);
+    const global = scopeRegions(regions, MOCK_SESSION_PERSONAS.admin);
     for (const role of SCOPED_ROLES) {
       const scoped = scopeRegions(regions, MOCK_SESSION_PERSONAS[role]);
       expect(scoped.length).toBeGreaterThan(0);
@@ -47,11 +44,9 @@ describe("mocked session", () => {
     }
   });
 
-  it("names the global strategist after the prototype's current user", async () => {
+  it("gives the Admin no name: she holds no seat on the org chart (OBT-572)", async () => {
     const regions = await regionsAPI.list();
-    expect(
-      resolvePersonaName(MOCK_SESSION_PERSONAS.globalStrategist, regions),
-    ).toBe("Karina Marinho");
+    expect(resolvePersonaName(MOCK_SESSION_PERSONAS.admin, regions)).toBeNull();
   });
 
   it("claims no role-holder while the org chart is empty", async () => {
@@ -109,9 +104,13 @@ describe("o vocabulário da sessão", () => {
     }
   });
 
-  it("cada persona mockada tem só o próprio papel na lista", () => {
-    for (const persona of Object.values(MOCK_SESSION_PERSONAS)) {
-      expect(persona.roles, persona.role).toEqual([persona.role]);
+  it("cada persona mockada abre a lista com o próprio papel; só a Admin carrega um segundo, na precedência do servidor (OBT-572)", () => {
+    for (const [key, persona] of Object.entries(MOCK_SESSION_PERSONAS)) {
+      expect(persona.roles[0], key).toBe(persona.role);
+      if (key !== "admin") expect(persona.roles, key).toEqual([persona.role]);
     }
+    expect(MOCK_SESSION_PERSONAS.admin.roles).toEqual(["coordinator", "admin"]);
+    expect(MOCK_SESSION_PERSONAS.admin.role).toBe("coordinator");
+    expect(MOCK_SESSION_PERSONAS.admin.regionScope).toBeNull();
   });
 });

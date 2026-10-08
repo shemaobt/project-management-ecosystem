@@ -349,7 +349,7 @@ describe("the shell rendered with the language set to EN", () => {
   it("labels every session role chip from the catalogue", () => {
     const html = renderSession();
     for (const label of [
-      en.equipe_global,
+      en.role_admin,
       en.role_coordinator,
       en.role_obtlab,
       en.role_resource,

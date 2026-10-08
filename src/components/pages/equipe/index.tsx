@@ -201,6 +201,9 @@ export function EquipePage() {
     [regions, canSeeRegion],
   );
 
+  // Without a name, a change is signed by the session's head role — what the server answers,
+  // so the mock does not diverge from it: an Admin who also coordinates signs as the
+  // coordinator (accepted by Daniel, 8/oct/2026, OBT-572).
   const changedBy = user.name ?? t(SESSION_ROLE_LABEL_KEYS[user.role]);
 
   return (

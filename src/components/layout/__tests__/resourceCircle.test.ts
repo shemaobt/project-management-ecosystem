@@ -153,8 +153,8 @@ describe("quem tem papel no PME continua com as seis áreas", () => {
     }
   });
 
-  it("o Admin de hoje (estrategista, admin, gestor) vê as seis áreas, a entrada e o link externo", () => {
-    const html = visit(["globalStrategist", "admin", "gestor"]);
+  it("o Admin de hoje (admin, gestor) vê as seis áreas, a entrada e o link externo", () => {
+    const html = visit(["admin", "gestor"]);
     expect(areasOf(html)).toHaveLength(6);
     expect(entryOf(html)).toBe(true);
     expect(html).toContain(i18n.t("rr_link_btn"));
@@ -170,9 +170,8 @@ describe("quem tem papel no PME continua com as seis áreas", () => {
 });
 
 describe("o link de solicitação externa é só do Admin", () => {
-  it("nenhum dos outros sete papéis vê o botão no cabeçalho", () => {
+  it("nenhum dos outros seis papéis vê o botão no cabeçalho", () => {
     for (const role of [
-      "globalStrategist",
       "coordinator",
       "obtLab",
       "resourceCircle",
@@ -189,8 +188,8 @@ describe("o link de solicitação externa é só do Admin", () => {
 describe("o botão Importar é só de quem importa (OBT-559)", () => {
   const importButton = (html: string) => html.includes(`${i18n.t("btn_import")}</button>`);
 
-  it("o estrategista global, a coordenação e o admin veem o botão", () => {
-    for (const role of ["globalStrategist", "coordinator", "admin"] as const) {
+  it("a coordenação e o admin veem o botão", () => {
+    for (const role of ["coordinator", "admin"] as const) {
       expect(importButton(visit([role])), role).toBe(true);
     }
   });

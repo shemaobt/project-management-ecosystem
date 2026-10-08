@@ -91,8 +91,8 @@ const disabled = (markup: string, id: string) =>
 
 const PHRASE = () =>
   i18n.t("f_location_coordination_only", {
-    global: i18n.t(SESSION_ROLE_LABEL_KEYS.globalStrategist),
     regional: i18n.t(ROLE_DEFINITIONS.coordinator.labelKey),
+    admin: i18n.t(SESSION_ROLE_LABEL_KEYS.admin),
   });
 
 const PLACE = "Peru, Vila Sintética";
@@ -203,7 +203,7 @@ describe("aba Identidade por papel — o que o servidor mandou para quem lê", (
     expect(otherView).toContain(i18n.t(getRegionLabelKey(asOther.derived!.region)));
     expect(disabled(render(IdentidadeTab, "editar", asOther), "ficha-location")).toBe(true);
 
-    storage.setItem(MOCK_SESSION_KEY, "globalStrategist");
+    storage.setItem(MOCK_SESSION_KEY, "admin");
     const asCoordination = (await projectRecordAPI.read(sensitive.id)).project;
     expect(asCoordination.readAs).toBe("coordination");
     expect(render(IdentidadeTab, "ver", asCoordination)).toContain(

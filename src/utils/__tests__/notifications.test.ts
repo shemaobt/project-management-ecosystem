@@ -363,11 +363,18 @@ describe("routeNotifications", () => {
     expect(routed.map((entry) => entry.projectId)).toEqual(["south"]);
   });
 
-  it("a estrategista global vê tudo", () => {
-    const routed = routeNotifications(entries, { roles: ["globalStrategist"], regions: null,
-    });
+  it("ninguém vê tudo por papel desde a OBT-572: um papel sem audiência, mesmo sem região, não recebe nada", () => {
+    const routed = routeNotifications(entries, { roles: ["admin"], regions: null });
 
-    expect(routed).toHaveLength(entries.length);
+    expect(routed).toEqual([]);
+  });
+
+  it("a coordenação sem região recebe os avisos da sua audiência em todas as regiões", () => {
+    const routed = routeNotifications(entries, { roles: ["coordinator"], regions: null });
+    const addressed = entries.filter((entry) => entry.audience.includes("coordinator"));
+
+    expect(addressed.length).toBeGreaterThan(1);
+    expect(routed).toHaveLength(addressed.length);
   });
 });
 
@@ -568,12 +575,7 @@ describe("avisos do formulário (OBT-541)", () => {
         role,
       ).toEqual(["requestDecision"]);
     }
-    for (const role of [
-      "coordinator",
-      "obtLab",
-      "resourceCircle",
-      "globalStrategist",
-    ] as const) {
+    for (const role of ["coordinator", "obtLab", "resourceCircle"] as const) {
       expect(
         routeNotifications([decision], { roles: [role], regions: null }),
         role,
@@ -581,17 +583,17 @@ describe("avisos do formulário (OBT-541)", () => {
     }
   });
 
-  it("o ver-tudo do globalStrategist não alcança aviso de pedido; o papel de admin, sim", () => {
+  it("a coordenação sem região não alcança aviso de pedido; o papel de admin, sim", () => {
     expect(
       routeNotifications(entries, {
-        roles: ["globalStrategist"],
+        roles: ["coordinator"],
         regions: null,
       }),
     ).toEqual([]);
     expect(
       kinds(
         routeNotifications(entries, {
-          roles: ["globalStrategist", "admin"],
+          roles: ["coordinator", "admin"],
           regions: null,
         }),
       ),

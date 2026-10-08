@@ -32,8 +32,8 @@ const { SaudeTab } = await import("../tabs/Saude");
 const noop = () => {};
 
 const NOTE = i18n.t("f_free_text_coordination_only", {
-  global: i18n.t("equipe_global"),
   regional: i18n.t("role_coordinator"),
+  admin: i18n.t("role_admin"),
 });
 
 const place = (sensitive: boolean, readAs: "other" | "coordination") =>
