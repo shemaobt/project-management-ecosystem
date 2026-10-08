@@ -78,11 +78,15 @@ describe("o aviso de retidos só monta quando a contagem vem", () => {
     expect(view(null)).not.toContain(noticeOf(1));
   });
 
-  it("no dublê, só a coordenação recebe a contagem", async () => {
+  it("no dublê, quem lê a verdade recebe a contagem — a coordenação e o Círculo (OBT-571), não o OBT Lab", async () => {
     storage.setItem(MOCK_SESSION_KEY, "obtLab");
     expect((await projectBrowseAPI.browse(QUERY)).locationsWithheld).toBeNull();
     storage.setItem(MOCK_SESSION_KEY, "resourceCircle");
-    expect((await projectBrowseAPI.browse(QUERY)).locationsWithheld).toBeNull();
+    const circle = await projectBrowseAPI.browse(QUERY);
+    expect(circle.locationsWithheld).toBe(
+      circle.items.filter((item) => item.sensitiveCountry).length,
+    );
+    expect(circle.locationsWithheld).toBeGreaterThan(0);
 
     storage.setItem(MOCK_SESSION_KEY, "admin");
     const coordination = await projectBrowseAPI.browse(QUERY);

@@ -10,7 +10,7 @@ import {
   openNeeds,
   unacknowledgedNeeds,
 } from "../../../../../utils/needs";
-import { mayWriteNeedDescription } from "../../../../../utils/recordAccess";
+import { readsFreeText } from "../../../../../utils/recordAccess";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { DetailItem } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
@@ -154,7 +154,7 @@ export function NecessidadesView({ draft }: NecessidadesViewProps) {
         </DetailItem>
       )}
 
-      {!mayWriteNeedDescription(draft.place, true) && (
+      {!readsFreeText(draft.place) && (
         <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
       )}
     </div>

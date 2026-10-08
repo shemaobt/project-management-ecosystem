@@ -6,7 +6,7 @@ import {
   REGIONS,
 } from "../constants/regions";
 import { ROLES } from "../constants/roles";
-import type { Coordinates, Project } from "../types/project";
+import type { Coordinates, Project, ReadAs } from "../types/project";
 import { hasPlottableCoords } from "./identity";
 import type {
   LocationDisplay,
@@ -103,15 +103,21 @@ function placeDisplay(project: Project, withheld: boolean): PlaceDisplay {
 }
 
 /**
+ * Whether a payload carries the truth of a sensitive place: `coordination` and, since
+ * OBT-571, `trusted` — the Resource Circle's reading, which sees everything and edits
+ * nothing. `other`, or no answer at all, does not.
+ */
+export function readsTruth(readAs: ReadAs | undefined): boolean {
+  return readAs === "coordination" || readAs === "trusted";
+}
+
+/**
  * The console's reading of a project's place and base: what the server built for this
- * reader (`readAs`). Only a payload read as coordination shows a sensitive place; one no
+ * reader (`readAs`). Only a payload that reads the truth shows a sensitive place; one no
  * server read for anybody is withheld.
  */
 export function getLocationDisplay(project: Project): PlaceDisplay {
-  return placeDisplay(
-    project,
-    project.sensitiveCountry && project.readAs !== "coordination",
-  );
+  return placeDisplay(project, project.sensitiveCountry && !readsTruth(project.readAs));
 }
 
 /** What leaves the system — export, prayer wall, notifications, ETEN: withheld by the flag, whoever reads. */
@@ -128,14 +134,12 @@ export function getCountryDisplay(project: Project): LocationDisplay {
 
 /**
  * The collection's withheld notice as the server's `withheld_note` spells it: how many
- * leave withheld, addressed to coordination only, and never 0. `addressed` defaults to the
+ * leave withheld, addressed to whoever reads the truth (OBT-571: the trusted reader too), and never 0. `addressed` defaults to the
  * rows' own answer — a list somebody read as coordination.
  */
 export function withheldNotice(
   projects: readonly Project[],
-  addressed: boolean = projects.some(
-    (project) => project.readAs === "coordination",
-  ),
+  addressed: boolean = projects.some((project) => readsTruth(project.readAs)),
 ): number | null {
   const count = projects.filter(
     (project) => getLeavingLocation(project).withheld,

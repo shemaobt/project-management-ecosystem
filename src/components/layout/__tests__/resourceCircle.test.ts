@@ -194,19 +194,43 @@ describe("o botão Importar é só de quem importa (OBT-559)", () => {
     }
   });
 
-  it("OBT Lab e Círculo de Recursos não veem o Importar, e continuam com as outras ações de dados", () => {
-    for (const role of ["obtLab", "resourceCircle"] as const) {
-      const html = visit([role]);
-      expect(importButton(html), role).toBe(false);
-      for (const key of DATA_ACTIONS.filter((key) => key !== "btn_import")) {
-        expect(html, `${role} · ${key}`).toContain(i18n.t(key));
-      }
+  it("OBT Lab não vê o Importar, e continua com as outras ações de dados", () => {
+    const html = visit(["obtLab"]);
+    expect(importButton(html)).toBe(false);
+    for (const key of DATA_ACTIONS.filter((key) => key !== "btn_import")) {
+      expect(html, key).toContain(i18n.t(key));
+    }
+  });
+
+  it("o Círculo de Recursos não vê o Importar nem o Novo projeto (OBT-571), e continua com o resto", () => {
+    const html = visit(["resourceCircle"]);
+    expect(importButton(html)).toBe(false);
+    expect(html).not.toContain(i18n.t("btn_new"));
+    for (const key of DATA_ACTIONS.filter((key) => key !== "btn_import" && key !== "btn_new")) {
+      expect(html, key).toContain(i18n.t(key));
     }
   });
 
   it("quem soma um papel que importa a um que não importa recebe o botão", () => {
     expect(importButton(visit(["obtLab", "coordinator"]))).toBe(true);
     expect(importButton(visit(["resourceCircle", "obtLab"]))).toBe(false);
+  });
+});
+
+describe("o Novo projeto é de quem o servidor deixa escrever um (OBT-571)", () => {
+  const newButton = (html: string) => html.includes(i18n.t("btn_new"));
+
+  it("coordenação, admin e OBT Lab abrem uma ficha nova", () => {
+    for (const roles of [["coordinator"], ["admin"], ["obtLab"]] as const) {
+      expect(newButton(visit([...roles])), roles.join("+")).toBe(true);
+    }
+  });
+
+  it("o Círculo que coordena é coordenação e abre; o que é só Círculo, ou Círculo e OBT Lab, não", () => {
+    expect(newButton(visit(["resourceCircle", "coordinator"]))).toBe(true);
+    expect(newButton(visit(["resourceCircle", "admin"]))).toBe(true);
+    expect(newButton(visit(["resourceCircle"]))).toBe(false);
+    expect(newButton(visit(["resourceCircle", "obtLab"]))).toBe(false);
   });
 });
 

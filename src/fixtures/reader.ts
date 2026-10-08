@@ -2,7 +2,7 @@ import { REGION_CENTROIDS } from "../constants/geo";
 import type { SessionPersona } from "../contexts/session";
 import type { Project, ReadAs } from "../types/project";
 import type { RegionKey } from "../types/region";
-import { canReadHealth } from "../utils/access";
+import { canReadHealth, canWriteHealth } from "../utils/access";
 import { getRegion } from "../utils/region";
 
 /**
@@ -24,11 +24,32 @@ export function readerOf(persona: SessionPersona, region: RegionKey): ReadAs {
   ) {
     return "coordination";
   }
+  // The Resource Circle reads the truth and edits nothing of it (OBT-571); the OBT Lab
+  // stays `other`, by Daniel's decision, and keeps reading the region.
+  if (persona.roles.includes("resourceCircle")) return "trusted";
   return "other";
 }
 
 export function readsHealth(persona: SessionPersona): boolean {
   return canReadHealth(persona.roles);
+}
+
+export function writesHealth(persona: SessionPersona): boolean {
+  return canWriteHealth(persona.roles);
+}
+
+/**
+ * `reads_truth_anywhere` on the server (OBT-571): who a notice about the collection — the
+ * `locationsWithheld` count and the `sensitive` facet — is for. Coordination of any region,
+ * or the Resource Circle, which reads the truth without coordinating.
+ */
+export function readsTruthAnywhere(persona: SessionPersona): boolean {
+  if (coordinatesAnything(persona)) return true;
+  // The server asks the Circle's scope to be global or non-empty, as it asks a coordinator's.
+  return (
+    persona.roles.includes("resourceCircle") &&
+    (persona.regionScope === null || persona.regionScope.length > 0)
+  );
 }
 
 export function coordinatesAnything(persona: SessionPersona): boolean {

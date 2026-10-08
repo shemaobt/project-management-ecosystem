@@ -32,7 +32,9 @@ export function RecordFooter({
         <Button variant="ghost" onClick={onClose}>
           {t("btn_close")}
         </Button>
-        <Button onClick={onEdit}>{t("modal_edit")}</Button>
+        {/* No Editar for a reader the server lets write nothing (OBT-571): a button that only
+            ever leads to a refused save is the dead control the console does not draw. */}
+        {draft.place.readOnly ? null : <Button onClick={onEdit}>{t("modal_edit")}</Button>}
       </div>
     );
   }

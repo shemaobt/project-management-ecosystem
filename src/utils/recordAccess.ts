@@ -16,14 +16,22 @@ import { getLocationDisplay } from "./region";
  * `placeWritable`: location, location 2, coordinates, the flag and the reason.
  * `baseWritable`: the base, the three contacts, the language's name and, on a withheld
  * record, the free text (OBT-556) and the description of a saved need.
- * `readsHealth`: the pastoral follow-up. Whether the reader is in the health audience
- * comes from the session's roles (`canReadHealth`), handed in by whoever builds this.
+ * `readsHealth`: the Saúde tab and the health fields. `writesHealth`: the pastoral
+ * follow-up — narrower since OBT-571, because the Resource Circle reads the health and
+ * writes none of it. Both come from the session's roles (`canReadHealth`,
+ * `canWriteHealth`), handed in by whoever builds this.
+ *
+ * A `trusted` payload (OBT-571) reads the truth of a sensitive place like coordination and
+ * writes **nothing** — Daniel, 7/oct/2026: the Resource Circle loses the `PATCH` it had, the
+ * description of a need included. `readOnly` is that bit, and `mayWrite` answers it first.
  */
 export interface RecordAccess {
   withheld: boolean;
   placeWritable: boolean;
   baseWritable: boolean;
   readsHealth: boolean;
+  writesHealth: boolean;
+  readOnly: boolean;
 }
 
 /**
@@ -35,6 +43,8 @@ export const FULL_ACCESS: RecordAccess = {
   placeWritable: true,
   baseWritable: true,
   readsHealth: true,
+  writesHealth: true,
+  readOnly: false,
 };
 
 const NO_ACCESS: RecordAccess = {
@@ -42,6 +52,8 @@ const NO_ACCESS: RecordAccess = {
   placeWritable: false,
   baseWritable: false,
   readsHealth: false,
+  writesHealth: false,
+  readOnly: true,
 };
 
 /**
@@ -52,22 +64,39 @@ export function recordAccess(
   saved: Project | undefined,
   isNew: boolean,
   readsHealth: boolean,
+  writesHealth: boolean,
 ): RecordAccess {
-  if (isNew) return { ...FULL_ACCESS, readsHealth };
+  if (isNew) return { ...FULL_ACCESS, readsHealth, writesHealth };
   if (!saved) return NO_ACCESS;
   const coordination = saved.readAs === "coordination";
+  const readOnly = saved.readAs === "trusted";
   return {
     withheld: getLocationDisplay(saved).withheld,
     placeWritable: coordination,
-    baseWritable: coordination || !saved.sensitiveCountry,
+    baseWritable: !readOnly && (coordination || !saved.sensitiveCountry),
     readsHealth,
+    writesHealth: writesHealth && !readOnly,
+    readOnly,
   };
 }
 
+/**
+ * Whether the reader was handed the free text — notes, the health notes, the status comments,
+ * the scope details, a saved need's description — or `""` in its place. The server empties
+ * them on a **withheld** record for whoever does not read the truth (OBT-556), and `withheld`
+ * is exactly that bit; a `trusted` reader (OBT-571) is handed them whole. A view asks this,
+ * never `mayWrite`: that one is the write channel and answers `readOnly` first, so the Circle
+ * — who reads everything and writes nothing — would read every note as *coordination only*.
+ */
+export function readsFreeText(access: RecordAccess): boolean {
+  return !access.withheld;
+}
+
 export function mayWrite(access: RecordAccess, field: RecordField): boolean {
+  if (access.readOnly) return false;
   if (COORDINATION_WRITES.has(field)) return access.placeWritable;
   if (WITHHELD_WRITES.has(field)) return access.baseWritable;
-  if (PASTORAL_WRITES.has(field)) return access.readsHealth;
+  if (PASTORAL_WRITES.has(field)) return access.writesHealth;
   return true;
 }
 
@@ -82,5 +111,6 @@ export function mayWriteNeedDescription(
   access: RecordAccess,
   saved: boolean,
 ): boolean {
+  if (access.readOnly) return false;
   return !saved || access.baseWritable;
 }

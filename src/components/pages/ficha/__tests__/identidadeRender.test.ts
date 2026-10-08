@@ -47,7 +47,7 @@ const noop = () => {};
 
 /** A handle as `useDraft` builds it for a record the server (or the double) answered. */
 const handle = (saved: Project, isNew = false) => {
-  const place = recordAccess(isNew ? undefined : saved, isNew, true);
+  const place = recordAccess(isNew ? undefined : saved, isNew, true, true);
   const values = {
     ...makeEmptyProject(),
     ...saved,
@@ -230,13 +230,13 @@ describe("aba Equipe e rascunho — o que o leitor não grava não aparece nem f
   });
 
   it("a base não falta para quem não pode gravá-la, e continua faltando para quem pode", () => {
-    const other = recordAccess(reduced(), false, true);
+    const other = recordAccess(reduced(), false, true, true);
     expect(missingRequired({ ...makeEmptyProject() }, other)).not.toContain("team");
     expect(missingRequired({ ...makeEmptyProject() }, FULL_ACCESS)).toContain("team");
   });
 
   it("o rascunho de outra pessoa não reaparece para quem não pode gravá-lo", () => {
-    const other = recordAccess(reduced(), false, true);
+    const other = recordAccess(reduced(), false, true, true);
     const draft = {
       location: PLACE,
       team: BASE,

@@ -107,6 +107,7 @@ export interface SaveAttempt {
   typed: Partial<Project>;
   isNew: boolean;
   readsHealth: boolean;
+  writesHealth: boolean;
 }
 
 export type SaveOutcome =
@@ -226,7 +227,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
    * itself is last-write-wins with an extra round trip. Pressing save again is the
    * decision, and it is the coordinator's.
    */
-  save: async ({ values: draft, typed, isNew, readsHealth }) => {
+  save: async ({ values: draft, typed, isNew, readsHealth, writesHealth }) => {
     const withheld = withheldFields(typed);
 
     if (isNew) {
@@ -262,7 +263,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
 
     // Second net under the draft filter (useDraft): a field this reader may not write
     // never travels, so a stale draft cannot turn the whole save into a 403 (OBT-532).
-    const access = recordAccess(record.project, false, readsHealth);
+    const access = recordAccess(record.project, false, readsHealth, writesHealth);
     const fields = changedFields(draft, record.project).filter((field) =>
       mayWrite(access, field),
     );

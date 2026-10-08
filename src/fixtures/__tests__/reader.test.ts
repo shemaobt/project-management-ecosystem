@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { SessionPersona } from "../../contexts/session";
 import { REGION_CENTROIDS } from "../../constants/geo";
 import { makeProject } from "../../utils/__tests__/factory";
-import { asReadBy, coordinatesAnything, readerOf, withhold } from "../reader";
+import { asReadBy, coordinatesAnything, readerOf, readsTruthAnywhere, withhold } from "../reader";
 
 const persona = (
   roles: SessionPersona["roles"],
@@ -10,18 +10,28 @@ const persona = (
 ): SessionPersona => ({ id: "p", role: roles[0], roles, regionScope });
 
 describe("readerOf espelha o _scope.readership do servidor (OBT-528)", () => {
-  const cases: [string, SessionPersona, "coordination" | "other"][] = [
+  const cases: [string, SessionPersona, "coordination" | "trusted" | "other"][] = [
     ["admin (hipótese da 528), em qualquer região", persona(["admin"], null), "coordination"],
     ["coordinator na própria região", persona(["coordinator"], ["africa"]), "coordination"],
     ["coordinator fora da própria região", persona(["coordinator"], ["asia"]), "other"],
     ["coordinator com escopo global (null)", persona(["coordinator"], null), "coordination"],
     ["coordinator + obtLab na região da conta", persona(["coordinator", "obtLab"], ["africa"]), "coordination"],
     ["obtLab, mesmo na própria região", persona(["obtLab"], ["africa"]), "other"],
-    ["resourceCircle", persona(["resourceCircle"], ["africa"]), "other"],
+    ["resourceCircle, em qualquer região (OBT-571)", persona(["resourceCircle"], ["africa"]), "trusted"],
+    ["resourceCircle fora da própria região", persona(["resourceCircle"], ["asia"]), "trusted"],
   ];
 
   it.each(cases)("%s", (_name, who, expected) => {
     expect(readerOf(who, "africa")).toBe(expected);
+  });
+
+  it("a verdade da coleção vai a quem coordena alguma região e ao Círculo (OBT-571), não ao OBT Lab", () => {
+    expect(readsTruthAnywhere(persona(["resourceCircle"], ["africa"]))).toBe(true);
+    expect(readsTruthAnywhere(persona(["coordinator"], ["asia"]))).toBe(true);
+    expect(readsTruthAnywhere(persona(["obtLab"], ["africa"]))).toBe(false);
+    expect(readsTruthAnywhere(persona(["coordinator"], []))).toBe(false);
+    expect(readsTruthAnywhere(persona(["resourceCircle"], []))).toBe(false);
+    expect(readsTruthAnywhere(persona(["resourceCircle"], null))).toBe(true);
   });
 
   it("o aviso da coleção vai a quem coordena alguma região, e a ninguém mais", () => {

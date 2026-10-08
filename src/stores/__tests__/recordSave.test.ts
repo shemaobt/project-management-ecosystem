@@ -175,6 +175,7 @@ const saving = (typed: Record<string, unknown>) => ({
   typed: { ...typed } as never,
   isNew: false,
   readsHealth: true,
+  writesHealth: true,
 });
 
 const creating = (values: never, typed: Record<string, unknown> = {}) => ({
@@ -182,6 +183,7 @@ const creating = (values: never, typed: Record<string, unknown> = {}) => ({
   typed: typed as never,
   isNew: true,
   readsHealth: true,
+  writesHealth: true,
 });
 
 const store = () => useProjectRecordStore.getState();
@@ -244,6 +246,7 @@ describe("cada aba escreve só o que é dela", () => {
       typed: { notes: "vai" } as never,
       isNew: false,
       readsHealth: true,
+      writesHealth: true,
     });
 
     expect(outcome.kind).toBe("saved");
@@ -582,9 +585,10 @@ describe("o salvamento nunca envia campo que o leitor não pode gravar (OBT-532,
     });
   });
 
-  const saved = (typed: Record<string, unknown>, readsHealth: boolean) => ({
+  const saved = (typed: Record<string, unknown>, readsHealth: boolean, writesHealth = readsHealth) => ({
     ...saving(typed),
     readsHealth,
+    writesHealth,
   });
 
   const patches = () => sent.filter((config) => config.method === "patch");

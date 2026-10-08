@@ -15,7 +15,7 @@ import {
   recordAccess,
 } from "../utils/recordAccess";
 import { loadProject, loadProjects } from "./projects";
-import { asReadBy, readsHealth } from "./reader";
+import { asReadBy, readsHealth, writesHealth } from "./reader";
 import { mockPersona } from "./session";
 
 /**
@@ -159,11 +159,12 @@ export function patchRecord(
   // The server's refusal (OBT-528, OBT-553, OBT-556): a reader who is not coordination
   // writes neither the place nor the flag, on a withheld record neither the base, the
   // contacts, the free text nor a saved need's description, and outside the health
-  // audience not the pastoral follow-up.
+  // writers (OBT-571: the Resource Circle reads, never writes) not the pastoral follow-up.
   const access = recordAccess(
     asAnswered(kept.project),
     false,
     readsHealth(mockPersona()),
+    writesHealth(mockPersona()),
   );
   const refused = Object.keys(patch).filter(
     (field) => !mayWrite(access, field as keyof Project),

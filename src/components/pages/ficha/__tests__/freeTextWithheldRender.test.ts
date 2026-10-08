@@ -36,8 +36,8 @@ const NOTE = i18n.t("f_free_text_coordination_only", {
   admin: i18n.t("role_admin"),
 });
 
-const place = (sensitive: boolean, readAs: "other" | "coordination") =>
-  recordAccess(makeProject({ sensitiveCountry: sensitive, readAs }), false, true);
+const place = (sensitive: boolean, readAs: "other" | "trusted" | "coordination") =>
+  recordAccess(makeProject({ sensitiveCountry: sensitive, readAs }), false, true, true);
 
 const handle = (access: ReturnType<typeof place>, values: Record<string, unknown> = {}) => ({
   values: { ...makeEmptyProject(), ...values },
@@ -124,6 +124,39 @@ describe("a descrição de uma necessidade num registro recolhido (OBT-556)", ()
   it("a coordenação edita a descrição de uma necessidade salva", () => {
     const markup = needs(place(true, "coordination"), [saved]);
     expect(disabled(markup, "need-0-desc")).toBe(false);
+  });
+});
+
+describe("o Círculo de Recursos lê o texto livre de um registro sensível (OBT-571)", () => {
+  const trusted = place(true, "trusted");
+  const saved = { ...makeNeed(), id: "n1", description: "descrição que o Círculo lê" };
+
+  it("lê as notas, e não a frase de recolhido", () => {
+    const markup = notas("ver", trusted, "nota lida pelo Círculo");
+    expect(markup).toContain("nota lida pelo Círculo");
+    expect(markup).not.toContain(NOTE.slice(0, 40));
+  });
+
+  it("lê as notas sobre a saúde", () => {
+    const markup = saude("ver", trusted, "nota de saúde lida pelo Círculo");
+    expect(markup).toContain("nota de saúde lida pelo Círculo");
+    expect(markup).not.toContain(NOTE.slice(0, 40));
+  });
+
+  it("lê a descrição de uma necessidade salva, sem a frase de recolhido", () => {
+    const markup = renderToStaticMarkup(
+      createElement(NecessidadesTab, { mode: "ver", draft: handle(trusted, { needsItems: [saved] }) }),
+    );
+    expect(markup).toContain("descrição que o Círculo lê");
+    expect(markup).not.toContain(NOTE.slice(0, 40));
+  });
+
+  it("e não escreve nada: trusted é read-only, o OBT Lab segue recolhido, a coordenação não muda", () => {
+    expect(trusted.readOnly).toBe(true);
+    expect(trusted.withheld).toBe(false);
+    expect(place(true, "other").withheld).toBe(true);
+    expect(place(true, "coordination").withheld).toBe(false);
+    expect(place(true, "coordination").readOnly).toBe(false);
   });
 });
 

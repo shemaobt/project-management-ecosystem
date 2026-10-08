@@ -13,7 +13,7 @@ import type { GatedFacet } from "../utils/gatedFacets";
 import { filterProjects, type FacetCounts } from "../utils/search";
 import { loadProjects } from "./projects";
 import { applyRecordOverlay } from "./projectRecord";
-import { asReadBy, coordinatesAnything, readsHealth } from "./reader";
+import { asReadBy, readsHealth, readsTruthAnywhere } from "./reader";
 import { mockPersona } from "./session";
 
 export type { ProjectBrowseQuery, ProjectBrowseResult };
@@ -82,7 +82,7 @@ function withoutPrayerFields(project: Project): Project {
 function hiddenFacets(persona: SessionPersona): GatedFacet[] {
   const hidden: GatedFacet[] = [];
   if (!readsHealth(persona)) hidden.push("health");
-  if (!coordinatesAnything(persona)) hidden.push("sensitive");
+  if (!readsTruthAnywhere(persona)) hidden.push("sensitive");
   return hidden;
 }
 
@@ -141,6 +141,6 @@ export async function browseProjects(
     counts: countsAsRead(result.counts, hidden),
     matched: result.projects.length,
     total: result.total,
-    locationsWithheld: withheldNotice(items, coordinatesAnything(persona)),
+    locationsWithheld: withheldNotice(items, readsTruthAnywhere(persona)),
   };
 }

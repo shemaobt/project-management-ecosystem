@@ -34,21 +34,44 @@ export function canImportProjects(roles: readonly SessionRole[]): boolean {
 }
 
 /**
- * Who reads a team's health — `HEALTH_AUDIENCE` in shema-api's `_health_audience.py` (OBT-553):
- * a coordinator and the OBT Lab. The Resource Circle and the Shemá
- * `admin` role are outside it, and are handed every health field empty, as a project nobody
- * has assessed. Reflection only, off the roles the session already carries: the server
- * decides, and the `?health=` filter, the health order and the `health` facet it ignores or
- * drops are what the screen reads back. An installation admin reads on the server and
- * is not among the session's roles, so this does not claim it.
+ * Who opens a new record — everyone the server lets write a project. The Resource Circle
+ * writes none (OBT-571, Daniel 7/oct: *só não podem editar* read whole; `refuse_circle_writes`
+ * answers 403 on every project route, the create included), unless it also coordinates —
+ * `readership` makes a Circle who coordinates coordination, and a Circle who is also OBT Lab
+ * is refused too, the stricter of the two readings. Reflection only: without it the button
+ * leads to a form the server refuses after it was filled, the worst kind of dead control.
  */
-const HEALTH_AUDIENCE: readonly SessionRole[] = [
-  "coordinator",
-  "obtLab",
-];
+export function canCreateProjects(roles: readonly SessionRole[]): boolean {
+  const circle = roles.includes("resourceCircle");
+  const coordinates = roles.includes("coordinator") || roles.includes(ADMIN_ROLE);
+  return !circle || coordinates;
+}
+
+/**
+ * Who reads a team's health — `HEALTH_AUDIENCE` in shema-api's `_health_audience.py` (OBT-553,
+ * widened by OBT-571): a coordinator, the OBT Lab and, since OBT-571, the Resource Circle —
+ * *"o Resource Circle poderá ver tudo"* (Karina, 6/out), and the health is in that *tudo* by
+ * Daniel's decision. The Shemá `admin` role stays outside it and is handed every health field
+ * empty, as a project nobody has assessed. Reflection only, off the roles the session already
+ * carries: the server decides, and the `?health=` filter, the health order and the `health`
+ * facet it ignores or drops are what the screen reads back. An installation admin reads on
+ * the server and is not among the session's roles, so this does not claim it.
+ */
+const HEALTH_AUDIENCE: readonly SessionRole[] = ["coordinator", "obtLab", "resourceCircle"];
 
 export function canReadHealth(roles: readonly SessionRole[]): boolean {
   return roles.some((role) => HEALTH_AUDIENCE.includes(role));
+}
+
+/**
+ * Who writes the pastoral follow-up and files a health assessment — narrower than who reads
+ * (OBT-571): the Resource Circle reads the health and changes nothing. `PASTORAL_WRITES`
+ * and the assessment route keep refusing it on the server; this is the reflection.
+ */
+const HEALTH_WRITERS: readonly SessionRole[] = ["coordinator", "obtLab"];
+
+export function canWriteHealth(roles: readonly SessionRole[]): boolean {
+  return roles.some((role) => HEALTH_WRITERS.includes(role));
 }
 
 export function holdsShemaGrant(roles: readonly SessionRole[]): boolean {

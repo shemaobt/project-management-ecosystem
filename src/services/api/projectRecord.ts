@@ -223,11 +223,15 @@ interface WireRecord {
 const text = (value: string | null | undefined): string => value ?? "";
 
 /**
- * The server's `readAs`, read closed: anything but its two values — absent included, a
+ * The server's `readAs`, read closed: anything but its three values — absent included, a
  * server from before OBT-528 — is no answer, and a payload with no answer reads withheld.
+ * `trusted` arrived with OBT-571: before it, a server that said so was read as no answer
+ * and the Resource Circle would have been redacted on this side alone.
  */
 export function readReadAs(value: unknown): ReadAs | undefined {
-  return value === "coordination" || value === "other" ? value : undefined;
+  return value === "coordination" || value === "trusted" || value === "other"
+    ? value
+    : undefined;
 }
 
 function authorization(

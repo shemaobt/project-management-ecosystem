@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { REGION_CENTROIDS } from "../../constants/geo";
-import { DEFAULT_SORT, SORT_KEYS } from "../../constants/sorting";
+import { DEFAULT_SORT, SORT_KEYS, sortKeysFor } from "../../constants/sorting";
 import { EMPTY_FILTERS } from "../../stores/filtersStore";
 import { getProgress } from "../../utils/progress";
 import { getRegion } from "../../utils/region";
@@ -9,6 +9,7 @@ import { browseProjects, type ProjectBrowseQuery } from "../projectBrowse";
 import type { MockRole } from "../../contexts/session";
 import { loadProjects } from "../projects";
 import { MOCK_SESSION_KEY } from "../session";
+import { canReadHealth } from "../../utils/access";
 
 const stored = new Map<string, string>();
 vi.stubGlobal("localStorage", {
@@ -185,25 +186,26 @@ describe("browseProjects — o mesmo que a BE-05 promete, do lado das fixtures",
     expect(result.items).toHaveLength(0);
   });
 
-  describe("a saúde é da audiência de saúde, como no servidor (OBT-553)", () => {
-    it("a Resource Circle não recebe o grupo de saúde", async () => {
+  // Since OBT-571 every mock persona reads the health (the Resource Circle joined the
+  // audience, and the Admin persona holds a coordinator's seat), so the double's
+  // ignored-filter path has no persona left to drive it here; `absentGroups` pins it.
+  describe("a saúde é da audiência de saúde, como no servidor (OBT-553, OBT-571)", () => {
+    it("a Resource Circle recebe o grupo de saúde, e o filtro vale (OBT-571)", async () => {
       readAs("resourceCircle");
-      const result = await browseProjects(BASE);
-      expect(result.counts.absent).toContain("health");
-    });
-
-    it("um filtro e uma ordem por saúde são ignorados, não recusados", async () => {
-      readAs("resourceCircle");
-      const plain = await browseProjects(BASE);
-      const asked = await browseProjects({
+      const result = await browseProjects({
         ...BASE,
         filters: { ...EMPTY_FILTERS, health: "critica" },
-        sort: "health",
       });
-      expect(asked.matched).toBe(plain.matched);
-      expect(asked.items.map((project) => project.id)).toEqual(
-        plain.items.map((project) => project.id),
-      );
+      expect(result.counts.absent).not.toContain("health");
+      expect(result.matched).toBe(result.counts.health.critica);
+    });
+
+    it("a ordem por saúde é oferecida à Resource Circle, e a janela não a perde", async () => {
+      readAs("resourceCircle");
+      expect(sortKeysFor(canReadHealth(["resourceCircle"]))).toContain("health");
+      const asked = await browseProjects({ ...BASE, sort: "health" });
+      expect(asked.counts.absent).not.toContain("health");
+      expect(asked.matched).toBeGreaterThan(0);
     });
 
     it("quem lê saúde recebe o grupo e o filtro vale", async () => {
@@ -227,6 +229,17 @@ describe("browseProjects — o mesmo que a BE-05 promete, do lado das fixtures",
       });
       expect(plain.counts.absent).toContain("sensitive");
       expect(asked.matched).toBe(plain.matched);
+    });
+
+    it("o Círculo de Recursos recebe o grupo e o filtro vale (OBT-571: lê a verdade sem coordenar)", async () => {
+      readAs("resourceCircle");
+      const result = await browseProjects({
+        ...BASE,
+        filters: { ...EMPTY_FILTERS, sensitive: "yes" },
+      });
+      expect(result.counts.absent).not.toContain("sensitive");
+      expect(result.matched).toBe(result.counts.sensitive.yes);
+      expect(result.matched).toBeGreaterThan(0);
     });
 
     it("a coordenação recebe o grupo e o filtro vale", async () => {

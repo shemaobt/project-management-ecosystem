@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { mayWrite } from "../../../../../utils/recordAccess";
+import { readsFreeText } from "../../../../../utils/recordAccess";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { EmptyHint, NotesPanel } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
@@ -10,7 +10,7 @@ export interface NotasViewProps {
 
 export function NotasView({ draft }: NotasViewProps) {
   const { t } = useTranslation();
-  const withheld = !mayWrite(draft.place, "notes");
+  const withheld = !readsFreeText(draft.place);
   const notes = withheld ? "" : (draft.values.notes ?? "");
 
   return (

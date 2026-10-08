@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   DEFAULT_TAB,
   isRecordTab,
@@ -40,15 +40,11 @@ import { SaveOutcomeNote } from "./SaveOutcomeNote";
 import { savedSentence, unchangedSentence } from "./saveReport";
 import { TabNav } from "./TabNav";
 import { TAB_COMPONENTS } from "./tabs";
-import type { RecordMode } from "./types";
+import { mayOpenRecord, readMode } from "./recordMode";
 import { useDraft } from "./useDraft";
 
 const MODE_PARAM = "modo";
 
-function readMode(raw: string | null, isNew: boolean): RecordMode {
-  if (isNew) return "editar";
-  return raw === "editar" ? "editar" : "ver";
-}
 
 export function FichaPage() {
   const { t } = useTranslation();
@@ -76,7 +72,7 @@ export function FichaPage() {
   const tabs = visibleTabs(canReadHealth(user.roles));
 
   const draft = useDraft(recordId);
-  const mode = readMode(params.get(MODE_PARAM), draft.isNew);
+  const mode = readMode(params.get(MODE_PARAM), draft.isNew, draft.place.readOnly);
   const shown = tab && isRecordTab(tab) && tabs.includes(tab) ? tab : null;
   const active: RecordTabId = shown ?? DEFAULT_TAB;
 
@@ -169,6 +165,7 @@ export function FichaPage() {
       typed: draft.typed,
       isNew: draft.isNew,
       readsHealth: draft.place.readsHealth,
+      writesHealth: draft.place.writesHealth,
     });
 
     switch (result.kind) {
@@ -213,6 +210,11 @@ export function FichaPage() {
         return;
     }
   };
+
+  // A new record the server would refuse at the save goes back to the list (OBT-571).
+  if (!mayOpenRecord(draft.isNew, user.roles)) {
+    return <Navigate to="/projetos" replace />;
+  }
 
   if (!draft.isNew && !record) {
     return (

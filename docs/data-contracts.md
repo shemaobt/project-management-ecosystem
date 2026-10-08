@@ -995,8 +995,10 @@ PATCH  /api/shema/projects/{id}     {Partial<Project>} -> Project
 `projectsStore.saveProject` is an upsert and splits at this seam by whether the id is new.
 
 **The record is built for its reader (OBT-528).** Two additive keys travel with it: `readAs`
-(`"coordination"` · `"other"`) and `locationWithheld` (the flag, for every reader). The console reads
-`readAs` closed — anything else, absence included, is no answer and reads withheld — and folds
+(`"coordination"` · `"trusted"` · `"other"` — the middle one since OBT-571: the Resource Circle reads the
+truth, the health included, and writes nothing at all — no `PATCH`, Daniel 7/oct) and `locationWithheld` (the flag,
+for every reader). The console reads `readAs` closed — anything else, absence included, is no answer and
+reads withheld — and folds
 `locationWithheld` onto `sensitiveCountry`. A reader who is not coordination gets a **403** for
 `location`, `location2`, `coords`, `sensitiveCountry` or `sensitivity` on any record, and for the base
 or the three contacts on a withheld one; the console never sends them (FE-48).
