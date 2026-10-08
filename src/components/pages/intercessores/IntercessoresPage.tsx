@@ -1,6 +1,7 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../../contexts/AuthContext";
 import { usePrayerStore } from "../../../stores/prayerStore";
 import type { IntercessorEntry } from "../../../types/prayer";
 import {
@@ -15,6 +16,7 @@ import {
   type IntercessorCreateDraft,
   type IntercessorEditDraft,
 } from "../../../utils/intercessors";
+import { canWriteNetwork } from "../../../utils/access";
 import { countryName } from "../../../utils/countries";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -31,6 +33,12 @@ export interface IntercessoresViewProps {
   withheldCount: number;
   /** Of the withheld, how many are past their year — a number the server counted. */
   withheldReviewDueCount: number;
+  /**
+   * Whether this reader writes the network — coordination and the Admin (OBT-574). The
+   * Resource Circle reads it and reveals a contact; it gets no form, no edit, no removal and
+   * no review, which the server would refuse.
+   */
+  canWrite: boolean;
   onAdd: (draft: IntercessorCreateDraft) => Promise<boolean>;
   onUpdate: (id: string, draft: IntercessorEditDraft) => Promise<boolean>;
   onRemove: (id: string) => Promise<boolean>;
@@ -42,6 +50,7 @@ export function IntercessoresView({
   people,
   withheldCount,
   withheldReviewDueCount,
+  canWrite,
   onAdd,
   onUpdate,
   onRemove,
@@ -157,12 +166,14 @@ export function IntercessoresView({
 
       <SubNav />
 
-      <IntercessorForm
-        draft={createDraft}
-        onChange={setCreateDraft}
-        onSubmit={submitCreate}
-        showing={createShowing}
-      />
+      {canWrite ? (
+        <IntercessorForm
+          draft={createDraft}
+          onChange={setCreateDraft}
+          onSubmit={submitCreate}
+          showing={createShowing}
+        />
+      ) : null}
 
       {people === null ? (
         <div className="flex justify-center py-16">
@@ -222,6 +233,7 @@ export function IntercessoresView({
                 group={group}
                 contactingId={contactingId}
                 reviewingId={reviewingId}
+                canWrite={canWrite}
                 onEdit={startEdit}
                 onRemove={setRemoving}
                 onContact={handleContact}
@@ -236,26 +248,31 @@ export function IntercessoresView({
         {t("int_send_pending")} {t("int_footnote")}
       </p>
 
-      <EditIntercessorDialog
-        open={editingId !== null}
-        draft={editDraft}
-        revealing={revealing}
-        showing={editShowing}
-        onChange={setEditDraft}
-        onSubmit={submitEdit}
-        onClose={closeEdit}
-      />
+      {canWrite ? (
+        <>
+          <EditIntercessorDialog
+            open={editingId !== null}
+            draft={editDraft}
+            revealing={revealing}
+            showing={editShowing}
+            onChange={setEditDraft}
+            onSubmit={submitEdit}
+            onClose={closeEdit}
+          />
 
-      <RemoveIntercessorDialog
-        removing={removing}
-        onClose={() => setRemoving(null)}
-        onConfirm={onRemove}
-      />
+          <RemoveIntercessorDialog
+            removing={removing}
+            onClose={() => setRemoving(null)}
+            onConfirm={onRemove}
+          />
+        </>
+      ) : null}
     </section>
   );
 }
 
 export function IntercessoresPage() {
+  const { user } = useAuth();
   const intercessors = usePrayerStore((state) => state.intercessors);
   const withheldCount = usePrayerStore((state) => state.withheldCount);
   const withheldReviewDueCount = usePrayerStore(
@@ -281,6 +298,7 @@ export function IntercessoresPage() {
       people={hydrated ? intercessors : null}
       withheldCount={withheldCount}
       withheldReviewDueCount={withheldReviewDueCount}
+      canWrite={canWriteNetwork(user.roles)}
       onAdd={addIntercessor}
       onUpdate={updateIntercessor}
       onRemove={removeIntercessor}

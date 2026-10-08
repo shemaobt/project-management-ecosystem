@@ -71,6 +71,7 @@ const view = (
   people: IntercessorEntry[] | null,
   withheldCount = 0,
   withheldReviewDueCount = 0,
+  canWrite = true,
 ) =>
   renderToStaticMarkup(
     createElement(
@@ -80,6 +81,7 @@ const view = (
         people,
         withheldCount,
         withheldReviewDueCount,
+        canWrite,
         onAdd: refuseAsync,
         onUpdate: refuseAsync,
         onRemove: refuseAsync,
@@ -316,6 +318,34 @@ describe("o campo de país é controlado, sempre", () => {
     );
     expect(source).toContain("value={draft.country}");
     expect(source).not.toMatch(/value=\{[^}]*\|\|[^}]*undefined[^}]*\}/u);
+  });
+});
+
+describe("o Resource Circle vê a rede e não a edita (OBT-574)", () => {
+  // Karina, 6/out: "Somente a coordenação tem acesso editar e apagar o contato do intercessor.
+  // O Resource Circle pode ver, mas não edita."
+  const DUE: IntercessorEntry = { ...ANA, id: "due", reviewDue: true };
+  const reader = () => view([DUE, JOAO], 0, 0, false);
+
+  it("lista as pessoas e oferece o contato, um de cada vez", () => {
+    const html = reader();
+    expect(html).toContain(ANA.name);
+    expect(html).toContain(JOAO.name);
+    expect(html).toContain(i18n.t("int_call"));
+  });
+
+  it("não traz o cadastro, nem editar, nem remover", () => {
+    const html = reader();
+    expect(html).not.toContain(i18n.t("int_name"));
+    expect(html).not.toContain(i18n.t("int_edit"));
+    expect(html).not.toContain(i18n.t("int_remove"));
+  });
+
+  it("vê que a revisão está devida, mas não a marca nem remove por ela", () => {
+    const html = reader();
+    expect(html).toContain(i18n.t("int_review_due_badge"));
+    expect(html).not.toContain(i18n.t("int_review_done"));
+    expect(html).not.toContain(i18n.t("int_review_remove"));
   });
 });
 
