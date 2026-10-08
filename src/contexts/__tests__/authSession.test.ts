@@ -104,12 +104,13 @@ describe("o vocabulário da sessão", () => {
     }
   });
 
-  it("cada persona mockada abre a lista com o próprio papel; só a Admin carrega um segundo (OBT-572)", () => {
-    for (const persona of Object.values(MOCK_SESSION_PERSONAS)) {
-      expect(persona.roles[0], persona.role).toBe(persona.role);
-      if (persona.role !== "admin") expect(persona.roles, persona.role).toEqual([persona.role]);
+  it("cada persona mockada abre a lista com o próprio papel; só a Admin carrega um segundo, na precedência do servidor (OBT-572)", () => {
+    for (const [key, persona] of Object.entries(MOCK_SESSION_PERSONAS)) {
+      expect(persona.roles[0], key).toBe(persona.role);
+      if (key !== "admin") expect(persona.roles, key).toEqual([persona.role]);
     }
-    expect(MOCK_SESSION_PERSONAS.admin.roles).toEqual(["admin", "coordinator"]);
+    expect(MOCK_SESSION_PERSONAS.admin.roles).toEqual(["coordinator", "admin"]);
+    expect(MOCK_SESSION_PERSONAS.admin.role).toBe("coordinator");
     expect(MOCK_SESSION_PERSONAS.admin.regionScope).toBeNull();
   });
 });

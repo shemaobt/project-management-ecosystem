@@ -1,7 +1,9 @@
 import type { MockRole, SessionPersona } from "../contexts/session";
+import type { RoleKey } from "../types/role";
 
+/** The head role is always one of the org chart's three — the Admin persona opens by `coordinator` (OBT-572). */
 export interface MockPersona extends SessionPersona {
-  role: MockRole;
+  role: RoleKey;
 }
 
 /**
@@ -12,13 +14,15 @@ export interface MockPersona extends SessionPersona {
  * Nobody is global by role since OBT-572: the Admin is the one reader who coordinates
  * everywhere (`_scope.readership`), and this persona also holds `coordinator` with no
  * region, which is what puts her in the health audience — the shape an Admin takes once
- * she grants herself the seat the migration took away.
+ * she grants herself the seat the migration took away. The list is in the server's
+ * precedence (`coordinator` before `admin`) and `role` is its head, as `readSession`
+ * would demand of the same pair on the wire; the persona's key stays `admin`.
  */
 export const MOCK_SESSION_PERSONAS: Record<MockRole, MockPersona> = {
   admin: {
     id: "mock-admin",
-    role: "admin",
-    roles: ["admin", "coordinator"],
+    role: "coordinator",
+    roles: ["coordinator", "admin"],
     regionScope: null,
   },
   coordinator: {

@@ -26,8 +26,9 @@ export function resolvePersonaName(
   persona: MockPersona,
   regions: Region[],
 ): string | null {
-  // The Admin holds no seat on the org chart, so the mock has no name to give her.
-  if (persona.role === "admin") return null;
+  // The Admin holds no seat on the org chart — and no region to look one up in — so the
+  // mock has no name to give her, whichever seat heads her list (OBT-572).
+  if (persona.roles.includes("admin")) return null;
   for (const key of persona.regionScope ?? []) {
     const holder = regions.find((region) => region.key === key)?.team[
       persona.role
