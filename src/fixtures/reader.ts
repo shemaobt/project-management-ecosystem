@@ -44,7 +44,12 @@ export function writesHealth(persona: SessionPersona): boolean {
  * or the Resource Circle, which reads the truth without coordinating.
  */
 export function readsTruthAnywhere(persona: SessionPersona): boolean {
-  return coordinatesAnything(persona) || persona.roles.includes("resourceCircle");
+  if (coordinatesAnything(persona)) return true;
+  // The server asks the Circle's scope to be global or non-empty, as it asks a coordinator's.
+  return (
+    persona.roles.includes("resourceCircle") &&
+    (persona.regionScope === null || persona.regionScope.length > 0)
+  );
 }
 
 export function coordinatesAnything(persona: SessionPersona): boolean {

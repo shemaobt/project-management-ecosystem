@@ -30,6 +30,8 @@ describe("readerOf espelha o _scope.readership do servidor (OBT-528)", () => {
     expect(readsTruthAnywhere(persona(["coordinator"], ["asia"]))).toBe(true);
     expect(readsTruthAnywhere(persona(["obtLab"], ["africa"]))).toBe(false);
     expect(readsTruthAnywhere(persona(["coordinator"], []))).toBe(false);
+    expect(readsTruthAnywhere(persona(["resourceCircle"], []))).toBe(false);
+    expect(readsTruthAnywhere(persona(["resourceCircle"], null))).toBe(true);
   });
 
   it("o aviso da coleção vai a quem coordena alguma região, e a ninguém mais", () => {
