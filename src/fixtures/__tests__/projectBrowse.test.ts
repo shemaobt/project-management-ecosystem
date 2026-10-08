@@ -231,6 +231,17 @@ describe("browseProjects — o mesmo que a BE-05 promete, do lado das fixtures",
       expect(asked.matched).toBe(plain.matched);
     });
 
+    it("o Círculo de Recursos recebe o grupo e o filtro vale (OBT-571: lê a verdade sem coordenar)", async () => {
+      readAs("resourceCircle");
+      const result = await browseProjects({
+        ...BASE,
+        filters: { ...EMPTY_FILTERS, sensitive: "yes" },
+      });
+      expect(result.counts.absent).not.toContain("sensitive");
+      expect(result.matched).toBe(result.counts.sensitive.yes);
+      expect(result.matched).toBeGreaterThan(0);
+    });
+
     it("a coordenação recebe o grupo e o filtro vale", async () => {
       readAs("admin");
       const result = await browseProjects({

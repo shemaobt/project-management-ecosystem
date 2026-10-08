@@ -38,6 +38,15 @@ export function writesHealth(persona: SessionPersona): boolean {
   return canWriteHealth(persona.roles);
 }
 
+/**
+ * `reads_truth_anywhere` on the server (OBT-571): who a notice about the collection — the
+ * `locationsWithheld` count and the `sensitive` facet — is for. Coordination of any region,
+ * or the Resource Circle, which reads the truth without coordinating.
+ */
+export function readsTruthAnywhere(persona: SessionPersona): boolean {
+  return coordinatesAnything(persona) || persona.roles.includes("resourceCircle");
+}
+
 export function coordinatesAnything(persona: SessionPersona): boolean {
   if (coordinatesEverywhere(persona)) return true;
   return (

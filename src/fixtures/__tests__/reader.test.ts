@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { SessionPersona } from "../../contexts/session";
 import { REGION_CENTROIDS } from "../../constants/geo";
 import { makeProject } from "../../utils/__tests__/factory";
-import { asReadBy, coordinatesAnything, readerOf, withhold } from "../reader";
+import { asReadBy, coordinatesAnything, readerOf, readsTruthAnywhere, withhold } from "../reader";
 
 const persona = (
   roles: SessionPersona["roles"],
@@ -23,6 +23,13 @@ describe("readerOf espelha o _scope.readership do servidor (OBT-528)", () => {
 
   it.each(cases)("%s", (_name, who, expected) => {
     expect(readerOf(who, "africa")).toBe(expected);
+  });
+
+  it("a verdade da coleção vai a quem coordena alguma região e ao Círculo (OBT-571), não ao OBT Lab", () => {
+    expect(readsTruthAnywhere(persona(["resourceCircle"], ["africa"]))).toBe(true);
+    expect(readsTruthAnywhere(persona(["coordinator"], ["asia"]))).toBe(true);
+    expect(readsTruthAnywhere(persona(["obtLab"], ["africa"]))).toBe(false);
+    expect(readsTruthAnywhere(persona(["coordinator"], []))).toBe(false);
   });
 
   it("o aviso da coleção vai a quem coordena alguma região, e a ninguém mais", () => {
