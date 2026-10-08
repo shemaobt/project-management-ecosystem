@@ -34,6 +34,20 @@ export function canImportProjects(roles: readonly SessionRole[]): boolean {
 }
 
 /**
+ * Who opens a new record — everyone the server lets write a project. The Resource Circle
+ * writes none (OBT-571, Daniel 7/oct: *só não podem editar* read whole; `refuse_circle_writes`
+ * answers 403 on every project route, the create included), unless it also coordinates —
+ * `readership` makes a Circle who coordinates coordination, and a Circle who is also OBT Lab
+ * is refused too, the stricter of the two readings. Reflection only: without it the button
+ * leads to a form the server refuses after it was filled, the worst kind of dead control.
+ */
+export function canCreateProjects(roles: readonly SessionRole[]): boolean {
+  const circle = roles.includes("resourceCircle");
+  const coordinates = roles.includes("coordinator") || roles.includes(ADMIN_ROLE);
+  return !circle || coordinates;
+}
+
+/**
  * Who reads a team's health — `HEALTH_AUDIENCE` in shema-api's `_health_audience.py` (OBT-553,
  * widened by OBT-571): a coordinator, the OBT Lab and, since OBT-571, the Resource Circle —
  * *"o Resource Circle poderá ver tudo"* (Karina, 6/out), and the health is in that *tudo* by

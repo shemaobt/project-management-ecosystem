@@ -20,6 +20,7 @@ import { toast } from "../ui";
 import { usePrefsStore } from "../../stores/prefsStore";
 import {
   canAdministerAccess,
+  canCreateProjects,
   canImportProjects,
   isFormOnly,
 } from "../../utils/access";
@@ -57,6 +58,7 @@ export function AppHeader() {
   const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
   const formOnly = isFormOnly(user.roles);
   const imports = canImportProjects(user.roles);
+  const creates = canCreateProjects(user.roles);
   const requestLinks = canAdministerAccess(user) ? resourceRequestsAPI : null;
 
   const closeDialog = (open: boolean) => {
@@ -127,7 +129,7 @@ export function AppHeader() {
             {t("rr_link_btn")}
           </button>
         ) : null}
-        {formOnly ? null : (
+        {formOnly || !creates ? null : (
           <button
             type="button"
             className={cn(

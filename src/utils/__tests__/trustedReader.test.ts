@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PASTORAL_WRITES } from "../../constants/recordFields";
 import { readReadAs } from "../../services/api/projectRecord";
 import type { RecordField } from "../../types/projectRecord";
-import { canReadHealth, canWriteHealth } from "../access";
+import { canCreateProjects, canReadHealth, canWriteHealth } from "../access";
 import { mayWrite, mayWriteNeedDescription, recordAccess } from "../recordAccess";
 import { readMode } from "../../components/pages/ficha/recordMode";
 import { getLocationDisplay, readsTruth, withheldNotice } from "../region";
@@ -105,6 +105,17 @@ describe("a saúde: o Círculo de Recursos lê, e só a coordenação e o OBT La
       expect(mayWrite(reader, field), field).toBe(false);
     }
     expect(reader.readsHealth).toBe(true);
+  });
+});
+
+describe("quem abre uma ficha nova (OBT-571)", () => {
+  it("o Círculo sem coordenação não cria projeto — o servidor recusa o create com 403", () => {
+    expect(canCreateProjects(["resourceCircle"])).toBe(false);
+    expect(canCreateProjects(["resourceCircle", "obtLab"])).toBe(false);
+    expect(canCreateProjects(["resourceCircle", "coordinator"])).toBe(true);
+    expect(canCreateProjects(["resourceCircle", "admin"])).toBe(true);
+    expect(canCreateProjects(["coordinator"])).toBe(true);
+    expect(canCreateProjects(["obtLab"])).toBe(true);
   });
 });
 
