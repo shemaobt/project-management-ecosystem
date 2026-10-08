@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   DEFAULT_TAB,
   isRecordTab,
@@ -40,7 +40,7 @@ import { SaveOutcomeNote } from "./SaveOutcomeNote";
 import { savedSentence, unchangedSentence } from "./saveReport";
 import { TabNav } from "./TabNav";
 import { TAB_COMPONENTS } from "./tabs";
-import { readMode } from "./recordMode";
+import { mayOpenRecord, readMode } from "./recordMode";
 import { useDraft } from "./useDraft";
 
 const MODE_PARAM = "modo";
@@ -210,6 +210,11 @@ export function FichaPage() {
         return;
     }
   };
+
+  // A new record the server would refuse at the save goes back to the list (OBT-571).
+  if (!mayOpenRecord(draft.isNew, user.roles)) {
+    return <Navigate to="/projetos" replace />;
+  }
 
   if (!draft.isNew && !record) {
     return (

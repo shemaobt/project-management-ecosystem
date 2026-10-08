@@ -4,7 +4,7 @@ import { readReadAs } from "../../services/api/projectRecord";
 import type { RecordField } from "../../types/projectRecord";
 import { canCreateProjects, canReadHealth, canWriteHealth } from "../access";
 import { mayWrite, mayWriteNeedDescription, recordAccess } from "../recordAccess";
-import { readMode } from "../../components/pages/ficha/recordMode";
+import { mayOpenRecord, readMode } from "../../components/pages/ficha/recordMode";
 import { getLocationDisplay, readsTruth, withheldNotice } from "../region";
 import { makeProject } from "./factory";
 
@@ -75,6 +75,14 @@ describe("o terceiro readAs, trusted", () => {
     }
     expect(mayWrite(asOther, "team")).toBe(true);
     expect(mayWrite(asOther, "status")).toBe(true);
+  });
+
+  it("/ficha/novo digitado não abre para o Círculo que não cria; um registro existente é do servidor", () => {
+    expect(mayOpenRecord(true, ["resourceCircle"])).toBe(false);
+    expect(mayOpenRecord(true, ["resourceCircle", "obtLab"])).toBe(false);
+    expect(mayOpenRecord(true, ["resourceCircle", "coordinator"])).toBe(true);
+    expect(mayOpenRecord(true, ["obtLab"])).toBe(true);
+    expect(mayOpenRecord(false, ["resourceCircle"])).toBe(true);
   });
 
   it("mesmo pedindo ?modo=editar, a ficha de um leitor read-only abre em ver", () => {
