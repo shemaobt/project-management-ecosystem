@@ -49,7 +49,7 @@ describe("quem escreve a rede de intercessores — OBT-574", () => {
     expect(canWriteNetwork(["resourceCircle", "coordinator"])).toBe(true);
   });
 
-  it("o Resource Circle vê a rede e não a edita, e o OBT Lab nem a vê", () => {
+  it("o Resource Circle e o OBT Lab não escrevem a rede", () => {
     expect(canWriteNetwork(["resourceCircle"])).toBe(false);
     expect(canWriteNetwork(["obtLab"])).toBe(false);
     expect(canWriteNetwork(["resourceCircle", "obtLab"])).toBe(false);

@@ -341,6 +341,12 @@ describe("o Resource Circle vê a rede e não a edita (OBT-574)", () => {
     expect(html).not.toContain(i18n.t("int_remove"));
   });
 
+  it("com a rede vazia, não é mandado a um cadastro que não tem", () => {
+    const html = view([], 0, 0, false);
+    expect(html).toContain(i18n.t("int_empty_reader"));
+    expect(html).not.toContain(i18n.t("int_empty"));
+  });
+
   it("vê que a revisão está devida, mas não a marca nem remove por ela", () => {
     const html = reader();
     expect(html).toContain(i18n.t("int_review_due_badge"));

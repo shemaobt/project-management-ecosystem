@@ -291,6 +291,7 @@
   "int_send_mail": "E-mail",
   "int_copy": "Copiar",
   "int_empty": "Nenhum intercessor cadastrado ainda. Adicione nome, país e contato acima.",
+  "int_empty_reader": "Nenhum intercessor cadastrado ainda. Quem cadastra as pessoas da rede é a coordenação.",
   "int_footnote": "Os pedidos enviados vêm do Mural de Oração — apenas os autorizados a compartilhar pelas equipes.",
   "int_email_subject": "Pedidos de oração · Shema",
   "int_country_select": "Selecione o país",

@@ -224,7 +224,11 @@ export function IntercessoresView({
 
           {groups.length === 0 ? (
             <EmptyState
-              message={total === 0 ? t("int_empty") : t("int_search_empty")}
+              message={
+                total === 0
+                  ? t(canWrite ? "int_empty" : "int_empty_reader")
+                  : t("int_search_empty")
+              }
             />
           ) : (
             groups.map((group) => (
