@@ -10,10 +10,10 @@ import {
 import type { PrayerReviewEntry } from "../../../types/prayer";
 import type { ApiFailure } from "../../../types/session";
 import { releasePayload } from "../../../utils/prayer";
+import { getLanguageNameDisplay } from "../../../utils/region";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
-import { Button, toast } from "../../ui";
-import { Textarea } from "../../ui/Textarea";
+import { Button, Textarea, toast } from "../../ui";
 import { SubNav } from "./SubNav";
 import {
   PRAYER_EYEBROW,
@@ -56,7 +56,12 @@ function ReviewCard({ entry, onRelease }: ReviewCardProps) {
   return (
     <article className={REQUEST_CARD}>
       <div className={REQUEST_CARD_HEAD}>
-        <span className={REQUEST_CARD_LANGUAGE}>{entry.language}</span>
+        <span className={REQUEST_CARD_LANGUAGE}>
+          {getLanguageNameDisplay(
+            { languageName: entry.language, languageNameWithheld: entry.languageNameWithheld },
+            t,
+          )}
+        </span>
         <span className={REQUEST_CARD_TAG}>
           {t(PRAYER_SOURCE_LABEL_KEYS[entry.source])}
         </span>
@@ -74,7 +79,7 @@ function ReviewCard({ entry, onRelease }: ReviewCardProps) {
         <Button
           variant="primary"
           size="md"
-          disabled={sending || draft.trim() === ""}
+          disabled={sending || releasePayload(entry, draft) === null}
           onClick={() => void release()}
         >
           {t("oracao_revisao_release")}
@@ -157,8 +162,10 @@ function LiveRevisaoPage({ api }: { api: PrayerReviewAPI }) {
   }, [api, reads]);
 
   async function release(entry: PrayerReviewEntry, draft: string) {
+    const payload = releasePayload(entry, draft);
+    if (payload === null) return;
     try {
-      await api.release(entry.projectId, releasePayload(entry, draft));
+      await api.release(entry.projectId, payload);
     } catch (raw: unknown) {
       toast.error(failureMessage(toApiFailure(raw), t));
       setReads((count) => count + 1);

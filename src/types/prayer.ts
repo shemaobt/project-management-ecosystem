@@ -24,13 +24,16 @@ export interface PrayerRequest {
 /**
  * A sensitive project's request the team authorized and the coordination has not released
  * (OBT-575) — the review queue's row. Served to the coordination alone, so `text` is the team's
- * own and `language` the real name. `needId` is `null` for the project's own request.
+ * own and `language` the name as coordination reads it (shema-api `language_name_for`, as
+ * coordination). `needId` is `null` for the project's own request.
  */
 export interface PrayerReviewEntry {
   id: string;
   projectId: string;
   needId: string | null;
   language: string;
+  /** OBT-560's flag, as on the wall's entry — read by `getLanguageNameDisplay`. */
+  languageNameWithheld?: boolean;
   source: PrayerSource;
   text: string;
 }

@@ -79,6 +79,16 @@ describe("a fila de revisão (OBT-575)", () => {
     expect(html).toContain('for="revisao-garoa-need-7"');
   });
 
+  it("um nome recolhido sai como projeto sensível da região, pelo dono da regra", () => {
+    const html = view({
+      status: "ready",
+      entries: [{ ...WAITING[0], language: "africa", languageNameWithheld: true }],
+    });
+
+    expect(html).toContain("Projeto sensível");
+    expect(html).not.toContain(">africa<");
+  });
+
   it("sem nada esperando, diz que não há pedido", () => {
     expect(view({ status: "ready", entries: [] })).toContain(
       "Nenhum pedido aguardando revisão.",

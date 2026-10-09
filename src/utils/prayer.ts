@@ -118,14 +118,15 @@ export function groupPrayerRequests(
 
 /**
  * What a release sends (OBT-575): the team's text as the coordinator read it, and the edit only
- * when there is one — a field left as it came, or emptied, releases the team's own words.
+ * when there is one. An emptied field releases nothing — `null`, which keeps the button off.
  */
 export function releasePayload(
   entry: PrayerReviewEntry,
   draft: string,
-): PrayerReleasePayload {
+): PrayerReleasePayload | null {
   const edited = draft.trim();
-  return edited === "" || edited === entry.text.trim()
+  if (edited === "") return null;
+  return edited === entry.text.trim()
     ? { needId: entry.needId, reviewed: entry.text }
     : { needId: entry.needId, reviewed: entry.text, text: edited };
 }

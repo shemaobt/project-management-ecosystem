@@ -60,7 +60,10 @@ describe("a fila de revisão", () => {
   });
 
   it("libera no projeto do pedido, com o texto que a coordenação leu", async () => {
-    await prayerReviewAPI.release(ENTRY.projectId, releasePayload(ENTRY, ENTRY.text));
+    const payload = releasePayload(ENTRY, ENTRY.text);
+    expect(payload).not.toBeNull();
+    if (payload === null) return;
+    await prayerReviewAPI.release(ENTRY.projectId, payload);
 
     expect(calls).toEqual([
       {
@@ -73,12 +76,16 @@ describe("a fila de revisão", () => {
 });
 
 describe("o que a liberação manda", () => {
+  it("campo esvaziado não libera nada", () => {
+    expect(releasePayload(ENTRY, "")).toBeNull();
+    expect(releasePayload(ENTRY, "   ")).toBeNull();
+  });
+
   it("só manda o texto quando a coordenação editou", () => {
     expect(releasePayload(ENTRY, "  Orem pelo líder preso.  ")).toEqual({
       needId: null,
       reviewed: ENTRY.text,
     });
-    expect(releasePayload(ENTRY, "")).toEqual({ needId: null, reviewed: ENTRY.text });
     expect(releasePayload({ ...ENTRY, needId: "n-7" }, " Orem por um irmão. ")).toEqual({
       needId: "n-7",
       reviewed: ENTRY.text,
