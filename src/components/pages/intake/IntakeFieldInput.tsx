@@ -8,13 +8,17 @@ import type { IntakeField } from "../../../types/forms";
 import type { BookProgressItem } from "../../../types/project";
 import { BookTable } from "../ficha/tabs/progresso/BookTable";
 import { PrayerConsent } from "../ficha/tabs/saude/PrayerConsent";
-import { Input, Label, Radio, RadioGroup, Textarea } from "../../ui";
+import type { IntakeImageUpload } from "../../../utils/intake";
+import { CheckboxField, Input, Label, Radio, RadioGroup, Textarea } from "../../ui";
+import { IntakeImageField } from "./IntakeImageField";
 
 export interface IntakeFieldInputProps {
   field: IntakeField;
   value: unknown;
   onChange: (value: unknown) => void;
   errorKey?: string;
+  /** How an `image` field sends its bytes — the page's, because only it knows the link. */
+  uploadImage?: IntakeImageUpload;
 }
 
 function asString(value: unknown): string {
@@ -35,6 +39,7 @@ export function IntakeFieldInput({
   value,
   onChange,
   errorKey,
+  uploadImage,
 }: IntakeFieldInputProps) {
   const { t } = useTranslation();
   const fieldId = useId();
@@ -44,7 +49,26 @@ export function IntakeFieldInput({
   const hasOwnControlId =
     field.type === "text" ||
     field.type === "longText" ||
-    field.type === "period";
+    field.type === "period" ||
+    field.type === "image";
+
+  // The box is its own label (the question is the box's text), so no Label above it.
+  if (field.type === "checkbox") {
+    return (
+      <fieldset className="rounded-[12px] border border-line-strong bg-muted p-4">
+        <CheckboxField
+          id={fieldId}
+          label={t(field.labelKey)}
+          checked={value === true}
+          onCheckedChange={(next) => onChange(next === true)}
+        />
+        <p className="mt-1.5 pl-7.5 text-tag text-fg-muted">{t("intake_authorization_hint")}</p>
+        {errorKey ? (
+          <p className="mt-1.5 text-tag font-semibold text-telha">{t(errorKey)}</p>
+        ) : null}
+      </fieldset>
+    );
+  }
   const labelId = hasOwnControlId ? undefined : fieldId;
   const rawChoice = asString(value);
   const currentPrayerVisibility = isPrayerVisibility(rawChoice)
@@ -94,6 +118,16 @@ export function IntakeFieldInput({
           value={asString(value)}
           invalid={invalid}
           onChange={(event) => onChange(event.target.value)}
+        />
+      ) : null}
+
+      {field.type === "image" && uploadImage ? (
+        <IntakeImageField
+          id={fieldId}
+          value={typeof value === "string" ? value : undefined}
+          onChange={onChange}
+          upload={uploadImage}
+          invalid={invalid}
         />
       ) : null}
 

@@ -21,10 +21,10 @@ export function isAcceptedImageFile(file: Pick<File, "type">): boolean {
 }
 
 export async function storeImageFile(file: File): Promise<StoredImage> {
-  return { src: await encodeImage(file), fileName: file.name };
+  return { src: (await reduceImage(file)).toDataURL("image/webp", WEBP_QUALITY), fileName: file.name };
 }
 
-async function encodeImage(file: File): Promise<string> {
+async function reduceImage(file: Blob): Promise<HTMLCanvasElement> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(
     1,
@@ -37,7 +37,65 @@ async function encodeImage(file: File): Promise<string> {
   if (!context) throw new Error("canvas 2d context unavailable");
   context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
-  return canvas.toDataURL("image/webp", WEBP_QUALITY);
+  return canvas;
+}
+
+// --- the Pulse's image, sent through the leader's link (OBT-578 / OBT-580) ---------------
+
+/**
+ * What `POST /api/shema/intake/{token}/image` takes: JPEG, PNG or WebP, up to 10 MiB, the type
+ * proved by the bytes on the server. The console reduces a photo to 1200px WebP before sending,
+ * so an ordinary upload is a few hundred KB; the ceiling is checked here on the bytes that go
+ * out, after the reduction, and never met by a real one. AVIF is not in the list on purpose:
+ * the server cannot prove it, and a format the server cannot prove is one it does not take.
+ */
+const INTAKE_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+export const INTAKE_IMAGE_ACCEPT: string = INTAKE_IMAGE_TYPES.join(",");
+
+export const INTAKE_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
+
+export type IntakeImageRefusal = "type" | "size" | "unreadable";
+
+export function isIntakeImageFile(file: Pick<File, "type">): boolean {
+  return INTAKE_IMAGE_TYPES.includes(file.type);
+}
+
+export interface PreparedIntakeImage {
+  blob: Blob;
+  fileName: string;
+}
+
+export class IntakeImageRefused extends Error {
+  readonly reason: IntakeImageRefusal;
+  constructor(reason: IntakeImageRefusal) {
+    super(reason);
+    this.reason = reason;
+  }
+}
+
+function toWebpBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new IntakeImageRefused("unreadable"))),
+      "image/webp",
+      WEBP_QUALITY,
+    );
+  });
+}
+
+/** The bytes that go to the link: refused by type before decoding, by size after reducing. */
+export async function prepareIntakeImage(file: File): Promise<PreparedIntakeImage> {
+  if (!isIntakeImageFile(file)) throw new IntakeImageRefused("type");
+  let blob: Blob;
+  try {
+    blob = await toWebpBlob(await reduceImage(file));
+  } catch (error) {
+    if (error instanceof IntakeImageRefused) throw error;
+    throw new IntakeImageRefused("unreadable");
+  }
+  if (blob.size > INTAKE_IMAGE_MAX_BYTES) throw new IntakeImageRefused("size");
+  return { blob, fileName: file.name };
 }
 
 const MATERIAL_FILE_ACCEPT: Record<MaterialKind, string> = {

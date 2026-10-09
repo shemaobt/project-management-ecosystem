@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { IntakeAnswers, IntakeForm } from "../../../types/forms";
 import { formatDate } from "../../../utils/format";
+import type { IntakeImageUpload } from "../../../utils/intake";
 import { Button } from "../../ui";
 import { IntakeFieldInput } from "./IntakeFieldInput";
 
@@ -14,6 +15,8 @@ export interface IntakeFormViewProps {
   submitting: boolean;
   draftRestored: boolean;
   onSubmit: () => void;
+  /** How the `image` field sends its bytes (OBT-580); without it the field is not drawn. */
+  uploadImage?: IntakeImageUpload;
 }
 
 export function IntakeFormView({
@@ -26,6 +29,7 @@ export function IntakeFormView({
   submitting,
   draftRestored,
   onSubmit,
+  uploadImage,
 }: IntakeFormViewProps) {
   const { t } = useTranslation();
   const hasErrors = Object.keys(fieldErrors).length > 0;
@@ -65,6 +69,7 @@ export function IntakeFormView({
             value={answers[field.key]}
             onChange={(value) => onAnswerChange(field.key, value)}
             errorKey={fieldErrors[field.key]}
+            uploadImage={uploadImage}
           />
         ))}
 

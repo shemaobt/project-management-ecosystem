@@ -1,4 +1,4 @@
-import type { IntakeAnswers, IntakeField } from "../types/forms";
+import type { IntakeAnswers, IntakeField, IntakeImageStored } from "../types/forms";
 
 // --- the draft the leader is filling — local to this device, never a store shared
 // across routes (§8: "keep state local; lift to Zustand only when shared") -----------
@@ -162,8 +162,32 @@ export function validateIntakeAnswers(
     if (field.type === "choice" && !field.options.includes(String(value))) {
       errors[field.key] = "intake_err_choice";
     }
+    if (field.type === "checkbox" && typeof value !== "boolean") {
+      errors[field.key] = "intake_err_checkbox";
+    }
+    if (field.type === "image" && typeof value !== "string") {
+      errors[field.key] = "intake_err_image";
+    }
   }
   return errors;
+}
+
+/**
+ * What the page hands the image field (OBT-580): the bytes already sent and the id to answer
+ * with, plus a preview the field alone keeps — or a sentence, already translated, for the
+ * refusal, whether the console's (type, size) or the server's.
+ */
+export type IntakeImageOutcome =
+  | { ok: true; image: IntakeImageStored; previewSrc: string }
+  | { ok: false; message: string };
+
+export type IntakeImageUpload = (file: File) => Promise<IntakeImageOutcome>;
+
+/** The sentence for an image the console refused before sending (OBT-580), by reason. */
+export function intakeImageRefusalKey(reason: "type" | "size" | "unreadable"): string {
+  if (reason === "type") return "intake_image_err_type";
+  if (reason === "size") return "intake_image_err_size";
+  return "intake_image_err_unreadable";
 }
 
 // --- reading the server's refusal back — it rejects a submission whole, naming every

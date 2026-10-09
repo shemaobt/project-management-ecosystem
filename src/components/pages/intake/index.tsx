@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
-import { formsAPI, toApiFailure, failureMessage } from "../../../services/api";
+import { formsAPI, toApiFailure, failureMessage, serverSentence } from "../../../services/api";
+import { IntakeImageRefused, prepareIntakeImage } from "../../../services/mediaStorage";
 import type { IntakeAnswers, IntakeForm } from "../../../types/forms";
 import {
   classifyIntakeLinkProblem,
   clearIntakeDraft,
   loadIntakeDraft,
+  intakeImageRefusalKey,
   parseSubmitFaults,
   saveIntakeDraft,
   validateIntakeAnswers,
+  type IntakeImageOutcome,
   type IntakeLinkProblem,
 } from "../../../utils/intake";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -95,6 +98,26 @@ export function IntakePage() {
     });
   };
 
+  // The image goes up as soon as it is picked (OBT-578): the answer is the id, the bytes
+  // are the server's, and a refusal — the console's by type or size, the server's by its
+  // own sentence — reaches the field, not a paragraph at the bottom.
+  const uploadImage = async (file: File): Promise<IntakeImageOutcome> => {
+    try {
+      const prepared = await prepareIntakeImage(file);
+      const image = await formsAPI.uploadIntakeImage(token, prepared.blob, prepared.fileName);
+      return { ok: true, image, previewSrc: URL.createObjectURL(prepared.blob) };
+    } catch (raw) {
+      if (raw instanceof IntakeImageRefused) {
+        return { ok: false, message: t(intakeImageRefusalKey(raw.reason)) };
+      }
+      const apiFailure = toApiFailure(raw);
+      return {
+        ok: false,
+        message: serverSentence(apiFailure) ?? failureMessage(apiFailure, t),
+      };
+    }
+  };
+
   const submit = async () => {
     if (!form || submitting) return;
 
@@ -171,6 +194,7 @@ export function IntakePage() {
           submitting={submitting}
           draftRestored={draftRestored}
           onSubmit={submit}
+          uploadImage={uploadImage}
         />
       ) : null}
     </IntakeShell>
