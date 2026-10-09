@@ -158,3 +158,34 @@ describe("o dublê da imagem do Pulso — a mesma forma da shema-api#713 (OBT-58
     ).rejects.toMatchObject({ kind: "invalid" });
   });
 });
+
+describe("o dublê do upload recusa como o servidor, e um reenvio não duplica (OBT-580)", () => {
+  const blob = (type: string, size = 4) => new Blob([new Uint8Array(size)], { type });
+
+  it("tipo fora de JPEG, PNG e WebP, e tamanho acima de 10 MiB, são recusados com a frase do servidor", async () => {
+    const link = await formsAPI.mintIntakeLink({ projectId });
+    await expect(formsAPI.uploadIntakeImage(link.token, blob("image/avif"), "a.avif")).rejects.toMatchObject({
+      kind: "invalid",
+      detail: expect.stringContaining("Unsupported image type"),
+    });
+    await expect(
+      formsAPI.uploadIntakeImage(link.token, blob("image/webp", 10 * 1024 * 1024 + 1), "big.webp"),
+    ).rejects.toMatchObject({ kind: "invalid", detail: expect.stringContaining("10 MB") });
+    await expect(formsAPI.uploadIntakeImage(link.token, blob("image/webp", 0), "empty.webp")).rejects.toMatchObject({
+      kind: "invalid",
+    });
+  });
+
+  it("o mesmo Pulso enviado duas vezes pelo mesmo link fica uma vez só, sem recusa", async () => {
+    const link = await formsAPI.mintIntakeLink({ projectId });
+    const stored = await formsAPI.uploadIntakeImage(link.token, blob("image/webp"), "vale.webp");
+    const payload = {
+      definitionVersion: 1,
+      answers: { submittedBy: "Fresia", period: "2026-09", image: stored.id, imageAuthorized: true },
+    };
+    await formsAPI.submitIntake(link.token, payload);
+    const before = (await formsAPI.received()).length;
+    await expect(formsAPI.submitIntake(link.token, payload)).resolves.toBeUndefined();
+    expect((await formsAPI.received()).length).toBe(before);
+  });
+});

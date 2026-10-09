@@ -23,6 +23,9 @@ const received: ReceivedSubmission[] = [];
 /** The answers behind each received row, for the detail read — the server's archived payload. */
 const receivedAnswers = new Map<string, IntakeAnswers>();
 
+/** Which link each received row came through — what tells a replay from a second Pulse. */
+const receivedTokens = new Map<string, string>();
+
 export function loadReceivedSubmissions(): ReceivedSubmission[] {
   return structuredClone(received);
 }
@@ -131,13 +134,33 @@ interface StoredIntakeImage extends IntakeImageStored {
 const images = new Map<string, StoredIntakeImage>();
 let imageSeq = 0;
 
-/** Mirrors `store_intake_image`: the link must be live, and the answer is the id and nothing else. */
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Mirrors `store_intake_image` and `_intake_image_rules`: the link must be live, the type is
+ * one of three and the size under the ceiling, and the answer is the id and nothing else.
+ */
 export async function uploadIntakeImage(
   token: string,
   image: Blob,
   fileName: string,
 ): Promise<IntakeImageStored> {
   findLiveLink(token);
+  const type = image.type.split(";")[0].trim().toLowerCase();
+  if (!IMAGE_TYPES.includes(type)) {
+    throw failure(
+      "invalid",
+      `Unsupported image type: ${type || "(none)"}. Accepted: ${IMAGE_TYPES.join(", ")}`,
+    );
+  }
+  if (image.size === 0) throw failure("invalid", "The image is empty.");
+  if (image.size > MAX_IMAGE_BYTES) {
+    throw failure(
+      "invalid",
+      `The image is ${image.size} bytes and the Pulse accepts ${MAX_IMAGE_BYTES / (1024 * 1024)} MB. Nothing was kept.`,
+    );
+  }
   const stored: StoredIntakeImage = {
     id: `intake-image-${++imageSeq}`,
     fileName: fileName || null,
@@ -369,6 +392,14 @@ function validate(token: string, answers: IntakeAnswers): void {
   }
 }
 
+function isReplay(token: string, answers: IntakeAnswers): boolean {
+  const sent = JSON.stringify(answers);
+  for (const [submissionId, kept] of receivedAnswers) {
+    if (receivedTokens.get(submissionId) === token && JSON.stringify(kept) === sent) return true;
+  }
+  return false;
+}
+
 export async function submitIntake(
   token: string,
   payload: IntakeSubmissionPayload,
@@ -380,6 +411,9 @@ export async function submitIntake(
       `definitionVersion: this link answers version ${PULSE_DEFINITION_VERSION} of the pulso form, not ${payload.definitionVersion}. Reload the form.`,
     );
   }
+  // The same Pulse sent twice — same link, same answers — is a no-op, as the server's
+  // idempotent archive makes it (`_is_a_replay`): nothing new is kept, nothing is refused.
+  if (isReplay(token, payload.answers)) return;
   validate(token, payload.answers);
 
   const project = loadProject(link.projectId);
@@ -387,6 +421,7 @@ export async function submitIntake(
   const imageId = payload.answers.image;
   if (typeof imageId === "string") images.get(imageId)!.submissionId = submissionId;
   receivedAnswers.set(submissionId, structuredClone(payload.answers));
+  receivedTokens.set(submissionId, token);
   received.push({
     id: submissionId,
     kind: "pulso",
