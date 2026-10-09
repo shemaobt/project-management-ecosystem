@@ -21,7 +21,7 @@ const storage = createMemoryStorage();
 vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
-await import("../../../../i18n");
+const { default: i18n } = await import("../../../../i18n");
 const { AuthProvider } = await import("../../../../contexts/AuthContext");
 const { makeEmptyProject } = await import("../../../../stores/recordStore");
 const { MidiaTab } = await import("../tabs/Midia");
@@ -115,6 +115,24 @@ describe("MidiaView", () => {
   it("announces the sensitive-country composition on the tab", () => {
     const html = view({ sensitiveCountry: true });
     expect(html).toContain("a regra mais restritiva vence");
+  });
+});
+
+describe("MidiaView — a foto do Pulso para quem não lê a verdade (OBT-580)", () => {
+  it("sem bytes e com a legenda esvaziada, a decisão ainda aparece: autorizada, e quando", () => {
+    const markup = view({
+      mediaPhotos: [
+        { image: null, caption: "", authorization: { granted: true, by: "", at: "2026-10-01" } },
+      ],
+    });
+    expect(markup).toContain(i18n.t("media_auth_yes"));
+    expect(markup).toContain(formatDate("2026-10-01"));
+  });
+
+  it("um vazio de verdade não ganha decisão nenhuma", () => {
+    const markup = view({ mediaPhotos: [makeEmptyMediaPhoto()] });
+    expect(markup).not.toContain(i18n.t("media_auth_yes"));
+    expect(markup).not.toContain(i18n.t("media_auth_no"));
   });
 });
 
