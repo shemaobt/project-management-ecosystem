@@ -1,4 +1,4 @@
-import { useId, useState, type ChangeEvent } from "react";
+import { useEffect, useId, useState, type ChangeEvent } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { INTAKE_IMAGE_ACCEPT } from "../../../services/mediaStorage";
@@ -37,6 +37,14 @@ export function IntakeImageField({ id, value, onChange, upload, invalid }: Intak
   const statusId = useId();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [preview, setPreview] = useState<Preview | null>(null);
+
+  // The preview's object URL is this component's from the moment it lands here: revoked when
+  // another replaces it, when the image is removed and when the field goes away — a phone keeps
+  // every reduced photo the leader tried otherwise, for the life of the page.
+  useEffect(() => {
+    if (!preview) return;
+    return () => URL.revokeObjectURL(preview.src);
+  }, [preview]);
 
   const shown = value !== undefined && preview?.id === value ? preview : null;
 

@@ -105,6 +105,7 @@ export function IntakePage() {
     try {
       const prepared = await prepareIntakeImage(file);
       const image = await formsAPI.uploadIntakeImage(token, prepared.blob, prepared.fileName);
+      // The field takes the URL over and revokes it (`IntakeImageField`).
       return { ok: true, image, previewSrc: URL.createObjectURL(prepared.blob) };
     } catch (raw) {
       if (raw instanceof IntakeImageRefused) {
