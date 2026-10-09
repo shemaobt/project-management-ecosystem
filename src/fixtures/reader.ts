@@ -108,5 +108,35 @@ function unnamed<A extends { by: string }>(authorization: A | null | undefined):
 export function asReadBy(project: Project, persona: SessionPersona): Project {
   const readAs = readerOf(persona, project.derived?.region ?? getRegion(project));
   const read = { ...project, readAs };
-  return readAs === "other" && project.sensitiveCountry ? withhold(read) : read;
+  if (readAs === "other" && project.sensitiveCountry) return withoutPhotoBytes(withhold(read));
+  // The Resource Circle reads a withheld record's truth (OBT-571) and not its photos' bytes:
+  // an image of a withheld project is the coordination's until OBT-575 (Daniel, 9/oct, b).
+  if (readAs === "trusted" && project.sensitiveCountry) return withoutPhotoBytes(read);
+  return read;
+}
+
+/** The bytes a fixture photo carries locally, dropped for a reader the server's link refuses. */
+function withoutPhotoBytes(project: Project): Project {
+  return {
+    ...project,
+    mediaPhotos: (project.mediaPhotos ?? []).map((photo) => ({ ...photo, image: null })),
+  };
+}
+
+/**
+ * `media_download_url`'s gates for the double (OBT-581): the photo must exist and hold bytes
+ * (404), be authorized (403), and — on a withheld project — the reader must be its
+ * coordination (403, the same refusal). One sentence for every 403, so nothing tells which.
+ */
+export function mediaLinkFor(
+  project: Project,
+  itemId: string,
+  persona: SessionPersona,
+): { ok: true; url: string } | { ok: false; status: 403 | 404 } {
+  const photo = (project.mediaPhotos ?? []).find((entry) => entry.id === itemId);
+  if (!photo || !photo.image) return { ok: false, status: 404 };
+  if (photo.authorization?.granted !== true) return { ok: false, status: 403 };
+  const reader = readerOf(persona, project.derived?.region ?? getRegion(project));
+  if (project.sensitiveCountry && reader !== "coordination") return { ok: false, status: 403 };
+  return { ok: true, url: photo.image.src };
 }
