@@ -1486,5 +1486,10 @@
   "forms_submission_rows_other": "{{count}} linhas de progresso",
   "forms_answer_yes": "Sim",
   "forms_answer_no": "Não",
-  "forms_answer_empty": "—"
+  "forms_answer_empty": "—",
+  "media_withdraw": "Retirar autorização",
+  "media_withdraw_title": "Retirar a autorização desta foto?",
+  "media_withdraw_body": "A foto deixa de sair do projeto daqui em diante e some do Pulso que a trouxe. O que já foi enviado não é recolhido.",
+  "media_withdraw_confirm": "Retirar",
+  "media_withdraw_done": "Autorização retirada."
 }

@@ -1486,5 +1486,10 @@
   "forms_submission_rows_other": "{{count}} progress rows",
   "forms_answer_yes": "Yes",
   "forms_answer_no": "No",
-  "forms_answer_empty": "—"
+  "forms_answer_empty": "—",
+  "media_withdraw": "Withdraw authorization",
+  "media_withdraw_title": "Withdraw this photo's authorization?",
+  "media_withdraw_body": "The photo stops leaving the project from now on and is removed from the Pulse that brought it. What was already sent is not recalled.",
+  "media_withdraw_confirm": "Withdraw",
+  "media_withdraw_done": "Authorization withdrawn."
 }

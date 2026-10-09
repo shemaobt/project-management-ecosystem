@@ -34,6 +34,15 @@ export function canImportProjects(roles: readonly SessionRole[]): boolean {
 }
 
 /**
+ * Who takes a photo's authorization back — `CoordinatorUser` on the server's withdraw route
+ * (OBT-578): the coordinator, and nobody else; the Admin does not grant or refuse in the team's
+ * place. Reflection only, so the button is not drawn for a reader the route refuses.
+ */
+export function canWithdrawMediaAuthorization(roles: readonly SessionRole[]): boolean {
+  return roles.includes("coordinator");
+}
+
+/**
  * Who opens a new record — everyone the server lets write a project. The Resource Circle
  * writes none (OBT-571, Daniel 7/oct: *só não podem editar* read whole; `refuse_circle_writes`
  * answers 403 on every project route, the create included), unless it also coordinates —
