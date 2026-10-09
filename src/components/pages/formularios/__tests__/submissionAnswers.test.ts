@@ -11,6 +11,14 @@ beforeEach(async () => {
 });
 
 const FIELDS: readonly IntakeField[] = [
+  {
+    key: "bookProgress",
+    type: "progressRows",
+    required: false,
+    labelKey: "forms_q_chapters",
+    maxLength: null,
+    options: [],
+  },
   { key: "voice", type: "longText", required: false, labelKey: "forms_q_voice", maxLength: 4000, options: [] },
   { key: "image", type: "image", required: false, labelKey: "forms_q_image", maxLength: null, options: [] },
   {
@@ -76,5 +84,17 @@ describe("a caixa de entrada abre um Pulso e mostra a imagem pela palavra (OBT-5
     expect(markup).toContain(i18n.t("forms_submission_withheld"));
     expect(markup).not.toContain("não devia aparecer");
     expect(markup).not.toContain(i18n.t("forms_q_image"));
+  });
+});
+
+describe("as linhas de progresso concordam com o número", () => {
+  it("uma linha no singular, duas no plural, nas duas línguas", async () => {
+    const one = render(detail({ answers: { bookProgress: [{ book: "Marcos" }] } }));
+    const two = render(detail({ answers: { bookProgress: [{ book: "Marcos" }, { book: "Lucas" }] } }));
+    expect(one).toContain("1 linha de progresso");
+    expect(two).toContain("2 linhas de progresso");
+    await i18n.changeLanguage("en");
+    expect(render(detail({ answers: { bookProgress: [{ book: "Mark" }] } }))).toContain("1 progress row<");
+    await i18n.changeLanguage("pt");
   });
 });
