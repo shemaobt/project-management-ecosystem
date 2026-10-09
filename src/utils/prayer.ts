@@ -1,6 +1,6 @@
 import { DEFAULT_PRAYER_VISIBILITY } from "../constants/prayer";
 import { REGIONS } from "../constants/regions";
-import type { PrayerRequest } from "../types/prayer";
+import type { PrayerReleasePayload, PrayerRequest, PrayerReviewEntry } from "../types/prayer";
 import type { PrayerVisibility, Project } from "../types/project";
 import type { RegionKey } from "../types/region";
 import {
@@ -114,4 +114,18 @@ export function groupPrayerRequests(
       labelKey: getRegionLabelKey(region),
       requests: grouped,
     }));
+}
+
+/**
+ * What a release sends (OBT-575): the team's text as the coordinator read it, and the edit only
+ * when there is one — a field left as it came, or emptied, releases the team's own words.
+ */
+export function releasePayload(
+  entry: PrayerReviewEntry,
+  draft: string,
+): PrayerReleasePayload {
+  const edited = draft.trim();
+  return edited === "" || edited === entry.text.trim()
+    ? { needId: entry.needId, reviewed: entry.text }
+    : { needId: entry.needId, reviewed: entry.text, text: edited };
 }

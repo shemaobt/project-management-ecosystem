@@ -91,6 +91,14 @@ export const prayerPulseAPI: api.PrayerPulseAPI | null =
   resolveSource("prayer") === "api" ? api.prayerPulseAPI : null;
 
 /**
+ * The review queue of a sensitive project's requests has no fixture either (OBT-575): what
+ * waits, and who may release it, is the server's to decide. `null` keeps the tab off the
+ * prayer area in fixture mode.
+ */
+export const prayerReviewAPI: api.PrayerReviewAPI | null =
+  resolveSource("prayer") === "api" ? api.prayerReviewAPI : null;
+
+/**
  * The bell's panel and the projects export and import have no fixture double (INT-11 ·
  * OBT-416). With no server the bell derives its notices from the fixture projects, as it
  * always did, and the import applies to the fixture store; the export has **no** client side at
@@ -150,6 +158,7 @@ export type {
   PasswordOutcome,
   PrayerPulseAPI,
   PrayerPulseFile,
+  PrayerReviewAPI,
   PulseLanguage,
   ServedPanel,
   TransferAPI,
