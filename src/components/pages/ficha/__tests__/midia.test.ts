@@ -23,6 +23,7 @@ vi.stubGlobal("window", { localStorage: storage });
 
 const { default: i18n } = await import("../../../../i18n");
 const { AuthProvider } = await import("../../../../contexts/AuthContext");
+const { MOCK_SESSION_KEY } = await import("../../../../fixtures/session");
 const { makeEmptyProject } = await import("../../../../stores/recordStore");
 const { MidiaTab } = await import("../tabs/Midia");
 const { makeEmptyMediaPhoto } = await import("../../../../utils/media");
@@ -50,7 +51,9 @@ const handle = (values: Values = {}) => ({
 const render = (element: ReactElement) => renderToStaticMarkup(element);
 
 const view = (values: Values = {}) =>
-  render(createElement(MidiaTab, { mode: "ver", draft: handle(values) }));
+  render(
+    createElement(AuthProvider, null, createElement(MidiaTab, { mode: "ver", draft: handle(values) })),
+  );
 
 const form = (values: Values = {}) =>
   render(
@@ -122,7 +125,13 @@ describe("MidiaView — a legenda esvaziada se diz como ocultada (OBT-580, §6.1
   const decided = { granted: true, by: "", at: "2026-10-01" };
   const withheld = { ...FULL_ACCESS, withheld: true };
   const viewAs = (place: typeof FULL_ACCESS, values: Values) =>
-    render(createElement(MidiaTab, { mode: "ver", draft: { ...handle(values), place } }));
+    render(
+      createElement(
+        AuthProvider,
+        null,
+        createElement(MidiaTab, { mode: "ver", draft: { ...handle(values), place } }),
+      ),
+    );
   const NOTE = () => i18n.t("f_free_text_coordination_only", { regional: "x", admin: "y" }).slice(0, 40);
 
   it("quem não lê a verdade vê a frase de ocultada no lugar da legenda", () => {
@@ -221,5 +230,48 @@ describe("draft media updates", () => {
     expect(photos?.[0]?.image).toEqual(first);
     expect(photos?.[1]?.image).toEqual(second);
     useRecordStore.getState().discardDraft(recordId);
+  });
+});
+
+/** The tab for a saved record — `p1` — whose photos came from the server. */
+const viewSaved = (values: Values) => {
+  const draft = handle(values);
+  return render(
+    createElement(
+      AuthProvider,
+      null,
+      createElement(MidiaTab, { mode: "ver", draft: { ...draft, values: { ...draft.values, id: "p1" } } }),
+    ),
+  );
+};
+
+describe("MidiaView — a retirada pelo id (OBT-582)", () => {
+  const serverPhoto = {
+    id: "item-1",
+    image: null,
+    caption: "A equipe no vale",
+    authorization: { granted: true, by: "Fresia", at: "2026-10-01" },
+  };
+
+  it("o coordenador vê o botão de retirar numa foto autorizada do servidor", () => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    const markup = viewSaved({ mediaPhotos: [serverPhoto] });
+    expect(markup).toContain(i18n.t("media_withdraw"));
+  });
+
+  it("OBT Lab e Resource Circle não veem o botão", () => {
+    for (const role of ["obtLab", "resourceCircle"]) {
+      localStorage.setItem(MOCK_SESSION_KEY, role);
+      expect(viewSaved({ mediaPhotos: [serverPhoto] }), role).not.toContain(i18n.t("media_withdraw"));
+    }
+  });
+
+  it("depois de retirada, nem botão nem pedido de link: o slot volta a ser vazio", () => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    const markup = viewSaved({
+      mediaPhotos: [{ ...serverPhoto, authorization: { granted: false, by: "", at: "2026-10-09" } }],
+    });
+    expect(markup).not.toContain(i18n.t("media_withdraw"));
+    expect(markup).toContain(i18n.t("media_auth_no"));
   });
 });
