@@ -3,9 +3,10 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { FIELD_FORMS } from "../../../constants/forms";
 import { useAuth } from "../../../contexts/AuthContext";
+import { formsAPI } from "../../../services/api";
 import { useFormsStore } from "../../../stores/formsStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
-import type { ReceivedSubmission } from "../../../types/forms";
+import type { ReceivedSubmission, ReceivedSubmissionDetail } from "../../../types/forms";
 import type { ApiFailure } from "../../../types/session";
 import type { Project } from "../../../types/project";
 import { canWriteHealth } from "../../../utils/access";
@@ -33,6 +34,8 @@ export interface FormulariosViewProps {
   /** Why the project list could not be read — said, with a retry, instead of a spinner. */
   loadFailure?: ApiFailure | null;
   onRetry?: () => void;
+  /** Opens one received Pulse's answers in the inbox (OBT-580). */
+  readSubmission?: (submissionId: string) => Promise<ReceivedSubmissionDetail>;
   /**
    * Whether this reader files a health assessment (`canWriteHealth`, OBT-579). Without it the
    * card draws no button: the server refuses the filing at the end of the four dimensions, and
@@ -47,6 +50,7 @@ export function FormulariosView({
   now,
   loadFailure = null,
   onRetry,
+  readSubmission,
   writesHealth = true,
 }: FormulariosViewProps) {
   const { t } = useTranslation();
@@ -151,7 +155,7 @@ export function FormulariosView({
 
               <PendingProjects form={pulse} readiness={readiness} />
 
-              <ReceivedArchive submissions={archive} />
+              <ReceivedArchive submissions={archive} readSubmission={readSubmission} />
             </>
           ) : (
             <p className="rounded-md border border-line bg-muted px-4 py-3 text-small leading-normal text-fg-muted">
@@ -193,6 +197,7 @@ export function FormulariosPage() {
       submissions={formsRead ? submissions : null}
       loadFailure={loadFailure}
       onRetry={() => void reloadProjects()}
+      readSubmission={(id) => formsAPI.readSubmission(id)}
       writesHealth={canWriteHealth(user.roles)}
     />
   );

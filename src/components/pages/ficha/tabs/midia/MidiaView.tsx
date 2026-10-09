@@ -48,7 +48,10 @@ export function MidiaView({ draft }: MidiaViewProps) {
                 </div>
               )}
               {caption && <MediaCaption>{caption}</MediaCaption>}
-              {hasPhotoContent(photo) && (
+              {/* A recorded decision shows even with nothing else in the slot (OBT-580): the
+                  server serves no bytes yet and empties the caption for a reader outside the
+                  truth, and `granted`/`at` are what that reader is still told. */}
+              {(hasPhotoContent(photo) || photo.authorization !== null) && (
                 <AuthStatus authorization={photo.authorization} />
               )}
             </div>
