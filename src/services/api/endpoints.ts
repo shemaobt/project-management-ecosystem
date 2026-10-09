@@ -77,6 +77,7 @@ import { API_BASE_URL, REQUEST_TIMEOUT_MS, http, refreshSession } from "./client
 import { failure, toApiFailure, UNKNOWN_VOCABULARY } from "./errors";
 import { forgetTokens, refreshToken, setTokens } from "./tokens";
 import { toLocalIsoDate } from "../../utils/format";
+import { headerSafeFileName } from "../../utils/intake";
 
 const SHEMA = "/shema";
 
@@ -480,10 +481,16 @@ export const formsAPI = {
     image: Blob,
     fileName: string,
   ): Promise<IntakeImageStored> {
+    const name = headerSafeFileName(fileName);
     const { data } = await http.post<IntakeImageStored>(
       `${SHEMA}/intake/${encodeURIComponent(token)}/image`,
       image,
-      { headers: { "Content-Type": image.type, "X-File-Name": fileName } },
+      {
+        headers: {
+          "Content-Type": image.type,
+          ...(name === null ? {} : { "X-File-Name": name }),
+        },
+      },
     );
     return data;
   },

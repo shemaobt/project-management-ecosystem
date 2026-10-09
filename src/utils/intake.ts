@@ -183,6 +183,18 @@ export type IntakeImageOutcome =
 
 export type IntakeImageUpload = (file: File) => Promise<IntakeImageOutcome>;
 
+/**
+ * The `X-File-Name` the upload may carry — the name as typed when every character fits in
+ * ISO-8859-1, the only alphabet an HTTP header value has, and nothing otherwise: a browser
+ * refuses to send a header with a character outside it (Cyrillic, Arabic, an emoji), and the
+ * whole upload would fail for a name the server only ever shows back. The server takes the
+ * absence (`file_name: str | None`).
+ */
+export function headerSafeFileName(fileName: string): string | null {
+  const trimmed = fileName.trim();
+  return trimmed && /^[\x20-\x7e\xa0-\xff]+$/u.test(trimmed) ? trimmed : null;
+}
+
 /** The sentence for an image the console refused before sending (OBT-580), by reason. */
 export function intakeImageRefusalKey(reason: "type" | "size" | "unreadable"): string {
   if (reason === "type") return "intake_image_err_type";

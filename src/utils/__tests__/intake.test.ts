@@ -4,6 +4,7 @@ import {
   classifyIntakeLinkProblem,
   clearIntakeDraft,
   draftKeyOf,
+  headerSafeFileName,
   intakeImageRefusalKey,
   loadIntakeDraft,
   parseSubmitFaults,
@@ -325,5 +326,17 @@ describe("as respostas da imagem do Pulso (OBT-580)", () => {
     expect(intakeImageRefusalKey("type")).toBe("intake_image_err_type");
     expect(intakeImageRefusalKey("size")).toBe("intake_image_err_size");
     expect(intakeImageRefusalKey("unreadable")).toBe("intake_image_err_unreadable");
+  });
+});
+
+describe("o nome do arquivo no cabeçalho X-File-Name (OBT-580)", () => {
+  it("vai como está quando cabe em ISO-8859-1, e não vai quando não cabe", () => {
+    expect(headerSafeFileName("vale.webp")).toBe("vale.webp");
+    expect(headerSafeFileName("Equipe no vale — São José.webp")).toBeNull();
+    expect(headerSafeFileName("équipe.webp")).toBe("équipe.webp");
+    expect(headerSafeFileName("долина.webp")).toBeNull();
+    expect(headerSafeFileName("الوادي.webp")).toBeNull();
+    expect(headerSafeFileName("vale 🌄.webp")).toBeNull();
+    expect(headerSafeFileName("   ")).toBeNull();
   });
 });
