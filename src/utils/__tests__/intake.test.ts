@@ -4,6 +4,8 @@ import {
   classifyIntakeLinkProblem,
   clearIntakeDraft,
   draftKeyOf,
+  headerSafeFileName,
+  intakeImageRefusalKey,
   loadIntakeDraft,
   parseSubmitFaults,
   saveIntakeDraft,
@@ -284,5 +286,57 @@ describe("um link morto diz o quê aconteceu, não um 403 seco", () => {
       classifyIntakeLinkProblem("This link is not one this server issued."),
     ).toBe("invalid");
     expect(classifyIntakeLinkProblem(null)).toBe("invalid");
+  });
+});
+
+describe("as respostas da imagem do Pulso (OBT-580)", () => {
+  const image: IntakeField = {
+    key: "image",
+    type: "image",
+    required: false,
+    labelKey: "forms_q_image",
+    maxLength: null,
+    options: [],
+  };
+  const box: IntakeField = {
+    key: "imageAuthorized",
+    type: "checkbox",
+    required: false,
+    labelKey: "forms_q_image_authorization",
+    maxLength: null,
+    options: [],
+  };
+
+  it("a caixa é true ou false; qualquer outra coisa é recusada antes de sair", () => {
+    expect(validateIntakeAnswers([box], { imageAuthorized: true })).toEqual({});
+    expect(validateIntakeAnswers([box], { imageAuthorized: false })).toEqual({});
+    expect(validateIntakeAnswers([box], {})).toEqual({});
+    expect(validateIntakeAnswers([box], { imageAuthorized: "sim" })).toEqual({
+      imageAuthorized: "intake_err_checkbox",
+    });
+  });
+
+  it("a imagem é o id que o servidor devolveu, ou nada", () => {
+    expect(validateIntakeAnswers([image], { image: "intake-image-1" })).toEqual({});
+    expect(validateIntakeAnswers([image], {})).toEqual({});
+    expect(validateIntakeAnswers([image], { image: 7 })).toEqual({ image: "intake_err_image" });
+  });
+
+  it("cada recusa do console tem a sua frase", () => {
+    expect(intakeImageRefusalKey("type")).toBe("intake_image_err_type");
+    expect(intakeImageRefusalKey("size")).toBe("intake_image_err_size");
+    expect(intakeImageRefusalKey("unreadable")).toBe("intake_image_err_unreadable");
+  });
+});
+
+describe("o nome do arquivo no cabeçalho X-File-Name (OBT-580)", () => {
+  it("vai como está quando cabe em ISO-8859-1, e não vai quando não cabe", () => {
+    expect(headerSafeFileName("vale.webp")).toBe("vale.webp");
+    expect(headerSafeFileName("Equipe no vale — São José.webp")).toBeNull();
+    expect(headerSafeFileName("équipe.webp")).toBe("équipe.webp");
+    expect(headerSafeFileName("долина.webp")).toBeNull();
+    expect(headerSafeFileName("الوادي.webp")).toBeNull();
+    expect(headerSafeFileName("vale 🌄.webp")).toBeNull();
+    expect(headerSafeFileName("   ")).toBeNull();
   });
 });

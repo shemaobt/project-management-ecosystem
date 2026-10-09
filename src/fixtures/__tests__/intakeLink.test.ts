@@ -38,6 +38,10 @@ describe("o dublê do link do líder — a mesma forma da BE-12", () => {
       "blockers",
       "prayerRequest",
       "prayerVisibility",
+      // The image, its description and the authorization of its use (OBT-578 / OBT-580).
+      "image",
+      "imageDescription",
+      "imageAuthorized",
     ]);
   });
 
@@ -98,5 +102,90 @@ describe("o dublê do link do líder — a mesma forma da BE-12", () => {
           submission.submittedBy === "Kuaray",
       ),
     ).toBe(true);
+  });
+});
+
+describe("o dublê da imagem do Pulso — a mesma forma da shema-api#713 (OBT-580)", () => {
+  const webp = () => new Blob([new Uint8Array([82, 73, 70, 70])], { type: "image/webp" });
+
+  const answers = (image?: string) => ({
+    submittedBy: "Fresia",
+    period: "2026-09",
+    ...(image ? { image, imageDescription: "A equipe no vale", imageAuthorized: true } : {}),
+  });
+
+  it("sobe pelo link e responde só o id; a resposta leva o id e a caixa de entrada o lê de volta", async () => {
+    const created = await formsAPI.mintIntakeLink({ projectId });
+    const stored = await formsAPI.uploadIntakeImage(created.token, webp(), "vale.webp");
+    expect(stored.id).toMatch(/^intake-image-/);
+    expect(stored.contentType).toBe("image/webp");
+    expect(Object.keys(stored).sort()).toEqual(["contentType", "fileName", "id"]);
+
+    await formsAPI.submitIntake(created.token, { definitionVersion: 1, answers: answers(stored.id) });
+    const received = await formsAPI.received();
+    const mine = received[received.length - 1];
+    const detail = await formsAPI.readSubmission(mine.id);
+    expect(detail.answers.image).toBe(stored.id);
+    expect(detail.answers.imageDescription).toBe("A equipe no vale");
+    expect(detail.answers.imageAuthorized).toBe(true);
+    expect(detail.answersWithheld).toBe(false);
+    expect(detail.fields.map((field) => field.key)).toContain("imageAuthorized");
+  });
+
+  it("um id que não subiu por este link é recusado, e a caixa que não é true/false também", async () => {
+    const a = await formsAPI.mintIntakeLink({ projectId });
+    const b = await formsAPI.mintIntakeLink({ projectId });
+    const stored = await formsAPI.uploadIntakeImage(a.token, webp(), "vale.webp");
+
+    await expect(
+      formsAPI.submitIntake(b.token, { definitionVersion: 1, answers: answers(stored.id) }),
+    ).rejects.toMatchObject({ kind: "invalid", detail: expect.stringContaining("image:") });
+    await expect(
+      formsAPI.submitIntake(a.token, {
+        definitionVersion: 1,
+        answers: { ...answers(stored.id), imageAuthorized: "sim" },
+      }),
+    ).rejects.toMatchObject({ kind: "invalid", detail: expect.stringContaining("imageAuthorized:") });
+  });
+
+  it("uma imagem já presa a um Pulso não serve a outro", async () => {
+    const link = await formsAPI.mintIntakeLink({ projectId });
+    const stored = await formsAPI.uploadIntakeImage(link.token, webp(), "vale.webp");
+    await formsAPI.submitIntake(link.token, { definitionVersion: 1, answers: answers(stored.id) });
+    const again = await formsAPI.mintIntakeLink({ projectId });
+    await expect(
+      formsAPI.submitIntake(again.token, { definitionVersion: 1, answers: answers(stored.id) }),
+    ).rejects.toMatchObject({ kind: "invalid" });
+  });
+});
+
+describe("o dublê do upload recusa como o servidor, e um reenvio não duplica (OBT-580)", () => {
+  const blob = (type: string, size = 4) => new Blob([new Uint8Array(size)], { type });
+
+  it("tipo fora de JPEG, PNG e WebP, e tamanho acima de 10 MiB, são recusados com a frase do servidor", async () => {
+    const link = await formsAPI.mintIntakeLink({ projectId });
+    await expect(formsAPI.uploadIntakeImage(link.token, blob("image/avif"), "a.avif")).rejects.toMatchObject({
+      kind: "invalid",
+      detail: expect.stringContaining("Unsupported image type"),
+    });
+    await expect(
+      formsAPI.uploadIntakeImage(link.token, blob("image/webp", 10 * 1024 * 1024 + 1), "big.webp"),
+    ).rejects.toMatchObject({ kind: "invalid", detail: expect.stringContaining("10 MB") });
+    await expect(formsAPI.uploadIntakeImage(link.token, blob("image/webp", 0), "empty.webp")).rejects.toMatchObject({
+      kind: "invalid",
+    });
+  });
+
+  it("o mesmo Pulso enviado duas vezes pelo mesmo link fica uma vez só, sem recusa", async () => {
+    const link = await formsAPI.mintIntakeLink({ projectId });
+    const stored = await formsAPI.uploadIntakeImage(link.token, blob("image/webp"), "vale.webp");
+    const payload = {
+      definitionVersion: 1,
+      answers: { submittedBy: "Fresia", period: "2026-09", image: stored.id, imageAuthorized: true },
+    };
+    await formsAPI.submitIntake(link.token, payload);
+    const before = (await formsAPI.received()).length;
+    await expect(formsAPI.submitIntake(link.token, payload)).resolves.toBeUndefined();
+    expect((await formsAPI.received()).length).toBe(before);
   });
 });

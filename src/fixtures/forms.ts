@@ -4,16 +4,27 @@ import type {
   IntakeAnswers,
   IntakeField,
   IntakeForm,
+  IntakeImageStored,
   IntakeLink,
   IntakeLinkCreated,
   IntakeLinkCreatePayload,
   IntakeLinkStatus,
   IntakeSubmissionPayload,
   ReceivedSubmission,
+  ReceivedSubmissionDetail,
 } from "../types/forms";
+import { getRegion } from "../utils/region";
 import { loadProject } from "./projects";
+import { readerOf } from "./reader";
+import { mockPersona } from "./session";
 
 const received: ReceivedSubmission[] = [];
+
+/** The answers behind each received row, for the detail read — the server's archived payload. */
+const receivedAnswers = new Map<string, IntakeAnswers>();
+
+/** Which link each received row came through — what tells a replay from a second Pulse. */
+const receivedTokens = new Map<string, string>();
 
 export function loadReceivedSubmissions(): ReceivedSubmission[] {
   return structuredClone(received);
@@ -85,7 +96,98 @@ const PULSE_FIELDS: readonly IntakeField[] = [
     maxLength: null,
     options: ["coordenacao", "rede"],
   },
+  // The image, its description and the authorization of its use (OBT-578, Karina via
+  // Daniel, 6/oct/2026) — the server's own three, in its order.
+  {
+    key: "image",
+    type: "image",
+    required: false,
+    labelKey: "forms_q_image",
+    maxLength: null,
+    options: [],
+  },
+  {
+    key: "imageDescription",
+    type: "longText",
+    required: false,
+    labelKey: "forms_q_image_description",
+    maxLength: 1000,
+    options: [],
+  },
+  {
+    key: "imageAuthorized",
+    type: "checkbox",
+    required: false,
+    labelKey: "forms_q_image_authorization",
+    maxLength: null,
+    options: [],
+  },
 ];
+
+// --- the Pulse's image, uploaded through the link before the answers (OBT-578) ----------
+
+interface StoredIntakeImage extends IntakeImageStored {
+  token: string;
+  submissionId: string | null;
+}
+
+const images = new Map<string, StoredIntakeImage>();
+let imageSeq = 0;
+
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Mirrors `store_intake_image` and `_intake_image_rules`: the link must be live, the type is
+ * one of three and the size under the ceiling, and the answer is the id and nothing else.
+ */
+export async function uploadIntakeImage(
+  token: string,
+  image: Blob,
+  fileName: string,
+): Promise<IntakeImageStored> {
+  findLiveLink(token);
+  const type = image.type.split(";")[0].trim().toLowerCase();
+  if (!IMAGE_TYPES.includes(type)) {
+    throw failure(
+      "invalid",
+      `Unsupported image type: ${type || "(none)"}. Accepted: ${IMAGE_TYPES.join(", ")}`,
+    );
+  }
+  if (image.size === 0) throw failure("invalid", "The image is empty.");
+  if (image.size > MAX_IMAGE_BYTES) {
+    throw failure(
+      "invalid",
+      `The image is ${image.size} bytes and the Pulse accepts ${MAX_IMAGE_BYTES / (1024 * 1024)} MB. Nothing was kept.`,
+    );
+  }
+  const stored: StoredIntakeImage = {
+    id: `intake-image-${++imageSeq}`,
+    fileName: fileName || null,
+    contentType: image.type,
+    token,
+    submissionId: null,
+  };
+  images.set(stored.id, stored);
+  return { id: stored.id, fileName: stored.fileName, contentType: stored.contentType };
+}
+
+/** Mirrors `read_submission`: the answers, or none when the reader does not read the truth of a withheld place. */
+export async function readSubmission(submissionId: string): Promise<ReceivedSubmissionDetail> {
+  const row = received.find((entry) => entry.id === submissionId);
+  if (!row) throw failure("notFound", "No submission with this id.");
+  const project = loadProject(row.projectId);
+  const withheld =
+    project !== null &&
+    project.sensitiveCountry &&
+    readerOf(mockPersona(), getRegion(project)) === "other";
+  return {
+    ...row,
+    fields: PULSE_FIELDS,
+    answers: withheld ? {} : structuredClone(receivedAnswers.get(submissionId) ?? {}),
+    answersWithheld: withheld,
+  };
+}
 
 const DEFAULT_LINK_DAYS = 45;
 const MAX_LINK_DAYS = 90;
@@ -240,7 +342,7 @@ function isEmptyAnswer(value: unknown): boolean {
   return false;
 }
 
-function validate(answers: IntakeAnswers): void {
+function validate(token: string, answers: IntakeAnswers): void {
   const faults: string[] = [];
   const spec = new Map(PULSE_FIELDS.map((field) => [field.key, field]));
 
@@ -269,6 +371,17 @@ function validate(answers: IntakeAnswers): void {
     if (field.type === "choice" && !field.options.includes(String(value))) {
       faults.push(`${field.key}: ${JSON.stringify(value)} is not one of ${field.options.join(", ")}`);
     }
+    if (field.type === "checkbox" && typeof value !== "boolean") {
+      faults.push(`${field.key}: ${JSON.stringify(value)} is not true or false`);
+    }
+    if (field.type === "image") {
+      const image = typeof value === "string" ? images.get(value) : undefined;
+      if (!image || image.token !== token) {
+        faults.push(`${field.key}: no image with this id was uploaded through this link`);
+      } else if (image.submissionId !== null) {
+        faults.push(`${field.key}: this image already belongs to a Pulse`);
+      }
+    }
   }
 
   if (faults.length > 0) {
@@ -277,6 +390,14 @@ function validate(answers: IntakeAnswers): void {
       `pulso v${PULSE_DEFINITION_VERSION}: the submission does not match the form, so none of it was kept — ${faults.sort().join("; ")}`,
     );
   }
+}
+
+function isReplay(token: string, answers: IntakeAnswers): boolean {
+  const sent = JSON.stringify(answers);
+  for (const [submissionId, kept] of receivedAnswers) {
+    if (receivedTokens.get(submissionId) === token && JSON.stringify(kept) === sent) return true;
+  }
+  return false;
 }
 
 export async function submitIntake(
@@ -290,11 +411,19 @@ export async function submitIntake(
       `definitionVersion: this link answers version ${PULSE_DEFINITION_VERSION} of the pulso form, not ${payload.definitionVersion}. Reload the form.`,
     );
   }
-  validate(payload.answers);
+  // The same Pulse sent twice — same link, same answers — is a no-op, as the server's
+  // idempotent archive makes it (`_is_a_replay`): nothing new is kept, nothing is refused.
+  if (isReplay(token, payload.answers)) return;
+  validate(token, payload.answers);
 
   const project = loadProject(link.projectId);
+  const submissionId = `submission-${received.length + 1}`;
+  const imageId = payload.answers.image;
+  if (typeof imageId === "string") images.get(imageId)!.submissionId = submissionId;
+  receivedAnswers.set(submissionId, structuredClone(payload.answers));
+  receivedTokens.set(submissionId, token);
   received.push({
-    id: `submission-${received.length + 1}`,
+    id: submissionId,
     kind: "pulso",
     projectId: link.projectId,
     languageName: project?.languageName ?? "",

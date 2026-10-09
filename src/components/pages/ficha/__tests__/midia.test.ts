@@ -21,7 +21,7 @@ const storage = createMemoryStorage();
 vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
-await import("../../../../i18n");
+const { default: i18n } = await import("../../../../i18n");
 const { AuthProvider } = await import("../../../../contexts/AuthContext");
 const { makeEmptyProject } = await import("../../../../stores/recordStore");
 const { MidiaTab } = await import("../tabs/Midia");
@@ -115,6 +115,49 @@ describe("MidiaView", () => {
   it("announces the sensitive-country composition on the tab", () => {
     const html = view({ sensitiveCountry: true });
     expect(html).toContain("a regra mais restritiva vence");
+  });
+});
+
+describe("MidiaView — a legenda esvaziada se diz como ocultada (OBT-580, §6.1)", () => {
+  const decided = { granted: true, by: "", at: "2026-10-01" };
+  const withheld = { ...FULL_ACCESS, withheld: true };
+  const viewAs = (place: typeof FULL_ACCESS, values: Values) =>
+    render(createElement(MidiaTab, { mode: "ver", draft: { ...handle(values), place } }));
+  const NOTE = () => i18n.t("f_free_text_coordination_only", { regional: "x", admin: "y" }).slice(0, 40);
+
+  it("quem não lê a verdade vê a frase de ocultada no lugar da legenda", () => {
+    const markup = viewAs(withheld, { mediaPhotos: [{ image: null, caption: "", authorization: decided }] });
+    expect(markup).toContain(NOTE());
+  });
+
+  it("a coordenação vê a legenda, e nenhuma frase de ocultada", () => {
+    const markup = viewAs(FULL_ACCESS, {
+      mediaPhotos: [{ image: null, caption: "A equipe no vale", authorization: decided }],
+    });
+    expect(markup).toContain("A equipe no vale");
+    expect(markup).not.toContain(NOTE());
+  });
+
+  it("sem mídia nenhuma, não há o que dizer ocultado", () => {
+    expect(viewAs(withheld, {})).not.toContain(NOTE());
+  });
+});
+
+describe("MidiaView — a foto do Pulso para quem não lê a verdade (OBT-580)", () => {
+  it("sem bytes e com a legenda esvaziada, a decisão ainda aparece: autorizada, e quando", () => {
+    const markup = view({
+      mediaPhotos: [
+        { image: null, caption: "", authorization: { granted: true, by: "", at: "2026-10-01" } },
+      ],
+    });
+    expect(markup).toContain(i18n.t("media_auth_yes"));
+    expect(markup).toContain(formatDate("2026-10-01"));
+  });
+
+  it("um vazio de verdade não ganha decisão nenhuma", () => {
+    const markup = view({ mediaPhotos: [makeEmptyMediaPhoto()] });
+    expect(markup).not.toContain(i18n.t("media_auth_yes"));
+    expect(markup).not.toContain(i18n.t("media_auth_no"));
   });
 });
 

@@ -1142,7 +1142,20 @@ POST /api/shema/forms/submissions                  {the returned artifact}  -> R
 POST /api/shema/intake-links   {projectId?, expiresAt}  -> {token, url, expiresAt}
 GET  /api/shema/intake/{token}                     -> the public intake form        # no auth
 POST /api/shema/intake/{token}                     {the filled form}  -> 202        # no auth
+POST /api/shema/intake/{token}/image               raw bytes, Content-Type + X-File-Name -> {id, fileName, contentType}  # no auth · OBT-578
+GET  /api/shema/forms/submissions/{id}             -> ReceivedSubmissionDetail {…, fields, answers, answersWithheld}   # OBT-580
 ```
+
+**The Pulse's image (OBT-578 / OBT-580).** Three fields joined the definition — `image` (type
+`image`: the id the upload above handed back), `imageDescription` (`longText`, 1000) and
+`imageAuthorized` (`checkbox`, `true`/`false`; absent and `false` both mean *nothing was authorized*).
+The console reduces the photo to 1200px WebP before sending and refuses by type (JPEG, PNG, WebP) and
+size (10 MiB) on its side; the server proves the type by the bytes. The import mints the record's
+photo from the three answers (caption = description, authorization = the leader's answer, `by` =
+`submittedBy`); for a reader outside the truth the caption and `by` arrive emptied, `granted` and `at`
+do not. **`mediaPhotos[].image` is still `null` on every read and the record's photos carry no id** —
+so the console shows the image by the word, never the bytes, and cannot call
+`POST /projects/{id}/media/{item_id}/authorization/withdraw` yet.
 
 **Server requirements:**
 
