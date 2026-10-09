@@ -86,23 +86,27 @@ export function ReceivedArchive({ submissions, readSubmission }: ReceivedArchive
                   </Button>
                 ) : null}
               </div>
-              {opened[submission.id]?.kind === "loading" ? (
-                <p className="mt-2 text-tag text-fg-subtle">{t("forms_submission_loading")}</p>
-              ) : opened[submission.id]?.kind === "failed" ? (
-                <p className="mt-2 text-tag font-semibold text-telha">
-                  {(opened[submission.id] as { message: string }).message}
-                </p>
-              ) : opened[submission.id]?.kind === "read" ? (
-                <div className="mt-3">
-                  <SubmissionAnswers
-                    detail={(opened[submission.id] as { detail: ReceivedSubmissionDetail }).detail}
-                  />
-                </div>
-              ) : null}
+              <OpenedAnswers state={opened[submission.id]} />
             </li>
           ))}
         </ul>
       )}
     </section>
+  );
+}
+
+function OpenedAnswers({ state }: { state: Opened | undefined }) {
+  const { t } = useTranslation();
+  if (!state) return null;
+  if (state.kind === "loading") {
+    return <p className="mt-2 text-tag text-fg-subtle">{t("forms_submission_loading")}</p>;
+  }
+  if (state.kind === "failed") {
+    return <p className="mt-2 text-tag font-semibold text-telha">{state.message}</p>;
+  }
+  return (
+    <div className="mt-3">
+      <SubmissionAnswers detail={state.detail} />
+    </div>
   );
 }
