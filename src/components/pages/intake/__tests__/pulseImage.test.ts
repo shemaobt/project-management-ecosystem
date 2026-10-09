@@ -4,7 +4,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   INTAKE_IMAGE_ACCEPT,
   INTAKE_IMAGE_MAX_BYTES,
+  IntakeImageRefused,
   isIntakeImageFile,
+  prepareIntakeImage,
 } from "../../../../services/mediaStorage";
 import type { IntakeField, IntakeForm } from "../../../../types/forms";
 import type { IntakeImageUpload } from "../../../../utils/intake";
@@ -109,6 +111,45 @@ describe("o Pulso tem os três campos da imagem (OBT-580)", () => {
   it("a caixa marcada é true; vazia, o servidor lê como não autorizado", () => {
     expect(render({ answers: { imageAuthorized: true } })).toContain('checked=""');
     expect(render({ answers: {} })).not.toContain('checked=""');
+  });
+});
+
+describe("prepareIntakeImage recusa antes de mandar", () => {
+  const file = (type: string) => new File([new Uint8Array(8)], "foto.bin", { type });
+  const encodeTo = (size: number) => async () => new Blob([new Uint8Array(size)], { type: "image/webp" });
+
+  it("por tipo, antes de decodificar — o codificador nem é chamado", async () => {
+    let called = false;
+    const encode = async () => {
+      called = true;
+      return new Blob([], { type: "image/webp" });
+    };
+    await expect(prepareIntakeImage(file("image/avif"), encode)).rejects.toMatchObject({ reason: "type" });
+    expect(called).toBe(false);
+  });
+
+  it("por tamanho, depois de reduzir — acima de 10 MiB nada sai", async () => {
+    await expect(
+      prepareIntakeImage(file("image/jpeg"), encodeTo(INTAKE_IMAGE_MAX_BYTES + 1)),
+    ).rejects.toBeInstanceOf(IntakeImageRefused);
+    await expect(
+      prepareIntakeImage(file("image/jpeg"), encodeTo(INTAKE_IMAGE_MAX_BYTES + 1)),
+    ).rejects.toMatchObject({ reason: "size" });
+  });
+
+  it("dentro do limite, os bytes reduzidos e o nome do arquivo seguem", async () => {
+    const prepared = await prepareIntakeImage(file("image/png"), encodeTo(1024));
+    expect(prepared.blob.size).toBe(1024);
+    expect(prepared.blob.type).toBe("image/webp");
+    expect(prepared.fileName).toBe("foto.bin");
+  });
+
+  it("um codificador que falha é 'ilegível', com a sua frase", async () => {
+    await expect(
+      prepareIntakeImage(file("image/png"), async () => {
+        throw new Error("decode failed");
+      }),
+    ).rejects.toMatchObject({ reason: "unreadable" });
   });
 });
 

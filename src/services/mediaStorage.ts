@@ -84,12 +84,23 @@ function toWebpBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
-/** The bytes that go to the link: refused by type before decoding, by size after reducing. */
-export async function prepareIntakeImage(file: File): Promise<PreparedIntakeImage> {
+async function encodeIntakeImage(file: Blob): Promise<Blob> {
+  return toWebpBlob(await reduceImage(file));
+}
+
+/**
+ * The bytes that go to the link: refused by type before decoding, by size after reducing.
+ * `encode` is the canvas reduction and is a parameter only so the size path can be driven
+ * where there is no canvas.
+ */
+export async function prepareIntakeImage(
+  file: File,
+  encode: (file: Blob) => Promise<Blob> = encodeIntakeImage,
+): Promise<PreparedIntakeImage> {
   if (!isIntakeImageFile(file)) throw new IntakeImageRefused("type");
   let blob: Blob;
   try {
-    blob = await toWebpBlob(await reduceImage(file));
+    blob = await encode(file);
   } catch (error) {
     if (error instanceof IntakeImageRefused) throw error;
     throw new IntakeImageRefused("unreadable");
