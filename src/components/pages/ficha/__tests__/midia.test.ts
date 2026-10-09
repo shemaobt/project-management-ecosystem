@@ -118,6 +118,31 @@ describe("MidiaView", () => {
   });
 });
 
+describe("MidiaView — a legenda esvaziada se diz como ocultada (OBT-580, §6.1)", () => {
+  const decided = { granted: true, by: "", at: "2026-10-01" };
+  const withheld = { ...FULL_ACCESS, withheld: true };
+  const viewAs = (place: typeof FULL_ACCESS, values: Values) =>
+    render(createElement(MidiaTab, { mode: "ver", draft: { ...handle(values), place } }));
+  const NOTE = () => i18n.t("f_free_text_coordination_only", { regional: "x", admin: "y" }).slice(0, 40);
+
+  it("quem não lê a verdade vê a frase de ocultada no lugar da legenda", () => {
+    const markup = viewAs(withheld, { mediaPhotos: [{ image: null, caption: "", authorization: decided }] });
+    expect(markup).toContain(NOTE());
+  });
+
+  it("a coordenação vê a legenda, e nenhuma frase de ocultada", () => {
+    const markup = viewAs(FULL_ACCESS, {
+      mediaPhotos: [{ image: null, caption: "A equipe no vale", authorization: decided }],
+    });
+    expect(markup).toContain("A equipe no vale");
+    expect(markup).not.toContain(NOTE());
+  });
+
+  it("sem mídia nenhuma, não há o que dizer ocultado", () => {
+    expect(viewAs(withheld, {})).not.toContain(NOTE());
+  });
+});
+
 describe("MidiaView — a foto do Pulso para quem não lê a verdade (OBT-580)", () => {
   it("sem bytes e com a legenda esvaziada, a decisão ainda aparece: autorizada, e quando", () => {
     const markup = view({

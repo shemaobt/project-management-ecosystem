@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { photoSlotSurface } from "../../../../../styles";
 import { cn } from "../../../../../utils/cn";
-import { hasPhotoContent, photoSlots } from "../../../../../utils/media";
+import { hasPhotoContent, hasVideoContent, photoSlots } from "../../../../../utils/media";
+import { readsFreeText } from "../../../../../utils/recordAccess";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { PhotoSlotHint } from "../../../../common/ImageUpload";
 import type { DraftHandle } from "../../useDraft";
 import {
@@ -21,10 +23,18 @@ export function MidiaView({ draft }: MidiaViewProps) {
   const values = draft.values;
   const photos = photoSlots(values.mediaPhotos);
   const videos = values.mediaVideos ?? [];
+  // The server empties the captions on a withheld record for whoever does not read the truth
+  // (OBT-578): that blank is said as withheld, once, the way the Notas and Saúde tabs say it
+  // (§6.1), never left to read as *no caption*.
+  const captionsWithheld =
+    !readsFreeText(draft.place) &&
+    (photos.some((photo) => hasPhotoContent(photo) || photo.authorization !== null) ||
+      videos.some(hasVideoContent));
 
   return (
     <div className="flex flex-col gap-4">
       {values.sensitiveCountry && <SensitiveMediaNote />}
+      {captionsWithheld && <CoordinationOnlyNote textKey="f_free_text_coordination_only" />}
 
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3">
         {photos.map((photo, index) => {
