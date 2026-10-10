@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
+import { readsFreeText } from "../../../../../utils/recordAccess";
 import { Badge } from "../../../../ui";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { DetailItem, FieldGrid, NotesPanel, TagRow } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 
@@ -34,9 +36,13 @@ export function RecursosView({ draft }: RecursosViewProps) {
         </DetailItem>
       )}
 
-      {values.financialNotes && (
+      {(!readsFreeText(draft.place) || values.financialNotes) && (
         <DetailItem label={t("f_notes")} full>
-          <NotesPanel>{values.financialNotes}</NotesPanel>
+          {readsFreeText(draft.place) ? (
+            <NotesPanel>{values.financialNotes}</NotesPanel>
+          ) : (
+            <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+          )}
         </DetailItem>
       )}
     </FieldGrid>

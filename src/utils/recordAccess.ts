@@ -114,3 +114,21 @@ export function mayWriteNeedDescription(
   if (access.readOnly) return false;
   return !saved || access.baseWritable;
 }
+
+/**
+ * Whether a **saved** story's recording place may be typed over —
+ * `storyProgress.recordLocation` on the server (OBT-573). The progress tab sends the story
+ * table whole, so a place a withheld reader received as `""` and hands back as `""` keeps the
+ * stored one, and one typed over it is a 403. The server matches a row to a saved story by its
+ * name, and so does `saved` here: a story added in this edit is its author's own, and a saved
+ * one keeps its name locked beside its place (`StoryTable`), since a rename would read as new.
+ */
+export const mayWriteStoryPlace = mayWriteNeedDescription;
+
+/**
+ * Whether the media captions may be typed — the coordination's on a withheld record
+ * (OBT-573), which hands the OBT Lab every caption as `""`; a saved one in the same terms.
+ */
+export function mayWriteCaption(access: RecordAccess): boolean {
+  return mayWriteNeedDescription(access, true);
+}

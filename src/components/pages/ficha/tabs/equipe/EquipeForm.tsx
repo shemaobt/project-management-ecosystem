@@ -126,6 +126,7 @@ export function EquipeForm({ draft }: EquipeFormProps) {
             <Input
               {...control}
               value={values.partnerOrg ?? ""}
+              disabled={locked}
               autoComplete="off"
               onChange={(event) => draft.set("partnerOrg", event.target.value)}
             />
@@ -166,7 +167,10 @@ export function EquipeForm({ draft }: EquipeFormProps) {
       </FieldGrid>
 
       {locked ? (
-        <CoordinationOnlyNote />
+        <>
+          <CoordinationOnlyNote />
+          <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+        </>
       ) : (
         values.sensitiveCountry && <SensitiveContacts />
       )}
