@@ -158,8 +158,11 @@ describe("o local da gravação de uma história salva", () => {
 });
 
 describe("as legendas de fotos e vídeos", () => {
+  // OBT-580: the phrase stands in for a caption only where there is a photo or a video to carry one.
+  const withVideo = { mediaVideos: [{ url: "https://example.org/v", caption: "" }] };
+
   it("o OBT Lab vê a frase de recolhido", () => {
-    expect(tab(MidiaTab, "ver", "other")).toContain(NOTE);
+    expect(tab(MidiaTab, "ver", "other", withVideo)).toContain(NOTE);
   });
 
   it("e não edita a legenda", () => {
@@ -168,7 +171,7 @@ describe("as legendas de fotos e vídeos", () => {
   });
 
   it("a coordenação não vê a frase", () => {
-    expect(tab(MidiaTab, "ver", "coordination")).not.toContain(NOTE);
+    expect(tab(MidiaTab, "ver", "coordination", withVideo)).not.toContain(NOTE);
   });
 });
 
