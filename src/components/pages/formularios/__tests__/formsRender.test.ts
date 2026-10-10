@@ -24,6 +24,7 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { createEmptyProject } = await import("../../../../fixtures/blank");
 const { FormulariosView } = await import("..");
+const { canWriteHealth } = await import("../../../../utils/access");
 const { formatDate } = await import("../../../../utils/format");
 const en = (await import("../../../../i18n/locales/en.json")).default;
 const pt = (await import("../../../../i18n/locales/pt-BR.json")).default;
@@ -56,12 +57,13 @@ const returned = (projectId: string, receivedAt: string) => ({
 const view = (
   projects: Project[] | null,
   submissions: ReturnType<typeof returned>[] | null = [],
+  writesHealth = true,
 ) =>
   renderToStaticMarkup(
     createElement(
       MemoryRouter,
       null,
-      createElement(FormulariosView, { projects, submissions, now: NOW }),
+      createElement(FormulariosView, { projects, submissions, now: NOW, writesHealth }),
     ),
   );
 
@@ -290,5 +292,27 @@ describe("sem os Pulsos lidos, a tela não afirma que ninguém reportou", () => 
 
     expect(markup).toContain(i18n.t("forms_open_health"));
     expect(markup).toContain('href="/formularios/avaliacao/kadiweu"');
+  });
+});
+
+describe("o botão da Avaliação de Saúde é de quem a grava (OBT-579)", () => {
+  it("quem não grava — o Círculo de Recursos — não vê o botão nem o link", () => {
+    const markup = view([project()], [], false);
+
+    expect(markup).not.toContain(i18n.t("forms_open_health"));
+    expect(markup).not.toContain('href="/formularios/avaliacao/kadiweu"');
+    expect(markup).toContain(i18n.t("forms_health_title"));
+  });
+
+  it("quem grava continua com o botão", () => {
+    const markup = view([project()], [], true);
+
+    expect(markup).toContain(i18n.t("forms_open_health"));
+  });
+
+  it("a página lê o bit da sessão com canWriteHealth, e o Círculo não o satisfaz", () => {
+    expect(canWriteHealth(["resourceCircle"])).toBe(false);
+    expect(canWriteHealth(["coordinator"])).toBe(true);
+    expect(canWriteHealth(["obtLab"])).toBe(true);
   });
 });

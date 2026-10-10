@@ -66,7 +66,10 @@ export function canReadHealth(roles: readonly SessionRole[]): boolean {
 /**
  * Who writes the pastoral follow-up and files a health assessment — narrower than who reads
  * (OBT-571): the Resource Circle reads the health and changes nothing. `PASTORAL_WRITES`
- * and the assessment route keep refusing it on the server; this is the reflection.
+ * and the assessment route keep refusing it on the server; this is the reflection, asked by
+ * `mayWrite` for the follow-up and, since OBT-579, by the Avaliação de Saúde itself —
+ * `FormulariosPage` draws its button and `AvaliacaoPage` opens its route only for a writer,
+ * so nobody walks the four dimensions to meet the refusal at the end.
  */
 const HEALTH_WRITERS: readonly SessionRole[] = ["coordinator", "obtLab"];
 

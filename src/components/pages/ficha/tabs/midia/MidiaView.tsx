@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { photoSlotSurface } from "../../../../../styles";
 import { cn } from "../../../../../utils/cn";
-import { hasPhotoContent, photoSlots } from "../../../../../utils/media";
+import { hasPhotoContent, hasVideoContent, photoSlots } from "../../../../../utils/media";
 import { readsFreeText } from "../../../../../utils/recordAccess";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { PhotoSlotHint } from "../../../../common/ImageUpload";
@@ -23,13 +23,18 @@ export function MidiaView({ draft }: MidiaViewProps) {
   const values = draft.values;
   const photos = photoSlots(values.mediaPhotos);
   const videos = values.mediaVideos ?? [];
+  // The server empties the captions on a withheld record for whoever does not read the truth
+  // (OBT-578): that blank is said as withheld, once, the way the Notas and Saúde tabs say it
+  // (§6.1), never left to read as *no caption*.
+  const captionsWithheld =
+    !readsFreeText(draft.place) &&
+    (photos.some((photo) => hasPhotoContent(photo) || photo.authorization !== null) ||
+      videos.some(hasVideoContent));
 
   return (
     <div className="flex flex-col gap-4">
       {values.sensitiveCountry && <SensitiveMediaNote />}
-      {!readsFreeText(draft.place) && (
-        <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
-      )}
+      {captionsWithheld && <CoordinationOnlyNote textKey="f_free_text_coordination_only" />}
 
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3">
         {photos.map((photo, index) => {
@@ -53,7 +58,10 @@ export function MidiaView({ draft }: MidiaViewProps) {
                 </div>
               )}
               {caption && <MediaCaption>{caption}</MediaCaption>}
-              {hasPhotoContent(photo) && (
+              {/* A recorded decision shows even with nothing else in the slot (OBT-580): the
+                  server serves no bytes yet and empties the caption for a reader outside the
+                  truth, and `granted`/`at` are what that reader is still told. */}
+              {(hasPhotoContent(photo) || photo.authorization !== null) && (
                 <AuthStatus authorization={photo.authorization} />
               )}
             </div>
