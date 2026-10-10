@@ -15,6 +15,8 @@ export interface IntercessorRowProps {
   person: IntercessorEntry;
   contacting: boolean;
   reviewing: boolean;
+  /** Coordination and the Admin edit, remove and review; the Resource Circle only reads (OBT-574). */
+  canWrite: boolean;
   onEdit: () => void;
   onRemove: () => void;
   onContact: () => void;
@@ -25,6 +27,7 @@ export function IntercessorRow({
   person,
   contacting,
   reviewing,
+  canWrite,
   onEdit,
   onRemove,
   onContact,
@@ -103,24 +106,28 @@ export function IntercessorRow({
           </button>
         ) : null}
 
-        <button
-          type="button"
-          aria-label={t("int_edit")}
-          title={t("int_edit")}
-          onClick={onEdit}
-          className={cn(
-            circleControl,
-            transitionColors,
-            "size-6.5 flex-none text-fg-muted hover:bg-accent-soft hover:text-accent-press",
-          )}
-        >
-          <Pencil size={14} strokeWidth={1.75} />
-        </button>
+        {canWrite ? (
+          <>
+            <button
+              type="button"
+              aria-label={t("int_edit")}
+              title={t("int_edit")}
+              onClick={onEdit}
+              className={cn(
+                circleControl,
+                transitionColors,
+                "size-6.5 flex-none text-fg-muted hover:bg-accent-soft hover:text-accent-press",
+              )}
+            >
+              <Pencil size={14} strokeWidth={1.75} />
+            </button>
 
-        <RemoveRowButton label={t("int_remove")} onClick={onRemove} />
+            <RemoveRowButton label={t("int_remove")} onClick={onRemove} />
+          </>
+        ) : null}
       </div>
 
-      {person.reviewDue ? (
+      {person.reviewDue && canWrite ? (
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
           <p className="min-w-0 flex-1 basis-60 text-small leading-snug text-fg">
             {t("int_review_due_hint")}
@@ -146,6 +153,7 @@ export interface CountryGroupProps {
   group: Group;
   contactingId: string | null;
   reviewingId: string | null;
+  canWrite: boolean;
   onEdit: (person: IntercessorEntry) => void;
   onRemove: (person: IntercessorEntry) => void;
   onContact: (person: IntercessorEntry) => void;
@@ -156,6 +164,7 @@ export function CountryGroup({
   group,
   contactingId,
   reviewingId,
+  canWrite,
   onEdit,
   onRemove,
   onContact,
@@ -176,6 +185,7 @@ export function CountryGroup({
             person={person}
             contacting={contactingId === person.id}
             reviewing={reviewingId === person.id}
+            canWrite={canWrite}
             onEdit={() => onEdit(person)}
             onRemove={() => onRemove(person)}
             onContact={() => onContact(person)}
