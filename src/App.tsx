@@ -14,6 +14,7 @@ import { IntakePage } from "./components/pages/intake";
 import { IntercessoresPage } from "./components/pages/intercessores/IntercessoresPage";
 import { LeaveNetworkPage } from "./components/pages/intercessores/LeaveNetworkPage";
 import { OracaoPage } from "./components/pages/oracao";
+import { RevisaoPage } from "./components/pages/oracao/RevisaoPage";
 import { ProjetosPage } from "./components/pages/projetos/ProjetosPage";
 import { RitmoPage } from "./components/pages/ritmo/RitmoPage";
 import { RelatorioPage } from "./components/pages/ritmo/relatorio/RelatorioPage";
@@ -71,6 +72,7 @@ export default function App() {
                         path="oracao/intercessores"
                         element={<IntercessoresPage />}
                       />
+                      <Route path="oracao/revisao" element={<RevisaoPage />} />
                       <Route path="eten" element={<EtenPage />} />
                       <Route
                         path="formularios"

@@ -21,6 +21,34 @@ export interface PrayerRequest {
   date: string;
 }
 
+/**
+ * A sensitive project's request the team authorized and the coordination has not released
+ * (OBT-575) — the review queue's row. Served to the coordination alone, so `text` is the team's
+ * own and `language` the name as coordination reads it (shema-api `language_name_for`, as
+ * coordination). `needId` is `null` for the project's own request.
+ */
+export interface PrayerReviewEntry {
+  id: string;
+  projectId: string;
+  needId: string | null;
+  language: string;
+  /** OBT-560's flag, as on the wall's entry — read by `getLanguageNameDisplay`. */
+  languageNameWithheld?: boolean;
+  source: PrayerSource;
+  text: string;
+}
+
+/**
+ * The release of one waiting request. `reviewed` is the team's text as the coordinator read it —
+ * the server refuses the release if the team has written another since; `text`, when sent, is
+ * the coordinator's edit and is what reaches the wall and the Pulse.
+ */
+export interface PrayerReleasePayload {
+  needId: string | null;
+  reviewed: string;
+  text?: string;
+}
+
 export type ContactChannel = "phone" | "email";
 
 export type ConsentContext = "network" | "directory" | "partner-export";

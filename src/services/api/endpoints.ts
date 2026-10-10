@@ -32,7 +32,7 @@ import type { EtenCreditEntry, EtenYearReport } from "../../types/eten";
 import type {
   NotificationPrefs,
   PanelEntry,
-  ProjectNotificationKind,
+  ServedNoticeKind,
   ServedNoticeFacts,
   ServedNoticePlace,
   ServedNoticeTotal,
@@ -58,7 +58,9 @@ import type {
   IntercessorDirectory,
   IntercessorEntry,
   IntercessorUpdatePayload,
+  PrayerReleasePayload,
   PrayerRequest,
+  PrayerReviewEntry,
 } from "../../types/prayer";
 import type { Project, ProjectMember, ProjectRef } from "../../types/project";
 import type { Region, RegionKey, RegionTeam, RoleChange } from "../../types/region";
@@ -330,6 +332,27 @@ export const prayerAPI = {
     return data;
   },
 };
+
+/**
+ * A sensitive project's requests waiting for the coordination, and their release (OBT-575).
+ * The server decides who reads the queue and who releases — the coordination of the project's
+ * region and the Admin — and a release is bound to the text the coordinator read.
+ */
+export const prayerReviewAPI = {
+  async list(): Promise<PrayerReviewEntry[]> {
+    const { data } = await http.get<PrayerReviewEntry[]>(`${SHEMA}/prayer/review`);
+    return data;
+  },
+
+  async release(projectId: string, payload: PrayerReleasePayload): Promise<void> {
+    await http.post(
+      `${SHEMA}/projects/${encodeURIComponent(projectId)}/prayer/release`,
+      payload,
+    );
+  },
+};
+
+export type PrayerReviewAPI = typeof prayerReviewAPI;
 
 const PEOPLE = `${SHEMA}/prayer/intercessors`;
 
@@ -823,12 +846,13 @@ export type PrayerPulseAPI = typeof prayerPulseAPI;
  */
 const NOTICES = `${SHEMA}/notifications`;
 
-const PROJECT_NOTICE_KINDS: readonly ProjectNotificationKind[] = [
+const PROJECT_NOTICE_KINDS: readonly ServedNoticeKind[] = [
   "field",
   "health",
   "need",
   "stale",
   "prayer",
+  "prayerReview",
 ];
 
 export interface ServedPanel {

@@ -54,6 +54,8 @@ export function servedNoticeSummary(entry: ServedNotification, t: TFunction): st
       });
     case "prayer":
       return t("notif_served_prayer", { name: inside });
+    case "prayerReview":
+      return t("notif_served_prayer_review", { name: inside });
     case "stale":
       return facts.daysSinceUpdate === null
         ? t("notif_served_stale_unknown", { name: opening })
