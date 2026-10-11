@@ -9,13 +9,34 @@ const CSS = readFileSync(join(SRC, "index.css"), "utf8");
 const AA_TEXT = 4.5;
 const AA_NON_TEXT = 3;
 
+function declarations(source) {
+  return new Map(
+    [...source.matchAll(/^\s*--([a-z0-9-]+):\s*([^;]+);/gmu)].map((match) => [
+      match[1],
+      match[2].trim(),
+    ]),
+  );
+}
+
+const DARK_BLOCK = /\.dark\s*\{([^}]*)\}/u.exec(CSS)?.[1] ?? "";
+export const DARK = declarations(DARK_BLOCK);
+let theme = "light";
+
+export function useTheme(next) {
+  theme = next;
+}
+
 function token(name) {
-  const prefix = `--${name}:`;
-  const line = CSS.split("\n")
-    .map((entry) => entry.trim())
-    .find((entry) => entry.startsWith(prefix));
-  if (!line) return null;
-  const value = line.slice(prefix.length).replace(";", "").trim();
+  const override = theme === "dark" ? DARK.get(name) : undefined;
+  let value = override;
+  if (value === undefined) {
+    const prefix = `--${name}:`;
+    const line = CSS.split("\n")
+      .map((entry) => entry.trim())
+      .find((entry) => entry.startsWith(prefix));
+    if (!line) return null;
+    value = line.slice(prefix.length).replace(";", "").trim();
+  }
   const indirection = /^var\(--([a-z0-9-]+)\)$/u.exec(value);
   return indirection ? token(indirection[1]) : value;
 }
@@ -152,7 +173,10 @@ function mark(value) {
 }
 
 function report() {
-  console.log("Tinta declarada × superfície (X < 3 · ~ < 4.5)\n");
+  if (process.argv.includes("--escuro")) useTheme("dark");
+  console.log(
+    `Tinta declarada × superfície, tema ${theme === "dark" ? "escuro" : "claro"} (X < 3 · ~ < 4.5)\n`,
+  );
   let head = "".padEnd(22);
   for (const surface of SURFACES) head += surface.padStart(14);
   console.log(head);
