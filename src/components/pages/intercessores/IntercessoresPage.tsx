@@ -20,6 +20,7 @@ import { canWriteNetwork } from "../../../utils/access";
 import { countryName } from "../../../utils/countries";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { useReviewsPrayer } from "../../../hooks/useReviewsPrayer";
 import { SubNav } from "../oracao/SubNav";
 import { Input } from "../../ui";
 import { CountryGroup } from "./CountryGroup";
@@ -44,6 +45,8 @@ export interface IntercessoresViewProps {
   onRemove: (id: string) => Promise<boolean>;
   onRevealContact: (id: string) => Promise<string | null>;
   onReview: (id: string) => Promise<boolean>;
+  /** Whether the prayer area's review tab is offered (OBT-575). */
+  reviews?: boolean;
 }
 
 export function IntercessoresView({
@@ -56,6 +59,7 @@ export function IntercessoresView({
   onRemove,
   onRevealContact,
   onReview,
+  reviews = false,
 }: IntercessoresViewProps) {
   const { t } = useTranslation();
   const [createDraft, setCreateDraft] =
@@ -164,7 +168,7 @@ export function IntercessoresView({
         </p>
       </header>
 
-      <SubNav />
+      <SubNav reviews={reviews} />
 
       {canWrite ? (
         <IntercessorForm
@@ -285,6 +289,7 @@ export function IntercessoresPage() {
   const removeIntercessor = usePrayerStore((state) => state.removeIntercessor);
   const revealContact = usePrayerStore((state) => state.revealContact);
   const reviewIntercessor = usePrayerStore((state) => state.reviewIntercessor);
+  const reviews = useReviewsPrayer();
 
   // Always fetched on arrival, cache or not: `reviewDue` is the server's answer for today,
   // and a list kept from last week would show last week's. The cache stays on screen
@@ -304,6 +309,7 @@ export function IntercessoresPage() {
       onRemove={removeIntercessor}
       onRevealContact={revealContact}
       onReview={reviewIntercessor}
+      reviews={reviews}
     />
   );
 }

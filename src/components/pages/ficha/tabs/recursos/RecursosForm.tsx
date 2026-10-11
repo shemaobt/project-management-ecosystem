@@ -2,7 +2,9 @@ import { useTranslation } from "react-i18next";
 import { FINANCIAL_RESOURCES } from "../../../../../constants/project";
 import { optionsBox } from "../../../../../styles";
 import { cn } from "../../../../../utils/cn";
+import { mayWrite } from "../../../../../utils/recordAccess";
 import { Input, RadioField, RadioGroup, Textarea } from "../../../../ui";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { CheckboxGroup, Field, FieldGrid, FieldGroup } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 
@@ -18,6 +20,7 @@ export function RecursosForm({ draft }: RecursosFormProps) {
   const values = draft.values;
   const financialResources = values.financialResources ?? [];
   const showOtherDetails = financialResources.includes("Outros");
+  const notesLocked = !mayWrite(draft.place, "financialNotes");
 
   return (
     <FieldGrid>
@@ -60,7 +63,8 @@ export function RecursosForm({ draft }: RecursosFormProps) {
         {(control) => (
           <Textarea
             {...control}
-            value={values.financialNotes ?? ""}
+            value={notesLocked ? "" : (values.financialNotes ?? "")}
+            disabled={notesLocked}
             placeholder={t("placeholder_financial_notes")}
             onChange={(event) =>
               draft.set("financialNotes", event.target.value)
@@ -68,6 +72,11 @@ export function RecursosForm({ draft }: RecursosFormProps) {
           />
         )}
       </Field>
+      {notesLocked && (
+        <div className="sm:col-span-2">
+          <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+        </div>
+      )}
     </FieldGrid>
   );
 }

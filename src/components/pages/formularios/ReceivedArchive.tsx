@@ -1,17 +1,50 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { failureMessage, toApiFailure } from "../../../services/api";
 import { FORM_TAG_LABEL_KEYS } from "../../../constants/forms";
 import { surfaceOutlined } from "../../../styles";
-import type { ReceivedSubmission } from "../../../types/forms";
+import type { ReceivedSubmission, ReceivedSubmissionDetail } from "../../../types/forms";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
 import { EmptyState } from "../../common/EmptyState";
+import { Button } from "../../ui";
+import { SubmissionAnswers } from "./SubmissionAnswers";
 
 export interface ReceivedArchiveProps {
   submissions: readonly ReceivedSubmission[];
+  /** Opens one submission's answers (OBT-580); without it the rows are the listing alone. */
+  readSubmission?: (submissionId: string) => Promise<ReceivedSubmissionDetail>;
 }
 
-export function ReceivedArchive({ submissions }: ReceivedArchiveProps) {
+type Opened =
+  | { kind: "loading" }
+  | { kind: "failed"; message: string }
+  | { kind: "read"; detail: ReceivedSubmissionDetail };
+
+export function ReceivedArchive({ submissions, readSubmission }: ReceivedArchiveProps) {
   const { t } = useTranslation();
+  const [opened, setOpened] = useState<Record<string, Opened>>({});
+
+  const toggle = (id: string) => {
+    if (!readSubmission) return;
+    if (opened[id]) {
+      setOpened((current) => {
+        const next = { ...current };
+        delete next[id];
+        return next;
+      });
+      return;
+    }
+    setOpened((current) => ({ ...current, [id]: { kind: "loading" } }));
+    readSubmission(id)
+      .then((detail) => setOpened((current) => ({ ...current, [id]: { kind: "read", detail } })))
+      .catch((raw: unknown) =>
+        setOpened((current) => ({
+          ...current,
+          [id]: { kind: "failed", message: failureMessage(toApiFailure(raw), t) },
+        })),
+      );
+  };
 
   return (
     <section className={cn("rounded-lg p-6 shadow-card", surfaceOutlined)}>
@@ -26,24 +59,54 @@ export function ReceivedArchive({ submissions }: ReceivedArchiveProps) {
           {submissions.map((submission) => (
             <li
               key={submission.id}
-              className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 border-b border-line py-2.5 last:border-b-0"
+              className="border-b border-line py-2.5 last:border-b-0"
             >
-              <span className="shrink-0 text-tag font-bold tracking-button uppercase text-fg-muted">
-                {t(FORM_TAG_LABEL_KEYS[submission.kind])}
-              </span>
-              <span className="min-w-0 flex-1 text-small font-semibold wrap-anywhere text-fg-strong">
-                {submission.languageName}
-              </span>
-              <span className="shrink-0 text-tag tabular-nums text-fg-subtle">
-                {submission.submittedBy
-                  ? `${submission.submittedBy} · `
-                  : null}
-                {formatDate(submission.receivedAt)}
-              </span>
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                <span className="shrink-0 text-tag font-bold tracking-button uppercase text-fg-muted">
+                  {t(FORM_TAG_LABEL_KEYS[submission.kind])}
+                </span>
+                <span className="min-w-0 flex-1 text-small font-semibold wrap-anywhere text-fg-strong">
+                  {submission.languageName}
+                </span>
+                <span className="shrink-0 text-tag tabular-nums text-fg-subtle">
+                  {submission.submittedBy
+                    ? `${submission.submittedBy} · `
+                    : null}
+                  {formatDate(submission.receivedAt)}
+                </span>
+                {readSubmission ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    aria-expanded={Boolean(opened[submission.id])}
+                    onClick={() => toggle(submission.id)}
+                  >
+                    {t(opened[submission.id] ? "forms_submission_close" : "forms_submission_open")}
+                  </Button>
+                ) : null}
+              </div>
+              <OpenedAnswers state={opened[submission.id]} />
             </li>
           ))}
         </ul>
       )}
     </section>
+  );
+}
+
+function OpenedAnswers({ state }: { state: Opened | undefined }) {
+  const { t } = useTranslation();
+  if (!state) return null;
+  if (state.kind === "loading") {
+    return <p className="mt-2 text-tag text-fg-subtle">{t("forms_submission_loading")}</p>;
+  }
+  if (state.kind === "failed") {
+    return <p className="mt-2 text-tag font-semibold text-telha">{state.message}</p>;
+  }
+  return (
+    <div className="mt-3">
+      <SubmissionAnswers detail={state.detail} />
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
-  ProjectNotificationKind,
   ServedNoticeFacts,
+  ServedNoticeKind,
   ServedNotification,
 } from "../../types/notification";
 
@@ -26,7 +26,7 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../i18n");
 const { servedNoticeSummary } = await import("../servedNotices");
 
-const KINDS: ProjectNotificationKind[] = ["health", "need", "field", "prayer", "stale"];
+const KINDS: ServedNoticeKind[] = ["health", "need", "field", "prayer", "prayerReview", "stale"];
 
 const facts = (over: Partial<ServedNoticeFacts> = {}): ServedNoticeFacts => ({
   languageName: "Tikuna",
@@ -42,7 +42,7 @@ const facts = (over: Partial<ServedNoticeFacts> = {}): ServedNoticeFacts => ({
 });
 
 const served = (
-  kind: ProjectNotificationKind,
+  kind: ServedNoticeKind,
   over: Partial<ServedNoticeFacts> | null = {},
 ): ServedNotification => ({
   origin: "server",
@@ -94,6 +94,17 @@ describe("a frase de um aviso servido sai na língua de quem lê (OBT-559)", () 
 
     await i18n.changeLanguage("en");
     expect(say(served("prayer"))).toContain("The Pulse received for Tikuna carries a prayer request");
+  });
+
+  it("o pedido a revisar diz o projeto e que espera a coordenação, nunca o texto (OBT-575)", async () => {
+    expect(say(served("prayerReview"))).toBe(
+      "Um pedido de oração que a equipe de Tikuna compartilhou aguarda a revisão da coordenação antes de ir ao mural e ao Pulso.",
+    );
+
+    await i18n.changeLanguage("en");
+    expect(say(served("prayerReview"))).toContain(
+      "A prayer request the team of Tikuna shared is waiting for the coordination's review",
+    );
   });
 
   it("o projeto quieto conta os dias no singular e no plural, e diz 'há algum tempo' sem eles", async () => {

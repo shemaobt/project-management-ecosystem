@@ -4,6 +4,12 @@ import type { PrayerRequest } from "../../../types/prayer";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
 import { getLanguageNameDisplay, getRegionLabelKey } from "../../../utils/region";
+import {
+  REQUEST_CARD,
+  REQUEST_CARD_HEAD,
+  REQUEST_CARD_LANGUAGE,
+  REQUEST_CARD_TAG,
+} from "./surface";
 
 export interface RequestCardProps {
   request: PrayerRequest;
@@ -18,18 +24,18 @@ export function RequestCard({ request }: RequestCardProps) {
   return (
     <article
       className={cn(
-        "flex flex-col rounded-[16px] border border-line bg-elevated px-5.5 py-5",
+        REQUEST_CARD,
         request.answered && "border-answered-line bg-answered-bg",
       )}
     >
-      <div className="mb-2.5 flex items-baseline justify-between gap-2.5">
-        <span className="text-[17px] leading-[1.2] font-extrabold text-fg-strong">
+      <div className={REQUEST_CARD_HEAD}>
+        <span className={REQUEST_CARD_LANGUAGE}>
           {getLanguageNameDisplay(
             { languageName: request.language, languageNameWithheld: request.languageNameWithheld },
             t,
           )}
         </span>
-        <span className="shrink-0 text-[11px] leading-none font-semibold tracking-[0.04em] text-fg-subtle uppercase">
+        <span className={REQUEST_CARD_TAG}>
           {regionLabel}
         </span>
       </div>

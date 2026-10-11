@@ -32,18 +32,20 @@ import type { EtenCreditEntry, EtenYearReport } from "../../types/eten";
 import type {
   NotificationPrefs,
   PanelEntry,
-  ProjectNotificationKind,
+  ServedNoticeKind,
   ServedNoticeFacts,
   ServedNoticePlace,
   ServedNoticeTotal,
 } from "../../types/notification";
 import type {
   IntakeForm,
+  IntakeImageStored,
   IntakeLink,
-  IntakeLinkCreated,
   IntakeLinkCreatePayload,
+  IntakeLinkCreated,
   IntakeSubmissionPayload,
   ReceivedSubmission,
+  ReceivedSubmissionDetail,
 } from "../../types/forms";
 import type {
   MeetingId,
@@ -56,7 +58,9 @@ import type {
   IntercessorDirectory,
   IntercessorEntry,
   IntercessorUpdatePayload,
+  PrayerReleasePayload,
   PrayerRequest,
+  PrayerReviewEntry,
 } from "../../types/prayer";
 import type { Project, ProjectMember, ProjectRef } from "../../types/project";
 import type { Region, RegionKey, RegionTeam, RoleChange } from "../../types/region";
@@ -75,6 +79,7 @@ import { API_BASE_URL, REQUEST_TIMEOUT_MS, http, refreshSession } from "./client
 import { failure, toApiFailure, UNKNOWN_VOCABULARY } from "./errors";
 import { forgetTokens, refreshToken, setTokens } from "./tokens";
 import { toLocalIsoDate } from "../../utils/format";
+import { headerSafeFileName } from "../../utils/intake";
 
 const SHEMA = "/shema";
 
@@ -328,6 +333,27 @@ export const prayerAPI = {
   },
 };
 
+/**
+ * A sensitive project's requests waiting for the coordination, and their release (OBT-575).
+ * The server decides who reads the queue and who releases — the coordination of the project's
+ * region and the Admin — and a release is bound to the text the coordinator read.
+ */
+export const prayerReviewAPI = {
+  async list(): Promise<PrayerReviewEntry[]> {
+    const { data } = await http.get<PrayerReviewEntry[]>(`${SHEMA}/prayer/review`);
+    return data;
+  },
+
+  async release(projectId: string, payload: PrayerReleasePayload): Promise<void> {
+    await http.post(
+      `${SHEMA}/projects/${encodeURIComponent(projectId)}/prayer/release`,
+      payload,
+    );
+  },
+};
+
+export type PrayerReviewAPI = typeof prayerReviewAPI;
+
 const PEOPLE = `${SHEMA}/prayer/intercessors`;
 
 export const intercessorsAPI = {
@@ -419,6 +445,14 @@ export const formsAPI = {
     return data;
   },
 
+  /** One submission opened — the answers beside the form they answered (OBT-580). */
+  async readSubmission(submissionId: string): Promise<ReceivedSubmissionDetail> {
+    const { data } = await http.get<ReceivedSubmissionDetail>(
+      `${SHEMA}/forms/submissions/${encodeURIComponent(submissionId)}`,
+    );
+    return data;
+  },
+
   async mintIntakeLink(
     payload: IntakeLinkCreatePayload,
   ): Promise<IntakeLinkCreated> {
@@ -457,6 +491,31 @@ export const formsAPI = {
     payload: IntakeSubmissionPayload,
   ): Promise<void> {
     await http.post(`${SHEMA}/intake/${encodeURIComponent(token)}`, payload);
+  },
+
+  /**
+   * The Pulse's image, through the same link as its answers (OBT-578): raw bytes, not
+   * multipart — the type in `Content-Type`, the name (display only) in `X-File-Name`. The
+   * answer is the id the `image` answer then carries; the bytes reach no surface until a
+   * coordinator imports the Pulse that names them.
+   */
+  async uploadIntakeImage(
+    token: string,
+    image: Blob,
+    fileName: string,
+  ): Promise<IntakeImageStored> {
+    const name = headerSafeFileName(fileName);
+    const { data } = await http.post<IntakeImageStored>(
+      `${SHEMA}/intake/${encodeURIComponent(token)}/image`,
+      image,
+      {
+        headers: {
+          "Content-Type": image.type,
+          ...(name === null ? {} : { "X-File-Name": name }),
+        },
+      },
+    );
+    return data;
   },
 };
 
@@ -787,12 +846,13 @@ export type PrayerPulseAPI = typeof prayerPulseAPI;
  */
 const NOTICES = `${SHEMA}/notifications`;
 
-const PROJECT_NOTICE_KINDS: readonly ProjectNotificationKind[] = [
+const PROJECT_NOTICE_KINDS: readonly ServedNoticeKind[] = [
   "field",
   "health",
   "need",
   "stale",
   "prayer",
+  "prayerReview",
 ];
 
 export interface ServedPanel {

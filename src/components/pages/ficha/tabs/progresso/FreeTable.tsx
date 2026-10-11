@@ -60,13 +60,22 @@ function AddRowFooter({ label, onAdd }: { label: string; onAdd: () => void }) {
 export interface StoryTableProps {
   rows: readonly StoryProgressItem[];
   onChange: (rows: StoryProgressItem[]) => void;
+  /**
+   * Whether a row's recording place is kept from this reader — a saved story on a withheld
+   * record, which the server answers as `""` and refuses to have typed over (OBT-573). Its
+   * name is locked with it: the server knows a story by its name, so a rename would turn a
+   * saved story into a new one and take its place with the old name.
+   */
+  placeLocked: (name: string) => boolean;
 }
 
-export function StoryTable({ rows, onChange }: StoryTableProps) {
+export function StoryTable({ rows, onChange, placeLocked }: StoryTableProps) {
   const { t } = useTranslation();
 
   const patch = (index: number, patchValue: Partial<StoryProgressItem>) =>
     onChange(patchRow(rows, index, patchValue));
+  const lockedRows = rows.map((row) => placeLocked(row.name));
+  const locked = (index: number) => lockedRows[index];
 
   return (
     <div className={TABLE_FRAME}>
@@ -85,6 +94,7 @@ export function StoryTable({ rows, onChange }: StoryTableProps) {
               aria-label={t("col_story")}
               placeholder={t("col_story")}
               value={row.name}
+              disabled={locked(index)}
               onChange={(event) => patch(index, { name: event.target.value })}
             />
             <Input
@@ -115,7 +125,8 @@ export function StoryTable({ rows, onChange }: StoryTableProps) {
               className="min-w-55 flex-1"
               aria-label={t("story_location_ph")}
               placeholder={t("story_location_ph")}
-              value={row.recordLocation ?? ""}
+              value={locked(index) ? "" : (row.recordLocation ?? "")}
+              disabled={locked(index)}
               onChange={(event) =>
                 patch(index, { recordLocation: event.target.value })
               }

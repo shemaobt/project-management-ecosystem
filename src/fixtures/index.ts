@@ -1,11 +1,13 @@
 import type { EtenCreditEntry, EtenYearReport } from "../types/eten";
 import type {
   IntakeForm,
+  IntakeImageStored,
   IntakeLink,
-  IntakeLinkCreated,
   IntakeLinkCreatePayload,
+  IntakeLinkCreated,
   IntakeSubmissionPayload,
   ReceivedSubmission,
+  ReceivedSubmissionDetail,
 } from "../types/forms";
 import type {
   MeetingId,
@@ -32,12 +34,14 @@ import type {
 import { createEmptyProject } from "./blank";
 import { loadEtenCredits } from "./eten";
 import {
+  listIntakeLinks,
   loadReceivedSubmissions,
   mintIntakeLink,
-  listIntakeLinks,
   readIntakeForm,
+  readSubmission,
   revokeIntakeLink,
   submitIntake,
+  uploadIntakeImage,
 } from "./forms";
 import { loadContinentOutlines } from "./geo";
 import { buildEtenReport } from "../utils/etenCredits";
@@ -229,6 +233,16 @@ export const formsAPI = {
     payload: IntakeSubmissionPayload,
   ): Promise<void> {
     return submitIntake(token, payload);
+  },
+  async uploadIntakeImage(
+    token: string,
+    image: Blob,
+    fileName: string,
+  ): Promise<IntakeImageStored> {
+    return uploadIntakeImage(token, image, fileName);
+  },
+  async readSubmission(submissionId: string): Promise<ReceivedSubmissionDetail> {
+    return readSubmission(submissionId);
   },
 };
 

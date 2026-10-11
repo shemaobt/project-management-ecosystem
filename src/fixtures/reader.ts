@@ -85,7 +85,24 @@ export function withhold(project: Project): Project {
     languageName: project.publicLanguageName?.trim() || region,
     languageNameWithheld: true,
     publicLanguageName: undefined,
+    // The captions and the deciding name (OBT-578, `_redaction.free_text_as_read`): the
+    // caption is the leader's own sentence about the photo and `by` is a person's name;
+    // `granted` and `at` stay, because the authorization gates the bytes and the caption is text.
+    mediaPhotos: (project.mediaPhotos ?? []).map((photo) => ({
+      ...photo,
+      caption: "",
+      authorization: unnamed(photo.authorization),
+    })),
+    mediaVideos: (project.mediaVideos ?? []).map((video) => ({
+      ...video,
+      caption: "",
+      authorization: unnamed(video.authorization),
+    })),
   };
+}
+
+function unnamed<A extends { by: string }>(authorization: A | null | undefined): A | null {
+  return authorization ? { ...authorization, by: "" } : null;
 }
 
 export function asReadBy(project: Project, persona: SessionPersona): Project {

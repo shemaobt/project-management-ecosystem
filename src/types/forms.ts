@@ -68,7 +68,11 @@ export type IntakeFieldType =
   | "longText"
   | "choice"
   | "period"
-  | "progressRows";
+  | "progressRows"
+  /** The id of an image uploaded through the same link (OBT-578): the bytes go up first, the answer is the pointer. */
+  | "image"
+  /** A box — `true` or `false`; absent and `false` both mean nothing was authorized. */
+  | "checkbox";
 
 export interface IntakeField {
   key: string;
@@ -89,6 +93,24 @@ export interface IntakeForm {
 }
 
 export type IntakeAnswers = Record<string, unknown>;
+
+/** What `POST /api/shema/intake/{token}/image` answers — the id the `image` answer then carries, and nothing else (OBT-578). */
+export interface IntakeImageStored {
+  id: string;
+  fileName: string | null;
+  contentType: string;
+}
+
+/**
+ * One submission opened — the answers as they arrived, beside the form they answered
+ * (`GET /api/shema/forms/submissions/{id}`). `answersWithheld` is `true` when this reader was
+ * given none of them: the project's place is withheld and the reader is not coordination.
+ */
+export interface ReceivedSubmissionDetail extends ReceivedSubmission {
+  fields: readonly IntakeField[];
+  answers: IntakeAnswers;
+  answersWithheld: boolean;
+}
 
 export interface IntakeSubmissionPayload {
   definitionVersion: number;

@@ -1,10 +1,10 @@
 import type {
   NotificationChannel,
-  ProjectNotificationKind,
   NotificationKind,
   NotificationPrefs,
   NotificationScope,
   NotificationWhen,
+  ServedNoticeKind,
 } from "../types/notification";
 import type { SessionRole } from "../types/session";
 
@@ -103,12 +103,13 @@ export function isNotificationScope(value: string): value is NotificationScope {
 export const NOTIFICATION_LOG_LIMIT = 30;
 
 /** The title a served project notice takes — its kind, in the reader's language (INT-11). */
-export const SERVED_NOTICE_TITLE_KEYS: Record<ProjectNotificationKind, string> = {
+export const SERVED_NOTICE_TITLE_KEYS: Record<ServedNoticeKind, string> = {
   field: "notif_kind_field",
   health: "notif_kind_health",
   need: "notif_kind_need",
   stale: "notif_kind_stale",
   prayer: "notif_kind_prayer",
+  prayerReview: "notif_kind_prayer_review",
 };
 
 /**
@@ -116,10 +117,11 @@ export const SERVED_NOTICE_TITLE_KEYS: Record<ProjectNotificationKind, string> =
  * The server answers such a row with no facts — its prose was written once, for whoever read it
  * then, and an urgent need's named the place.
  */
-export const OLD_NOTICE_SUMMARY_KEYS: Record<ProjectNotificationKind, string> = {
+export const OLD_NOTICE_SUMMARY_KEYS: Record<ServedNoticeKind, string> = {
   field: "notif_served_old_field",
   health: "notif_served_old_health",
   need: "notif_served_old_need",
   stale: "notif_served_old_stale",
   prayer: "notif_served_old_prayer",
+  prayerReview: "notif_served_old_prayer_review",
 };

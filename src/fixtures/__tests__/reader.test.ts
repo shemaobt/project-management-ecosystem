@@ -84,3 +84,37 @@ describe("a redução do dublê é a do LeavingShape", () => {
     });
   });
 });
+
+describe("a mídia de um registro retido (OBT-578 / OBT-580)", () => {
+  const decided = { granted: true, by: "Fresia", at: "2026-10-01" };
+  const withMedia = (sensitiveCountry: boolean) => ({
+    ...makeProject({ location: "Peru, Vila Sintética", coords: [-70.1, -9.9] }),
+    sensitiveCountry,
+    mediaPhotos: [{ image: null, caption: "A equipe no vale", authorization: decided }],
+    mediaVideos: [{ url: "https://v.example/1", caption: "O culto", authorization: decided }],
+  });
+
+  it("sensível, para quem não lê a verdade: legenda e o nome de quem decidiu vazios; granted e at ficam", () => {
+    const read = asReadBy(withMedia(true), persona(["obtLab"], ["africa"]));
+    expect(read.mediaPhotos?.[0]).toEqual({
+      image: null,
+      caption: "",
+      authorization: { granted: true, by: "", at: "2026-10-01" },
+    });
+    expect(read.mediaVideos?.[0]).toMatchObject({
+      url: "https://v.example/1",
+      caption: "",
+      authorization: { granted: true, by: "", at: "2026-10-01" },
+    });
+  });
+
+  it("a coordenação lê tudo, e um registro não sensível também", () => {
+    expect(asReadBy(withMedia(true), persona(["admin"], null)).mediaPhotos?.[0].caption).toBe(
+      "A equipe no vale",
+    );
+    expect(asReadBy(withMedia(true), persona(["admin"], null)).mediaPhotos?.[0].authorization?.by).toBe("Fresia");
+    expect(asReadBy(withMedia(false), persona(["obtLab"], ["africa"])).mediaPhotos?.[0].caption).toBe(
+      "A equipe no vale",
+    );
+  });
+});
