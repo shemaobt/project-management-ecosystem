@@ -1416,7 +1416,7 @@
   "notif_served_who_where": "{{name}} ({{where}})",
   "notif_served_field": "{{who}} submitted the monthly Pulse for {{name}}. Open the project to review it.",
   "notif_served_team_leader": "A team leader",
-  "notif_served_prayer": "The Pulse received for {{name}} carries a prayer request the team has shared with the network. Open the project to read it.",
+  "notif_served_prayer": "A prayer request for {{name}} is now on the prayer wall, shared with the network. Open the project to read it.",
   "notif_served_prayer_review": "A prayer request the team of {{name}} shared is waiting for the coordination's review before it reaches the wall and the Pulse.",
   "notif_served_stale_one": "{{name}} has had no progress update for {{count}} day. Open the project to check in.",
   "notif_served_stale_other": "{{name}} has had no progress update for {{count}} days. Open the project to check in.",
