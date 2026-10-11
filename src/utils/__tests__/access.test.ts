@@ -6,6 +6,8 @@ import {
   appOfInvitedRole,
   canAdministerAccess,
   canSubmitRegions,
+  canKeepNetwork,
+  canWriteNetwork,
   holdsFormRole,
   holdsShemaGrant,
   invitableRoles,
@@ -38,6 +40,29 @@ describe("quem administra o acesso", () => {
       expect(canAdministerAccess({ roles: [role] }), role).toBe(false);
     }
     expect(canAdministerAccess({ roles: [] })).toBe(false);
+  });
+});
+
+describe("quem escreve a rede de intercessores — OBT-574", () => {
+  it("a coordenação e o admin, mesmo ao lado de outro papel", () => {
+    expect(canWriteNetwork(["coordinator"])).toBe(true);
+    expect(canWriteNetwork(["admin"])).toBe(true);
+    expect(canWriteNetwork(["resourceCircle", "coordinator"])).toBe(true);
+  });
+
+  it("o Resource Circle e o OBT Lab não escrevem a rede", () => {
+    expect(canWriteNetwork(["resourceCircle"])).toBe(false);
+    expect(canWriteNetwork(["obtLab"])).toBe(false);
+    expect(canWriteNetwork(["resourceCircle", "obtLab"])).toBe(false);
+    expect(canWriteNetwork([])).toBe(false);
+  });
+
+  it("o Resource Circle marca a revisão anual, como a coordenação e o Admin; o OBT Lab não", () => {
+    expect(canKeepNetwork(["resourceCircle"])).toBe(true);
+    expect(canKeepNetwork(["coordinator"])).toBe(true);
+    expect(canKeepNetwork(["admin"])).toBe(true);
+    expect(canKeepNetwork(["obtLab"])).toBe(false);
+    expect(canKeepNetwork([])).toBe(false);
   });
 });
 
