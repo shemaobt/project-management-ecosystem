@@ -36,7 +36,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
         {unread > 0 && (
           <span
             aria-hidden
-            className="absolute -top-0.5 -right-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-pill bg-telha px-1 text-[10px] font-bold text-on-brand"
+            className="absolute -top-0.5 -right-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-pill bg-brand px-1 text-[10px] font-bold text-on-brand"
           >
             {unread}
           </span>

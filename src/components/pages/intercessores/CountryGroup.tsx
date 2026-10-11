@@ -50,7 +50,7 @@ export function IntercessorRow({
       <div className="flex items-center gap-3.5">
         <span
           aria-hidden
-          className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-telha text-[16px] leading-none font-black text-on-brand"
+          className="flex size-10 shrink-0 items-center justify-center rounded-pill bg-brand text-[16px] leading-none font-black text-on-brand"
         >
           {person.name.slice(0, 1).toUpperCase()}
         </span>

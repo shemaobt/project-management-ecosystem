@@ -51,7 +51,7 @@ export function MasterSwitch({ prefs, handlers }: PrefsSectionProps) {
         checked={prefs.enabled}
         onCheckedChange={handlers.setEnabled}
         aria-label={t("notif_master_title")}
-        className="bg-branco/25 data-[state=checked]:bg-telha"
+        className="bg-branco/25 data-[state=checked]:bg-brand"
       />
     </div>
   );
@@ -76,7 +76,7 @@ export function ChannelsSection({ prefs, handlers }: PrefsSectionProps) {
               aria-hidden
               className={cn(
                 "flex size-8.5 shrink-0 items-center justify-center rounded-[10px] bg-muted text-[16px]",
-                on && "bg-telha text-on-brand",
+                on && "bg-brand text-on-brand",
               )}
             >
               {channel.glyph}
@@ -190,14 +190,14 @@ export function ScopeSection({ prefs, handlers, projects }: ScopeSectionProps) {
               value={option.value}
               className={cn(
                 "flex items-center gap-3 rounded-md border border-line bg-elevated px-3.5 py-3 text-left",
-                active && "border-verde bg-verde/[0.04]",
+                active && "border-fg bg-fg/[0.04]",
               )}
             >
               <span
                 aria-hidden
                 className={cn(
                   "flex size-5.5 shrink-0 items-center justify-center rounded-pill border-[1.5px] border-line-strong bg-elevated text-[12px] leading-none font-bold",
-                  active && "border-verde bg-inverse text-on-dark",
+                  active && "border-fg bg-inverse text-on-dark",
                 )}
               >
                 {active ? "✓" : ""}

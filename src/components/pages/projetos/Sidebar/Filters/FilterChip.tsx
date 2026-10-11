@@ -31,7 +31,7 @@ export function FilterChip({
         "disabled:pointer-events-none disabled:opacity-45",
         active
           ? "bg-inverse font-semibold text-on-dark"
-          : "hover:bg-telha/6 hover:text-telha",
+          : "hover:bg-brand/6 hover:text-telha",
         critical && !active && "text-telha",
       )}
     >
@@ -43,7 +43,7 @@ export function FilterChip({
             ? "bg-on-dark/20 text-on-dark"
             : critical
               ? "bg-accent-soft text-accent-press"
-              : "bg-verde/8 text-fg-muted",
+              : "bg-fg/8 text-fg-muted",
         )}
       >
         {count}

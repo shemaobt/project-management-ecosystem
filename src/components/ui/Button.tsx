@@ -9,10 +9,10 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-telha text-on-brand hover:bg-accent-hover",
+        primary: "bg-brand text-on-brand hover:bg-accent-hover",
         secondary:
-          "border-line bg-elevated text-fg hover:border-verde hover:text-fg",
-        green: "bg-verde-claro-ink text-on-brand hover:bg-verde",
+          "border-line bg-elevated text-fg hover:border-fg hover:text-fg",
+        green: "bg-verde-claro-fill text-on-brand hover:bg-verde",
         danger:
           "border-status-critical-line bg-transparent text-telha hover:bg-accent-soft hover:text-accent-press",
         ghost: "bg-transparent text-fg-muted hover:bg-muted hover:text-fg",

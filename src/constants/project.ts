@@ -143,14 +143,14 @@ export const NEED_URGENCY_SYMBOLS: Record<NeedUrgency, string> = {
 
 export const NEED_URGENCY_TONES: Record<NeedUrgency, string> = {
   low: "bg-muted text-fg-muted",
-  medium: "bg-status-attention-fg text-on-brand",
-  high: "bg-telha text-on-brand",
+  medium: "bg-attention-fill text-on-brand",
+  high: "bg-brand text-on-brand",
 };
 
 export const NEED_STATUS_TONES: Record<NeedStatus, string> = {
-  open: "bg-azul-ink text-on-brand",
-  "in-progress": "bg-status-attention-fg text-on-brand",
-  fulfilled: "bg-verde-claro-ink text-on-brand",
+  open: "bg-azul-fill text-on-brand",
+  "in-progress": "bg-attention-fill text-on-brand",
+  fulfilled: "bg-verde-claro-fill text-on-brand",
   dropped: "bg-muted text-fg-muted",
 };
 

@@ -119,7 +119,7 @@ function RowContent({ entry }: { entry: PanelEntry }) {
           "size-2 shrink-0 rounded-pill",
           entry.urgent
             ? "bg-urgent ring-4 ring-urgent-soft"
-            : "bg-telha ring-4 ring-accent-soft",
+            : "bg-brand ring-4 ring-accent-soft",
         )}
       />
       <div className="min-w-0 flex-1">

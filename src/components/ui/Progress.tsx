@@ -2,7 +2,7 @@ import * as ProgressPrimitive from "@radix-ui/react-progress";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../utils/cn";
 
-const trackVariants = cva("w-full overflow-hidden rounded-pill bg-verde/8", {
+const trackVariants = cva("w-full overflow-hidden rounded-pill bg-fg/8", {
   variants: {
     size: {
       sm: "h-1",

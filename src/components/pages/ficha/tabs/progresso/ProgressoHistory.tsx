@@ -27,7 +27,7 @@ function HistoryItem({ entry }: { entry: ProgressHistoryEntry }) {
     <div className="relative pl-4.5">
       <span
         aria-hidden
-        className="absolute top-1.5 -left-0.5 size-2.5 rounded-pill bg-telha ring-3 ring-muted"
+        className="absolute top-1.5 -left-0.5 size-2.5 rounded-pill bg-brand ring-3 ring-muted"
       />
       <div className="mb-1 text-[11px] font-bold tracking-[0.1em] uppercase text-telha">
         {formatDate(entry.date, locale)}

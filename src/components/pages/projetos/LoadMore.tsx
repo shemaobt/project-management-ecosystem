@@ -21,7 +21,7 @@ export function LoadMore({ shown, total, step, onMore }: LoadMoreProps) {
           "group inline-flex items-center gap-3.5 rounded-pill border border-telha bg-elevated px-6 py-3",
           "text-micro font-bold tracking-[0.08em] uppercase text-telha",
           "transition-all duration-[180ms] ease-out",
-          "hover:-translate-y-px hover:bg-telha hover:text-on-brand hover:shadow-md",
+          "hover:-translate-y-px hover:bg-brand hover:text-on-brand hover:shadow-md",
         )}
       >
         {t("load_more")}

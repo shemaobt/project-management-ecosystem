@@ -35,7 +35,7 @@ export function ProgressRings({ project, className }: ProgressRingsProps) {
             r={ring.radius}
             fill="none"
             strokeWidth="4"
-            className="stroke-verde/10"
+            className="stroke-fg/10"
           />
         ))}
         {RINGS.map((ring, index) => {

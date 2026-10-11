@@ -18,14 +18,14 @@ import { OpenableCard } from "../OpenableCard";
 import { ProgressRings } from "../ProgressRings";
 
 const TAPE_TONES: Record<ProjectPriority, string> = {
-  critical: "bg-telha",
+  critical: "bg-brand",
   warning: "bg-status-attention",
   completed: "bg-verde-claro",
   default: "bg-azul",
-  planned: "bg-telha",
-  paused: "bg-telha",
-  canceled: "bg-telha",
-  unknown: "bg-telha",
+  planned: "bg-brand",
+  paused: "bg-brand",
+  canceled: "bg-brand",
+  unknown: "bg-brand",
 };
 
 const TILT = [
@@ -64,7 +64,7 @@ export function ProjectCardDiario({
       project={project}
       onOpen={onOpen}
       className={cn(
-        "relative flex cursor-pointer flex-col gap-3 rounded-[2px] border-t border-l border-verde/4",
+        "relative flex cursor-pointer flex-col gap-3 rounded-[2px] border-t border-l border-fg/4",
         "bg-paper px-5.5 pt-6 pb-5.5 shadow-paper",
         "transition-[transform,box-shadow] duration-(--duration) ease-out",
         "hover:-translate-y-1 hover:rotate-0 hover:shadow-paper-hover",
@@ -81,7 +81,7 @@ export function ProjectCardDiario({
       />
       <PriorityPin priority={priority} className="absolute top-3.5 right-3.5" />
 
-      <div className="mt-3 flex items-start justify-between gap-2.5 border-b border-dashed border-verde/18 pb-3">
+      <div className="mt-3 flex items-start justify-between gap-2.5 border-b border-dashed border-fg/18 pb-3">
         <div className="min-w-0">
           <div className="truncate font-serif text-[24px] leading-[1.1] font-bold tracking-[-0.01em] text-fg">
             {getLanguageNameDisplay(project, t)}
@@ -127,7 +127,7 @@ export function ProjectCardDiario({
       </div>
 
       {quote && (
-        <p className="mt-2 border-t border-dashed border-verde/18 pt-2.5 font-serif text-[13px] leading-[1.5] italic text-fg">
+        <p className="mt-2 border-t border-dashed border-fg/18 pt-2.5 font-serif text-[13px] leading-[1.5] italic text-fg">
           <span aria-hidden className="text-[18px] text-telha">
             “
           </span>
@@ -138,7 +138,7 @@ export function ProjectCardDiario({
         </p>
       )}
 
-      <div className="mt-auto flex items-center justify-between gap-3 border-t border-verde/12 pt-3">
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-fg/12 pt-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="truncate text-[10px] font-semibold tracking-[0.06em] uppercase text-fg-muted">
             {project.objective[0] ?? "—"}

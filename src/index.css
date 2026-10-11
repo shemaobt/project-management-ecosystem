@@ -287,6 +287,8 @@
   --color-medallion-paper: var(--medallion-paper);
   --color-azul-ink: var(--azul-ink);
   --color-verde-claro-ink: var(--verde-claro-ink);
+  --color-azul-fill: var(--azul-ink);
+  --color-verde-claro-fill: var(--verde-claro-ink);
   --color-record-health: var(--record-health);
 
   --paper: #fbfaf1;
@@ -304,6 +306,7 @@
   --color-status-good-line: var(--status-good-line);
   --color-status-attention: var(--status-attention);
   --color-status-attention-fg: var(--status-attention-fg);
+  --color-attention-fill: var(--status-attention-fg);
   --color-status-attention-ink: var(--status-attention-ink);
   --color-status-attention-bg: var(--status-attention-bg);
   --color-status-attention-line: var(--status-attention-line);
@@ -346,6 +349,7 @@
   --color-fg-strong: var(--fg-strong);
   --color-fg-muted: var(--fg-muted);
   --color-fg-subtle: var(--fg-subtle);
+  --color-subtle-fill: var(--fg-subtle);
   --color-on-brand: var(--fg-on-brand);
   --color-on-dark: var(--fg-on-dark);
   --color-on-dark-muted: var(--fg-on-dark-muted);
