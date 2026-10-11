@@ -34,11 +34,17 @@ function applyClass(resolved: ResolvedTheme) {
   document.documentElement.classList.toggle("dark", resolved === "dark");
 }
 
+// OBT-505: a paleta escura é nossa e espera a cliente (§7.4), então ela é escolha de quem
+// clica, nunca herdada do sistema; "system" volta a ser o padrão quando ela for aprovada.
 function loadStoredTheme(): ThemePreference {
   const stored = localStorage.getItem(THEME_KEY);
   return stored === "light" || stored === "dark" || stored === "system"
     ? stored
-    : "system";
+    : "light";
+}
+
+export function applyStoredTheme() {
+  applyClass(resolve(loadStoredTheme()));
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
