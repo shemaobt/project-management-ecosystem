@@ -16,7 +16,7 @@ import {
   type IntercessorCreateDraft,
   type IntercessorEditDraft,
 } from "../../../utils/intercessors";
-import { canWriteNetwork } from "../../../utils/access";
+import { canKeepNetwork, canWriteNetwork } from "../../../utils/access";
 import { countryName } from "../../../utils/countries";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -36,10 +36,12 @@ export interface IntercessoresViewProps {
   withheldReviewDueCount: number;
   /**
    * Whether this reader writes the network — coordination and the Admin (OBT-574). The
-   * Resource Circle reads it and reveals a contact; it gets no form, no edit, no removal and
-   * no review, which the server would refuse — and so no way to open the two dialogs.
+   * Resource Circle reads it and reveals a contact; it gets no form, no edit and no removal,
+   * which the server would refuse — and so no way to open the two dialogs.
    */
   canWrite: boolean;
+  /** Whether this reader marks the one-year review — the writers and the Resource Circle. */
+  canKeep: boolean;
   onAdd: (draft: IntercessorCreateDraft) => Promise<boolean>;
   onUpdate: (id: string, draft: IntercessorEditDraft) => Promise<boolean>;
   onRemove: (id: string) => Promise<boolean>;
@@ -54,6 +56,7 @@ export function IntercessoresView({
   withheldCount,
   withheldReviewDueCount,
   canWrite,
+  canKeep,
   onAdd,
   onUpdate,
   onRemove,
@@ -242,6 +245,7 @@ export function IntercessoresView({
                 contactingId={contactingId}
                 reviewingId={reviewingId}
                 canWrite={canWrite}
+                canKeep={canKeep}
                 onEdit={startEdit}
                 onRemove={setRemoving}
                 onContact={handleContact}
@@ -304,6 +308,7 @@ export function IntercessoresPage() {
       withheldCount={withheldCount}
       withheldReviewDueCount={withheldReviewDueCount}
       canWrite={canWriteNetwork(user.roles)}
+      canKeep={canKeepNetwork(user.roles)}
       onAdd={addIntercessor}
       onUpdate={updateIntercessor}
       onRemove={removeIntercessor}

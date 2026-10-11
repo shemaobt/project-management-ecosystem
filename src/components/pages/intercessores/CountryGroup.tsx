@@ -15,8 +15,10 @@ export interface IntercessorRowProps {
   person: IntercessorEntry;
   contacting: boolean;
   reviewing: boolean;
-  /** Coordination and the Admin edit, remove and review; the Resource Circle only reads (OBT-574). */
+  /** Coordination and the Admin edit and remove; the Resource Circle does not (OBT-574). */
   canWrite: boolean;
+  /** Who marks the one-year review: the writers and the Resource Circle (Daniel, 10/out). */
+  canKeep: boolean;
   onEdit: () => void;
   onRemove: () => void;
   onContact: () => void;
@@ -28,6 +30,7 @@ export function IntercessorRow({
   contacting,
   reviewing,
   canWrite,
+  canKeep,
   onEdit,
   onRemove,
   onContact,
@@ -127,7 +130,7 @@ export function IntercessorRow({
         ) : null}
       </div>
 
-      {person.reviewDue && canWrite ? (
+      {person.reviewDue && canKeep ? (
         <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
           <p className="min-w-0 flex-1 basis-60 text-small leading-snug text-fg">
             {t("int_review_due_hint")}
@@ -140,9 +143,11 @@ export function IntercessorRow({
           >
             {t("int_review_done")}
           </Button>
-          <Button variant="danger" size="sm" onClick={onRemove}>
-            {t("int_review_remove")}
-          </Button>
+          {canWrite ? (
+            <Button variant="danger" size="sm" onClick={onRemove}>
+              {t("int_review_remove")}
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </li>
@@ -154,6 +159,7 @@ export interface CountryGroupProps {
   contactingId: string | null;
   reviewingId: string | null;
   canWrite: boolean;
+  canKeep: boolean;
   onEdit: (person: IntercessorEntry) => void;
   onRemove: (person: IntercessorEntry) => void;
   onContact: (person: IntercessorEntry) => void;
@@ -165,6 +171,7 @@ export function CountryGroup({
   contactingId,
   reviewingId,
   canWrite,
+  canKeep,
   onEdit,
   onRemove,
   onContact,
@@ -186,6 +193,7 @@ export function CountryGroup({
             contacting={contactingId === person.id}
             reviewing={reviewingId === person.id}
             canWrite={canWrite}
+            canKeep={canKeep}
             onEdit={() => onEdit(person)}
             onRemove={() => onRemove(person)}
             onContact={() => onContact(person)}

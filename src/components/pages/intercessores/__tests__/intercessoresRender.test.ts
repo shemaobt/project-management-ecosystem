@@ -72,6 +72,7 @@ const view = (
   withheldCount = 0,
   withheldReviewDueCount = 0,
   canWrite = true,
+  canKeep = canWrite,
 ) =>
   renderToStaticMarkup(
     createElement(
@@ -82,6 +83,7 @@ const view = (
         withheldCount,
         withheldReviewDueCount,
         canWrite,
+        canKeep,
         onAdd: refuseAsync,
         onUpdate: refuseAsync,
         onRemove: refuseAsync,
@@ -323,9 +325,10 @@ describe("o campo de país é controlado, sempre", () => {
 
 describe("o Resource Circle vê a rede e não a edita (OBT-574)", () => {
   // Karina, 6/out: "Somente a coordenação tem acesso editar e apagar o contato do intercessor.
-  // O Resource Circle pode ver, mas não edita."
+  // O Resource Circle pode ver, mas não edita." Daniel, 10/out, sobre a revisão anual: "conta
+  // como edição mas o Resource Circle precisa ter esse acesso".
   const DUE: IntercessorEntry = { ...ANA, id: "due", reviewDue: true };
-  const reader = () => view([DUE, JOAO], 0, 0, false);
+  const reader = () => view([DUE, JOAO], 0, 0, false, true);
 
   it("lista as pessoas e oferece o contato, um de cada vez", () => {
     const html = reader();
@@ -347,11 +350,17 @@ describe("o Resource Circle vê a rede e não a edita (OBT-574)", () => {
     expect(html).not.toContain(i18n.t("int_empty"));
   });
 
-  it("vê que a revisão está devida, mas não a marca nem remove por ela", () => {
+  it("marca a revisão devida, mas não remove por ela", () => {
     const html = reader();
     expect(html).toContain(i18n.t("int_review_due_badge"));
-    expect(html).not.toContain(i18n.t("int_review_done"));
+    expect(html).toContain(i18n.t("int_review_done"));
     expect(html).not.toContain(i18n.t("int_review_remove"));
+  });
+
+  it("quem não cuida da rede não vê o botão de revisado", () => {
+    const html = view([DUE], 0, 0, false, false);
+    expect(html).toContain(i18n.t("int_review_due_badge"));
+    expect(html).not.toContain(i18n.t("int_review_done"));
   });
 });
 

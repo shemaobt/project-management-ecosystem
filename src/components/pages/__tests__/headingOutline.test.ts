@@ -188,6 +188,7 @@ const areas: Record<string, () => string> = {
           withheldCount: 0,
           withheldReviewDueCount: 0,
           canWrite: true,
+          canKeep: true,
           onAdd: () => Promise.reject(new Error("unused")),
           onUpdate: () => Promise.reject(new Error("unused")),
           onRemove: () => Promise.reject(new Error("unused")),
