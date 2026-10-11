@@ -87,13 +87,15 @@ describe("a frase de um aviso servido sai na língua de quem lê (OBT-559)", () 
     );
   });
 
-  it("o pedido de oração diz o projeto e nunca o texto do pedido", async () => {
+  it("o pedido de oração diz o projeto e que chegou ao mural, sem o texto e sem dizer por onde (OBT-566)", async () => {
     expect(say(served("prayer"))).toBe(
-      "O Pulso recebido de Tikuna traz um pedido de oração que a equipe compartilhou com a rede. Abra o projeto para lê-lo.",
+      "Um pedido de oração de Tikuna está no mural, compartilhado com a rede. Abra o projeto para lê-lo.",
     );
+    expect(say(served("prayer"))).not.toMatch(/Pulso/);
 
     await i18n.changeLanguage("en");
-    expect(say(served("prayer"))).toContain("The Pulse received for Tikuna carries a prayer request");
+    expect(say(served("prayer"))).toContain("A prayer request for Tikuna is now on the prayer wall");
+    expect(say(served("prayer"))).not.toMatch(/Pulse/);
   });
 
   it("o pedido a revisar diz o projeto e que espera a coordenação, nunca o texto (OBT-575)", async () => {
@@ -121,7 +123,7 @@ describe("a frase de um aviso servido sai na língua de quem lê (OBT-559)", () 
     expect(say(served("health", { languageName: "", assessedOn: "2026-09-11" }))).toMatch(
       /^Um projeto: a avaliação/,
     );
-    expect(say(served("prayer", { languageName: "" }))).toContain("O Pulso recebido de um projeto");
+    expect(say(served("prayer", { languageName: "" }))).toContain("Um pedido de oração de um projeto");
 
     await i18n.changeLanguage("en");
     expect(say(served("stale", { languageName: "" }))).toMatch(/^A project has had/);
