@@ -271,6 +271,26 @@ piso novo de `fg-subtle` — é sobre as superfícies claras. `@custom-variant d
 rodar `node scripts/contraste.mjs` e a varredura de DOM contra ela antes de considerá-la pronta. O
 ferramental já está no repositório.
 
+**Resolvido em [OBT-505](https://linear.app/shema-obt/issue/OBT-505), 11/out/2026 — Levi Gomes.** A paleta
+escura chegou, derivada por nós e ainda sem aprovação da cliente (`CLAUDE.md` §7.4), e foi medida antes de
+ser dada como pronta:
+
+- `node scripts/contraste.mjs --escuro` aplica o bloco `.dark` por cima da paleta clara: toda tinta de
+  página passa 4.5 nas quatro superfícies escuras. As três linhas abaixo de 4.5 (`tone-unknown`,
+  `stamp-warning`, `record-health`) são tokens que só preenchem, nunca escrevem texto na página.
+- A varredura do DOM renderizado (Chrome headless por CDP, build de fixtures, 32 telas: as onze áreas e as
+  dez abas da ficha em ver e editar, nos dois temas) não achou texto que reprove no escuro e passe no
+  claro: 69 nós abaixo do piso no escuro contra 110 no claro, todos já existentes (opções de faceta
+  desabilitadas em opacidade, o Salvar desabilitado, alguns carimbos).
+- Reflow a 320 e 360px se mantém nos dois temas, com o botão novo no cabeçalho.
+- `src/styles/__tests__/darkPalette.test.ts` fixa as garantias: toda tinta sobre as superfícies escuras,
+  cada selo no próprio fundo, o preenchimento saturado que não muda de cor, a ilha clara do globo e
+  nenhum `dark:` em componente.
+
+**O que continua fora.** A varredura não lê fundo em gradiente: no medalhão do globo, que é papel claro
+desenhado sobre o céu, ela mede contra o fundo da página e acusa falsamente. Ali a prova é outra — a tinta
+dentro da ilha `.tema-claro` é a do tema claro, que o teste da ilha fixa token a token.
+
 ---
 
 ## 13. Auditoria WCAG AA formal
