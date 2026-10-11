@@ -31,7 +31,7 @@ export function FilterChip({
         "disabled:pointer-events-none disabled:opacity-45",
         active
           ? "bg-inverse font-semibold text-on-dark"
-          : "hover:bg-brand/6 hover:text-telha",
+          : "hover:bg-telha/6 hover:text-telha",
         critical && !active && "text-telha",
       )}
     >

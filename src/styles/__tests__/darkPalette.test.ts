@@ -204,9 +204,9 @@ describe("o tema tem um dono só: os tokens", () => {
     expect(offenders(/(?<![\w-])dark:[a-z]/u)).toEqual([]);
   });
 
-  it("um preenchimento saturado usa o nome de preenchimento, que não clareia no escuro", () => {
+  it("um preenchimento saturado usa o nome de preenchimento, que não clareia no escuro — o véu dela segue a tinta", () => {
     expect(
-      offenders(/(?<![\w-])bg-(?:telha|azul-ink|verde-claro-ink|status-attention-fg|fg-subtle)(?![\w-])/u),
+      offenders(/(?<![\w-])bg-(?:telha|azul-ink|verde-claro-ink|status-attention-fg|fg-subtle)(?![\w/-])/u),
     ).toEqual([]);
   });
 

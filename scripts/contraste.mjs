@@ -18,13 +18,8 @@ function declarations(source) {
   );
 }
 
-const DARK_BLOCK = /\.dark\s*\{([^}]*)\}/u.exec(CSS)?.[1] ?? "";
-export const DARK = declarations(DARK_BLOCK);
-let theme = "light";
-
-export function useTheme(next) {
-  theme = next;
-}
+const DARK = declarations(/\.dark\s*\{([^}]*)\}/u.exec(CSS)?.[1] ?? "");
+const theme = process.argv.includes("--escuro") ? "dark" : "light";
 
 function token(name) {
   const override = theme === "dark" ? DARK.get(name) : undefined;
@@ -173,7 +168,6 @@ function mark(value) {
 }
 
 function report() {
-  if (process.argv.includes("--escuro")) useTheme("dark");
   console.log(
     `Tinta declarada × superfície, tema ${theme === "dark" ? "escuro" : "claro"} (X < 3 · ~ < 4.5)\n`,
   );

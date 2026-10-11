@@ -11,7 +11,7 @@ const overlayPill =
   "absolute z-3 rounded-pill border border-branco/14 bg-[rgba(20,14,32,0.6)] backdrop-blur-[8px]";
 
 const controlButton =
-  "inline-flex size-7 items-center justify-center rounded-pill text-tag font-extrabold tracking-button text-on-dark-muted transition-all duration-fast ease-out hover:bg-brand/32 hover:text-on-dark";
+  "inline-flex size-7 items-center justify-center rounded-pill text-tag font-extrabold tracking-button text-on-dark-muted transition-all duration-fast ease-out hover:bg-telha/32 hover:text-on-dark";
 
 export interface GlobeControlsProps {
   autoRotate: boolean;
