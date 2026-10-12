@@ -13,12 +13,12 @@ import { OpenableCard } from "./OpenableCard";
 
 const STAMP_TONES: Record<ProjectPriority, string> = {
   default: "bg-verde text-on-dark",
-  critical: "bg-telha text-on-brand",
+  critical: "bg-brand text-on-brand",
   warning: "bg-stamp-warning text-on-dark",
-  completed: "bg-verde-claro-ink text-on-brand",
+  completed: "bg-verde-claro-fill text-on-brand",
   canceled: "bg-areia text-on-light",
-  paused: "bg-fg-subtle text-on-dark",
-  planned: "bg-azul-ink text-on-brand",
+  paused: "bg-subtle-fill text-on-dark",
+  planned: "bg-azul-fill text-on-brand",
   unknown: "bg-tone-unknown text-on-dark",
 };
 
@@ -27,7 +27,7 @@ const CARD_TONES: Partial<Record<ProjectPriority, string>> = {
   unknown: "opacity-[0.86]",
 };
 
-const metaDot = "size-[3px] shrink-0 rounded-pill bg-fg-subtle";
+const metaDot = "size-[3px] shrink-0 rounded-pill bg-subtle-fill";
 
 const tagPill =
   "rounded-pill px-[7px] py-0.5 text-[10px] font-semibold tracking-button";

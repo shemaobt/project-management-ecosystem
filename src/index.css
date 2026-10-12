@@ -287,6 +287,8 @@
   --color-medallion-paper: var(--medallion-paper);
   --color-azul-ink: var(--azul-ink);
   --color-verde-claro-ink: var(--verde-claro-ink);
+  --color-azul-fill: var(--azul-ink);
+  --color-verde-claro-fill: var(--verde-claro-ink);
   --color-record-health: var(--record-health);
 
   --paper: #fbfaf1;
@@ -304,6 +306,7 @@
   --color-status-good-line: var(--status-good-line);
   --color-status-attention: var(--status-attention);
   --color-status-attention-fg: var(--status-attention-fg);
+  --color-attention-fill: var(--status-attention-fg);
   --color-status-attention-ink: var(--status-attention-ink);
   --color-status-attention-bg: var(--status-attention-bg);
   --color-status-attention-line: var(--status-attention-line);
@@ -346,6 +349,7 @@
   --color-fg-strong: var(--fg-strong);
   --color-fg-muted: var(--fg-muted);
   --color-fg-subtle: var(--fg-subtle);
+  --color-subtle-fill: var(--fg-subtle);
   --color-on-brand: var(--fg-on-brand);
   --color-on-dark: var(--fg-on-dark);
   --color-on-dark-muted: var(--fg-on-dark-muted);
@@ -471,6 +475,100 @@
     outline: 2px solid var(--accent);
     outline-offset: 2px;
     border-radius: var(--radius-xs);
+  }
+
+  /* OBT-505 */
+  .dark {
+    color-scheme: dark;
+
+    --color-canvas: #1b1a12;
+    --color-elevated: #25241a;
+    --color-muted: #2f2e22;
+    --color-paper: #232219;
+
+    --color-fg: #e6e4d3;
+    --color-fg-strong: var(--shema-branco);
+    --color-fg-muted: var(--shema-areia);
+    --color-fg-subtle: #a9a78c;
+    --color-link: #ec8a4f;
+
+    --color-telha: var(--color-link);
+    --color-accent: var(--color-link);
+    --color-accent-press: #f2a777;
+    --color-accent-soft: #3d2615;
+
+    --color-line: rgba(246, 245, 235, 0.14);
+    --color-line-strong: rgba(246, 245, 235, 0.28);
+
+    --color-verde-claro: var(--night-good);
+    --color-verde-claro-ink: #b8c27f;
+    --color-azul-ink: #9cc0b8;
+
+    --color-status-good: var(--night-good);
+    --color-status-good-ink: #c3cf8f;
+    --color-status-good-bg: rgba(168, 178, 112, 0.16);
+    --color-status-good-line: rgba(168, 178, 112, 0.34);
+    --color-status-attention: var(--night-warning);
+    --color-status-attention-fg: #e8b468;
+    --color-status-attention-ink: var(--color-status-attention-fg);
+    --color-status-attention-bg: rgba(224, 162, 74, 0.16);
+    --color-status-attention-line: rgba(224, 162, 74, 0.34);
+    --color-status-critical-bg: var(--color-accent-soft);
+    --color-status-critical-line: rgba(236, 138, 79, 0.4);
+
+    --color-urgent: #f07a5c;
+    --color-urgent-soft: #4a1f16;
+
+    --color-rhythm-done-fg: var(--color-status-good-ink);
+    --color-rhythm-done-bg: #2f3520;
+    --color-rhythm-pending-fg: var(--color-accent-press);
+    --color-rhythm-pending-bg: var(--color-accent-soft);
+    --color-rhythm-overdue-fg: #f39a78;
+    --color-rhythm-overdue-bg: #4a2418;
+    --color-rhythm-new-fg: var(--color-fg-muted);
+    --color-rhythm-new-bg: var(--color-muted);
+
+    --color-answered-fg: var(--color-status-good-ink);
+    --color-answered-bg: #2a2f1c;
+    --color-answered-line: #556036;
+
+    --color-deadline-soon: var(--night-warning);
+
+    --bg: var(--color-canvas);
+    --fg: var(--color-fg);
+    --fg-strong: var(--color-fg-strong);
+    --fg-link: var(--color-link);
+    --accent: var(--color-accent);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.35);
+    --shadow-paper: 0 6px 14px -8px rgba(0, 0, 0, 0.5);
+    --shadow-paper-hover: 0 14px 30px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  .dark a:hover {
+    color: var(--color-accent-press);
+  }
+
+  /* O globo noturno e o medalhão são claros nos dois temas (§7.4). */
+  .dark .tema-claro {
+    color-scheme: light;
+
+    --color-elevated: var(--bg-elevated);
+    --color-muted: var(--bg-muted);
+    --color-fg: var(--shema-verde);
+    --color-fg-strong: var(--shema-preto);
+    --color-fg-muted: var(--fg-muted);
+    --color-fg-subtle: var(--fg-subtle);
+    --color-telha: var(--shema-telha);
+    --color-accent-press: var(--accent-press);
+    --color-accent-soft: var(--accent-soft);
+    --color-line: var(--line);
+    --color-verde-claro: var(--shema-verde-claro);
+    --fg: var(--shema-verde);
+    --fg-strong: var(--shema-preto);
   }
 }
 

@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef } from "react";
 import { cn } from "../../utils/cn";
 
 const switchVariants = cva(
-  "relative inline-flex shrink-0 cursor-pointer items-center rounded-pill bg-verde/20 transition-colors duration-fast ease-out data-[state=checked]:bg-telha disabled:cursor-not-allowed disabled:opacity-50",
+  "relative inline-flex shrink-0 cursor-pointer items-center rounded-pill bg-fg/20 transition-colors duration-fast ease-out data-[state=checked]:bg-brand disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       size: {

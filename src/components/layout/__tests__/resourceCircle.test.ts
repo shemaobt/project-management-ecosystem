@@ -41,6 +41,7 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../i18n");
 const { AuthContext } = await import("../../../contexts/session");
 const { AppShell } = await import("../AppShell");
+const { ThemeProvider } = await import("../../../contexts/ThemeContext");
 
 const FORM = "https://formulario.exemplo.org";
 
@@ -80,15 +81,19 @@ function visit(roles: SessionRole[], form: string | null = FORM): string {
       MemoryRouter,
       { initialEntries: ["/"] },
       createElement(
-        AuthContext.Provider,
-        { value },
+        ThemeProvider,
+        null,
         createElement(
-          Routes,
-          null,
+          AuthContext.Provider,
+          { value },
           createElement(
-            Route,
-            { element: createElement(AppShell) },
-            createElement(Route, { index: true, element: createElement("p", null, INICIO) }),
+            Routes,
+            null,
+            createElement(
+              Route,
+              { element: createElement(AppShell) },
+              createElement(Route, { index: true, element: createElement("p", null, INICIO) }),
+            ),
           ),
         ),
       ),

@@ -49,7 +49,7 @@ export function RoleSwitcher() {
             className={cn(
               "rounded-pill px-2.5 py-1 text-micro font-semibold transition-colors duration-fast ease-out",
               persona.id === user.id
-                ? "bg-telha text-on-brand"
+                ? "bg-brand text-on-brand"
                 : "bg-muted text-fg-muted hover:text-fg",
             )}
           >

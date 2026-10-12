@@ -43,7 +43,7 @@ export function FilterChip({
             ? "bg-on-dark/20 text-on-dark"
             : critical
               ? "bg-accent-soft text-accent-press"
-              : "bg-verde/8 text-fg-muted",
+              : "bg-fg/8 text-fg-muted",
         )}
       >
         {count}

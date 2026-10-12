@@ -33,8 +33,8 @@ export const HEALTH_TONES: Record<OverallHealth, string> = {
 };
 
 export const HEALTH_DOT_TONES: Record<OverallHealth, string> = {
-  boa: "bg-verde-claro-ink text-on-dark",
-  atencao: "bg-status-attention-fg text-on-dark",
+  boa: "bg-verde-claro-fill text-on-dark",
+  atencao: "bg-attention-fill text-on-dark",
   critica: "bg-status-critical text-on-dark",
   na: "bg-status-na text-on-light",
 };
@@ -64,11 +64,11 @@ export const REPORTING_TONES: Record<ReportingState, string> = {
 
 export const PRIORITY_TONES: Record<ProjectPriority, string> = {
   critical: "bg-status-critical text-on-dark",
-  warning: "bg-status-attention-fg text-on-dark",
-  completed: "bg-verde-claro-ink text-on-dark",
+  warning: "bg-attention-fill text-on-dark",
+  completed: "bg-verde-claro-fill text-on-dark",
   canceled: "bg-status-na text-on-light",
   paused: "bg-status-na text-on-light",
-  planned: "bg-azul-ink text-on-dark",
+  planned: "bg-azul-fill text-on-dark",
   unknown: "bg-status-na text-on-light",
   default: "bg-status-na text-on-light",
 };

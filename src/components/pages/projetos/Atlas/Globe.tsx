@@ -245,7 +245,7 @@ export function Globe({
     <div className="mb-6">
       <div
         ref={stageRef}
-        className="relative flex min-h-[560px] items-center justify-center overflow-hidden rounded-lg border border-telha/25 p-7 max-lg:min-h-[460px] max-lg:p-4.5 max-sm:min-h-[360px] max-sm:p-3"
+        className="tema-claro relative flex min-h-[560px] items-center justify-center overflow-hidden rounded-lg border border-telha/25 p-7 max-lg:min-h-[460px] max-lg:p-4.5 max-sm:min-h-[360px] max-sm:p-3"
         style={{ background: STAGE_BACKGROUND }}
       >
         <div

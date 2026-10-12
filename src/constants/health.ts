@@ -7,11 +7,11 @@ import type {
 export const RATING_ON = "data-[state=checked]:";
 
 export const RATING_TONES: Record<HealthRating, string> = {
-  boa: "data-[state=checked]:border-verde-claro-ink data-[state=checked]:bg-verde-claro-ink data-[state=checked]:text-on-brand",
+  boa: "data-[state=checked]:border-verde-claro-ink data-[state=checked]:bg-verde-claro-fill data-[state=checked]:text-on-brand",
   atencao:
-    "data-[state=checked]:border-status-attention-fg data-[state=checked]:bg-status-attention-fg data-[state=checked]:text-on-brand",
+    "data-[state=checked]:border-status-attention-fg data-[state=checked]:bg-attention-fill data-[state=checked]:text-on-brand",
   critica:
-    "data-[state=checked]:border-telha data-[state=checked]:bg-telha data-[state=checked]:text-on-brand",
+    "data-[state=checked]:border-telha data-[state=checked]:bg-brand data-[state=checked]:text-on-brand",
   "": "data-[state=checked]:border-preto data-[state=checked]:bg-preto data-[state=checked]:text-on-dark",
 };
 

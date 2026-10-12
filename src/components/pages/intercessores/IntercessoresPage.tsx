@@ -215,7 +215,7 @@ export function IntercessoresView({
                   type="button"
                   onClick={() => setQuery("")}
                   aria-label={t("search_clear")}
-                  className="absolute top-1/2 right-2 flex size-[22px] -translate-y-1/2 items-center justify-center rounded-pill bg-muted text-fg-muted transition-colors duration-fast ease-out hover:bg-telha hover:text-on-brand"
+                  className="absolute top-1/2 right-2 flex size-[22px] -translate-y-1/2 items-center justify-center rounded-pill bg-muted text-fg-muted transition-colors duration-fast ease-out hover:bg-brand hover:text-on-brand"
                 >
                   <X size={11} strokeWidth={2} />
                 </button>

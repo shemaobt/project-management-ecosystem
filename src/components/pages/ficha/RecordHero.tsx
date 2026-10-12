@@ -31,7 +31,7 @@ export function RecordHero({ mode, draft }: RecordHeroProps) {
     <div className="relative overflow-hidden bg-verde px-8 pt-7 pb-6 text-on-dark">
       <span
         aria-hidden
-        className="pointer-events-none absolute -right-20 -bottom-30 size-70 rounded-pill bg-telha opacity-16"
+        className="pointer-events-none absolute -right-20 -bottom-30 size-70 rounded-pill bg-brand opacity-16"
       />
       <div className="relative z-1 flex items-start justify-between gap-4 pr-10">
         <div className="min-w-0 flex-1">

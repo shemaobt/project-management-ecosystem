@@ -30,13 +30,13 @@ export const TAB_LABEL_KEYS: Record<RecordTabId, string> = {
 
 export const TAB_MARKER_TONES: Record<RecordTabId, string> = {
   identidade: "bg-verde text-on-dark",
-  equipe: "bg-verde-claro-ink text-on-dark",
-  objetivo: "bg-azul-ink text-on-dark",
-  recursos: "bg-telha text-on-brand",
-  progresso: "bg-status-attention-fg text-on-dark",
+  equipe: "bg-verde-claro-fill text-on-dark",
+  objetivo: "bg-azul-fill text-on-dark",
+  recursos: "bg-brand text-on-brand",
+  progresso: "bg-attention-fill text-on-dark",
   saude: "bg-record-health text-on-dark",
   necessidades: "bg-areia text-on-light",
-  midia: "bg-verde-claro-ink text-on-dark",
+  midia: "bg-verde-claro-fill text-on-dark",
   notas: "bg-preto text-on-dark",
   materiais: "bg-verde text-on-dark",
 };

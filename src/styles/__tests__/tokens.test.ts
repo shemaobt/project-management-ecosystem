@@ -343,6 +343,11 @@ describe("o número da aba se lê sobre o marcador dela", () => {
     "on-light": "shema-verde",
     muted: "bg-muted",
     "fg-muted": "fg-muted",
+    brand: "shema-telha",
+    "azul-fill": "azul-ink",
+    "verde-claro-fill": "verde-claro-ink",
+    "attention-fill": "status-attention-fg",
+    "subtle-fill": "fg-subtle",
   };
 
   const read = (tone: string, prefix: string): string => {

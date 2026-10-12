@@ -966,6 +966,7 @@
   "results_count_one": "{{count}} projeto",
   "results_count_other": "{{count}} projetos",
   "lang_toggle": "Idioma",
+  "theme_dark": "Tema escuro",
   "notif_bell": "Notificações",
   "notif_eyebrow": "Coordenação",
   "notif_title": "Notificações do campo",
