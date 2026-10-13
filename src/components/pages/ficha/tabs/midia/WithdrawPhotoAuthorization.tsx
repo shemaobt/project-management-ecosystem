@@ -15,8 +15,9 @@ export interface WithdrawPhotoAuthorizationProps {
 /**
  * The coordination takes a photo's authorization back by its id (OBT-578's route, OBT-582):
  * refused from here on, erased from the Pulse that brought it, and nothing already sent is
- * recalled. The record is read again afterwards, so the decision on screen is the server's
- * and the picture, no longer shared, stops being asked for.
+ * recalled. The record is read again afterwards and the Mídia tab reads a server photo's
+ * decision off that saved record, not off the draft (`asServerHoldsIt`) — so the decision on
+ * screen is the server's, and the picture, no longer shared, stops being asked for.
  */
 export function WithdrawPhotoAuthorization({ projectId, itemId }: WithdrawPhotoAuthorizationProps) {
   const { t } = useTranslation();

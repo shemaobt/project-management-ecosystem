@@ -240,7 +240,13 @@ const viewSaved = (values: Values) => {
     createElement(
       AuthProvider,
       null,
-      createElement(MidiaTab, { mode: "ver", draft: { ...draft, values: { ...draft.values, id: "p1" } } }),
+      createElement(MidiaTab, {
+        mode: "ver",
+        draft: {
+          ...draft,
+          values: { ...draft.values, id: "p1", readAs: draft.values.readAs ?? "coordination" },
+        },
+      }),
     ),
   );
 };
@@ -296,5 +302,61 @@ describe("MidiaView — OBT Lab e Resource Circle em sensível não montam o ped
 
   it("fora de sensível, o pedido é montado para quem lê como other", () => {
     expect(viewSaved({ sensitiveCountry: false, readAs: "other", mediaPhotos: [serverPhoto] })).toContain(LINK);
+  });
+});
+
+describe("MidiaView — depois da retirada, a decisão na tela é a do servidor (OBT-582, review)", () => {
+  const granted = { granted: true, by: "Fresia", at: "2026-10-01" };
+  const refused = { granted: false, by: "", at: "2026-10-13" };
+  const photo = (authorization: typeof granted) => ({
+    id: "item-1",
+    image: null,
+    caption: "A equipe no vale",
+    authorization,
+  });
+
+  /** A draft that still holds the photo as authorized, over a record the server re-read refused. */
+  const afterWithdrawal = () => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    const draft = handle({ mediaPhotos: [photo(granted)] });
+    const saved = { ...draft.values, id: "p1", readAs: "coordination" as const, mediaPhotos: [photo(refused)] };
+    return render(
+      createElement(
+        AuthProvider,
+        null,
+        createElement(MidiaTab, {
+          mode: "ver",
+          draft: { ...draft, values: { ...draft.values, id: "p1", readAs: "coordination" }, saved },
+        }),
+      ),
+    );
+  };
+
+  it("um rascunho com a foto autorizada não repinta o granted sobre o registro relido", () => {
+    const markup = afterWithdrawal();
+    expect(markup).toContain(i18n.t("media_auth_no"));
+    expect(markup).not.toContain(i18n.t("media_auth_yes"));
+    expect(markup).not.toContain(i18n.t("media_withdraw"));
+    expect(markup).not.toContain('data-photo-link=""');
+  });
+});
+
+describe("MidiaView — o botão de retirar segue a leitura da ficha, não só o papel (OBT-582, review)", () => {
+  const serverPhoto = {
+    id: "item-1",
+    image: null,
+    caption: "",
+    authorization: { granted: true, by: "", at: "2026-10-01" },
+  };
+
+  it("coordenador da região (coordination) vê; de outra região (other) ou trusted, não", () => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    for (const sensitiveCountry of [true, false]) {
+      const as = (readAs: "coordination" | "other" | "trusted") =>
+        viewSaved({ sensitiveCountry, readAs, mediaPhotos: [serverPhoto] });
+      expect(as("coordination"), `sensível=${sensitiveCountry}`).toContain(i18n.t("media_withdraw"));
+      expect(as("other"), `sensível=${sensitiveCountry}`).not.toContain(i18n.t("media_withdraw"));
+      expect(as("trusted"), `sensível=${sensitiveCountry}`).not.toContain(i18n.t("media_withdraw"));
+    }
   });
 });

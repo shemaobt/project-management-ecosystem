@@ -62,3 +62,31 @@ export function asksForPhotoBytes(
   if (!isMediaAuthorized(photo)) return false;
   return !project.sensitiveCountry || project.readAs === "coordination";
 }
+
+/**
+ * A server photo's decision as the server holds it (OBT-582, review): read off the saved record,
+ * by the photo's id, never off the draft. `mediaPhotos` is a pending write — no save consumes
+ * it — so a draft that once held the photo as authorized would otherwise paint `granted: true`
+ * back over the record re-read after a withdrawal. A photo with no id is this device's own and
+ * keeps what the draft says.
+ */
+export function asServerHoldsIt(photo: MediaPhoto, saved: Pick<Project, "mediaPhotos"> | undefined): MediaPhoto {
+  if (!photo.id || !saved) return photo;
+  const held = saved.mediaPhotos?.find((entry) => entry.id === photo.id);
+  return held ? { ...photo, authorization: held.authorization } : photo;
+}
+
+/**
+ * Whether *Retirar autorização* is drawn (OBT-582, review): an authorized server photo, on a
+ * record this reader reads as its **coordination**. The route is the coordinator's
+ * (`CoordinatorUser`) and is scoped to the coordinator's regions (`get_project`), so a
+ * coordinator of another region — whom `readerOf` reads as `other` — or a `trusted` reader is
+ * answered 404 or 403: a button there would be a dead control. The role half is asked by the
+ * button itself (`canWithdrawMediaAuthorization`).
+ */
+export function offersWithdrawal(
+  project: Partial<Pick<Project, "id" | "readAs">>,
+  photo: MediaPhoto,
+): boolean {
+  return Boolean(photo.id && project.id) && project.readAs === "coordination" && isMediaAuthorized(photo);
+}

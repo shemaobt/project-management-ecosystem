@@ -4,7 +4,6 @@ import { cn } from "../../../../../utils/cn";
 import {
   hasPhotoContent,
   hasVideoContent,
-  isMediaAuthorized,
   photoSlots,
 } from "../../../../../utils/media";
 import { readsFreeText } from "../../../../../utils/recordAccess";
@@ -17,7 +16,11 @@ import {
   MediaHeading,
   SensitiveMediaNote,
 } from "./controls";
-import { asksForPhotoBytes } from "../../../../../utils/mediaLink";
+import {
+  asServerHoldsIt,
+  asksForPhotoBytes,
+  offersWithdrawal,
+} from "../../../../../utils/mediaLink";
 import { MediaPhotoImage } from "./MediaPhotoImage";
 import { VideoCard } from "./VideoCard";
 import { WithdrawPhotoAuthorization } from "./WithdrawPhotoAuthorization";
@@ -29,7 +32,8 @@ export interface MidiaViewProps {
 export function MidiaView({ draft }: MidiaViewProps) {
   const { t } = useTranslation();
   const values = draft.values;
-  const photos = photoSlots(values.mediaPhotos);
+  // A server photo's decision is the saved record's, never the draft's (OBT-582, review).
+  const photos = photoSlots(values.mediaPhotos).map((photo) => asServerHoldsIt(photo, draft.saved));
   const videos = values.mediaVideos ?? [];
   const projectId = values.id;
   // The server empties the captions on a withheld record for whoever does not read the truth
@@ -80,8 +84,8 @@ export function MidiaView({ draft }: MidiaViewProps) {
               {(hasPhotoContent(photo) || photo.authorization !== null) && (
                 <AuthStatus authorization={photo.authorization} />
               )}
-              {photo.id && projectId && isMediaAuthorized(photo) ? (
-                <WithdrawPhotoAuthorization projectId={projectId} itemId={photo.id} />
+              {offersWithdrawal(values, photo) ? (
+                <WithdrawPhotoAuthorization projectId={projectId!} itemId={photo.id!} />
               ) : null}
             </div>
           );
