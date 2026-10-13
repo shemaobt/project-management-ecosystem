@@ -1,7 +1,10 @@
 import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { NeedItem, NeedStatus } from "../../../../../types/project";
-import { mayWriteNeedDescription } from "../../../../../utils/recordAccess";
+import {
+  mayWrite,
+  mayWriteNeedDescription,
+} from "../../../../../utils/recordAccess";
 import {
   addNeed,
   openNeeds,
@@ -30,7 +33,8 @@ export function NecessidadesForm({ draft }: NecessidadesFormProps) {
   const write = (next: NeedItem[]) => draft.set("needsItems", next);
   const lockedAt = (need: NeedItem) =>
     !mayWriteNeedDescription(draft.place, Boolean(need.id));
-  const anyLocked = needs.some(lockedAt);
+  const notesLocked = !mayWrite(draft.place, "needsNotes");
+  const anyLocked = notesLocked || needs.some(lockedAt);
 
   return (
     <div className="flex flex-col gap-5">
@@ -95,7 +99,8 @@ export function NecessidadesForm({ draft }: NecessidadesFormProps) {
           <Textarea
             {...control}
             rows={3}
-            value={draft.values.needsNotes ?? ""}
+            value={notesLocked ? "" : (draft.values.needsNotes ?? "")}
+            disabled={notesLocked}
             onChange={(event) => draft.set("needsNotes", event.target.value)}
           />
         )}

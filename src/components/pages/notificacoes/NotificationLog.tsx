@@ -91,9 +91,10 @@ function LogRow({ entry, onNavigate }: LogRowProps) {
   const content = <RowContent entry={entry} />;
   const linked = isRequestNotice(entry) || isServedNotice(entry);
   if (linked && entry.projectId !== null) {
+    const queue = isServedNotice(entry) && entry.kind === "prayerReview";
     return (
       <Link
-        to={`/ficha/${entry.projectId}/${DEFAULT_TAB}`}
+        to={queue ? "/oracao/revisao" : `/ficha/${entry.projectId}/${DEFAULT_TAB}`}
         onClick={onNavigate}
         className={cn(
           ROW,
@@ -118,7 +119,7 @@ function RowContent({ entry }: { entry: PanelEntry }) {
           "size-2 shrink-0 rounded-pill",
           entry.urgent
             ? "bg-urgent ring-4 ring-urgent-soft"
-            : "bg-telha ring-4 ring-accent-soft",
+            : "bg-brand ring-4 ring-accent-soft",
         )}
       />
       <div className="min-w-0 flex-1">

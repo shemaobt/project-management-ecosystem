@@ -53,7 +53,7 @@ export function LeaveNetworkView({
   if (status.kind === "done") {
     return (
       <div>
-        <div className="mb-4 flex size-11 items-center justify-center rounded-pill bg-verde-claro-ink text-on-brand">
+        <div className="mb-4 flex size-11 items-center justify-center rounded-pill bg-verde-claro-fill text-on-brand">
           <Check size={22} strokeWidth={2} aria-hidden />
         </div>
         <h1 className={TITLE}>{t("int_leave_done_title")}</h1>

@@ -45,7 +45,7 @@ export function TabNav({ tabs, pending }: TabNavProps) {
             <span
               aria-label={t("record_required_here")}
               title={t("record_required_here")}
-              className="size-1.5 rounded-pill bg-telha"
+              className="size-1.5 rounded-pill bg-brand"
             />
           )}
         </TabsTrigger>

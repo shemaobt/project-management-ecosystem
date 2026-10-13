@@ -50,7 +50,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
         type="button"
         onClick={onClose}
         title={t("btn_close")}
-        className="absolute top-1 right-1 inline-flex size-[22px] items-center justify-center rounded-pill bg-verde/10 text-[16px] leading-none text-fg transition-all duration-fast ease-out hover:bg-telha hover:text-on-brand"
+        className="absolute top-1 right-1 inline-flex size-[22px] items-center justify-center rounded-pill bg-fg/10 text-[16px] leading-none text-fg transition-all duration-fast ease-out hover:bg-brand hover:text-on-brand"
       >
         ×
       </button>
@@ -69,7 +69,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
         />
         <div
           className={cn(
-            "absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-pill bg-telha px-2 py-0.5 text-[9px] font-extrabold tracking-[0.16em] whitespace-nowrap text-on-brand uppercase shadow-[0_2px_6px_rgba(0,0,0,0.5)]",
+            "absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-pill bg-brand px-2 py-0.5 text-[9px] font-extrabold tracking-[0.16em] whitespace-nowrap text-on-brand uppercase shadow-[0_2px_6px_rgba(0,0,0,0.5)]",
             TAG_TONES[priority],
           )}
         >
@@ -97,7 +97,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
         </div>
       )}
 
-      <div className="grid w-full grid-cols-2 border-y border-verde/18 pt-1.5 pb-2">
+      <div className="grid w-full grid-cols-2 border-y border-fg/18 pt-1.5 pb-2">
         <div className="flex flex-col items-center leading-[1.1]">
           <span className="text-[17px] font-extrabold tracking-[-0.02em] text-telha tabular-nums">
             {Math.round(progress)}
@@ -107,7 +107,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
             {t("d_p_translated").split(" ")[0]}
           </span>
         </div>
-        <div className="flex flex-col items-center border-l border-verde/14 leading-[1.1]">
+        <div className="flex flex-col items-center border-l border-fg/14 leading-[1.1]">
           <span className="text-[17px] font-extrabold tracking-[-0.02em] text-telha tabular-nums">
             {speakers > 1000 ? `${Math.round(speakers / 1000)}k` : speakers || "—"}
           </span>
@@ -121,7 +121,7 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
         <button
           type="button"
           onClick={onOpen}
-          className="mt-2.5 w-full rounded-pill bg-telha p-2 text-[10px] font-bold tracking-[0.08em] uppercase text-on-brand transition-all duration-fast ease-out hover:-translate-y-px hover:bg-accent-hover"
+          className="mt-2.5 w-full rounded-pill bg-brand p-2 text-[10px] font-bold tracking-[0.08em] uppercase text-on-brand transition-all duration-fast ease-out hover:-translate-y-px hover:bg-accent-hover"
         >
           {t("atlas_open_project")}
         </button>

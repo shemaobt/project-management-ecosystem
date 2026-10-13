@@ -17,7 +17,7 @@ export function Checkbox({ label, className, ...props }: CheckboxProps) {
     <CheckboxPrimitive.Root
       aria-label={label}
       className={cn(
-        `flex size-4 shrink-0 items-center justify-center rounded-xs border border-line-strong bg-elevated ${transitionColors} data-[state=checked]:border-telha data-[state=checked]:bg-telha disabled:cursor-not-allowed disabled:opacity-50`,
+        `flex size-4 shrink-0 items-center justify-center rounded-xs border border-line-strong bg-elevated ${transitionColors} data-[state=checked]:border-telha data-[state=checked]:bg-brand disabled:cursor-not-allowed disabled:opacity-50`,
         className,
       )}
       {...props}

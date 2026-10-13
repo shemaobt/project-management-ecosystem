@@ -186,13 +186,21 @@ export const COORDINATION_WRITES: ReadonlySet<RecordField> = new Set<RecordField
 /**
  * The free text a team writes about itself — `FREE_TEXT_FIELDS` in shema-api's
  * `shema_privacy.py` (OBT-556): any of it can say where the team is, so a withheld record
- * hands it to everybody but coordination as `""`.
+ * hands it as `""` to whoever does not read the truth — since OBT-571 the OBT Lab. OBT-573
+ * added five (Karina's question 8, 6/out): the objective's, the finances' and the needs'
+ * notes, the partner organisation and the status goal. The media captions and a story's
+ * recording place are the same rule, nested — see `mayWriteStoryPlace`.
  */
 export const FREE_TEXT_FIELDS: readonly RecordField[] = [
   "notes",
   "healthNotes",
   "statusComments",
   "scopeDetails",
+  "objectiveNotes",
+  "financialNotes",
+  "needsNotes",
+  "partnerOrg",
+  "statusGoal",
 ];
 
 /**

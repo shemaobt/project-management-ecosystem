@@ -120,6 +120,26 @@ const ROWS = [
     },
   },
   {
+    id: "n-7",
+    kind: "prayerReview",
+    title: "",
+    body: "",
+    urgent: false,
+    projectId: "garoa",
+    region: "africa",
+    createdAt: "2026-09-26T10:00:00Z",
+    facts: {
+      languageName: "",
+      assessedOn: null,
+      needCount: null,
+      needCategories: [],
+      needTotals: [],
+      submittedBy: null,
+      daysSinceUpdate: null,
+      place: null,
+    },
+  },
+  {
     id: "n-6",
     kind: "need",
     title: "",
@@ -141,7 +161,7 @@ describe("o painel do sino", () => {
     expect(calls.map((call) => `${call.method} ${call.path}`)).toEqual([
       "get /shema/notifications",
     ]);
-    expect(panel.entries.map((entry) => entry.id)).toEqual(["n-1", "n-2", "n-5", "n-6"]);
+    expect(panel.entries.map((entry) => entry.id)).toEqual(["n-1", "n-2", "n-5", "n-7", "n-6"]);
   });
 
   it("o lido vem do servidor, então vale em qualquer aparelho", () => {
@@ -188,6 +208,12 @@ describe("o painel do sino", () => {
 
     expect(ids).not.toContain("n-3");
     expect(ids).not.toContain("n-4");
+  });
+
+  it("o pedido a revisar é um aviso de projeto, só do servidor (OBT-575)", () => {
+    const review = readServedPanel(ROWS).entries.find((entry) => entry.id === "n-7");
+
+    expect(review).toMatchObject({ origin: "server", kind: "prayerReview", projectId: "garoa" });
   });
 
   it("marcar como lido manda os ids ao servidor", async () => {

@@ -260,7 +260,7 @@ describe("a tela cabe num aparelho emprestado", () => {
   // Trocá-la por `--container-max` alargava a tela em 120px — mudança de layout, não
   // de acessibilidade. Achado do little-joao na PR #55.
   it("o mural de Oracao mantem a largura que o prototipo deu a ele", () => {
-    const page = read("src/components/pages/oracao/index.tsx");
+    const page = read("src/components/pages/oracao/surface.ts");
     expect(page).toContain("max-w-(--container-mural)");
     const css = readFileSync(join(process.cwd(), "src/index.css"), "utf8");
     const line = css

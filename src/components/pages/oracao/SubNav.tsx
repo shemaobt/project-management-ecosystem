@@ -7,7 +7,12 @@ const subtab =
 
 const subtabOn = "bg-canvas text-telha shadow-sm";
 
-export function SubNav() {
+export interface SubNavProps {
+  /** Whether the review queue's tab is offered — the coordination's, and only against the server. */
+  reviews?: boolean;
+}
+
+export function SubNav({ reviews = false }: SubNavProps) {
   const { t } = useTranslation();
 
   return (
@@ -28,6 +33,14 @@ export function SubNav() {
       >
         {t("oracao_sub_rede")}
       </NavLink>
+      {reviews && (
+        <NavLink
+          to="/oracao/revisao"
+          className={({ isActive }) => cn(subtab, isActive && subtabOn)}
+        >
+          {t("oracao_sub_revisao")}
+        </NavLink>
+      )}
     </nav>
   );
 }

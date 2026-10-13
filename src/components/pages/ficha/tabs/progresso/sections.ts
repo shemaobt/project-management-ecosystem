@@ -152,7 +152,7 @@ export const STATUS_BANNER_DOTS: Record<ProjectStatus, string> = {
   planejado: "bg-azul ring-4 ring-azul/25",
   cancelado: "bg-areia ring-4 ring-areia/25",
   concluido: "bg-verde-claro ring-4 ring-verde-claro/22",
-  desconhecido: "bg-fg-subtle",
+  desconhecido: "bg-subtle-fill",
 };
 
 export interface StatusOption {

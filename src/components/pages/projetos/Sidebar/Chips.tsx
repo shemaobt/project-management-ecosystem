@@ -103,7 +103,7 @@ export function Chips({ counts }: ChipsProps) {
               "group flex min-w-0 flex-[1_1_calc(50%-3px)] items-center gap-[7px] rounded-[12px] border border-line bg-elevated px-[11px] py-[9px]",
               "text-left text-micro font-semibold tracking-[0.01em] text-fg",
               "transition-all duration-fast ease-out",
-              active && "border-telha bg-telha text-on-brand shadow-accent",
+              active && "border-telha bg-brand text-on-brand shadow-accent",
               locked
                 ? "opacity-70"
                 : "cursor-pointer hover:border-telha hover:bg-accent-soft hover:text-accent-press",

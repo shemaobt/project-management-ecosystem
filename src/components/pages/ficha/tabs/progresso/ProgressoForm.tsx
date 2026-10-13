@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { materializeDraft } from "../../../../../stores/recordStore";
 import { decreasedCounts } from "../../../../../utils/progress";
+import { mayWriteStoryPlace } from "../../../../../utils/recordAccess";
+import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { EmptyHint, FieldGroup } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { BookTable } from "./BookTable";
@@ -46,6 +48,14 @@ export function ProgressoForm({ draft }: ProgressoFormProps) {
   const project = materializeDraft(values);
   const sections = visibleSections(project);
   const drops = decreasedCounts(project);
+  const savedStories = new Set(
+    (draft.saved?.storyProgress ?? []).map((row) => row.name),
+  );
+  const placeLocked = (name: string) =>
+    !mayWriteStoryPlace(draft.place, savedStories.has(name));
+  const anyPlaceLocked = project.storyProgress.some((row) =>
+    placeLocked(row.name),
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -90,7 +100,13 @@ export function ProgressoForm({ draft }: ProgressoFormProps) {
           <StoryTable
             rows={project.storyProgress}
             onChange={(rows) => draft.set("storyProgress", rows)}
+            placeLocked={placeLocked}
           />
+          {anyPlaceLocked && (
+            <div className="mt-2.5">
+              <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+            </div>
+          )}
         </TableSection>
       )}
 

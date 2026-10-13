@@ -26,7 +26,15 @@ import {
 import { Indicators } from "./Indicators";
 import { PulseButton } from "./PulseButton";
 import { RequestCard } from "./RequestCard";
+import { useReviewsPrayer } from "../../../hooks/useReviewsPrayer";
 import { SubNav } from "./SubNav";
+import {
+  PRAYER_EYEBROW,
+  PRAYER_LEAD,
+  PRAYER_PAGE,
+  PRAYER_TITLE,
+  REQUEST_GRID,
+} from "./surface";
 
 /**
  * The wall as it stands for this reader — one union, so a view can never be handed a list
@@ -43,12 +51,15 @@ export interface OracaoViewProps {
   wall: WallLoad;
   /** The Pulse control, when the reader may generate one (INT-06). */
   pulse?: ReactNode;
+  /** Whether the review queue's tab is offered (OBT-575). */
+  reviews?: boolean;
   initialContinent?: ContinentFilterValue;
 }
 
 export function OracaoView({
   wall,
   pulse,
+  reviews = false,
   initialContinent = ALL_CONTINENTS,
 }: OracaoViewProps) {
   const { t } = useTranslation();
@@ -68,17 +79,11 @@ export function OracaoView({
       : groups.filter((group) => group.region === active);
 
   return (
-    <section className="mx-auto w-full max-w-(--container-mural) px-(--container-pad) pt-8 pb-20">
+    <section className={PRAYER_PAGE}>
       <header className="mb-5.5">
-        <p className="mb-2.5 text-[12px] leading-none font-bold tracking-[0.16em] text-telha uppercase">
-          {t("oracao_eyebrow")}
-        </p>
-        <h1 className="mb-3 text-[34px] leading-[1.08] font-extrabold tracking-[-0.01em] text-fg-strong">
-          {t("oracao_title")}
-        </h1>
-        <p className="max-w-[70ch] font-serif text-[15px] leading-[1.6] text-fg-muted italic">
-          {t("oracao_lead")}
-        </p>
+        <p className={PRAYER_EYEBROW}>{t("oracao_eyebrow")}</p>
+        <h1 className={PRAYER_TITLE}>{t("oracao_title")}</h1>
+        <p className={PRAYER_LEAD}>{t("oracao_lead")}</p>
         <p className="mt-2 max-w-[70ch] text-small font-semibold text-fg">
           {t("oracao_authorized_only")}
         </p>
@@ -87,7 +92,7 @@ export function OracaoView({
         )}
       </header>
 
-      <SubNav />
+      <SubNav reviews={reviews} />
 
       <Indicators indicators={indicators} />
 
@@ -112,7 +117,7 @@ export function OracaoView({
                 <h2 className="mb-3.5 text-eyebrow text-fg-muted uppercase">
                   {t(group.labelKey)}
                 </h2>
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(min(320px,100%),1fr))] gap-3.5">
+                <div className={REQUEST_GRID}>
                   {group.requests.map((request) => (
                     <RequestCard key={request.id} request={request} />
                   ))}
@@ -146,6 +151,7 @@ function LiveOracaoPage() {
   const { user } = useAuth();
   const [wall, setWall] = useState<WallLoad>({ status: "loading" });
   const sendsPulse = user.roles.includes(ROLE_DEFINITIONS.resourceCircle.key);
+  const reviews = useReviewsPrayer();
 
   useEffect(() => {
     let current = true;
@@ -165,6 +171,7 @@ function LiveOracaoPage() {
   return (
     <OracaoView
       wall={wall}
+      reviews={reviews}
       pulse={
         sendsPulse && prayerPulseAPI !== null && wall.status === "ready" ? (
           <PulseButton api={prayerPulseAPI} count={wall.requests.length} />

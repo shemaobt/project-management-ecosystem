@@ -33,7 +33,7 @@ export function Radio({ label, className, ...props }: RadioProps) {
       )}
       {...props}
     >
-      <RadioGroupPrimitive.Indicator className="size-2 rounded-pill bg-telha" />
+      <RadioGroupPrimitive.Indicator className="size-2 rounded-pill bg-brand" />
     </RadioGroupPrimitive.Item>
   );
 }

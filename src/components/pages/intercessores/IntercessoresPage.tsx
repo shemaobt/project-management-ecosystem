@@ -1,6 +1,7 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../../contexts/AuthContext";
 import { usePrayerStore } from "../../../stores/prayerStore";
 import type { IntercessorEntry } from "../../../types/prayer";
 import {
@@ -15,9 +16,11 @@ import {
   type IntercessorCreateDraft,
   type IntercessorEditDraft,
 } from "../../../utils/intercessors";
+import { canKeepNetwork, canWriteNetwork } from "../../../utils/access";
 import { countryName } from "../../../utils/countries";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { useReviewsPrayer } from "../../../hooks/useReviewsPrayer";
 import { SubNav } from "../oracao/SubNav";
 import { Input } from "../../ui";
 import { CountryGroup } from "./CountryGroup";
@@ -31,22 +34,35 @@ export interface IntercessoresViewProps {
   withheldCount: number;
   /** Of the withheld, how many are past their year — a number the server counted. */
   withheldReviewDueCount: number;
+  /**
+   * Whether this reader writes the network — coordination and the Admin (OBT-574). The
+   * Resource Circle reads it and reveals a contact; it gets no form, no edit and no removal,
+   * which the server would refuse — and so no way to open the two dialogs.
+   */
+  canWrite: boolean;
+  /** Whether this reader marks the one-year review — the writers and the Resource Circle. */
+  canKeep: boolean;
   onAdd: (draft: IntercessorCreateDraft) => Promise<boolean>;
   onUpdate: (id: string, draft: IntercessorEditDraft) => Promise<boolean>;
   onRemove: (id: string) => Promise<boolean>;
   onRevealContact: (id: string) => Promise<string | null>;
   onReview: (id: string) => Promise<boolean>;
+  /** Whether the prayer area's review tab is offered (OBT-575). */
+  reviews?: boolean;
 }
 
 export function IntercessoresView({
   people,
   withheldCount,
   withheldReviewDueCount,
+  canWrite,
+  canKeep,
   onAdd,
   onUpdate,
   onRemove,
   onRevealContact,
   onReview,
+  reviews = false,
 }: IntercessoresViewProps) {
   const { t } = useTranslation();
   const [createDraft, setCreateDraft] =
@@ -155,14 +171,16 @@ export function IntercessoresView({
         </p>
       </header>
 
-      <SubNav />
+      <SubNav reviews={reviews} />
 
-      <IntercessorForm
-        draft={createDraft}
-        onChange={setCreateDraft}
-        onSubmit={submitCreate}
-        showing={createShowing}
-      />
+      {canWrite ? (
+        <IntercessorForm
+          draft={createDraft}
+          onChange={setCreateDraft}
+          onSubmit={submitCreate}
+          showing={createShowing}
+        />
+      ) : null}
 
       {people === null ? (
         <div className="flex justify-center py-16">
@@ -197,7 +215,7 @@ export function IntercessoresView({
                   type="button"
                   onClick={() => setQuery("")}
                   aria-label={t("search_clear")}
-                  className="absolute top-1/2 right-2 flex size-[22px] -translate-y-1/2 items-center justify-center rounded-pill bg-muted text-fg-muted transition-colors duration-fast ease-out hover:bg-telha hover:text-on-brand"
+                  className="absolute top-1/2 right-2 flex size-[22px] -translate-y-1/2 items-center justify-center rounded-pill bg-muted text-fg-muted transition-colors duration-fast ease-out hover:bg-brand hover:text-on-brand"
                 >
                   <X size={11} strokeWidth={2} />
                 </button>
@@ -213,7 +231,11 @@ export function IntercessoresView({
 
           {groups.length === 0 ? (
             <EmptyState
-              message={total === 0 ? t("int_empty") : t("int_search_empty")}
+              message={
+                total === 0
+                  ? t(canWrite ? "int_empty" : "int_empty_reader")
+                  : t("int_search_empty")
+              }
             />
           ) : (
             groups.map((group) => (
@@ -222,6 +244,8 @@ export function IntercessoresView({
                 group={group}
                 contactingId={contactingId}
                 reviewingId={reviewingId}
+                canWrite={canWrite}
+                canKeep={canKeep}
                 onEdit={startEdit}
                 onRemove={setRemoving}
                 onContact={handleContact}
@@ -256,6 +280,7 @@ export function IntercessoresView({
 }
 
 export function IntercessoresPage() {
+  const { user } = useAuth();
   const intercessors = usePrayerStore((state) => state.intercessors);
   const withheldCount = usePrayerStore((state) => state.withheldCount);
   const withheldReviewDueCount = usePrayerStore(
@@ -268,6 +293,7 @@ export function IntercessoresPage() {
   const removeIntercessor = usePrayerStore((state) => state.removeIntercessor);
   const revealContact = usePrayerStore((state) => state.revealContact);
   const reviewIntercessor = usePrayerStore((state) => state.reviewIntercessor);
+  const reviews = useReviewsPrayer();
 
   // Always fetched on arrival, cache or not: `reviewDue` is the server's answer for today,
   // and a list kept from last week would show last week's. The cache stays on screen
@@ -281,11 +307,14 @@ export function IntercessoresPage() {
       people={hydrated ? intercessors : null}
       withheldCount={withheldCount}
       withheldReviewDueCount={withheldReviewDueCount}
+      canWrite={canWriteNetwork(user.roles)}
+      canKeep={canKeepNetwork(user.roles)}
       onAdd={addIntercessor}
       onUpdate={updateIntercessor}
       onRemove={removeIntercessor}
       onRevealContact={revealContact}
       onReview={reviewIntercessor}
+      reviews={reviews}
     />
   );
 }

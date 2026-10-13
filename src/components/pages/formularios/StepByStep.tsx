@@ -43,7 +43,7 @@ export function StepByStep({ projectName, reporting }: StepByStepProps) {
                 className={cn(
                   "flex size-7 shrink-0 items-center justify-center rounded-pill text-tag font-black tabular-nums",
                   current
-                    ? "bg-telha text-on-brand"
+                    ? "bg-brand text-on-brand"
                     : "bg-elevated text-fg-muted",
                 )}
               >

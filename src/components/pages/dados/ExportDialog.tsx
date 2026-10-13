@@ -85,7 +85,7 @@ function ExportProgressLine({ progress }: { progress: TransferProgress }) {
         className="h-1.5 overflow-hidden rounded-pill bg-muted"
       >
         <div
-          className="h-full rounded-pill bg-telha transition-[width] duration-fast ease-out"
+          className="h-full rounded-pill bg-brand transition-[width] duration-fast ease-out"
           style={{ width: `${percent ?? 100}%` }}
         />
       </div>

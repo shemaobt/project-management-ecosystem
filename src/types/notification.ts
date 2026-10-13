@@ -115,6 +115,13 @@ export type AppNotification = ProjectNotification | RequestNotification;
 
 export type ProjectNotificationKind = ProjectNotification["kind"];
 
+/**
+ * The project kinds the server serves: the fixture's five, and OBT-575's `prayerReview` — a
+ * sensitive project's request waiting for the coordination's release — which only the server
+ * writes, so no fixture notice carries it.
+ */
+export type ServedNoticeKind = ProjectNotificationKind | "prayerReview";
+
 /** One currency's total among the urgent needs of one save — never a sum across currencies. */
 export interface ServedNoticeTotal {
   amount: string;
@@ -160,7 +167,7 @@ export interface ServedNoticeFacts {
 export interface ServedNotification {
   origin: "server";
   id: string;
-  kind: ProjectNotificationKind;
+  kind: ServedNoticeKind;
   urgent: boolean;
   projectId: string | null;
   date: string;

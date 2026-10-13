@@ -43,6 +43,31 @@ export function canWithdrawMediaAuthorization(roles: readonly SessionRole[]): bo
 }
 
 /**
+ * Who writes the intercessor network — adds, edits, removes — mirroring shema-api's
+ * `NetworkWriter` (OBT-574): coordination and the `admin` role. Karina, 6/out:
+ * *"Somente a coordenação tem acesso editar e apagar o contato do intercessor. O Resource
+ * Circle pode ver, mas não edita."* The Circle reads the network and reveals a contact; the
+ * server answers 403 to any write of it. Reflection only: an installation admin with none of
+ * these roles is the server's to admit.
+ */
+const NETWORK_WRITERS: readonly SessionRole[] = ["coordinator", ADMIN_ROLE];
+
+export function canWriteNetwork(roles: readonly SessionRole[]): boolean {
+  return roles.some((role) => NETWORK_WRITERS.includes(role));
+}
+
+/**
+ * Who keeps a contact current — marks the one-year review — mirroring shema-api's
+ * `NetworkKeeper` (OBT-574): the writers and the Resource Circle. Daniel, 10/out: *"conta como
+ * edição mas o Resource Circle precisa ter esse acesso"*.
+ */
+const NETWORK_KEEPERS: readonly SessionRole[] = [...NETWORK_WRITERS, "resourceCircle"];
+
+export function canKeepNetwork(roles: readonly SessionRole[]): boolean {
+  return roles.some((role) => NETWORK_KEEPERS.includes(role));
+}
+
+/**
  * Who opens a new record — everyone the server lets write a project. The Resource Circle
  * writes none (OBT-571, Daniel 7/oct: *só não podem editar* read whole; `refuse_circle_writes`
  * answers 403 on every project route, the create included), unless it also coordinates —

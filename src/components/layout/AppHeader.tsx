@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { KeyRound, Send } from "lucide-react";
+import { KeyRound, Moon, Send } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import "../../i18n";
 import { DEFAULT_TAB } from "../../constants/recordTabs";
 import { useAuth } from "../../contexts/AuthContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import { accessAPI, resourceRequestsAPI } from "../../services/api";
 import { NEW_RECORD } from "../../stores/recordStore";
 import { useProjectsStore } from "../../stores/projectsStore";
@@ -53,6 +54,8 @@ export function AppHeader() {
   const navigate = useNavigate();
   const lang = usePrefsStore((state) => state.lang);
   const toggleLang = usePrefsStore((state) => state.toggleLang);
+  const { resolvedTheme, setTheme } = useTheme();
+  const dark = resolvedTheme === "dark";
   const reload = useProjectsStore((state) => state.reload);
   const { signOut, user, apps } = useAuth();
   const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
@@ -97,6 +100,16 @@ export function AppHeader() {
           <span aria-hidden>{lang === "pt" ? "🇺🇸" : "🇧🇷"}</span>
           {lang === "pt" ? "EN" : "PT"}
         </button>
+        <button
+          type="button"
+          className={TB_BTN}
+          title={t("theme_dark")}
+          aria-pressed={dark}
+          onClick={() => setTheme(dark ? "light" : "dark")}
+        >
+          <Moon size={14} strokeWidth={1.75} aria-hidden fill={dark ? "currentColor" : "none"} />
+          <span className="sr-only">{t("theme_dark")}</span>
+        </button>
         {accessAPI && canAdministerAccess(user) ? (
           <Link to="/acesso" className={TB_BTN}>
             <KeyRound size={14} strokeWidth={1.75} aria-hidden />
@@ -134,7 +147,7 @@ export function AppHeader() {
             type="button"
             className={cn(
               TB_BTN,
-              "border-telha bg-telha hover:border-accent-hover hover:bg-accent-hover",
+              "border-telha bg-brand hover:border-accent-hover hover:bg-accent-hover",
             )}
             onClick={() => navigate(`/ficha/${NEW_RECORD}/${DEFAULT_TAB}`)}
           >

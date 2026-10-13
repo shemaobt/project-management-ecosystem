@@ -74,7 +74,7 @@ export function TeamByRegion({ baseline, counts }: TeamByRegionProps) {
                 <span
                   className={cn(
                     "rounded-pill px-[9px] py-0.5 text-tag font-bold",
-                    active ? "bg-telha text-on-brand" : "bg-muted text-fg-muted",
+                    active ? "bg-brand text-on-brand" : "bg-muted text-fg-muted",
                   )}
                 >
                   {counts[key] ?? 0}
