@@ -17,6 +17,7 @@ import {
   MediaHeading,
   SensitiveMediaNote,
 } from "./controls";
+import { asksForPhotoBytes } from "../../../../../utils/mediaLink";
 import { MediaPhotoImage } from "./MediaPhotoImage";
 import { VideoCard } from "./VideoCard";
 import { WithdrawPhotoAuthorization } from "./WithdrawPhotoAuthorization";
@@ -31,10 +32,6 @@ export function MidiaView({ draft }: MidiaViewProps) {
   const photos = photoSlots(values.mediaPhotos);
   const videos = values.mediaVideos ?? [];
   const projectId = values.id;
-  // Bytes are asked for only where the server could hand them: an authorized photo, and — on a
-  // withheld project — only by its coordination (OBT-581; Daniel 9/oct, b). The server refuses
-  // the rest with a 403 anyway; not asking spares the call and the round trip.
-  const asksForBytes = !values.sensitiveCountry || values.readAs === "coordination";
   // The server empties the captions on a withheld record for whoever does not read the truth
   // (OBT-578): that blank is said as withheld, once, the way the Notas and Saúde tabs say it
   // (§6.1), never left to read as *no caption*.
@@ -57,8 +54,7 @@ export function MidiaView({ draft }: MidiaViewProps) {
               <PhotoSlotHint>{t("f_media_drop_hint")}</PhotoSlotHint>
             </div>
           );
-          const linked =
-            !photo.image && photo.id && projectId && asksForBytes && isMediaAuthorized(photo);
+          const linked = asksForPhotoBytes(values, photo);
           return (
             <div key={photo.id ?? index} className="flex flex-col gap-1.5">
               {photo.image ? (
@@ -69,7 +65,7 @@ export function MidiaView({ draft }: MidiaViewProps) {
                 />
               ) : linked ? (
                 <MediaPhotoImage
-                  projectId={projectId}
+                  projectId={projectId!}
                   itemId={photo.id!}
                   alt={alt}
                   fallback={slot}
