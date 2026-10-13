@@ -360,3 +360,59 @@ describe("MidiaView — o botão de retirar segue a leitura da ficha, não só o
     }
   });
 });
+
+describe("MidiaView — a decisão do servidor é da foto, não do slot (OBT-582, review; FE-27)", () => {
+  const granted = { granted: true, by: "Fresia", at: "2026-10-01" };
+  const serverPhoto = { id: "item-1", image: null, caption: "A equipe no vale", authorization: granted };
+  const LINK = 'data-photo-link=""';
+
+  /** The tab over a saved record holding `serverPhoto`, with `draftPhoto` in the draft. */
+  const over = (draftPhoto: Record<string, unknown>) => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    const draft = handle({ mediaPhotos: [draftPhoto as never] });
+    const saved = { ...draft.values, id: "p1", readAs: "coordination" as const, mediaPhotos: [serverPhoto] };
+    return render(
+      createElement(
+        AuthProvider,
+        null,
+        createElement(MidiaTab, {
+          mode: "ver",
+          draft: { ...draft, values: { ...draft.values, id: "p1", readAs: "coordination" }, saved },
+        }),
+      ),
+    );
+  };
+
+  it("um arquivo novo no slot de uma foto do servidor não herda o 'Uso autorizado' antigo", () => {
+    const markup = over({
+      id: "item-1",
+      image: { src: "data:image/webp;base64,NOVA", fileName: "nova.webp" },
+      caption: "A equipe no vale",
+      authorization: null,
+    });
+    expect(markup).toContain("data:image/webp;base64,NOVA");
+    expect(markup).not.toContain(i18n.t("media_auth_yes"));
+    expect(markup).not.toContain("Fresia");
+    expect(markup).not.toContain(i18n.t("media_withdraw"));
+    expect(markup).not.toContain(LINK);
+  });
+
+  it("a foto do servidor sem arquivo novo segue a decisão do registro", () => {
+    const markup = over({ ...serverPhoto, authorization: null });
+    expect(markup).toContain(i18n.t("media_auth_yes"));
+    expect(markup).toContain(i18n.t("media_withdraw"));
+    expect(markup).toContain(LINK);
+  });
+
+  it("uma foto SEM id é deste aparelho e segue o rascunho, mesmo com o registro dizendo outra coisa", () => {
+    const markup = over({
+      image: { src: "data:image/webp;base64,LOCAL", fileName: "local.webp" },
+      caption: "Só aqui",
+      authorization: { granted: false, by: "", at: "2026-10-12" },
+    });
+    expect(markup).toContain("data:image/webp;base64,LOCAL");
+    expect(markup).toContain(i18n.t("media_auth_no"));
+    expect(markup).not.toContain(i18n.t("media_withdraw"));
+    expect(markup).not.toContain(LINK);
+  });
+});

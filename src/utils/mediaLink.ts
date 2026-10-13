@@ -68,10 +68,13 @@ export function asksForPhotoBytes(
  * by the photo's id, never off the draft. `mediaPhotos` is a pending write — no save consumes
  * it — so a draft that once held the photo as authorized would otherwise paint `granted: true`
  * back over the record re-read after a withdrawal. A photo with no id is this device's own and
- * keeps what the draft says.
+ * keeps what the draft says. **Nor is it restored over a new file**: `withPhotoImage` keeps the
+ * slot's id when the file changes and clears the decision, and the consent belongs to the photo,
+ * not to the slot (FE-27) — so a draft that brings its own bytes keeps its own, empty decision
+ * instead of inheriting the old photo's `granted` with somebody else's `by` and `at`.
  */
 export function asServerHoldsIt(photo: MediaPhoto, saved: Pick<Project, "mediaPhotos"> | undefined): MediaPhoto {
-  if (!photo.id || !saved) return photo;
+  if (!photo.id || !saved || photo.image) return photo;
   const held = saved.mediaPhotos?.find((entry) => entry.id === photo.id);
   return held ? { ...photo, authorization: held.authorization } : photo;
 }
