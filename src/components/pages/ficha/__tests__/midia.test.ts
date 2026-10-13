@@ -23,6 +23,7 @@ vi.stubGlobal("window", { localStorage: storage });
 
 const { default: i18n } = await import("../../../../i18n");
 const { AuthProvider } = await import("../../../../contexts/AuthContext");
+const { MOCK_SESSION_KEY } = await import("../../../../fixtures/session");
 const { makeEmptyProject } = await import("../../../../stores/recordStore");
 const { MidiaTab } = await import("../tabs/Midia");
 const { makeEmptyMediaPhoto } = await import("../../../../utils/media");
@@ -50,7 +51,9 @@ const handle = (values: Values = {}) => ({
 const render = (element: ReactElement) => renderToStaticMarkup(element);
 
 const view = (values: Values = {}) =>
-  render(createElement(MidiaTab, { mode: "ver", draft: handle(values) }));
+  render(
+    createElement(AuthProvider, null, createElement(MidiaTab, { mode: "ver", draft: handle(values) })),
+  );
 
 const form = (values: Values = {}) =>
   render(
@@ -122,7 +125,13 @@ describe("MidiaView — a legenda esvaziada se diz como ocultada (OBT-580, §6.1
   const decided = { granted: true, by: "", at: "2026-10-01" };
   const withheld = { ...FULL_ACCESS, withheld: true };
   const viewAs = (place: typeof FULL_ACCESS, values: Values) =>
-    render(createElement(MidiaTab, { mode: "ver", draft: { ...handle(values), place } }));
+    render(
+      createElement(
+        AuthProvider,
+        null,
+        createElement(MidiaTab, { mode: "ver", draft: { ...handle(values), place } }),
+      ),
+    );
   const NOTE = () => i18n.t("f_free_text_coordination_only", { regional: "x", admin: "y" }).slice(0, 40);
 
   it("quem não lê a verdade vê a frase de ocultada no lugar da legenda", () => {
@@ -221,5 +230,189 @@ describe("draft media updates", () => {
     expect(photos?.[0]?.image).toEqual(first);
     expect(photos?.[1]?.image).toEqual(second);
     useRecordStore.getState().discardDraft(recordId);
+  });
+});
+
+/** The tab for a saved record — `p1` — whose photos came from the server. */
+const viewSaved = (values: Values) => {
+  const draft = handle(values);
+  return render(
+    createElement(
+      AuthProvider,
+      null,
+      createElement(MidiaTab, {
+        mode: "ver",
+        draft: {
+          ...draft,
+          values: { ...draft.values, id: "p1", readAs: draft.values.readAs ?? "coordination" },
+        },
+      }),
+    ),
+  );
+};
+
+describe("MidiaView — a retirada pelo id (OBT-582)", () => {
+  const serverPhoto = {
+    id: "item-1",
+    image: null,
+    caption: "A equipe no vale",
+    authorization: { granted: true, by: "Fresia", at: "2026-10-01" },
+  };
+
+  it("o coordenador vê o botão de retirar numa foto autorizada do servidor", () => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    const markup = viewSaved({ mediaPhotos: [serverPhoto] });
+    expect(markup).toContain(i18n.t("media_withdraw"));
+  });
+
+  it("OBT Lab e Resource Circle não veem o botão", () => {
+    for (const role of ["obtLab", "resourceCircle"]) {
+      localStorage.setItem(MOCK_SESSION_KEY, role);
+      expect(viewSaved({ mediaPhotos: [serverPhoto] }), role).not.toContain(i18n.t("media_withdraw"));
+    }
+  });
+
+  it("depois de retirada, nem botão nem pedido de link: o slot volta a ser vazio", () => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    const markup = viewSaved({
+      mediaPhotos: [{ ...serverPhoto, authorization: { granted: false, by: "", at: "2026-10-09" } }],
+    });
+    expect(markup).not.toContain(i18n.t("media_withdraw"));
+    expect(markup).toContain(i18n.t("media_auth_no"));
+  });
+});
+
+describe("MidiaView — OBT Lab e Resource Circle em sensível não montam o pedido da foto (OBT-582)", () => {
+  const serverPhoto = {
+    id: "item-1",
+    image: null,
+    caption: "",
+    authorization: { granted: true, by: "", at: "2026-10-01" },
+  };
+  const LINK = 'data-photo-link=""';
+
+  it("a coordenação monta o MediaPhotoImage; OBT Lab e Resource Circle não", () => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    const as = (readAs: "coordination" | "other" | "trusted") =>
+      viewSaved({ sensitiveCountry: true, readAs, mediaPhotos: [serverPhoto] });
+    expect(as("coordination")).toContain(LINK);
+    expect(as("other")).not.toContain(LINK);
+    expect(as("trusted")).not.toContain(LINK);
+  });
+
+  it("fora de sensível, o pedido é montado para quem lê como other", () => {
+    expect(viewSaved({ sensitiveCountry: false, readAs: "other", mediaPhotos: [serverPhoto] })).toContain(LINK);
+  });
+});
+
+describe("MidiaView — depois da retirada, a decisão na tela é a do servidor (OBT-582, review)", () => {
+  const granted = { granted: true, by: "Fresia", at: "2026-10-01" };
+  const refused = { granted: false, by: "", at: "2026-10-13" };
+  const photo = (authorization: typeof granted) => ({
+    id: "item-1",
+    image: null,
+    caption: "A equipe no vale",
+    authorization,
+  });
+
+  /** A draft that still holds the photo as authorized, over a record the server re-read refused. */
+  const afterWithdrawal = () => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    const draft = handle({ mediaPhotos: [photo(granted)] });
+    const saved = { ...draft.values, id: "p1", readAs: "coordination" as const, mediaPhotos: [photo(refused)] };
+    return render(
+      createElement(
+        AuthProvider,
+        null,
+        createElement(MidiaTab, {
+          mode: "ver",
+          draft: { ...draft, values: { ...draft.values, id: "p1", readAs: "coordination" }, saved },
+        }),
+      ),
+    );
+  };
+
+  it("um rascunho com a foto autorizada não repinta o granted sobre o registro relido", () => {
+    const markup = afterWithdrawal();
+    expect(markup).toContain(i18n.t("media_auth_no"));
+    expect(markup).not.toContain(i18n.t("media_auth_yes"));
+    expect(markup).not.toContain(i18n.t("media_withdraw"));
+    expect(markup).not.toContain('data-photo-link=""');
+  });
+});
+
+describe("MidiaView — o botão de retirar segue a leitura da ficha, não só o papel (OBT-582, review)", () => {
+  const serverPhoto = {
+    id: "item-1",
+    image: null,
+    caption: "",
+    authorization: { granted: true, by: "", at: "2026-10-01" },
+  };
+
+  it("coordenador da região (coordination) vê; de outra região (other) ou trusted, não", () => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    for (const sensitiveCountry of [true, false]) {
+      const as = (readAs: "coordination" | "other" | "trusted") =>
+        viewSaved({ sensitiveCountry, readAs, mediaPhotos: [serverPhoto] });
+      expect(as("coordination"), `sensível=${sensitiveCountry}`).toContain(i18n.t("media_withdraw"));
+      expect(as("other"), `sensível=${sensitiveCountry}`).not.toContain(i18n.t("media_withdraw"));
+      expect(as("trusted"), `sensível=${sensitiveCountry}`).not.toContain(i18n.t("media_withdraw"));
+    }
+  });
+});
+
+describe("MidiaView — a decisão do servidor é da foto, não do slot (OBT-582, review; FE-27)", () => {
+  const granted = { granted: true, by: "Fresia", at: "2026-10-01" };
+  const serverPhoto = { id: "item-1", image: null, caption: "A equipe no vale", authorization: granted };
+  const LINK = 'data-photo-link=""';
+
+  /** The tab over a saved record holding `serverPhoto`, with `draftPhoto` in the draft. */
+  const over = (draftPhoto: Record<string, unknown>) => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    const draft = handle({ mediaPhotos: [draftPhoto as never] });
+    const saved = { ...draft.values, id: "p1", readAs: "coordination" as const, mediaPhotos: [serverPhoto] };
+    return render(
+      createElement(
+        AuthProvider,
+        null,
+        createElement(MidiaTab, {
+          mode: "ver",
+          draft: { ...draft, values: { ...draft.values, id: "p1", readAs: "coordination" }, saved },
+        }),
+      ),
+    );
+  };
+
+  it("um arquivo novo no slot de uma foto do servidor não herda o 'Uso autorizado' antigo", () => {
+    const markup = over({
+      id: "item-1",
+      image: { src: "data:image/webp;base64,NOVA", fileName: "nova.webp" },
+      caption: "A equipe no vale",
+      authorization: null,
+    });
+    expect(markup).toContain("data:image/webp;base64,NOVA");
+    expect(markup).not.toContain(i18n.t("media_auth_yes"));
+    expect(markup).not.toContain("Fresia");
+    expect(markup).not.toContain(i18n.t("media_withdraw"));
+    expect(markup).not.toContain(LINK);
+  });
+
+  it("a foto do servidor sem arquivo novo segue a decisão do registro", () => {
+    const markup = over({ ...serverPhoto, authorization: null });
+    expect(markup).toContain(i18n.t("media_auth_yes"));
+    expect(markup).toContain(i18n.t("media_withdraw"));
+    expect(markup).toContain(LINK);
+  });
+
+  it("uma foto SEM id é deste aparelho e segue o rascunho, mesmo com o registro dizendo outra coisa", () => {
+    const markup = over({
+      image: { src: "data:image/webp;base64,LOCAL", fileName: "local.webp" },
+      caption: "Só aqui",
+      authorization: { granted: false, by: "", at: "2026-10-12" },
+    });
+    expect(markup).toContain("data:image/webp;base64,LOCAL");
+    expect(markup).toContain(i18n.t("media_auth_no"));
+    expect(markup).not.toContain(i18n.t("media_withdraw"));
+    expect(markup).not.toContain(LINK);
   });
 });

@@ -9,6 +9,7 @@ import type {
   HealthAssessment,
   HealthRating,
   MediaAuthorization,
+  MediaLink,
   MediaPhoto,
   NeedItem,
   Objective,
@@ -76,6 +77,7 @@ interface WireAuthorization {
 }
 
 interface WirePhoto {
+  id?: string;
   image: null;
   caption: string;
   authorization: WireAuthorization | null;
@@ -245,6 +247,7 @@ function authorization(
 
 function photo(wire: WirePhoto): MediaPhoto {
   return {
+    ...(typeof wire.id === "string" && wire.id ? { id: wire.id } : {}),
     image: wire.image,
     caption: wire.caption,
     authorization: authorization(wire.authorization),
@@ -650,7 +653,31 @@ function transportFailure(thrown: unknown): RecordSaveResult {
   return { ok: false, reason: "failed", failure: toApiFailure(thrown) };
 }
 
+const mediaItem = (projectId: string, itemId: string) =>
+  `${SHEMA}/projects/${encodeURIComponent(projectId)}/media/${encodeURIComponent(itemId)}`;
+
 export const projectRecordAPI = {
+  /**
+   * A signed link to one photo's bytes, minted by this call (OBT-581). A 403 names no reason —
+   * not authorized, refused, undecided, or a reader who is not the coordination of a withheld
+   * project — and the caller is not told which; it only shows no picture.
+   */
+  async mediaLink(projectId: string, itemId: string): Promise<MediaLink> {
+    const { data } = await http.get<MediaLink>(`${mediaItem(projectId, itemId)}/link`);
+    return { url: data.url, expiresInMinutes: data.expiresInMinutes };
+  },
+
+  /** The coordination takes a photo's authorization back (OBT-578): refused from here on, erased from its Pulse. */
+  async withdrawMediaAuthorization(
+    projectId: string,
+    itemId: string,
+  ): Promise<MediaAuthorization> {
+    const { data } = await http.post<WireAuthorization>(
+      `${mediaItem(projectId, itemId)}/authorization/withdraw`,
+    );
+    return authorization(data)!;
+  },
+
   /** One record, whole — the ten tabs' read, and the version their saves quote. */
   async read(id: string): Promise<LoadedRecord> {
     const response = await http.get<WireRecord>(

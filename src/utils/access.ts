@@ -34,6 +34,15 @@ export function canImportProjects(roles: readonly SessionRole[]): boolean {
 }
 
 /**
+ * Who takes a photo's authorization back — `CoordinatorUser` on the server's withdraw route
+ * (OBT-578): the coordinator, and nobody else; the Admin does not grant or refuse in the team's
+ * place. Reflection only, so the button is not drawn for a reader the route refuses.
+ */
+export function canWithdrawMediaAuthorization(roles: readonly SessionRole[]): boolean {
+  return roles.includes("coordinator");
+}
+
+/**
  * Who writes the intercessor network — adds, edits, removes — mirroring shema-api's
  * `NetworkWriter` (OBT-574): coordination and the `admin` role. Karina, 6/out:
  * *"Somente a coordenação tem acesso editar e apagar o contato do intercessor. O Resource

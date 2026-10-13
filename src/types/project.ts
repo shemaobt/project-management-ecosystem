@@ -248,6 +248,12 @@ export interface MediaAuthorization {
 }
 
 export interface MediaPhoto {
+  /**
+   * The media row's own id (OBT-581) — on every photo the server serves, for every reader. It
+   * is what asks for the bytes (`GET …/media/{id}/link`) and what a withdrawal names. Absent on
+   * a photo typed on this device and not saved yet.
+   */
+  id?: string;
   image: StoredImage | null;
   caption: string;
   authorization: MediaAuthorization | null;
@@ -260,6 +266,16 @@ export interface ProjectVideo {
 }
 
 export type MediaAudience = "coordenacao" | "publico";
+
+/**
+ * One photo's bytes for the next few minutes (`GET …/media/{id}/link`, OBT-581). Held in a
+ * component's memory while the photo is on screen and nowhere else — never in a store, a cache,
+ * storage or a log: the expiry is the whole guarantee, and a copy would outlive it.
+ */
+export interface MediaLink {
+  url: string;
+  expiresInMinutes: number;
+}
 
 export interface BibleBook {
   id: string;

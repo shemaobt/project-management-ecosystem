@@ -22,7 +22,13 @@ import type {
   IntercessorUpdatePayload,
   PrayerRequest,
 } from "../types/prayer";
-import type { Project, ProjectMember, ProjectRef } from "../types/project";
+import type {
+  MediaAuthorization,
+  MediaLink,
+  Project,
+  ProjectMember,
+  ProjectRef,
+} from "../types/project";
 import type { LoadedRecord } from "../types/projectRecord";
 import type { RecordSaveResult } from "../services/api/projectRecord";
 import type { GeoOutline, Region, RegionKey, RegionTeam, RoleChange } from "../types/region";
@@ -64,9 +70,11 @@ import { browseProjects } from "./projectBrowse";
 import { loadProject, loadProjects } from "./projects";
 import {
   createRecord,
+  mediaLink,
   patchRecord,
   readRecord,
   submitAssessment,
+  withdrawMediaAuthorization,
 } from "./projectRecord";
 import { loadRegions, loadRoleChanges, saveTeam } from "./regions";
 
@@ -103,6 +111,15 @@ export const projectRecordAPI = {
     version: string,
   ): Promise<RecordSaveResult> {
     return patchRecord(id, patch, version);
+  },
+  async mediaLink(projectId: string, itemId: string): Promise<MediaLink> {
+    return mediaLink(projectId, itemId);
+  },
+  async withdrawMediaAuthorization(
+    projectId: string,
+    itemId: string,
+  ): Promise<MediaAuthorization> {
+    return withdrawMediaAuthorization(projectId, itemId);
   },
 };
 

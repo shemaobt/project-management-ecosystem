@@ -1,7 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { photoSlotSurface } from "../../../../../styles";
 import { cn } from "../../../../../utils/cn";
-import { hasPhotoContent, hasVideoContent, photoSlots } from "../../../../../utils/media";
+import {
+  hasPhotoContent,
+  hasVideoContent,
+  photoSlots,
+} from "../../../../../utils/media";
 import { readsFreeText } from "../../../../../utils/recordAccess";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { PhotoSlotHint } from "../../../../common/ImageUpload";
@@ -12,7 +16,14 @@ import {
   MediaHeading,
   SensitiveMediaNote,
 } from "./controls";
+import {
+  asServerHoldsIt,
+  asksForPhotoBytes,
+  offersWithdrawal,
+} from "../../../../../utils/mediaLink";
+import { MediaPhotoImage } from "./MediaPhotoImage";
 import { VideoCard } from "./VideoCard";
+import { WithdrawPhotoAuthorization } from "./WithdrawPhotoAuthorization";
 
 export interface MidiaViewProps {
   draft: DraftHandle;
@@ -21,8 +32,10 @@ export interface MidiaViewProps {
 export function MidiaView({ draft }: MidiaViewProps) {
   const { t } = useTranslation();
   const values = draft.values;
-  const photos = photoSlots(values.mediaPhotos);
+  // A server photo's decision is the saved record's, never the draft's (OBT-582, review).
+  const photos = photoSlots(values.mediaPhotos).map((photo) => asServerHoldsIt(photo, draft.saved));
   const videos = values.mediaVideos ?? [];
+  const projectId = values.id;
   // The server empties the captions on a withheld record for whoever does not read the truth
   // (OBT-578): that blank is said as withheld, once, the way the Notas and Saúde tabs say it
   // (§6.1), never left to read as *no caption*.
@@ -39,23 +52,30 @@ export function MidiaView({ draft }: MidiaViewProps) {
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3">
         {photos.map((photo, index) => {
           const caption = photo.caption.trim();
+          const alt = caption || `${t("f_media_photo_label")} ${index + 1}`;
+          const slot = (
+            <div className={cn("flex aspect-[4/3] w-full rounded-[8px]", photoSlotSurface)}>
+              <PhotoSlotHint>{t("f_media_drop_hint")}</PhotoSlotHint>
+            </div>
+          );
+          const linked = asksForPhotoBytes(values, photo);
           return (
-            <div key={index} className="flex flex-col gap-1.5">
+            <div key={photo.id ?? index} className="flex flex-col gap-1.5">
               {photo.image ? (
                 <img
                   src={photo.image.src}
-                  alt={caption || `${t("f_media_photo_label")} ${index + 1}`}
+                  alt={alt}
                   className="aspect-[4/3] w-full rounded-[8px] object-cover"
                 />
+              ) : linked ? (
+                <MediaPhotoImage
+                  projectId={projectId!}
+                  itemId={photo.id!}
+                  alt={alt}
+                  fallback={slot}
+                />
               ) : (
-                <div
-                  className={cn(
-                    "flex aspect-[4/3] w-full rounded-[8px]",
-                    photoSlotSurface,
-                  )}
-                >
-                  <PhotoSlotHint>{t("f_media_drop_hint")}</PhotoSlotHint>
-                </div>
+                slot
               )}
               {caption && <MediaCaption>{caption}</MediaCaption>}
               {/* A recorded decision shows even with nothing else in the slot (OBT-580): the
@@ -64,6 +84,9 @@ export function MidiaView({ draft }: MidiaViewProps) {
               {(hasPhotoContent(photo) || photo.authorization !== null) && (
                 <AuthStatus authorization={photo.authorization} />
               )}
+              {offersWithdrawal(values, photo) ? (
+                <WithdrawPhotoAuthorization projectId={projectId!} itemId={photo.id!} />
+              ) : null}
             </div>
           );
         })}

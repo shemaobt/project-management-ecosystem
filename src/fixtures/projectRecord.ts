@@ -1,7 +1,7 @@
 import { CURRENT_QUESTION_SET_VERSION } from "../constants/health";
 import { allWritableFields } from "../constants/recordFields";
 import type { AssessmentDraft } from "../types/assessment";
-import type { Project } from "../types/project";
+import type { MediaAuthorization, MediaLink, Project } from "../types/project";
 import type { LoadedRecord } from "../types/projectRecord";
 import type { RecordSaveResult } from "../services/api/projectRecord";
 import type { ApiFailure } from "../types/session";
@@ -15,7 +15,7 @@ import {
   recordAccess,
 } from "../utils/recordAccess";
 import { loadProject, loadProjects } from "./projects";
-import { asReadBy, readsHealth, writesHealth } from "./reader";
+import { asReadBy, mediaLinkFor, readsHealth, writesHealth } from "./reader";
 import { mockPersona } from "./session";
 
 /**
@@ -96,8 +96,9 @@ const versionOf = (etag: string): number =>
   Number(etag.replace(/^W\//, "").replaceAll('"', "")) || 0;
 
 function store(project: Project, version: number): LoadedRecord {
-  overlay.set(project.id, { project: clone(project), version });
-  return { project: asAnswered(project), version: `"${version}"` };
+  const minted = withPhotoIds(project);
+  overlay.set(minted.id, { project: clone(minted), version });
+  return { project: asAnswered(minted), version: `"${version}"` };
 }
 
 export function createRecord(project: Project): RecordSaveResult {
@@ -273,4 +274,63 @@ export function submitAssessment(
   );
 
   return { ok: true, record: store(filed, kept.version + 1) };
+}
+
+// --- the photo's bytes and its withdrawal (OBT-581 / OBT-582) --------------------------
+
+const DOWNLOAD_URL_EXPIRY_MINUTES = 15;
+
+const NOT_SHARED: ApiFailure = {
+  kind: "forbidden",
+  status: 403,
+  code: null,
+  detail: "This file is not shared with your audience.",
+};
+
+const NO_FILE: ApiFailure = { kind: "notFound", status: 404, code: null, detail: "File not found" };
+
+/** A local photo becomes a media row the way the server mints one: an id of its own. */
+function withPhotoIds(project: Project): Project {
+  if (!project.mediaPhotos?.some((photo) => !photo.id)) return project;
+  return {
+    ...project,
+    mediaPhotos: project.mediaPhotos.map((photo) =>
+      photo.id ? photo : { ...photo, id: crypto.randomUUID() },
+    ),
+  };
+}
+
+export function mediaLink(projectId: string, itemId: string): MediaLink {
+  const kept = held(projectId);
+  if (!kept) throw NO_FILE;
+  const answer = mediaLinkFor(withDerived(withPhotoIds(kept.project)), itemId, mockPersona());
+  if (!answer.ok) throw answer.status === 404 ? NO_FILE : NOT_SHARED;
+  return { url: answer.url, expiresInMinutes: DOWNLOAD_URL_EXPIRY_MINUTES };
+}
+
+/** `withdraw_image_authorization`: the coordinator's alone, and the decision becomes a refusal. */
+export function withdrawMediaAuthorization(
+  projectId: string,
+  itemId: string,
+): MediaAuthorization {
+  const persona = mockPersona();
+  if (!persona.roles.includes("coordinator")) throw { ...NOT_SHARED, detail: null };
+  const kept = held(projectId);
+  // `get_project` with the coordinator's region scope: a project outside it is the
+  // existence-hiding 404, as the server answers a coordinator of another region.
+  if (!kept || asReadBy(withDerived(kept.project), persona).readAs !== "coordination") {
+    throw { ...NO_FILE, detail: null };
+  }
+  const photo = kept?.project.mediaPhotos?.find((entry) => entry.id === itemId);
+  if (!kept || !photo) throw { ...NO_FILE, detail: null };
+  // The server stamps the coordinator's org-chart name; the mock persona has none to give.
+  const decision: MediaAuthorization = { granted: false, by: "", at: toLocalIsoDate() };
+  const project = {
+    ...kept.project,
+    mediaPhotos: kept.project.mediaPhotos!.map((entry) =>
+      entry.id === itemId ? { ...entry, authorization: decision } : entry,
+    ),
+  };
+  store(project, kept.version + 1);
+  return decision;
 }
