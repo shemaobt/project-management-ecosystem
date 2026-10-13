@@ -275,3 +275,26 @@ describe("MidiaView — a retirada pelo id (OBT-582)", () => {
     expect(markup).toContain(i18n.t("media_auth_no"));
   });
 });
+
+describe("MidiaView — OBT Lab e Resource Circle em sensível não montam o pedido da foto (OBT-582)", () => {
+  const serverPhoto = {
+    id: "item-1",
+    image: null,
+    caption: "",
+    authorization: { granted: true, by: "", at: "2026-10-01" },
+  };
+  const LINK = 'data-photo-link=""';
+
+  it("a coordenação monta o MediaPhotoImage; OBT Lab e Resource Circle não", () => {
+    localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
+    const as = (readAs: "coordination" | "other" | "trusted") =>
+      viewSaved({ sensitiveCountry: true, readAs, mediaPhotos: [serverPhoto] });
+    expect(as("coordination")).toContain(LINK);
+    expect(as("other")).not.toContain(LINK);
+    expect(as("trusted")).not.toContain(LINK);
+  });
+
+  it("fora de sensível, o pedido é montado para quem lê como other", () => {
+    expect(viewSaved({ sensitiveCountry: false, readAs: "other", mediaPhotos: [serverPhoto] })).toContain(LINK);
+  });
+});
