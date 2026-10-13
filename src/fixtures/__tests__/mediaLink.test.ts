@@ -30,12 +30,16 @@ const photo = (granted: boolean | null): MediaPhoto => ({
 });
 
 /** A record in Peru — south-america, the mock coordinator's region — holding one photo. */
-function seed(sensitiveCountry: boolean, granted: boolean | null = true): { id: string; itemId: string } {
+function seed(
+  sensitiveCountry: boolean,
+  granted: boolean | null = true,
+  location = "Peru, Vila Sintética",
+): { id: string; itemId: string } {
   as("admin");
   const project: Project = {
-    ...createEmptyProject(`p-${sensitiveCountry}-${String(granted)}`),
+    ...createEmptyProject(`p-${sensitiveCountry}-${String(granted)}-${location.length}`),
     languageName: "Sintético",
-    location: "Peru, Vila Sintética",
+    location,
     sensitiveCountry,
     mediaPhotos: [photo(granted)],
   };
@@ -137,5 +141,23 @@ describe("a retirada pelo id (OBT-582)", () => {
     }
     as("admin");
     expect(readRecord(id).project.mediaPhotos![0].authorization?.granted).toBe(true);
+  });
+});
+
+describe("a retirada no dublê exige a coordenação daquele projeto (OBT-582, review)", () => {
+  it("um coordenador de outra região recebe 404, como o get_project com escopo; nada muda", () => {
+    const { id, itemId } = seed(false, true, "Mozambique, Vila Sintética");
+    as("coordinator");
+    expect(refusal(() => withdrawMediaAuthorization(id, itemId)).status).toBe(404);
+    as("admin");
+    expect(readRecord(id).project.mediaPhotos![0].authorization?.granted).toBe(true);
+  });
+
+  it("o coordenador da região retira, sensível ou não", () => {
+    for (const sensitiveCountry of [true, false]) {
+      const { id, itemId } = seed(sensitiveCountry);
+      as("coordinator");
+      expect(withdrawMediaAuthorization(id, itemId).granted, `sensível=${sensitiveCountry}`).toBe(false);
+    }
   });
 });

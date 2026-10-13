@@ -313,8 +313,14 @@ export function withdrawMediaAuthorization(
   projectId: string,
   itemId: string,
 ): MediaAuthorization {
-  if (!mockPersona().roles.includes("coordinator")) throw { ...NOT_SHARED, detail: null };
+  const persona = mockPersona();
+  if (!persona.roles.includes("coordinator")) throw { ...NOT_SHARED, detail: null };
   const kept = held(projectId);
+  // `get_project` with the coordinator's region scope: a project outside it is the
+  // existence-hiding 404, as the server answers a coordinator of another region.
+  if (!kept || asReadBy(withDerived(kept.project), persona).readAs !== "coordination") {
+    throw { ...NO_FILE, detail: null };
+  }
   const photo = kept?.project.mediaPhotos?.find((entry) => entry.id === itemId);
   if (!kept || !photo) throw { ...NO_FILE, detail: null };
   // The server stamps the coordinator's org-chart name; the mock persona has none to give.
