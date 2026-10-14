@@ -416,3 +416,48 @@ describe("MidiaView — a decisão do servidor é da foto, não do slot (OBT-582
     expect(markup).not.toContain(LINK);
   });
 });
+
+describe("MidiaForm — a foto do servidor mostra a decisão só leitura (OBT-584)", () => {
+  const serverPhoto = {
+    id: "item-1",
+    image: null,
+    caption: "A equipe no vale",
+    authorization: { granted: true, by: "Fresia", at: "2026-10-01" },
+  };
+  const BOX = ">Autorizo compartilhar<";
+
+  /** The form over a saved record holding `serverPhoto`, with `draftPhoto` in the draft's first slot. */
+  const formOver = (draftPhoto: Record<string, unknown>) => {
+    const draft = handle({ mediaPhotos: [draftPhoto as never] });
+    const saved = { ...draft.values, id: "p1", mediaPhotos: [serverPhoto] };
+    return render(
+      createElement(
+        AuthProvider,
+        null,
+        createElement(MidiaTab, {
+          mode: "editar",
+          draft: { ...draft, values: { ...draft.values, id: "p1" }, saved },
+        }),
+      ),
+    );
+  };
+
+  it("sem caixa para a foto do servidor: estado, autor e data do registro, e as outras cinco seguem com caixa", () => {
+    const html = formOver(serverPhoto);
+    expect(html.split(BOX).length - 1).toBe(5);
+    expect(html).toContain(i18n.t("media_auth_yes"));
+    expect(html).toContain(`Fresia · ${formatDate("2026-10-01")}`);
+  });
+
+  it("um rascunho que desmarcou a foto do servidor não muda o que se lê: a decisão é a do registro", () => {
+    const html = formOver({ ...serverPhoto, authorization: { granted: false, by: "X", at: "2026-10-14" } });
+    expect(html).toContain(i18n.t("media_auth_yes"));
+    expect(html.split(BOX).length - 1).toBe(5);
+  });
+
+  it("a foto local, sem id, continua com a caixa editável", () => {
+    const html = form({ mediaPhotos: [{ ...PHOTO, authorization: GRANTED }] });
+    expect(html.split(BOX).length - 1).toBe(6);
+    expect(html).toContain('data-state="checked"');
+  });
+});
