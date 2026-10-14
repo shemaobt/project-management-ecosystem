@@ -18,7 +18,7 @@ import {
 import { ImageUpload } from "../../../../common/ImageUpload";
 import { RemoveRowButton } from "../../../../common/RemoveRowButton";
 import { Button, Input, toast } from "../../../../ui";
-import { asServerHoldsIt } from "../../../../../utils/mediaLink";
+import { heldByServer } from "../../../../../utils/mediaLink";
 import { mayWriteCaption } from "../../../../../utils/recordAccess";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import type { DraftHandle } from "../../useDraft";
@@ -77,7 +77,9 @@ export function MidiaForm({ draft }: MidiaFormProps) {
 
       <MediaHeading emoji="📸">{t("f_media_photos_title")}</MediaHeading>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {photos.map((photo, index) => (
+        {photos.map((photo, index) => {
+          const held = heldByServer(photo, draft.saved);
+          return (
           <div key={index} className="flex flex-col gap-1.5">
             <ImageUpload
               id={`midia-foto-${index}`}
@@ -102,11 +104,11 @@ export function MidiaForm({ draft }: MidiaFormProps) {
                 }))
               }
             />
-            {/* A photo the server holds (it has an id) shows its decision read-only (OBT-584,
+            {/* A photo the server holds (`heldByServer`) shows its decision read-only (OBT-584,
                 Daniel 14/oct): the server never takes a grant in the team's place, the record's
                 PATCH does not carry media, and taking it back is the Retirar on the view. */}
-            {photo.id ? (
-              <AuthStatus authorization={asServerHoldsIt(photo, draft.saved).authorization} />
+            {held ? (
+              <AuthStatus authorization={held.authorization} />
             ) : (
               <AuthToggle
                 id={`midia-foto-auth-${index}`}
@@ -121,7 +123,8 @@ export function MidiaForm({ draft }: MidiaFormProps) {
               />
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <MediaHeading emoji="🎥">{t("f_media_videos_title")}</MediaHeading>

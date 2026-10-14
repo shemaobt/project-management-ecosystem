@@ -74,9 +74,22 @@ export function asksForPhotoBytes(
  * instead of inheriting the old photo's `granted` with somebody else's `by` and `at`.
  */
 export function asServerHoldsIt(photo: MediaPhoto, saved: Pick<Project, "mediaPhotos"> | undefined): MediaPhoto {
-  if (!photo.id || !saved || photo.image) return photo;
-  const held = saved.mediaPhotos?.find((entry) => entry.id === photo.id);
+  const held = heldByServer(photo, saved);
   return held ? { ...photo, authorization: held.authorization } : photo;
+}
+
+/**
+ * The photo as the saved record holds it, when this slot **is** that photo — an id the record
+ * knows, and no new local bytes in the slot (OBT-584, review). `withPhotoImage` keeps the slot's
+ * id when a file is dropped in, so the id alone does not make a slot the server's: a new file is
+ * this device's own photo and keeps the editable box. No saved record, no server photo.
+ */
+export function heldByServer(
+  photo: MediaPhoto,
+  saved: Pick<Project, "mediaPhotos"> | undefined,
+): MediaPhoto | undefined {
+  if (!photo.id || !saved || photo.image) return undefined;
+  return saved.mediaPhotos?.find((entry) => entry.id === photo.id);
 }
 
 /**

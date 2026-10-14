@@ -455,6 +455,36 @@ describe("MidiaForm — a foto do servidor mostra a decisão só leitura (OBT-58
     expect(html.split(BOX).length - 1).toBe(5);
   });
 
+  it("um arquivo novo num slot do servidor é deste aparelho: volta a ter a caixa, sem a decisão antiga", () => {
+    const html = formOver({
+      id: "item-1",
+      image: { src: "data:image/webp;base64,NOVA", fileName: "nova.webp" },
+      caption: "A equipe no vale",
+      authorization: null,
+    });
+    expect(html.split(BOX).length - 1).toBe(6);
+    expect(html).not.toContain(i18n.t("media_auth_yes"));
+    expect(html).not.toContain("Fresia");
+  });
+
+  it("o arquivo novo removido devolve o slot à foto do servidor, de novo só leitura", () => {
+    const html = formOver({ id: "item-1", image: null, caption: "A equipe no vale", authorization: null });
+    expect(html.split(BOX).length - 1).toBe(5);
+    expect(html).toContain(i18n.t("media_auth_yes"));
+  });
+
+  it("sem registro salvo, nada é do servidor: a caixa fica, mesmo com id", () => {
+    const draft = handle({ mediaPhotos: [serverPhoto as never] });
+    const html = render(
+      createElement(
+        AuthProvider,
+        null,
+        createElement(MidiaTab, { mode: "editar", draft: { ...draft, values: { ...draft.values, id: "p1" } } }),
+      ),
+    );
+    expect(html.split(BOX).length - 1).toBe(6);
+  });
+
   it("a foto local, sem id, continua com a caixa editável", () => {
     const html = form({ mediaPhotos: [{ ...PHOTO, authorization: GRANTED }] });
     expect(html.split(BOX).length - 1).toBe(6);
