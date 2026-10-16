@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { createElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
@@ -31,6 +33,7 @@ const { RelatorioView } = await import("../ritmo/relatorio/RelatorioPage");
 const { FormulariosView } = await import("../formularios");
 const { LeaderLinkDialogBody } = await import("../dados/LeaderLinkDialog");
 const { EquipeView } = await import("../equipe");
+const { makeProject } = await import("../../../utils/__tests__/factory");
 
 const render = (element: ReactElement): string =>
   renderToStaticMarkup(createElement(MemoryRouter, null, element));
@@ -51,6 +54,20 @@ describe("uma leitura que falhou diz isso, com tentar de novo", () => {
 
   it("Início", () => {
     said(render(createElement(InicioView, { projects: null, onOpen: retry, loadFailure: OFFLINE, onRetry: retry })));
+  });
+
+  it("Início, relendo depois de uma escrita: diz isso, e o globo fica com a lista que tinha", () => {
+    const markup = render(
+      createElement(InicioView, {
+        projects: [makeProject({ id: "p-1", languageName: "Aurora", coords: [10, 10] })],
+        facets: null,
+        onOpen: retry,
+        loadFailure: OFFLINE,
+        onRetry: retry,
+      }),
+    );
+    said(markup);
+    expect(markup).toContain("<svg");
   });
 
   it("relatório anual", () => {
@@ -110,5 +127,18 @@ describe("a Equipe não conta antes de ler", () => {
 
     expect(markup).toContain(i18n.t("continent_south_america"));
     expect(markup).not.toContain(i18n.t("equipe_projects_count", { count: 0 }));
+  });
+});
+
+describe("as telas que mostram a lista a leem pelo gancho que relê depois de uma escrita (OBT-590)", () => {
+  it.each([
+    "src/components/pages/inicio/index.tsx",
+    "src/components/pages/ritmo/RitmoPage.tsx",
+    "src/components/pages/formularios/index.tsx",
+    "src/components/pages/ritmo/relatorio/RelatorioPage.tsx",
+  ])("%s", (file) => {
+    const source = readFileSync(join(process.cwd(), file), "utf8");
+    expect(source).toContain("useProjectListRead();");
+    expect(source).not.toMatch(/useProjectsStore\(\(state\) => state\.hydrate\)/u);
   });
 });

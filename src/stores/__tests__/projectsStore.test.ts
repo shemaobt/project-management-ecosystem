@@ -93,3 +93,18 @@ describe("reload", () => {
     );
   });
 });
+
+describe("invalidate sem servidor", () => {
+  it("não relê: nenhuma escrita da ficha chega à lista de fixture, e a importação local fica", async () => {
+    await useProjectsStore.getState().hydrate();
+    useProjectsStore.getState().importProjects([imported("so-um", "Kadiwéu")]);
+
+    useProjectsStore.getState().invalidate();
+    await useProjectsStore.getState().hydrate();
+
+    expect(useProjectsStore.getState().outdated).toBe(false);
+    expect(
+      useProjectsStore.getState().projects.map((project) => project.id),
+    ).toEqual(["so-um"]);
+  });
+});
