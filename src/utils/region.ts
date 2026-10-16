@@ -21,8 +21,14 @@ import type { RoleKey } from "../types/role";
 
 export type Located = Pick<Project, "location">;
 
+/** The first item that is not blank, as shema-api's `countries_named` reads it (OBT-591). */
 export function getCountry(project: Located): string {
-  return project.location.split(",")[0].trim();
+  return (
+    project.location
+      .split(",")
+      .map((part) => part.trim())
+      .find((part) => part !== "") ?? ""
+  );
 }
 
 const REGION_KEYS: ReadonlySet<string> = new Set(REGIONS.map((region) => region.key));
@@ -31,11 +37,7 @@ function isRegionKey(value: string): value is RegionKey {
   return REGION_KEYS.has(value);
 }
 
-/**
- * The region a country's spelling resolves to: the export's own spelling, or one listed as
- * its synonym (OBT-591) — the two tables shema-api's `get_region` reads. Own keys only, so
- * a string like `constructor` is not a country either.
- */
+/** Own keys only, so a string like `constructor` is not a country. */
 function regionOfCountry(country: string): RegionKey | undefined {
   const spelling = Object.hasOwn(COUNTRY_SYNONYMS, country)
     ? COUNTRY_SYNONYMS[country]
@@ -43,6 +45,15 @@ function regionOfCountry(country: string): RegionKey | undefined {
   return Object.hasOwn(COUNTRY_REGION, spelling)
     ? COUNTRY_REGION[spelling]
     : undefined;
+}
+
+/**
+ * The region a place a person typed falls in — the reading shema-api's `get_region` writes
+ * `region_key` with (OBT-591). Unlike `getRegion`, a region key typed as a place is not its
+ * own region: only a reduced payload carries one, and the server writes `other` for it.
+ */
+export function regionOfPlace(location: string): RegionKey {
+  return regionOfCountry(getCountry({ location })) ?? FALLBACK_REGION;
 }
 
 /**

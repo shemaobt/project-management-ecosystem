@@ -163,6 +163,7 @@ describe("a região que a confirmação grava (OBT-591)", () => {
     expect(regionToWrite(PROJECT, "Sudáfrica, Johannesburgo")).toBe("africa");
     expect(regionToWrite(PROJECT, "Cidade do Cabo, África do Sul")).toBe("other");
     expect(regionToWrite(CITY_FIRST, "África do Sul, Cidade do Cabo")).toBe("africa");
+    expect(regionToWrite(PROJECT, "africa")).toBe("other");
   });
 
   it("um servidor anterior ao campo não deixa a conferência sem região", () => {

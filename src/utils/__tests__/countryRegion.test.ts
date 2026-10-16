@@ -1,20 +1,18 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { COUNTRY_REGION, COUNTRY_SYNONYMS } from "../../constants/regions";
-import { getCountry, getRegion } from "../region";
+import { getCountry, getRegion, regionOfPlace } from "../region";
 import emitted from "./countryRegion.json";
 
 /**
- * As grafias que viram região (OBT-591), dos dois lados. `countryRegion.json` é a emissão de
- * `src/constants/regions.ts` (`npm run emit:regions`) e o `shema-api` a vendoriza byte a byte
- * em `tests/test_shema/countryRegion.json`, onde `test_parity.py` a confere contra
- * `COUNTRY_REGION` e `COUNTRY_SYNONYMS` do servidor — o mecanismo do `dataJsParity.json`
- * (shema-api `docs/shema.md` §6.5). Aqui ela é conferida contra as tabelas do console: uma
- * grafia acrescentada de um lado só falha desse lado.
+ * As grafias que viram região (OBT-591). `countryRegion.json` é a emissão de
+ * `src/constants/regions.ts` (`npm run emit:regions`); o `shema-api` a vendoriza byte a byte em
+ * `tests/test_shema/countryRegion.json`, e o `test_parity.py` de lá a confere contra as tabelas
+ * do servidor — o mecanismo do `dataJsParity.json` (shema-api `docs/shema.md` §6.5). Cada lado
+ * falha quando as suas tabelas saem do arquivo; o arquivo atravessa por cópia, então mudar uma
+ * grafia é um diff dele nos dois repositórios.
  */
 const ARTIFACT = new URL("./countryRegion.json", import.meta.url);
-
-const regionOf = (location: string) => getRegion({ location });
 
 describe("a cópia do mapa é a emissão que o servidor vendoriza", () => {
   it("as duas tabelas são o arquivo, entrada por entrada", () => {
@@ -31,13 +29,15 @@ describe("a cópia do mapa é a emissão que o servidor vendoriza", () => {
     expect(readFileSync(ARTIFACT, "utf8")).toBe(emission);
   });
 
-  it("toda grafia do arquivo resolve para a região que ele diz", () => {
+  it("toda grafia do arquivo resolve para a região que ele diz, ao gravar e ao ler", () => {
     const countries: Record<string, string> = emitted.countries;
-    for (const [country, region] of Object.entries(countries)) {
-      expect(regionOf(country)).toBe(region);
-    }
+    const expected = new Map<string, string>(Object.entries(countries));
     for (const [spelling, country] of Object.entries(emitted.synonyms)) {
-      expect(regionOf(spelling)).toBe(countries[country]);
+      expected.set(spelling, countries[country]);
+    }
+    for (const [spelling, region] of expected) {
+      expect(regionOfPlace(spelling)).toBe(region);
+      expect(getRegion({ location: spelling })).toBe(region);
     }
   });
 });
@@ -53,7 +53,7 @@ describe("um sinônimo é listado, nunca uma leitura da string", () => {
   });
 
   it("África do Sul, Sudáfrica e South Africa caem na África", () => {
-    expect(["África do Sul", "Sudáfrica", "South Africa"].map(regionOf)).toEqual([
+    expect(["África do Sul", "Sudáfrica", "South Africa"].map(regionOfPlace)).toEqual([
       "africa",
       "africa",
       "africa",
@@ -62,7 +62,7 @@ describe("um sinônimo é listado, nunca uma leitura da string", () => {
 
   it("acento, caixa e espaço fazem parte da grafia: quase igual é other", () => {
     for (const spelling of ["Africa do Sul", "áfrica do sul", "ÁFRICA DO SUL", "África  do Sul"]) {
-      expect(regionOf(spelling)).toBe("other");
+      expect(regionOfPlace(spelling)).toBe("other");
     }
   });
 
@@ -71,12 +71,23 @@ describe("um sinônimo é listado, nunca uma leitura da string", () => {
   });
 
   it("só a primeira parte nomeia o país: cidade primeiro é other", () => {
-    expect(regionOf("Cidade do Cabo, África do Sul")).toBe("other");
-    expect(regionOf("África do Sul, Cidade do Cabo")).toBe("africa");
+    expect(regionOfPlace("Cidade do Cabo, África do Sul")).toBe("other");
+    expect(regionOfPlace("África do Sul, Cidade do Cabo")).toBe("africa");
+  });
+
+  it("a primeira parte é a primeira que não está em branco, como no servidor", () => {
+    expect(getCountry({ location: ", África do Sul" })).toBe("África do Sul");
+    expect(regionOfPlace(" , Perú, Lima")).toBe("south-america");
+    expect(getCountry({ location: " , " })).toBe("");
   });
 
   it("uma chave herdada do objeto não é país", () => {
-    expect(regionOf("constructor")).toBe("other");
-    expect(regionOf("toString")).toBe("other");
+    expect(regionOfPlace("constructor")).toBe("other");
+    expect(getRegion({ location: "toString" })).toBe("other");
+  });
+
+  it("uma chave de região digitada como local é other ao gravar; só o payload reduzido a lê", () => {
+    expect(regionOfPlace("africa")).toBe("other");
+    expect(getRegion({ location: "africa" })).toBe("africa");
   });
 });

@@ -4,7 +4,7 @@ import type {
   ConfirmedProject,
 } from "../../../types/access";
 import type { RegionKey } from "../../../types/region";
-import { getRegion } from "../../../utils/region";
+import { regionOfPlace } from "../../../utils/region";
 
 export interface MemberRow {
   key: string;
@@ -27,7 +27,7 @@ export function membersToSend(rows: readonly MemberRow[]): ConfirmedMemberPayloa
  */
 export function regionToWrite(project: AwaitingProject, location: string): RegionKey {
   const kept = location.trim() === project.location.trim();
-  return (kept ? project.region : undefined) ?? getRegion({ location });
+  return (kept ? project.region : undefined) ?? regionOfPlace(location);
 }
 
 export function keepConfirmation(
