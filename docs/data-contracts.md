@@ -722,12 +722,16 @@ team was heard.**
 
 ### 7.6 Region, and the counts
 
-`getCountry` is `location.split(",")[0].trim()`; `getRegion` maps it through `COUNTRY_REGION` —
-directly, or through the export's spelling a `COUNTRY_SYNONYMS` entry names (OBT-591) — and falls
-back to `other`. The first item only: `Cidade do Cabo, África do Sul` is `other`, by decision.
-`npm run emit:regions` writes both tables to `src/utils/__tests__/countryRegion.json`, which
-`shema-api` vendors byte for byte; a spelling added on one side fails the other's test. Today: oceania 36, asia 31, south-america 29, africa 17, north-america 12,
-other 2, europe 0.
+`getCountry` is the first comma-separated item that is not blank, trimmed — `shema-api`'s
+`countries_named` since OBT-591, so a leading comma reads alike on both sides. `getRegion` maps it
+through `COUNTRY_REGION` — directly, or through the export's spelling a `COUNTRY_SYNONYMS` entry
+names (OBT-591) — and falls back to `other`. The first item only: `Cidade do Cabo, África do Sul`
+is `other`, by decision. `regionOfPlace` is the server's own reading of a typed place, where no
+region key reads as itself. `npm run emit:regions` writes both tables to
+`src/utils/__tests__/countryRegion.json`, which `shema-api` vendors byte for byte: each side's test
+fails when its tables leave the file, and the file crosses by copy, so a spelling changes as a diff
+to it in both repositories. Today: oceania 36, asia 31, south-america 29, africa 17,
+north-america 12, other 2, europe 0.
 
 `filterProjects` is one pass that produces the visible list **and** every facet count, using the
 rule that an option counts a record when the record passes every filter group except, at most, that
