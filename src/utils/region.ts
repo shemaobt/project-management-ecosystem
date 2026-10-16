@@ -1,6 +1,7 @@
 import { REGION_CENTROIDS } from "../constants/geo";
 import {
   COUNTRY_REGION,
+  COUNTRY_SYNONYMS,
   EMPTY_REGION_TEAM,
   FALLBACK_REGION,
   REGIONS,
@@ -31,13 +32,27 @@ function isRegionKey(value: string): value is RegionKey {
 }
 
 /**
+ * The region a country's spelling resolves to: the export's own spelling, or one listed as
+ * its synonym (OBT-591) — the two tables shema-api's `get_region` reads. Own keys only, so
+ * a string like `constructor` is not a country either.
+ */
+function regionOfCountry(country: string): RegionKey | undefined {
+  const spelling = Object.hasOwn(COUNTRY_SYNONYMS, country)
+    ? COUNTRY_SYNONYMS[country]
+    : country;
+  return Object.hasOwn(COUNTRY_REGION, spelling)
+    ? COUNTRY_REGION[spelling]
+    : undefined;
+}
+
+/**
  * A reduced payload (OBT-528) carries the region **key** where the location was, so the
  * key reads as its own region instead of an unknown country falling back to `other`.
  */
 export function getRegion(project: Located): RegionKey {
   const country = getCountry(project);
   return (
-    COUNTRY_REGION[country] ??
+    regionOfCountry(country) ??
     (isRegionKey(country) ? country : FALLBACK_REGION)
   );
 }
