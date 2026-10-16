@@ -34,7 +34,7 @@ const { projectOptionLabel } = await import("../../../utils/forms");
 const { buildNotifications } = await import("../../../utils/notifications");
 const { buildPrayerRequests } = await import("../../../utils/prayer");
 const { filterProjects, matchesSearch } = await import("../../../utils/search");
-const { INDICATORS, indicatorCount } = await import(
+const { INDICATORS, indicatorCount, listFacets } = await import(
   "../../../utils/indicators"
 );
 const { EMPTY_FILTERS } = await import("../../../stores/filtersStore");
@@ -103,7 +103,7 @@ const PLACES: Record<string, (p: Project) => string> = {
       ...Object.keys(filterProjects([p], EMPTY_FILTERS, "", NOW).counts.team),
     ].join(" "),
   "utils/indicators": (p) =>
-    indicatorCount(BASES, [p], NOW) > 0 ? BASE : "",
+    indicatorCount(BASES, listFacets([p], NOW)) > 0 ? BASE : "",
 };
 
 const LEAVING = [

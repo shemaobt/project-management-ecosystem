@@ -3,19 +3,21 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useFiltersStore } from "../../../stores/filtersStore";
 import { usePrefsStore } from "../../../stores/prefsStore";
-import type { Project } from "../../../types/project";
+import type { ListFacets } from "../../../types/projectBrowse";
 import { cn } from "../../../utils/cn";
 import { formatNumber } from "../../../utils/format";
 import {
   INDICATORS,
   indicatorCount,
+  indicatorFilters,
   indicatorHref,
   indicatorView,
   type IndicatorSpec,
 } from "../../../utils/indicators";
 
 export interface IndicatorBandProps {
-  projects: readonly Project[] | null;
+  /** The counts the numbers are read from — `null` while they are being read. */
+  facets: ListFacets | null;
 }
 
 const CELL = "border-r border-line px-3.5 py-1";
@@ -60,18 +62,20 @@ function IndicatorContent({
   );
 }
 
-export function IndicatorBand({ projects }: IndicatorBandProps) {
+export function IndicatorBand({ facets }: IndicatorBandProps) {
   const { t } = useTranslation();
   const applyState = useFiltersStore((state) => state.applyState);
   const sort = usePrefsStore((state) => state.sort);
   const metaphor = usePrefsStore((state) => state.metaphor);
   const locale = t("locale");
 
-  const counts = useMemo(() => {
-    if (projects === null) return null;
-    const now = new Date();
-    return INDICATORS.map((spec) => indicatorCount(spec, projects, now));
-  }, [projects]);
+  const counts = useMemo(
+    () =>
+      facets === null
+        ? null
+        : INDICATORS.map((spec) => indicatorCount(spec, facets)),
+    [facets],
+  );
 
   const open = (spec: IndicatorSpec) => {
     const view = indicatorView(spec, { sort, metaphor });
@@ -79,7 +83,7 @@ export function IndicatorBand({ projects }: IndicatorBandProps) {
   };
 
   const cell = (spec: IndicatorSpec, content: ReactNode) => {
-    if (spec.filters === null) {
+    if (indicatorFilters(spec) === null) {
       return (
         <div key={spec.id} className={CELL}>
           {content}

@@ -8,6 +8,7 @@ import {
   type ProjectBrowseQuery,
 } from "../services/api";
 import type { Project } from "../types/project";
+import type { ListFacets } from "../types/projectBrowse";
 import { EMPTY_FILTERS } from "./filtersStore";
 import {
   createHydrationSlot,
@@ -32,6 +33,12 @@ interface ProjectsState extends HydrationStatus {
    * fixture list was read for nobody, so `withheldNotice` answers for it.
    */
   locationsWithheld: number | null;
+  /**
+   * The server's counts of the whole list, read in the same browse (OBT-590) — what the Início
+   * band shows, so each number is the one the server answers its link with. `null` with no
+   * server, where the band counts the fixture list itself.
+   */
+  facets: ListFacets | null;
   hydrate: () => Promise<void>;
   reload: () => Promise<void>;
   saveProject: (project: Project) => void;
@@ -60,12 +67,19 @@ const EVERY_PROJECT_IN_REACH: ProjectBrowseQuery = {
 export interface ProjectList {
   projects: Project[];
   locationsWithheld: number | null;
+  facets: ListFacets | null;
 }
 
 export async function loadProjectList(): Promise<ProjectList> {
-  if (!SERVED) return { projects: await projectsAPI.list(), locationsWithheld: null };
+  if (!SERVED) {
+    return { projects: await projectsAPI.list(), locationsWithheld: null, facets: null };
+  }
   const page = await projectBrowseAPI.browse(EVERY_PROJECT_IN_REACH);
-  return { projects: page.items, locationsWithheld: page.locationsWithheld };
+  return {
+    projects: page.items,
+    locationsWithheld: page.locationsWithheld,
+    facets: { counts: page.counts, matched: page.matched },
+  };
 }
 
 /** Whether the list is the server's — what tells a screen whose withheld count to trust. */
@@ -82,6 +96,7 @@ export const useProjectsStore = create<ProjectsState>()(
       return {
         projects: [],
         locationsWithheld: null,
+        facets: null,
         ...NOT_HYDRATED,
         hydrate: () => hydrateOnce(slot, get, set, load),
         reload: () => hydrateOnce(slot, get, set, load, true),
