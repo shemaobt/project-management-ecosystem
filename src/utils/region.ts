@@ -5,6 +5,7 @@ import {
   EMPTY_REGION_TEAM,
   FALLBACK_REGION,
   REGIONS,
+  type ExportCountry,
 } from "../constants/regions";
 import { ROLES } from "../constants/roles";
 import type { Coordinates, Project, ReadAs } from "../types/project";
@@ -38,13 +39,15 @@ function isRegionKey(value: string): value is RegionKey {
 }
 
 /** Own keys only, so a string like `constructor` is not a country. */
+function isExportCountry(spelling: string): spelling is ExportCountry {
+  return Object.hasOwn(COUNTRY_REGION, spelling);
+}
+
 function regionOfCountry(country: string): RegionKey | undefined {
   const spelling = Object.hasOwn(COUNTRY_SYNONYMS, country)
     ? COUNTRY_SYNONYMS[country]
     : country;
-  return Object.hasOwn(COUNTRY_REGION, spelling)
-    ? COUNTRY_REGION[spelling]
-    : undefined;
+  return isExportCountry(spelling) ? COUNTRY_REGION[spelling] : undefined;
 }
 
 /**

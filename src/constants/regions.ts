@@ -12,7 +12,7 @@ export const REGIONS: readonly RegionDefinition[] = [
 
 export const FALLBACK_REGION: RegionKey = "other";
 
-export const COUNTRY_REGION: Readonly<Record<string, RegionKey>> = {
+export const COUNTRY_REGION = {
   Brazil: "south-america",
   Peru: "south-america",
   Colombia: "south-america",
@@ -38,6 +38,16 @@ export const COUNTRY_REGION: Readonly<Record<string, RegionKey>> = {
   "Papua New Guinea": "oceania",
   Fiji: "oceania",
   Micronesia: "oceania",
+} as const satisfies Readonly<Record<string, RegionKey>>;
+
+export type ExportCountry = keyof typeof COUNTRY_REGION;
+
+/**
+ * A synonym points at one of the export's spellings and never repeats one. Typed so `tsc -b`
+ * holds both, because this repository's CI runs it and not the test suite.
+ */
+type SynonymTable = Readonly<Record<string, ExportCountry>> & {
+  readonly [Spelling in ExportCountry]?: never;
 };
 
 /**
@@ -56,7 +66,7 @@ export const COUNTRY_REGION: Readonly<Record<string, RegionKey>> = {
  * `countryRegion.test.ts` holds both tables against `countryRegion.json`, which the server
  * vendors byte for byte.
  */
-export const COUNTRY_SYNONYMS: Readonly<Record<string, string>> = {
+export const COUNTRY_SYNONYMS: SynonymTable = {
   Brasil: "Brazil",
   Perú: "Peru",
   Colômbia: "Colombia",
