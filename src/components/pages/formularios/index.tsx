@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { FIELD_FORMS } from "../../../constants/forms";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useProjectListRead } from "../../../hooks/useProjectListRead";
 import { formsAPI } from "../../../services/api";
 import { useFormsStore } from "../../../stores/formsStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
@@ -177,7 +178,6 @@ export function FormulariosView({
 export function FormulariosPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
-  const hydrateProjects = useProjectsStore((state) => state.hydrate);
   const loadFailure = useProjectsStore((state) => state.error);
   const reloadProjects = useProjectsStore((state) => state.reload);
   const submissions = useFormsStore((state) => state.submissions);
@@ -186,10 +186,11 @@ export function FormulariosPage() {
   const hydrateForms = useFormsStore((state) => state.hydrate);
   const { user } = useAuth();
 
+  useProjectListRead();
+
   useEffect(() => {
-    void hydrateProjects();
     void hydrateForms();
-  }, [hydrateProjects, hydrateForms]);
+  }, [hydrateForms]);
 
   return (
     <FormulariosView

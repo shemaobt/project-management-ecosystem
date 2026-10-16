@@ -35,6 +35,7 @@ vi.stubGlobal("window", { localStorage: storage });
 
 await import("../../../../i18n");
 const { IndicatorBand } = await import("../IndicatorBand");
+const { listFacets } = await import("../../../../utils/indicators");
 
 describe("o link do indicador carrega as prefs do leitor", () => {
   it("vista e ordenação não default viajam na URL, e o filtro continua o mesmo", () => {
@@ -42,7 +43,7 @@ describe("o link do indicador carrega as prefs do leitor", () => {
       createElement(
         MemoryRouter,
         null,
-        createElement(IndicatorBand, { projects: [] }),
+        createElement(IndicatorBand, { facets: listFacets([]) }),
       ),
     );
     expect(markup).toContain("presets=attention");
