@@ -1,6 +1,7 @@
-import { useEffect, useId, useMemo } from "react";
+import { useId, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { useProjectListRead } from "../../../../hooks/useProjectListRead";
 import { useProjectsStore } from "../../../../stores/projectsStore";
 import { surfaceOutlined } from "../../../../styles";
 import type { Project } from "../../../../types/project";
@@ -192,13 +193,10 @@ export function RelatorioPage() {
   const navigate = useNavigate();
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
-  const hydrate = useProjectsStore((state) => state.hydrate);
   const loadFailure = useProjectsStore((state) => state.error);
   const reload = useProjectsStore((state) => state.reload);
 
-  useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+  useProjectListRead();
 
   const year = offeredYear(param);
   if (year === null) {

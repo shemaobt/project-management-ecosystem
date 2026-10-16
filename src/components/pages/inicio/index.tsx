@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { DEFAULT_TAB } from "../../../constants/recordTabs";
+import { useProjectListRead } from "../../../hooks/useProjectListRead";
 import {
   PROJECT_LIST_SERVED,
   useProjectsStore,
@@ -81,16 +82,13 @@ export function InicioView({
 export function InicioPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
-  const hydrate = useProjectsStore((state) => state.hydrate);
   const served = useProjectsStore((state) => state.locationsWithheld);
   const facets = useProjectsStore((state) => state.facets);
   const loadFailure = useProjectsStore((state) => state.error);
   const reload = useProjectsStore((state) => state.reload);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+  useProjectListRead();
 
   const openRecord = (project: Project) => {
     navigate(`/ficha/${project.id}/${DEFAULT_TAB}`);

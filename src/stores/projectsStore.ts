@@ -36,11 +36,18 @@ interface ProjectsState extends HydrationStatus {
   /**
    * The server's counts of the whole list, read in the same browse (OBT-590) — what the Início
    * band shows, so each number is the one the server answers its link with. `null` with no
-   * server, where the band counts the fixture list itself.
+   * server, where the band counts the fixture list itself, and while the list is `outdated`.
    */
   facets: ListFacets | null;
+  /**
+   * A write this console made — a record saved or created, a reading filed, an import, a
+   * project confirmed — changed the server's list after it was read. The list stays on
+   * screen, the counts do not, and the next screen that asks for it reads it again.
+   */
+  outdated: boolean;
   hydrate: () => Promise<void>;
   reload: () => Promise<void>;
+  invalidate: () => void;
   saveProject: (project: Project) => void;
   importProjects: (projects: Project[]) => void;
 }
@@ -89,17 +96,30 @@ export const useProjectsStore = create<ProjectsState>()(
   persist<ProjectsState, [], [], PersistedProjects>(
     (set, get) => {
       const slot = createHydrationSlot();
-      const load = async () => {
-        set(await loadProjectList());
+      let writes = 0;
+      const load = async (): Promise<void> => {
+        const seen = writes;
+        const list = await loadProjectList();
+        // Read before the last write: that is not the list any more, so read it again.
+        if (seen !== writes) return load();
+        set({ ...list, outdated: false });
       };
 
       return {
         projects: [],
         locationsWithheld: null,
         facets: null,
+        outdated: false,
         ...NOT_HYDRATED,
-        hydrate: () => hydrateOnce(slot, get, set, load),
+        hydrate: () => hydrateOnce(slot, get, set, load, get().outdated),
         reload: () => hydrateOnce(slot, get, set, load, true),
+        // Without a server the list is the fixture seed, which no record write reaches
+        // (the record double keeps its own overlay), so there is nothing to read again.
+        invalidate: () => {
+          if (!SERVED) return;
+          writes += 1;
+          set({ outdated: true, facets: null });
+        },
         importProjects: (projects) =>
           set({ projects, ...NOT_HYDRATED, hydrated: true }),
         saveProject: (project) =>
