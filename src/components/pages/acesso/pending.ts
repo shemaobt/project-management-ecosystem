@@ -1,4 +1,10 @@
-import type { ConfirmedMemberPayload, ConfirmedProject } from "../../../types/access";
+import type {
+  AwaitingProject,
+  ConfirmedMemberPayload,
+  ConfirmedProject,
+} from "../../../types/access";
+import type { RegionKey } from "../../../types/region";
+import { getRegion } from "../../../utils/region";
 
 export interface MemberRow {
   key: string;
@@ -11,6 +17,17 @@ export function membersToSend(rows: readonly MemberRow[]): ConfirmedMemberPayloa
   return rows
     .map((row) => ({ name: row.name.trim(), email: row.email.trim() }))
     .filter((member) => member.name !== "" || member.email !== "");
+}
+
+/**
+ * The region confirming will write (OBT-591): the server's answer while the place is the one
+ * it filed, and the console's copy of the same map once the Admin edits it — the server
+ * derives again from the place it receives, by the spellings `countryRegion.test.ts` holds
+ * equal on both sides.
+ */
+export function regionToWrite(project: AwaitingProject, location: string): RegionKey {
+  const kept = location.trim() === project.location.trim();
+  return (kept ? project.region : undefined) ?? getRegion({ location });
 }
 
 export function keepConfirmation(
