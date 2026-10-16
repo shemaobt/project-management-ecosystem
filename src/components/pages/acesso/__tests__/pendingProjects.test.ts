@@ -25,7 +25,7 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { ConfirmedNote, DiscardReason, PendingState } = await import("../PendingProjects");
 const { PendingProjectForm } = await import("../PendingProjectForm");
-const { keepConfirmation, membersToSend } = await import("../pending");
+const { keepConfirmation, membersToSend, regionToWrite } = await import("../pending");
 
 beforeEach(async () => {
   await i18n.changeLanguage("pt");
@@ -53,6 +53,7 @@ const PROJECT: AwaitingProject = {
     { name: "Joana Teste", role: "", email: "equipe@exemplo.org" },
   ],
   locationWithheld: false,
+  region: "south-america",
 };
 
 function form(project: AwaitingProject = PROJECT) {
@@ -127,6 +128,55 @@ describe("a conferência de um projeto aguardando confirmação", () => {
     expect(out).toContain("Sensitive country for Bible distribution");
     expect(out).toContain("People on the team");
     expect(out).toContain("Confirm project");
+  });
+});
+
+describe("a região que a confirmação grava (OBT-591)", () => {
+  const CITY_FIRST: AwaitingProject = {
+    ...PROJECT,
+    location: "Cidade do Cabo, África do Sul",
+    region: "other",
+  };
+
+  it("mostra a região sob o local, lida do país no começo dele", () => {
+    const out = form();
+    expect(out).toContain(
+      escaped(i18n.t("acesso_pending_region", { region: i18n.t("continent_south_america") })),
+    );
+    expect(out).not.toContain(escaped(i18n.t("acesso_pending_region_other")));
+    expect(out).toMatch(/aria-describedby="[^"]*-region"/u);
+  });
+
+  it("avisa quando a região é other — cidade antes do país — sem dar nome de região a ela", () => {
+    const out = form(CITY_FIRST);
+    expect(out).toContain(escaped(i18n.t("acesso_pending_region_other")));
+    expect(out).not.toContain(i18n.t("continent_other"));
+  });
+
+  it("com o local como foi arquivado, vale a resposta do servidor", () => {
+    expect(regionToWrite({ ...PROJECT, region: "africa" }, PROJECT.location)).toBe("africa");
+    expect(regionToWrite(PROJECT, ` ${PROJECT.location} `)).toBe("south-america");
+  });
+
+  it("editado o local, vale a cópia do mapa — a mesma que o servidor relê ao confirmar", () => {
+    expect(regionToWrite(PROJECT, "África do Sul")).toBe("africa");
+    expect(regionToWrite(PROJECT, "Sudáfrica, Johannesburgo")).toBe("africa");
+    expect(regionToWrite(PROJECT, "Cidade do Cabo, África do Sul")).toBe("other");
+    expect(regionToWrite(CITY_FIRST, "África do Sul, Cidade do Cabo")).toBe("africa");
+  });
+
+  it("um servidor anterior ao campo não deixa a conferência sem região", () => {
+    const older: AwaitingProject = { ...PROJECT };
+    delete older.region;
+    expect(regionToWrite(older, older.location)).toBe("south-america");
+  });
+
+  it("fala inglês quando o console fala inglês", async () => {
+    await i18n.changeLanguage("en");
+    expect(form()).toContain(
+      "Region: South America — read from the country at the start of the place.",
+    );
+    expect(form(CITY_FIRST)).toContain("Start with the country");
   });
 });
 
