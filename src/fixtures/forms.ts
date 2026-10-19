@@ -15,7 +15,7 @@ import type {
 } from "../types/forms";
 import { getRegion } from "../utils/region";
 import { loadProject } from "./projects";
-import { readerOf } from "./reader";
+import { asReadBy, readerOf } from "./reader";
 import { mockPersona } from "./session";
 
 const received: ReceivedSubmission[] = [];
@@ -26,8 +26,23 @@ const receivedAnswers = new Map<string, IntakeAnswers>();
 /** Which link each received row came through — what tells a replay from a second Pulse. */
 const receivedTokens = new Map<string, string>();
 
+/**
+ * One row as this persona reads it — the server's `as_received` (OBT-600): the name off the
+ * project, never the archived copy, reduced as `withhold` reduces it, with the bit beside.
+ */
+function asReadInTheInbox(row: ReceivedSubmission): ReceivedSubmission {
+  const project = loadProject(row.projectId);
+  if (!project) return { ...row, languageNameWithheld: false };
+  const read = asReadBy(project, mockPersona());
+  return {
+    ...row,
+    languageName: read.languageName,
+    languageNameWithheld: read.languageNameWithheld === true,
+  };
+}
+
 export function loadReceivedSubmissions(): ReceivedSubmission[] {
-  return structuredClone(received);
+  return structuredClone(received).map(asReadInTheInbox);
 }
 
 // --- the leader link, simulated for local dev with no shema-api running ------------
@@ -182,7 +197,7 @@ export async function readSubmission(submissionId: string): Promise<ReceivedSubm
     project.sensitiveCountry &&
     readerOf(mockPersona(), getRegion(project)) === "other";
   return {
-    ...row,
+    ...asReadInTheInbox(row),
     fields: PULSE_FIELDS,
     answers: withheld ? {} : structuredClone(receivedAnswers.get(submissionId) ?? {}),
     answersWithheld: withheld,

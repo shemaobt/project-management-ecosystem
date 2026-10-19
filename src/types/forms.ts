@@ -37,6 +37,8 @@ export interface ProjectReporting {
 export interface PendingProject {
   id: string;
   languageName: string;
+  /** The project's own bit (OBT-560), so the list says *Projeto sensível — {região}* and never the key. */
+  languageNameWithheld?: boolean;
   regionLabelKey: string;
   lastDate: string | null;
 }
@@ -55,6 +57,12 @@ export interface ReceivedSubmission {
   kind: ArchivedKind;
   projectId: string;
   languageName: string;
+  /**
+   * `true` when `languageName` is not the language's own — the public name, or the region key
+   * while none is registered — because the project is sensitive and this reader does not read
+   * the truth (OBT-600). The server's `languageNameWithheld`, read by `getLanguageNameDisplay`.
+   */
+  languageNameWithheld?: boolean;
   submittedBy: string;
   receivedAt: string;
   definitionVersion: number;

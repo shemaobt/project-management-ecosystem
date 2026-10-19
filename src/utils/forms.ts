@@ -11,7 +11,12 @@ import type { ReceivedSubmission } from "../types/forms";
 import type { Project } from "../types/project";
 import { formatIsoDate, parseIsoDate, periodEnd, toCalendarDate } from "./cadence";
 import { isAssessed } from "./health";
-import { getLocationDisplay, getRegion, getRegionLabelKey } from "./region";
+import {
+  getLanguageNameDisplay,
+  getLocationDisplay,
+  getRegion,
+  getRegionLabelKey,
+} from "./region";
 import { hasReported, indexPulses, type PulseIndex } from "./rhythm";
 
 export function formOf(kind: FormKind): FormDefinition {
@@ -91,6 +96,7 @@ export function formReadiness(
     .map((project) => ({
       id: project.id,
       languageName: project.languageName,
+      languageNameWithheld: project.languageNameWithheld,
       regionLabelKey: getRegionLabelKey(getRegion(project)),
       lastDate: lastReportDate(form.kind, project, pulses),
     }))
@@ -104,9 +110,13 @@ export function formReadiness(
   };
 }
 
-export function projectOptionLabel(project: Project): string {
+export function projectOptionLabel(
+  project: Project,
+  t: (key: string, options?: Record<string, string>) => string,
+): string {
   const { base } = getLocationDisplay(project);
-  return base ? `${project.languageName} · ${base}` : project.languageName;
+  const name = getLanguageNameDisplay(project, t);
+  return base ? `${name} · ${base}` : name;
 }
 
 export function selectableProjects(projects: readonly Project[]): Project[] {

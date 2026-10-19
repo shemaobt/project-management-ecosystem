@@ -24,12 +24,16 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { createEmptyProject } = await import("../../../../fixtures/blank");
 const { FormulariosView } = await import("..");
+const { PendingProjects } = await import("../PendingProjects");
+const { ReceivedArchive } = await import("../ReceivedArchive");
+const { formOf, formReadiness } = await import("../../../../utils/forms");
 const { canWriteHealth } = await import("../../../../utils/access");
 const { formatDate } = await import("../../../../utils/format");
 const en = (await import("../../../../i18n/locales/en.json")).default;
 const pt = (await import("../../../../i18n/locales/pt-BR.json")).default;
 
 type Project = ReturnType<typeof createEmptyProject>;
+type ReceivedSubmission = import("../../../../types/forms").ReceivedSubmission;
 
 const NOW = new Date(2026, 4, 14);
 
@@ -56,7 +60,7 @@ const returned = (projectId: string, receivedAt: string) => ({
 
 const view = (
   projects: Project[] | null,
-  submissions: ReturnType<typeof returned>[] | null = [],
+  submissions: ReceivedSubmission[] | null = [],
   writesHealth = true,
 ) =>
   renderToStaticMarkup(
@@ -235,6 +239,87 @@ describe("a tela mostra quem ainda não reportou neste período", () => {
     expect(view([project()])).toContain(
       i18n.t("forms_reporting_note", { form: pulseName() }),
     );
+  });
+});
+
+describe("um projeto sensível sem nome público é uma frase, nunca a chave da região (OBT-600)", () => {
+  // What the server hands the OBT Lab for a sensitive project in Africa with no public name:
+  // the region key where the name was, and the bit that says it is not the language's own.
+  const sensitive = project({
+    id: "sigiloso",
+    languageName: "africa",
+    languageNameWithheld: true,
+    location: "africa",
+    team: "",
+    sensitiveCountry: true,
+    readAs: "other",
+  });
+  const phrase = () =>
+    i18n.t("sensitive_project_named", { region: i18n.t("continent_africa") });
+  const pulse = () => formOf("pulso");
+
+  it("“Quem ainda não reportou” diz “Projeto sensível — África”", () => {
+    const markup = renderToStaticMarkup(
+      createElement(PendingProjects, {
+        form: pulse(),
+        readiness: formReadiness(pulse(), [sensitive], [], NOW),
+      }),
+    );
+
+    expect(markup).toContain(phrase());
+    expect(markup).not.toContain("africa");
+  });
+
+  it("a caixa de entrada diz “Projeto sensível — África” na linha do Pulso", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ReceivedArchive, {
+        submissions: [
+          {
+            ...returned("sigiloso", "2026-05-09"),
+            languageName: "africa",
+            languageNameWithheld: true,
+            submittedBy: "Líder S",
+          },
+        ],
+      }),
+    );
+
+    expect(markup).toContain(phrase());
+    expect(markup).not.toContain("africa");
+  });
+
+  it("na tela inteira — seletor, ciclo, lista e caixa — a chave nunca aparece como nome", () => {
+    const markup = view(
+      [sensitive],
+      [{ ...returned("sigiloso", "2026-04-10"), languageName: "africa", languageNameWithheld: true }],
+    );
+
+    expect(markup).toContain(i18n.t("forms_loop_open", { project: phrase() }));
+    expect(markup).not.toContain("africa");
+  });
+
+  it("um nome público registrado chega pronto e é mostrado como chegou", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ReceivedArchive, {
+        submissions: [
+          { ...returned("sigiloso", "2026-05-09"), languageName: "Sa'di", languageNameWithheld: true },
+        ],
+      }),
+    );
+
+    expect(markup).toContain("Sa&#x27;di");
+    expect(markup).not.toContain(phrase());
+  });
+
+  it("sem o bit, o nome é o nome — uma língua aberta não vira frase", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ReceivedArchive, {
+        submissions: [{ ...returned("kadiweu", "2026-05-09"), languageName: "Kadiwéu" }],
+      }),
+    );
+
+    expect(markup).toContain("Kadiwéu");
+    expect(markup).not.toContain(phrase());
   });
 });
 
