@@ -6,6 +6,7 @@ import { surfaceOutlined } from "../../../styles";
 import type { ReceivedSubmission, ReceivedSubmissionDetail } from "../../../types/forms";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
+import { getLanguageNameDisplay } from "../../../utils/region";
 import { EmptyState } from "../../common/EmptyState";
 import { Button } from "../../ui";
 import { SubmissionAnswers } from "./SubmissionAnswers";
@@ -66,7 +67,7 @@ export function ReceivedArchive({ submissions, readSubmission }: ReceivedArchive
                   {t(FORM_TAG_LABEL_KEYS[submission.kind])}
                 </span>
                 <span className="min-w-0 flex-1 text-small font-semibold wrap-anywhere text-fg-strong">
-                  {submission.languageName}
+                  {getLanguageNameDisplay(submission, t)}
                 </span>
                 <span className="shrink-0 text-tag tabular-nums text-fg-subtle">
                   {submission.submittedBy

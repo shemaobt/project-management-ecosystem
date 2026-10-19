@@ -91,6 +91,7 @@ export function formReadiness(
     .map((project) => ({
       id: project.id,
       languageName: project.languageName,
+      languageNameWithheld: project.languageNameWithheld,
       regionLabelKey: getRegionLabelKey(getRegion(project)),
       lastDate: lastReportDate(form.kind, project, pulses),
     }))

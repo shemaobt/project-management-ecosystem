@@ -3,6 +3,7 @@ import { surfaceOutlined } from "../../../styles";
 import type { FormDefinition, FormReadiness } from "../../../types/forms";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
+import { getLanguageNameDisplay } from "../../../utils/region";
 
 export interface PendingProjectsProps {
   form: FormDefinition;
@@ -39,7 +40,7 @@ export function PendingProjects({ form, readiness }: PendingProjectsProps) {
               className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b border-line py-2 last:border-b-0"
             >
               <span className="min-w-0 text-small font-semibold wrap-anywhere text-fg-strong">
-                {project.languageName}
+                {getLanguageNameDisplay(project, t)}
                 <span className="ml-2 text-tag font-normal text-fg-subtle">
                   {t(project.regionLabelKey)}
                 </span>
