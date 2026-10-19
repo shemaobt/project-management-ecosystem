@@ -494,8 +494,46 @@ describe("a recusa do servidor aponta para o campo", () => {
   it("a recusa de regra do repositório é uma frase, sem campo", () => {
     expect(
       readFieldErrors({
+        detail: "X-Shema-Local-Date: 2020-01-01 is not a day any timezone is on today",
+        code: "BAD_REQUEST",
+      }),
+    ).toEqual([
+      {
+        field: null,
+        index: null,
+        message: "X-Shema-Local-Date: 2020-01-01 is not a day any timezone is on today",
+      },
+    ]);
+  });
+
+  it("a regra que só o registro inteiro vê chega no campo, pela lista ao lado da frase (OBT-601)", () => {
+    expect(
+      readFieldErrors({
         detail: "deadline 2024-01-01 is before the start date 2024-04-13",
         code: "BAD_REQUEST",
+        errors: [
+          {
+            type: "date_order",
+            loc: ["body", "deadline"],
+            msg: "before the start date (2024-04-13)",
+          },
+        ],
+      }),
+    ).toEqual([
+      {
+        field: "deadline",
+        index: null,
+        message: "before the start date (2024-04-13)",
+      },
+    ]);
+  });
+
+  it("uma lista ao lado que não diz nada deixa a frase valer", () => {
+    expect(
+      readFieldErrors({
+        detail: "deadline 2024-01-01 is before the start date 2024-04-13",
+        code: "BAD_REQUEST",
+        errors: [],
       }),
     ).toEqual([
       {
@@ -503,6 +541,34 @@ describe("a recusa do servidor aponta para o campo", () => {
         index: null,
         message: "deadline 2024-01-01 is before the start date 2024-04-13",
       },
+    ]);
+  });
+
+  it("um campo que esta ficha não localiza não apaga a frase que o nomeia", () => {
+    const sentence = "completedDate 2024-01-01 is before the start date 2024-04-13";
+    const unplaced = {
+      type: "date_order",
+      loc: ["body", "completedDate"],
+      msg: "before the start date (2024-04-13)",
+    };
+    const placed = {
+      type: "date_order",
+      loc: ["body", "deadline"],
+      msg: "before the start date (2024-04-13)",
+    };
+
+    expect(
+      readFieldErrors({ detail: sentence, code: "BAD_REQUEST", errors: [unplaced] }),
+    ).toEqual([{ field: null, index: null, message: sentence }]);
+    expect(
+      readFieldErrors({
+        detail: sentence,
+        code: "BAD_REQUEST",
+        errors: [placed, unplaced],
+      }),
+    ).toEqual([
+      { field: "deadline", index: null, message: "before the start date (2024-04-13)" },
+      { field: null, index: null, message: sentence },
     ]);
   });
 

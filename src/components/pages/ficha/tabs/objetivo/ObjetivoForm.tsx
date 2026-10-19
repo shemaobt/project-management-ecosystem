@@ -22,6 +22,7 @@ export function ObjetivoForm({ draft }: ObjetivoFormProps) {
   const objective = values.objective ?? [];
   const scopeError =
     touched && objective.length === 0 ? t("f_required") : undefined;
+  const deadlineError = draft.errorsFor("deadline")[0]?.message;
   const notesLocked = !mayWrite(draft.place, "objectiveNotes");
 
   return (
@@ -64,11 +65,12 @@ export function ObjetivoForm({ draft }: ObjetivoFormProps) {
         )}
       </Field>
 
-      <Field id="ficha-prazo" label={t("f_deadline")}>
+      <Field id="ficha-prazo" label={t("f_deadline")} error={deadlineError}>
         {(control) => (
           <Input
             {...control}
             type="date"
+            aria-invalid={Boolean(deadlineError)}
             value={values.deadline ?? ""}
             onChange={(event) => draft.set("deadline", event.target.value)}
           />

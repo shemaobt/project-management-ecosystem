@@ -387,6 +387,8 @@ The tab shell must support **partial save (draft)** — a coordinator must never
 
 > **Verified against BE-06's own OpenAPI schema, not against a running server.** The API is not on staging yet and its migrations need Postgres, so the wire shape was checked by generating the schema from the branch's code and diffing it field by field: 74 record properties, every one's nullability, every sub-shape's keys, the update model's accepted fields and the two routes. End-to-end against a live server waits for the merge into `dev`.
 
+**A refusal the server locates lands on its tab and on its field** — [OBT-601](https://linear.app/shema-obt/issue/OBT-601), 19/oct/2026, against [shema-api#833](https://github.com/shemaobt/shema-api/pull/833). The E2E run of 14/oct/2026 (PME-FIC-019/020) found a deadline before the start — a rule the server checks against the merged record, not the body model — answered as a 400 with only `detail`, so the panel said *Recusa sem campo* and the ficha stayed on the tab the coordinator was on. The server keeps that sentence and now sends `errors` beside it, the 422's own `{type, loc, msg}` at `["body", "deadline"]`; `readFieldErrors` takes from that list what it can place, so `tabOfFirstError` lands on *Objetivo* — and what it cannot place is said by the sentence, because the located `msg` leaves the field to `loc` and would otherwise say *before the start date* about nothing. There `ObjetivoForm` says the server's message under *Prazo* and marks the input `aria-invalid`, as the needs rows already say theirs. Only *Prazo* is marked, because it is the field the server names.
+
 ### 5.3 Formulários — the field's voice
 
 Two distinct instruments. Do not merge them.
