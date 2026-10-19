@@ -2,7 +2,13 @@ import { afterAll, describe, expect, it } from "vitest";
 import { createEmptyProject } from "../../fixtures/blank";
 import type { ReceivedSubmission } from "../../types/forms";
 import type { Project } from "../../types/project";
-import { formOf, formReadiness, reportingFor, selectableProjects } from "../forms";
+import {
+  formOf,
+  formReadiness,
+  projectOptionLabel,
+  reportingFor,
+  selectableProjects,
+} from "../forms";
 import { meetingReadiness } from "../rhythm";
 
 const originalTz = process.env.TZ;
@@ -223,5 +229,29 @@ describe("a lista do seletor é estável e não mexe na coleção do dono", () =
       "Zapoteco",
     ]);
     expect(original[0].languageName).toBe("Zapoteco");
+  });
+});
+
+describe("o seletor diz o nome como a tela inteira o diz (OBT-600)", () => {
+  const t = (key: string, options?: Record<string, string>) =>
+    options ? `${key}(${Object.values(options).join(",")})` : key;
+
+  it("sem nome público, a chave da região vira frase e nunca aparece crua", () => {
+    const sensitive = project({
+      languageName: "africa",
+      languageNameWithheld: true,
+      location: "africa",
+      team: "",
+      sensitiveCountry: true,
+      readAs: "other",
+    });
+
+    expect(projectOptionLabel(sensitive, t)).toBe("sensitive_project_named(continent_africa)");
+  });
+
+  it("um nome que não foi retido segue com a base ao lado", () => {
+    expect(projectOptionLabel(project({ team: "JOCUM Aurora" }), t)).toBe(
+      "Kadiwéu · JOCUM Aurora",
+    );
   });
 });

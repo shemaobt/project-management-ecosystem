@@ -13,6 +13,7 @@ import type { Project } from "../../../types/project";
 import { canWriteHealth } from "../../../utils/access";
 import { formOf, formReadiness, reportingFor, selectableProjects } from "../../../utils/forms";
 import { toLocalIsoDate } from "../../../utils/format";
+import { getLanguageNameDisplay } from "../../../utils/region";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { ProjectsUnread } from "../../common/ProjectsUnread";
@@ -150,7 +151,7 @@ export function FormulariosView({
           {pulsesKnown ? (
             <>
               <StepByStep
-                projectName={project.languageName}
+                projectName={getLanguageNameDisplay(project, t)}
                 reporting={pulseState}
               />
 

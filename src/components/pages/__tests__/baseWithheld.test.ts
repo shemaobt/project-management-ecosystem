@@ -71,7 +71,7 @@ const PLACES: Record<string, (p: Project) => string> = {
     renderToStaticMarkup(
       createElement(ProjectCardDiario, { project: p, index: 0, onOpen: noop }),
     ),
-  "formularios/ProjectSelector": (p) => projectOptionLabel(p),
+  "formularios/ProjectSelector": (p) => projectOptionLabel(p, i18n.t),
   "notificacoes/PrefsSections": (p) =>
     renderToStaticMarkup(
       createElement(ScopeSection, {

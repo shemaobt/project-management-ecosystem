@@ -33,6 +33,7 @@ const en = (await import("../../../../i18n/locales/en.json")).default;
 const pt = (await import("../../../../i18n/locales/pt-BR.json")).default;
 
 type Project = ReturnType<typeof createEmptyProject>;
+type ReceivedSubmission = import("../../../../types/forms").ReceivedSubmission;
 
 const NOW = new Date(2026, 4, 14);
 
@@ -59,7 +60,7 @@ const returned = (projectId: string, receivedAt: string) => ({
 
 const view = (
   projects: Project[] | null,
-  submissions: ReturnType<typeof returned>[] | null = [],
+  submissions: ReceivedSubmission[] | null = [],
   writesHealth = true,
 ) =>
   renderToStaticMarkup(
@@ -284,6 +285,16 @@ describe("um projeto sensível sem nome público é uma frase, nunca a chave da 
     );
 
     expect(markup).toContain(phrase());
+    expect(markup).not.toContain("africa");
+  });
+
+  it("na tela inteira — seletor, ciclo, lista e caixa — a chave nunca aparece como nome", () => {
+    const markup = view(
+      [sensitive],
+      [{ ...returned("sigiloso", "2026-04-10"), languageName: "africa", languageNameWithheld: true }],
+    );
+
+    expect(markup).toContain(i18n.t("forms_loop_open", { project: phrase() }));
     expect(markup).not.toContain("africa");
   });
 

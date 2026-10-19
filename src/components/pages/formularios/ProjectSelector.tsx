@@ -35,7 +35,7 @@ export function ProjectSelector({
         <SelectContent>
           {projects.map((project) => (
             <SelectItem key={project.id} value={project.id}>
-              {projectOptionLabel(project)}
+              {projectOptionLabel(project, t)}
             </SelectItem>
           ))}
         </SelectContent>
