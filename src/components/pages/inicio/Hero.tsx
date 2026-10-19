@@ -1,14 +1,14 @@
 import { Trans, useTranslation } from "react-i18next";
-import type { Project } from "../../../types/project";
+import type { ListFacets } from "../../../types/projectBrowse";
 import { IndicatorBand } from "./IndicatorBand";
 
 export interface HeroProps {
-  projects: readonly Project[] | null;
+  facets: ListFacets | null;
   /** `false` when the list could not be read — the band would otherwise spin forever (OBT-557). */
   showBand?: boolean;
 }
 
-export function Hero({ projects, showBand = true }: HeroProps) {
+export function Hero({ facets, showBand = true }: HeroProps) {
   const { t } = useTranslation();
 
   return (
@@ -34,7 +34,7 @@ export function Hero({ projects, showBand = true }: HeroProps) {
             {t("headline_sub")}
           </p>
         </div>
-        {showBand ? <IndicatorBand projects={projects} /> : null}
+        {showBand ? <IndicatorBand facets={facets} /> : null}
       </div>
     </section>
   );

@@ -173,6 +173,7 @@ export function ImportDialog({ open, onOpenChange }: HeaderDialogProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const importLocally = useProjectsStore((state) => state.importProjects);
+  const listChanged = useProjectsStore((state) => state.invalidate);
   const inputRef = useRef<HTMLInputElement>(null);
   const [pick, setPick] = useState<ImportPick | null>(null);
   const [applying, setApplying] = useState(false);
@@ -218,6 +219,7 @@ export function ImportDialog({ open, onOpenChange }: HeaderDialogProps) {
         refuse(t(answer.error.key, { ...answer.error }));
         return;
       }
+      listChanged();
       toast(t("import_done", { count: answer.applied }));
       if (answer.ignoredFields.length > 0) {
         toast(t("import_ignored_fields", { fields: answer.ignoredFields.join(", ") }));

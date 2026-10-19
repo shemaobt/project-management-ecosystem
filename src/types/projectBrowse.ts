@@ -27,3 +27,10 @@ export interface ProjectBrowseResult {
   /** How many of `items` had their place reduced — `null`, never `0`, when none were. */
   locationsWithheld: number | null;
 }
+
+/**
+ * The counts of the whole list, read with no filter: by the facet rule (§7.6) each option's
+ * count is how many that one filter returns, and `matched` is how many the list holds — so
+ * every number the Início band shows is one of these cells (OBT-590).
+ */
+export type ListFacets = Pick<ProjectBrowseResult, "counts" | "matched">;

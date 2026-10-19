@@ -974,15 +974,22 @@ The Atlas reads the same response. `geoAPI.outlines()` stays a bundled asset (§
 > `readAs` (additive) says whether it carries the truth, and `locationsWithheld` is how many items are
 > withheld, addressed to coordination and `null` for anybody else. The console maps
 > `locationWithheld` onto `sensitiveCountry` and `readAs` onto the project, and the globe mounts its
-> overlay from `locationsWithheld` (FE-48).
+> overlay from `locationsWithheld` (FE-48). Since OBT-590 the Início band reads the envelope's
+> `counts` rather than recounting the cards (§9.2).
 
 ### 9.2 Início — FE-30, no endpoint of its own
 
-The six indicators are derived from `GET /api/shema/projects` through the same `filterProjects` the
-destination uses, so **the count is by construction what the link returns**. An `/indicators`
-endpoint would be a second owner of that relation and is explicitly not wanted. The globe below the
-band reads the fixture list, which no server read for anybody, so it announces no withheld count
-until the list integrates (FE-48); "Bases" counts only the bases the reader may see.
+The six indicators are cells of the counts `GET /api/shema/projects` answers with no filter — the
+same browse that brings the whole list (§9.1's envelope): how many the list holds (`matched`), a
+`status` option, the `attention` preset, the `atencao` staleness band (`atencao` ∪ `critico`, §7.3)
+and the distinct bases (`team`). By the facet rule (§7.6) each cell is exactly what its filter
+returns, so **the count is the server's own answer to the link** (OBT-590). Until then the console
+recounted the cards in the browser, and a card carries no progress history: staleness fell back to
+`startDate`, and a project in progress with progress recorded that day counted as *sem notícias*
+while the server's list did not. An `/indicators` endpoint would be a second owner of that relation
+and is explicitly not wanted. In fixture mode the same cells come from one `filterProjects` pass
+with no filter. The globe below the band reads the same list and the browse's `locationsWithheld`;
+"Bases" counts only the bases the reader may see.
 
 ### 9.3 Ficha do projeto — INT-03 ([OBT-408](https://linear.app/shema-obt/issue/OBT-408)) · BE-06 ([OBT-395](https://linear.app/shema-obt/issue/OBT-395))
 

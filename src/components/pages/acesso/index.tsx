@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../contexts/AuthContext";
 import type { AccessAPI } from "../../../services/api";
+import { useProjectsStore } from "../../../stores/projectsStore";
 import { canAdministerAccess } from "../../../utils/access";
 import { prefersReducedMotion } from "../../../utils/motion";
 import { HistorySection } from "./HistorySection";
@@ -23,6 +24,7 @@ function AccessScreen({ api }: AcessoPageProps) {
   const { t } = useTranslation();
   const [revision, setRevision] = useState(0);
   const [prefill, setPrefill] = useState<InvitePrefill>({ email: "", nonce: 0 });
+  const listChanged = useProjectsStore((state) => state.invalidate);
 
   const invite = (email: string) => {
     setPrefill((current) => ({ email, nonce: current.nonce + 1 }));
@@ -52,7 +54,10 @@ function AccessScreen({ api }: AcessoPageProps) {
         />
         <PendingProjectsSection
           api={api}
-          onChanged={() => setRevision((current) => current + 1)}
+          onChanged={() => {
+            setRevision((current) => current + 1);
+            listChanged();
+          }}
         />
         <InvitesSection api={api} prefill={prefill} revision={revision} />
         <HistorySection api={api} revision={revision} />
