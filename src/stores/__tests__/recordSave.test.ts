@@ -545,6 +545,48 @@ describe("a recusa do servidor cai na aba certa", () => {
     );
     expect(tabOfFirstError([{ field: null, index: null, message: "x" }])).toBeNull();
   });
+
+  it("o prazo antes do início leva à aba Objetivo, e o rascunho fica (OBT-601)", async () => {
+    await openAt();
+    useRecordStore
+      .getState()
+      .updateDraft("p1", { startDate: "2026-05-10", deadline: "2026-05-01" });
+
+    // O que o shema-api responde desde a OBT-601, com os dados da PME-FIC-020.
+    queue = [
+      {
+        status: 400,
+        data: {
+          detail: "deadline 2026-05-01 is before the start date 2026-05-10",
+          code: "BAD_REQUEST",
+          errors: [
+            {
+              type: "date_order",
+              loc: ["body", "deadline"],
+              msg: "before the start date (2026-05-10)",
+            },
+          ],
+        },
+      },
+    ];
+    const outcome = await store().save(saving(drafts().p1));
+
+    expect(outcome.kind).toBe("invalid");
+    if (outcome.kind !== "invalid") return;
+    expect(outcome.errors).toEqual([
+      {
+        field: "deadline",
+        index: null,
+        message: "before the start date (2026-05-10)",
+      },
+    ]);
+    expect(tabOfFirstError(outcome.errors)).toBe("objetivo");
+    expect(store().record?.version).toBe('"7"');
+    expect(drafts().p1).toMatchObject({
+      startDate: "2026-05-10",
+      deadline: "2026-05-01",
+    });
+  });
 });
 
 describe("o salvamento nunca envia campo que o leitor não pode gravar (OBT-532, OBT-553, OBT-556)", () => {

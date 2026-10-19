@@ -597,17 +597,26 @@ export function readConflict(body: unknown): RecordConflict {
  * anything is applied, so a rejected batch comes back naming *each* bad row at once and
  * none of them was written. A `loc` this client cannot place keeps its message and
  * loses only its position.
+ *
+ * A rule only the whole record can check — a deadline before the start (OBT-601) — is a
+ * 400 whose `detail` stays a sentence and whose `errors` carries the same list beside it,
+ * the envelope the server already widens that way for a located 400. That list wins
+ * whenever it says anything; the sentence is what is left when it does not.
  */
 export function readFieldErrors(body: unknown): RecordFieldError[] {
   const data = asRecord(body);
-  const detail = data?.detail;
+  const beside = Array.isArray(data?.errors) ? located(data.errors) : [];
+  if (beside.length > 0) return beside;
 
+  const detail = data?.detail;
   if (typeof detail === "string") {
     return [{ field: null, index: null, message: detail }];
   }
-  if (!Array.isArray(detail)) return [];
+  return Array.isArray(detail) ? located(detail) : [];
+}
 
-  return detail.flatMap((entry): RecordFieldError[] => {
+function located(entries: readonly unknown[]): RecordFieldError[] {
+  return entries.flatMap((entry): RecordFieldError[] => {
     const item = asRecord(entry);
     const loc = Array.isArray(item?.loc) ? item.loc : [];
     const path = loc.filter((part) => part !== "body");

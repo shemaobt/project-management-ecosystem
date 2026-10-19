@@ -494,8 +494,46 @@ describe("a recusa do servidor aponta para o campo", () => {
   it("a recusa de regra do repositório é uma frase, sem campo", () => {
     expect(
       readFieldErrors({
+        detail: "X-Shema-Local-Date: 2020-01-01 is not a day any timezone is on today",
+        code: "BAD_REQUEST",
+      }),
+    ).toEqual([
+      {
+        field: null,
+        index: null,
+        message: "X-Shema-Local-Date: 2020-01-01 is not a day any timezone is on today",
+      },
+    ]);
+  });
+
+  it("a regra que só o registro inteiro vê chega no campo, pela lista ao lado da frase (OBT-601)", () => {
+    expect(
+      readFieldErrors({
         detail: "deadline 2024-01-01 is before the start date 2024-04-13",
         code: "BAD_REQUEST",
+        errors: [
+          {
+            type: "date_order",
+            loc: ["body", "deadline"],
+            msg: "before the start date (2024-04-13)",
+          },
+        ],
+      }),
+    ).toEqual([
+      {
+        field: "deadline",
+        index: null,
+        message: "before the start date (2024-04-13)",
+      },
+    ]);
+  });
+
+  it("uma lista ao lado que não diz nada deixa a frase valer", () => {
+    expect(
+      readFieldErrors({
+        detail: "deadline 2024-01-01 is before the start date 2024-04-13",
+        code: "BAD_REQUEST",
+        errors: [],
       }),
     ).toEqual([
       {
