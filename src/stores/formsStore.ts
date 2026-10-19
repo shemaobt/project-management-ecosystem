@@ -11,7 +11,7 @@ import {
 
 const SUBMISSIONS_KEY = "shema-form-submissions-v1";
 
-export const SUBMISSIONS_VERSION = 1;
+export const SUBMISSIONS_VERSION = 2;
 
 interface FormsState extends HydrationStatus {
   submissions: ReceivedSubmission[];
@@ -38,10 +38,7 @@ export const useFormsStore = create<FormsState>()(
       name: SUBMISSIONS_KEY,
       version: SUBMISSIONS_VERSION,
       migrate: () => ({ submissions: [], hydrated: false }),
-      partialize: (state) => ({
-        submissions: state.submissions,
-        hydrated: state.hydrated,
-      }),
+      partialize: () => ({ submissions: [], hydrated: false }),
     },
   ),
 );
