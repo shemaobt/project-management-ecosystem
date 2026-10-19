@@ -26,6 +26,7 @@ import {
 import { Indicators } from "./Indicators";
 import { PulseButton } from "./PulseButton";
 import { RequestCard } from "./RequestCard";
+import { useReadsNetwork } from "../../../hooks/useReadsNetwork";
 import { useReviewsPrayer } from "../../../hooks/useReviewsPrayer";
 import { SubNav } from "./SubNav";
 import {
@@ -53,6 +54,8 @@ export interface OracaoViewProps {
   pulse?: ReactNode;
   /** Whether the review queue's tab is offered (OBT-575). */
   reviews?: boolean;
+  /** Whether the network's tab is offered (OBT-598). */
+  network?: boolean;
   initialContinent?: ContinentFilterValue;
 }
 
@@ -60,6 +63,7 @@ export function OracaoView({
   wall,
   pulse,
   reviews = false,
+  network = true,
   initialContinent = ALL_CONTINENTS,
 }: OracaoViewProps) {
   const { t } = useTranslation();
@@ -92,7 +96,7 @@ export function OracaoView({
         )}
       </header>
 
-      <SubNav reviews={reviews} />
+      <SubNav reviews={reviews} network={network} />
 
       <Indicators indicators={indicators} />
 
@@ -152,6 +156,7 @@ function LiveOracaoPage() {
   const [wall, setWall] = useState<WallLoad>({ status: "loading" });
   const sendsPulse = user.roles.includes(ROLE_DEFINITIONS.resourceCircle.key);
   const reviews = useReviewsPrayer();
+  const network = useReadsNetwork();
 
   useEffect(() => {
     let current = true;
@@ -172,6 +177,7 @@ function LiveOracaoPage() {
     <OracaoView
       wall={wall}
       reviews={reviews}
+      network={network}
       pulse={
         sendsPulse && prayerPulseAPI !== null && wall.status === "ready" ? (
           <PulseButton api={prayerPulseAPI} count={wall.requests.length} />
@@ -185,6 +191,7 @@ function FixtureOracaoPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrate = useProjectsStore((state) => state.hydrate);
+  const network = useReadsNetwork();
 
   useEffect(() => {
     void hydrate();
@@ -197,5 +204,5 @@ function FixtureOracaoPage() {
         : { status: "loading" },
     [hydrated, projects],
   );
-  return <OracaoView wall={wall} />;
+  return <OracaoView wall={wall} network={network} />;
 }

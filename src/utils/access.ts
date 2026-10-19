@@ -63,6 +63,15 @@ export function canWriteNetwork(roles: readonly SessionRole[]): boolean {
  */
 const NETWORK_KEEPERS: readonly SessionRole[] = [...NETWORK_WRITERS, "resourceCircle"];
 
+/**
+ * Who reads the network at all — the same three roles the server's `GET /prayer/intercessors`
+ * answers (OBT-598). The OBT Lab is refused with a 403, so the Intercessores tab is not offered
+ * to it. Reflection only: the server's answer is what the page finally believes.
+ */
+export function canReadNetwork(roles: readonly SessionRole[]): boolean {
+  return roles.some((role) => NETWORK_KEEPERS.includes(role));
+}
+
 export function canKeepNetwork(roles: readonly SessionRole[]): boolean {
   return roles.some((role) => NETWORK_KEEPERS.includes(role));
 }

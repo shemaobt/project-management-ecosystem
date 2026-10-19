@@ -111,3 +111,19 @@ describe("a aba de revisão", () => {
     expect(nav(false)).not.toContain("/oracao/revisao");
   });
 });
+
+describe("a aba Intercessores", () => {
+  const nav = (network: boolean) =>
+    renderToStaticMarkup(
+      createElement(
+        MemoryRouter,
+        { initialEntries: ["/oracao"] },
+        createElement(SubNav, { network }),
+      ),
+    );
+
+  it("só aparece para quem a API deixa ler a rede", () => {
+    expect(nav(true)).toContain('href="/oracao/intercessores"');
+    expect(nav(false)).not.toContain("/oracao/intercessores");
+  });
+});
