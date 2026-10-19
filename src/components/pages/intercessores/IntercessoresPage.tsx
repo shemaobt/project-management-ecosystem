@@ -16,7 +16,7 @@ import {
   type IntercessorCreateDraft,
   type IntercessorEditDraft,
 } from "../../../utils/intercessors";
-import { canKeepNetwork, canReadNetwork, canWriteNetwork } from "../../../utils/access";
+import { canKeepNetwork, canWriteNetwork } from "../../../utils/access";
 import { countryName } from "../../../utils/countries";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -317,15 +317,14 @@ export function IntercessoresPage() {
   // Always fetched on arrival, cache or not: `reviewDue` is the server's answer for today,
   // and a list kept from last week would show last week's. The cache stays on screen
   // until the answer replaces it.
-  const reads = canReadNetwork(user.roles);
   useEffect(() => {
-    if (reads) void reload();
-  }, [reload, reads]);
+    void reload();
+  }, [reload]);
 
   return (
     <IntercessoresView
       people={hydrated ? intercessors : null}
-      forbidden={!reads || refused}
+      forbidden={refused}
       withheldCount={withheldCount}
       withheldReviewDueCount={withheldReviewDueCount}
       canWrite={canWriteNetwork(user.roles)}
