@@ -23,6 +23,11 @@ export const INTERCESSORS_VERSION = 3;
 
 interface PrayerState extends HydrationStatus {
   intercessors: IntercessorEntry[];
+  /**
+   * The server refused the network to this reader (403). A reading, not an error: the page
+   * says whose the network is and stays that way, instead of a spinner or a toast that goes.
+   */
+  forbidden: boolean;
   /** People the network holds who withheld `directory` consent — a count, never a name (§8.1 rule 2's precedent). */
   withheldCount: number;
   /** Of those, how many are past their year (OBT-531) — a count, never a name. */
@@ -43,7 +48,7 @@ interface PrayerState extends HydrationStatus {
 
 type PersistedPrayer = Pick<
   PrayerState,
-  "intercessors" | "withheldCount" | "withheldReviewDueCount" | "hydrated"
+  "intercessors" | "withheldCount" | "withheldReviewDueCount" | "hydrated" | "forbidden"
 >;
 
 async function safely<T>(action: () => Promise<T>): Promise<T | null> {
@@ -60,16 +65,28 @@ export const usePrayerStore = create<PrayerState>()(
     (set, get) => {
       const slot = createHydrationSlot();
       const load = async () => {
-        const directory = await intercessorsAPI.list();
-        set({
-          intercessors: directory.people,
-          withheldCount: directory.withheldCount,
-          withheldReviewDueCount: directory.withheldReviewDueCount,
-        });
+        try {
+          const directory = await intercessorsAPI.list();
+          set({
+            intercessors: directory.people,
+            withheldCount: directory.withheldCount,
+            withheldReviewDueCount: directory.withheldReviewDueCount,
+            forbidden: false,
+          });
+        } catch (error) {
+          if (toApiFailure(error).kind !== "forbidden") throw error;
+          set({
+            intercessors: [],
+            withheldCount: 0,
+            withheldReviewDueCount: 0,
+            forbidden: true,
+          });
+        }
       };
 
       return {
         intercessors: [],
+        forbidden: false,
         withheldCount: 0,
         withheldReviewDueCount: 0,
         ...NOT_HYDRATED,
@@ -154,12 +171,14 @@ export const usePrayerStore = create<PrayerState>()(
         withheldCount: 0,
         withheldReviewDueCount: 0,
         hydrated: false,
+        forbidden: false,
       }),
       partialize: (state) => ({
         intercessors: state.intercessors,
         withheldCount: state.withheldCount,
         withheldReviewDueCount: state.withheldReviewDueCount,
         hydrated: state.hydrated,
+        forbidden: state.forbidden,
       }),
     },
   ),

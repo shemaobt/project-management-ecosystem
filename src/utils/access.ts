@@ -63,6 +63,19 @@ export function canWriteNetwork(roles: readonly SessionRole[]): boolean {
  */
 const NETWORK_KEEPERS: readonly SessionRole[] = [...NETWORK_WRITERS, "resourceCircle"];
 
+/**
+ * Who reads the network at all, mirroring shema-api's `NetworkReader` (OBT-598): the Resource
+ * Circle, coordination and the `admin` role. Today the same three as the keepers, and still a
+ * list of its own, because the server keeps them apart. The OBT Lab is refused with a 403, so
+ * the Intercessores tab is not offered to it. Reflection only: the page still asks the server,
+ * and only its 403 says the network is refused.
+ */
+const NETWORK_READERS: readonly SessionRole[] = ["resourceCircle", "coordinator", ADMIN_ROLE];
+
+export function canReadNetwork(roles: readonly SessionRole[]): boolean {
+  return roles.some((role) => NETWORK_READERS.includes(role));
+}
+
 export function canKeepNetwork(roles: readonly SessionRole[]): boolean {
   return roles.some((role) => NETWORK_KEEPERS.includes(role));
 }

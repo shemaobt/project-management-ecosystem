@@ -291,6 +291,7 @@
   "int_send_mail": "Email",
   "int_copy": "Copy",
   "int_empty": "No intercessors registered yet. Add name, country and contact above.",
+  "int_forbidden": "The intercessor network holds people's names and contacts, and is read by {{coordinator}}, {{admin}} and {{resourceCircle}} — that is why it does not appear for your role.",
   "int_empty_reader": "No intercessors registered yet. Coordination registers the people in the network.",
   "int_footnote": "Sent requests come from the Prayer Wall — only those teams authorized to share.",
   "int_email_subject": "Prayer requests · Shema",

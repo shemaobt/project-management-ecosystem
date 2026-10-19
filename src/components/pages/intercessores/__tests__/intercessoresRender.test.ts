@@ -376,3 +376,50 @@ describe("a página fala inglês quando o idioma muda", () => {
     await i18n.changeLanguage("pt");
   });
 });
+
+describe("a rede recusada ao papel (OBT-598)", () => {
+  const refused = () =>
+    renderToStaticMarkup(
+      createElement(
+        MemoryRouter,
+        null,
+        createElement(IntercessoresView, {
+          people: [],
+          forbidden: true,
+          withheldCount: 0,
+          withheldReviewDueCount: 0,
+          canWrite: false,
+          canKeep: false,
+          onAdd: refuseAsync,
+          onUpdate: refuseAsync,
+          onRemove: refuseAsync,
+          onRevealContact: async () => null,
+          onReview: refuseAsync,
+        }),
+      ),
+    );
+
+  it("troca o carregando por uma frase que fica, e não desenha lista nem cadastro", () => {
+    const html = refused();
+    expect(html).toContain("não aparece para o seu papel");
+    expect(html).not.toContain(i18n.t("loading"));
+    expect(html).not.toContain(i18n.t("int_empty_reader"));
+    expect(html).not.toContain(i18n.t("int_name"));
+  });
+
+  it("não oferece a própria aba a quem a rede recusa", () => {
+    expect(refused()).not.toContain('href="/oracao/intercessores"');
+  });
+
+  it("diz quem lê a rede pelos nomes dos três papéis, em inglês também", async () => {
+    for (const lang of ["pt", "en"]) {
+      await i18n.changeLanguage(lang);
+      const html = refused();
+      for (const role of ["role_coordinator", "role_admin", "role_resource"]) {
+        expect(html).toContain(i18n.t(role));
+      }
+    }
+    expect(refused()).toContain("that is why it does not appear for your role");
+    await i18n.changeLanguage("pt");
+  });
+});

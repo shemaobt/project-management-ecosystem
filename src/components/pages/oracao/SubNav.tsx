@@ -10,9 +10,11 @@ const subtabOn = "bg-canvas text-telha shadow-sm";
 export interface SubNavProps {
   /** Whether the review queue's tab is offered — the coordination's, and only against the server. */
   reviews?: boolean;
+  /** Whether the network's tab is offered — only to the roles the server lets read it (OBT-598). */
+  network?: boolean;
 }
 
-export function SubNav({ reviews = false }: SubNavProps) {
+export function SubNav({ reviews = false, network = true }: SubNavProps) {
   const { t } = useTranslation();
 
   return (
@@ -27,12 +29,14 @@ export function SubNav({ reviews = false }: SubNavProps) {
       >
         {t("oracao_sub_mural")}
       </NavLink>
-      <NavLink
-        to="/oracao/intercessores"
-        className={({ isActive }) => cn(subtab, isActive && subtabOn)}
-      >
-        {t("oracao_sub_rede")}
-      </NavLink>
+      {network && (
+        <NavLink
+          to="/oracao/intercessores"
+          className={({ isActive }) => cn(subtab, isActive && subtabOn)}
+        >
+          {t("oracao_sub_rede")}
+        </NavLink>
+      )}
       {reviews && (
         <NavLink
           to="/oracao/revisao"
