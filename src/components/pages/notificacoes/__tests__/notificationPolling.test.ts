@@ -30,6 +30,8 @@ describe("as preferências do sino (OBT-604)", () => {
 
     expect(readsSavedPrefs(["gestor"])).toBe(false);
     expect(readsSavedPrefs(["mesa", "gestor"])).toBe(false);
+    expect(readsSavedPrefs(["equipe"])).toBe(false);
+    expect(readsSavedPrefs(["gestor", "equipe"])).toBe(false);
     expect(readsSavedPrefs(["admin", "gestor"])).toBe(true);
     expect(readsSavedPrefs(["coordinator"])).toBe(true);
     expect(readsSavedPrefs(["gestor", "obtLab"])).toBe(true);
