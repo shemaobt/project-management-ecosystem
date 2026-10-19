@@ -81,7 +81,7 @@ export function ImageUpload({
       <label
         htmlFor={id}
         className={cn(
-          "flex h-full w-full cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent",
+          "relative flex h-full w-full cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent",
           !value && photoSlotSurface,
         )}
       >

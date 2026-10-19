@@ -57,7 +57,13 @@ export function RequestButton({
   }
 
   return (
-    <Button size="sm" disabled={opening} aria-busy={opening} onClick={onOpen}>
+    <Button
+      size="sm"
+      className="relative"
+      disabled={opening}
+      aria-busy={opening}
+      onClick={onOpen}
+    >
       {opening ? t("rr_opening") : action.kind === "start" ? t("rr_start") : t("rr_continue")}
       <ExternalLink size={14} strokeWidth={1.75} aria-hidden />
       <span className="sr-only">{t("rr_opens_new_tab")}</span>

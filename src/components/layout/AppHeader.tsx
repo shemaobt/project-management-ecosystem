@@ -102,7 +102,7 @@ export function AppHeader() {
         </button>
         <button
           type="button"
-          className={TB_BTN}
+          className={cn(TB_BTN, "relative")}
           title={t("theme_dark")}
           aria-pressed={dark}
           onClick={() => setTheme(dark ? "light" : "dark")}
