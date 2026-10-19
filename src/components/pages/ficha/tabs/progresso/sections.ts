@@ -1,3 +1,4 @@
+import { bookNameById } from "../../../../../constants/bible";
 import {
   BOOK_PROGRESS_OBJECTIVES,
   OTHER_PROGRESS_OBJECTIVE,
@@ -123,9 +124,10 @@ export interface BreakdownRow {
 
 export function toBreakdownRow(
   item: BookProgressItem | StoryProgressItem | OtherProgressItem,
+  lang: string,
 ): BreakdownRow {
   return {
-    name: item.name,
+    name: "id" in item ? bookNameById(item.id, item.name, lang) : item.name,
     chapters: ("chapters" in item ? item.chapters : 0) || 1,
     translated: "translated" in item ? item.translated || 0 : 0,
     community: "communityChecked" in item ? item.communityChecked || 0 : 0,

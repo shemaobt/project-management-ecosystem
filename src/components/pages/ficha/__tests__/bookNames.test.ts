@@ -6,6 +6,7 @@ import {
   bookName,
   bookNameById,
 } from "../../../../constants/bible";
+import { toBreakdownRow } from "../tabs/progresso/sections";
 
 const SRC = join(__dirname, "../../../..");
 
@@ -15,7 +16,7 @@ function sourceFiles(dir: string): string[] {
     if (statSync(path).isDirectory()) {
       return entry === "__tests__" ? [] : sourceFiles(path);
     }
-    return /\.tsx$/.test(entry) ? [path] : [];
+    return /\.tsx?$/.test(entry) ? [path] : [];
   });
 }
 
@@ -37,11 +38,34 @@ describe("nomes dos livros seguem o idioma", () => {
   it("nenhuma tela lista livros sem passar pelo idioma", () => {
     const offenders = sourceFiles(SRC).filter((file) => {
       const text = readFileSync(file, "utf8");
-      if (file.endsWith("constants/bible.ts")) return false;
       const listsBooks = /BIBLE_BOOKS/.test(text);
       const readsName = /\bbook\.name\b|\bbook\.en\b/.test(text);
       const usesHelper = /bookName(ById)?\(/.test(text);
       return (listsBooks || readsName) && !usesHelper;
+    });
+    expect(offenders).toEqual([]);
+  });
+
+  it("a vista resolve o livro pelo idioma, pela chave da linha", () => {
+    const row = {
+      id: "gen",
+      name: "Gênesis",
+      chapters: 50,
+      translated: 1,
+      communityChecked: 0,
+      mentorApproved: 0,
+    };
+    expect(toBreakdownRow(row, "en").name).toBe("Genesis");
+    expect(toBreakdownRow(row, "pt").name).toBe("Gênesis");
+    expect(toBreakdownRow({ ...row, id: "custom", name: "Outro" }, "en").name).toBe("Outro");
+  });
+
+  it("quem monta a linha da vista passa o idioma", () => {
+    const offenders = sourceFiles(SRC).filter((file) => {
+      const text = readFileSync(file, "utf8");
+      const bare = /map\(\s*toBreakdownRow\s*\)/.test(text);
+      const calls = [...text.matchAll(/toBreakdownRow\(([^)]*)\)/g)];
+      return bare || calls.some(([, args]) => !/\blang\b/.test(args));
     });
     expect(offenders).toEqual([]);
   });
