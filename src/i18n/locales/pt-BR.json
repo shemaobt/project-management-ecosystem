@@ -1327,6 +1327,8 @@
   "acesso_pending_empty": "Nenhum projeto aguardando confirmação.",
   "acesso_pending_from_request": "Do pedido “{{name}}”, aprovado em {{date}}.",
   "acesso_pending_name_required": "O nome da língua é obrigatório.",
+  "acesso_pending_region": "Região: {{region}} — lida do país no começo do local.",
+  "acesso_pending_region_other": "O local não começa por um país que o mapa reconhece, então o projeto fica fora da região dele e a coordenação dessa região não o vê. Comece pelo país — por exemplo, “África do Sul, Cidade do Cabo”.",
   "acesso_pending_members_title": "Pessoas da equipe",
   "acesso_pending_members_hint": "Quem já tem conta entra na equipe; quem não tem recebe um convite. Sem e-mail, a pessoa fica de fora por enquanto.",
   "acesso_pending_members_empty": "Ninguém na lista.",

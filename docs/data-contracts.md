@@ -444,7 +444,10 @@ because the prototype's names were real people hardcoded in a file. `GLOBAL_STRA
 Region membership is derived, not stored: `COUNTRY_REGION` maps 25 country strings — **keyed on the
 export's exact spelling**, including `São Tomé e Príncipe` in Portuguese and `East Timor` in
 English — and anything unmapped falls to `other`. **Server requirement: do not normalise country
-names on import**; every mapping is by that string.
+names on import**; every mapping is by that string. Since OBT-591 (16/oct/2026) `COUNTRY_SYNONYMS`
+sits beside it: the Portuguese, Spanish and English spellings of the same 25 countries, each
+pointing at the export's spelling, never at a region — **listed, still not normalised**, and held
+equal to the server's tables by `src/utils/__tests__/countryRegion.json` (§7.6).
 
 ### 5.4 Meetings
 
@@ -719,9 +722,16 @@ team was heard.**
 
 ### 7.6 Region, and the counts
 
-`getCountry` is `location.split(",")[0].trim()`; `getRegion` maps it through `COUNTRY_REGION` and
-falls back to `other`. Today: oceania 36, asia 31, south-america 29, africa 17, north-america 12,
-other 2, europe 0.
+`getCountry` is the first comma-separated item that is not blank, trimmed — `shema-api`'s
+`countries_named` since OBT-591, so a leading comma reads alike on both sides. `getRegion` maps it
+through `COUNTRY_REGION` — directly, or through the export's spelling a `COUNTRY_SYNONYMS` entry
+names (OBT-591) — and falls back to `other`. The first item only: `Cidade do Cabo, África do Sul`
+is `other`, by decision. `regionOfPlace` is the server's own reading of a typed place, where no
+region key reads as itself. `npm run emit:regions` writes both tables to
+`src/utils/__tests__/countryRegion.json`, which `shema-api` vendors byte for byte: each side's test
+fails when its tables leave the file, and the file crosses by copy, so a spelling changes as a diff
+to it in both repositories. Today: oceania 36, asia 31, south-america 29, africa 17,
+north-america 12, other 2, europe 0.
 
 `filterProjects` is one pass that produces the visible list **and** every facet count, using the
 rule that an option counts a record when the record passes every filter group except, at most, that
@@ -1466,8 +1476,9 @@ All three are the Admin's, like §9.15's: any other role is a `403`, an id no ap
 `404`, a project already confirmed or discarded a `409`, and a confirmation without
 `sensitiveCountry` or a discard without a reason a `422`. They answer camelCase and
 `src/types/access.ts` types them. `AwaitingProject` is `{id, languageName, languageCode, location,
-team, requestId, requestName, filedAt, members: [{name, role, email}], locationWithheld}`.
-`ProjectConfirmation` is `{languageName, languageCode, location, team, sensitiveCountry, members:
+team, requestId, requestName, filedAt, members: [{name, role, email}], locationWithheld, region}` —
+`region` since OBT-591: the region confirming writes if the place is kept, which the conference
+shows under the place and warns about when it is `other`. `ProjectConfirmation` is `{languageName, languageCode, location, team, sensitiveCountry, members:
 [{name, email}]}` — the server keeps what was filed for a `languageCode`, `location` or `team` left
 out, and the console always sends all five. `ConfirmedProject` is `{id, languageName, requestIds,
 joined: [{email, userId}], invited: [{email, inviteId, inviteUrl, emailSent}], withoutEmail}` — the
