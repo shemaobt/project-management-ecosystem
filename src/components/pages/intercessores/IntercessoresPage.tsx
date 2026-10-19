@@ -1,4 +1,4 @@
-import { Search, X } from "lucide-react";
+import { Lock, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -16,7 +16,7 @@ import {
   type IntercessorCreateDraft,
   type IntercessorEditDraft,
 } from "../../../utils/intercessors";
-import { canKeepNetwork, canWriteNetwork } from "../../../utils/access";
+import { canKeepNetwork, canReadNetwork, canWriteNetwork } from "../../../utils/access";
 import { countryName } from "../../../utils/countries";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -31,6 +31,8 @@ import { RemoveIntercessorDialog } from "./RemoveIntercessorDialog";
 
 export interface IntercessoresViewProps {
   people: readonly IntercessorEntry[] | null;
+  /** The server refused the network to this reader — the page says whose it is and stays so (OBT-598). */
+  forbidden?: boolean;
   withheldCount: number;
   /** Of the withheld, how many are past their year — a number the server counted. */
   withheldReviewDueCount: number;
@@ -53,6 +55,7 @@ export interface IntercessoresViewProps {
 
 export function IntercessoresView({
   people,
+  forbidden = false,
   withheldCount,
   withheldReviewDueCount,
   canWrite,
@@ -171,9 +174,24 @@ export function IntercessoresView({
         </p>
       </header>
 
-      <SubNav reviews={reviews} />
+      <SubNav reviews={reviews} network={!forbidden} />
 
-      {canWrite ? (
+      {forbidden ? (
+        <p className="mb-4.5 flex items-start gap-2.5 rounded-[12px] border border-line-strong bg-muted px-4 py-3 text-micro leading-[1.45] text-fg">
+          <Lock
+            size={16}
+            strokeWidth={1.75}
+            aria-hidden
+            className="mt-px shrink-0 text-fg-muted"
+          />
+          {t("int_forbidden", {
+            coordinator: t("role_coordinator"),
+            resourceCircle: t("role_resource"),
+          })}
+        </p>
+      ) : null}
+
+      {forbidden ? null : canWrite ? (
         <IntercessorForm
           draft={createDraft}
           onChange={setCreateDraft}
@@ -182,7 +200,7 @@ export function IntercessoresView({
         />
       ) : null}
 
-      {people === null ? (
+      {forbidden ? null : people === null ? (
         <div className="flex justify-center py-16">
           <LoadingSpinner size="lg" label={t("loading")} />
         </div>
@@ -287,6 +305,7 @@ export function IntercessoresPage() {
     (state) => state.withheldReviewDueCount,
   );
   const hydrated = usePrayerStore((state) => state.hydrated);
+  const refused = usePrayerStore((state) => state.forbidden);
   const reload = usePrayerStore((state) => state.reload);
   const addIntercessor = usePrayerStore((state) => state.addIntercessor);
   const updateIntercessor = usePrayerStore((state) => state.updateIntercessor);
@@ -298,13 +317,15 @@ export function IntercessoresPage() {
   // Always fetched on arrival, cache or not: `reviewDue` is the server's answer for today,
   // and a list kept from last week would show last week's. The cache stays on screen
   // until the answer replaces it.
+  const reads = canReadNetwork(user.roles);
   useEffect(() => {
-    void reload();
-  }, [reload]);
+    if (reads) void reload();
+  }, [reload, reads]);
 
   return (
     <IntercessoresView
       people={hydrated ? intercessors : null}
+      forbidden={!reads || refused}
       withheldCount={withheldCount}
       withheldReviewDueCount={withheldReviewDueCount}
       canWrite={canWriteNetwork(user.roles)}
