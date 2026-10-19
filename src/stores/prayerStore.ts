@@ -48,7 +48,7 @@ interface PrayerState extends HydrationStatus {
 
 type PersistedPrayer = Pick<
   PrayerState,
-  "intercessors" | "withheldCount" | "withheldReviewDueCount" | "hydrated"
+  "intercessors" | "withheldCount" | "withheldReviewDueCount" | "hydrated" | "forbidden"
 >;
 
 async function safely<T>(action: () => Promise<T>): Promise<T | null> {
