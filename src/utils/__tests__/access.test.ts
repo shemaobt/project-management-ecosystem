@@ -7,6 +7,7 @@ import {
   canAdministerAccess,
   canSubmitRegions,
   canKeepNetwork,
+  canReadNetwork,
   canWriteNetwork,
   holdsFormRole,
   holdsShemaGrant,
@@ -63,6 +64,15 @@ describe("quem escreve a rede de intercessores — OBT-574", () => {
     expect(canKeepNetwork(["admin"])).toBe(true);
     expect(canKeepNetwork(["obtLab"])).toBe(false);
     expect(canKeepNetwork([])).toBe(false);
+  });
+
+  it("lêem a rede os mesmos três papéis que o GET do servidor atende; o OBT Lab não (OBT-598)", () => {
+    expect(canReadNetwork(["resourceCircle"])).toBe(true);
+    expect(canReadNetwork(["coordinator"])).toBe(true);
+    expect(canReadNetwork(["admin"])).toBe(true);
+    expect(canReadNetwork(["obtLab"])).toBe(false);
+    expect(canReadNetwork(["gestor", "mesa"])).toBe(false);
+    expect(canReadNetwork([])).toBe(false);
   });
 });
 
