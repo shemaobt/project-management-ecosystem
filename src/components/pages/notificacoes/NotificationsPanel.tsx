@@ -28,7 +28,7 @@ import {
   ScopeSection,
   WhenSection,
 } from "./PrefsSections";
-import type { NotificationsFeed } from "./useNotifications";
+import { prefsNotice, type NotificationsFeed } from "./useNotifications";
 
 function SectionLabel({
   number,
@@ -174,12 +174,7 @@ export function NotificationsPanel({
         </DialogHeader>
         <NotificationsPanelBody
           entries={feed.entries}
-          prefsUnread={
-            feed.prefsFailure === null
-              ? null
-              : `${t("notif_prefs_unread")} ${failureMessage(feed.prefsFailure, t)}`
-          }
-          onRetryPrefs={feed.retryPrefs}
+          {...prefsNotice(feed, t)}
           unreadable={feed.failure === null ? null : failureMessage(feed.failure, t)}
           projects={feed.projects}
           prefs={draft ?? saved}

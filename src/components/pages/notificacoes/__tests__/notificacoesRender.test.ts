@@ -35,6 +35,7 @@ const { routedNotifications, visibleNotifications } = await import(
   "../../../../utils/notifications"
 );
 const { NotificationsPanelBody } = await import("../NotificationsPanel");
+const { prefsNotice } = await import("../useNotifications");
 
 const NOW = new Date("2026-08-15T12:00:00");
 
@@ -326,6 +327,49 @@ describe("o painel contra o servidor (INT-11)", () => {
     expect(markup).toContain('role="alert"');
     expect(markup).toContain(i18n.t("notif_prefs_unread"));
     expect(markup).toContain(i18n.t("net_retry"));
+  });
+
+  it("a conta sem papel no Shemá lê por que Salvar fica fechado, sem um tentar de novo que não chega a lugar nenhum (OBT-604)", () => {
+    const retry = () => {};
+    const forbidden = prefsNotice(
+      { prefsForbidden: true, prefsFailure: null, retryPrefs: retry },
+      i18n.t,
+    );
+    const markup = renderToStaticMarkup(
+      createElement(
+        MemoryRouter,
+        null,
+        createElement(NotificationsPanelBody, {
+          entries: [],
+          ...forbidden,
+          projects: [],
+          prefs: { ...NOTIF_DEFAULTS },
+          handlers,
+        }),
+      ),
+    );
+
+    expect(forbidden.onRetryPrefs).toBeUndefined();
+    expect(markup).toContain('role="alert"');
+    expect(markup).toContain(i18n.t("net_forbidden"));
+    expect(markup).not.toContain(i18n.t("net_retry"));
+
+    const failed = prefsNotice(
+      {
+        prefsForbidden: false,
+        prefsFailure: { kind: "server", status: 500, code: null, detail: null },
+        retryPrefs: retry,
+      },
+      i18n.t,
+    );
+    expect(failed.prefsUnread).toContain(i18n.t("notif_prefs_unread"));
+    expect(failed.onRetryPrefs).toBe(retry);
+
+    const read = prefsNotice(
+      { prefsForbidden: false, prefsFailure: null, retryPrefs: retry },
+      i18n.t,
+    );
+    expect(read.prefsUnread).toBeNull();
   });
 
   it("uma lista que não pôde ser lida diz por quê, em vez de girar para sempre", () => {
