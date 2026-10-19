@@ -544,6 +544,34 @@ describe("a recusa do servidor aponta para o campo", () => {
     ]);
   });
 
+  it("um campo que esta ficha não localiza não apaga a frase que o nomeia", () => {
+    const sentence = "completedDate 2024-01-01 is before the start date 2024-04-13";
+    const unplaced = {
+      type: "date_order",
+      loc: ["body", "completedDate"],
+      msg: "before the start date (2024-04-13)",
+    };
+    const placed = {
+      type: "date_order",
+      loc: ["body", "deadline"],
+      msg: "before the start date (2024-04-13)",
+    };
+
+    expect(
+      readFieldErrors({ detail: sentence, code: "BAD_REQUEST", errors: [unplaced] }),
+    ).toEqual([{ field: null, index: null, message: sentence }]);
+    expect(
+      readFieldErrors({
+        detail: sentence,
+        code: "BAD_REQUEST",
+        errors: [placed, unplaced],
+      }),
+    ).toEqual([
+      { field: "deadline", index: null, message: "before the start date (2024-04-13)" },
+      { field: null, index: null, message: sentence },
+    ]);
+  });
+
   it("o 400 do repositório também é resposta, não queda de rede", async () => {
     script = () => ({
       status: 400,

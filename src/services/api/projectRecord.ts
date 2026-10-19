@@ -600,18 +600,23 @@ export function readConflict(body: unknown): RecordConflict {
  *
  * A rule only the whole record can check — a deadline before the start (OBT-601) — is a
  * 400 whose `detail` stays a sentence and whose `errors` carries the same list beside it,
- * the envelope the server already widens that way for a located 400. That list wins
- * whenever it says anything; the sentence is what is left when it does not.
+ * the envelope the server already widens that way for a located 400. That list counts
+ * for what it places: its `msg` leaves the field to `loc`, so an entry this client cannot
+ * place would say *before the start date* about nothing, and the sentence — which names
+ * the field in words — is said in its place.
  */
 export function readFieldErrors(body: unknown): RecordFieldError[] {
   const data = asRecord(body);
-  const beside = Array.isArray(data?.errors) ? located(data.errors) : [];
-  if (beside.length > 0) return beside;
-
   const detail = data?.detail;
-  if (typeof detail === "string") {
-    return [{ field: null, index: null, message: detail }];
+  const sentence: RecordFieldError[] =
+    typeof detail === "string" ? [{ field: null, index: null, message: detail }] : [];
+
+  const beside = Array.isArray(data?.errors) ? located(data.errors) : [];
+  const placed = beside.filter((error) => error.field !== null);
+  if (placed.length > 0) {
+    return placed.length < beside.length ? [...placed, ...sentence] : placed;
   }
+  if (sentence.length > 0) return sentence;
   return Array.isArray(detail) ? located(detail) : [];
 }
 
