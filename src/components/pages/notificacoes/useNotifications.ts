@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { NOTIF_DEFAULTS } from "../../../constants/notifications";
 import { useAuth } from "../../../contexts/AuthContext";
 import {
+  failureMessage,
   notificationsAPI,
   toApiFailure,
   type NotificationsAPI,
   type ServedPanel,
+  type Translate,
 } from "../../../services/api";
 import { useNotificationStore } from "../../../stores/notificationStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
@@ -33,6 +35,7 @@ export interface NotificationsFeed {
   prefsReady: boolean;
   /** Why the saved preferences could not be read; the panel then says so instead of showing defaults as saved. */
   prefsFailure: ApiFailure | null;
+  prefsForbidden: boolean;
   /** Asks for the saved preferences again, after a failed read. */
   retryPrefs: () => void;
   savePrefs: (prefs: NotificationPrefs) => Promise<ApiFailure | null>;
@@ -61,6 +64,20 @@ export function readsOnReturn(lastRead: number | null, now: number): boolean {
  */
 export function readsSavedPrefs(roles: readonly SessionRole[]): boolean {
   return holdsShemaGrant(roles);
+}
+
+export function prefsNotice(
+  feed: Pick<NotificationsFeed, "prefsForbidden" | "prefsFailure" | "retryPrefs">,
+  t: Translate,
+): { prefsUnread: string | null; onRetryPrefs?: () => void } {
+  if (feed.prefsForbidden) return { prefsUnread: t("net_forbidden") };
+  return {
+    prefsUnread:
+      feed.prefsFailure === null
+        ? null
+        : `${t("notif_prefs_unread")} ${failureMessage(feed.prefsFailure, t)}`,
+    onRetryPrefs: feed.retryPrefs,
+  };
 }
 
 /**
@@ -132,6 +149,7 @@ function useDerivedFeed(): NotificationsFeed {
     prefs,
     prefsReady: true,
     prefsFailure: null,
+    prefsForbidden: false,
     retryPrefs: noRetry,
     savePrefs,
     projects,
@@ -268,6 +286,7 @@ function useServedFeed(api: NotificationsAPI): NotificationsFeed {
     prefs: shownPrefs,
     prefsReady: prefs !== null,
     prefsFailure,
+    prefsForbidden: !mayReadPrefs,
     retryPrefs,
     savePrefs,
     projects,

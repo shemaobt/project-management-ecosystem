@@ -44,6 +44,7 @@ describe("a leitura das preferências (OBT-604)", () => {
     const effect = source.slice(source.indexOf("if (!mayReadPrefs) return;"));
 
     expect(source).toContain("const mayReadPrefs = readsSavedPrefs(user.roles);");
+    expect(source).toContain("prefsForbidden: !mayReadPrefs,");
     expect(effect.indexOf("api.prefs()")).toBeGreaterThan(0);
     expect(source.match(/api\.prefs\(\)/g)).toHaveLength(1);
   });
