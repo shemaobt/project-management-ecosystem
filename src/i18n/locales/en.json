@@ -1328,6 +1328,8 @@
   "acesso_pending_empty": "No project is awaiting confirmation.",
   "acesso_pending_from_request": "From the request “{{name}}”, approved on {{date}}.",
   "acesso_pending_name_required": "The language name is required.",
+  "acesso_pending_region": "Region: {{region}} — read from the country at the start of the place.",
+  "acesso_pending_region_other": "The place does not start with a country the map recognises, so the project stays out of its region and that region's coordination will not see it. Start with the country — for example, “South Africa, Cape Town”.",
   "acesso_pending_members_title": "People on the team",
   "acesso_pending_members_hint": "Whoever already has an account joins the team; whoever does not gets an invitation. Without an e-mail, the person stays out for now.",
   "acesso_pending_members_empty": "Nobody on the list.",

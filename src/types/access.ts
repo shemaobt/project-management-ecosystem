@@ -124,6 +124,11 @@ export interface AwaitingProject {
   filedAt: string;
   members: ProposedMember[];
   locationWithheld: boolean;
+  /**
+   * The region confirming writes if the place is kept, derived by the server on the read
+   * (OBT-591) — absent from a server older than that, and then the console's copy answers.
+   */
+  region?: RegionKey;
 }
 
 export interface ConfirmedMemberPayload {

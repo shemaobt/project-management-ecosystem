@@ -24,6 +24,7 @@ import type {
 } from "../types/projectRecord";
 import type { ApiFailure } from "../types/session";
 import { mayWrite, recordAccess } from "../utils/recordAccess";
+import { useProjectsStore } from "./projectsStore";
 
 /** A field whose two values differ — `JSON` because half of them are arrays. */
 function differs(left: unknown, right: unknown): boolean {
@@ -244,6 +245,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
           saving: false,
           outcome,
         });
+        useProjectsStore.getState().invalidate();
         return outcome;
       }
       const outcome = refusal(result, draft);
@@ -291,6 +293,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
         report: report(fields, withheld),
       };
       set({ record: result.record, saving: false, outcome });
+      useProjectsStore.getState().invalidate();
       return outcome;
     }
 
@@ -327,6 +330,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
     const result = await healthAssessmentsAPI.submit(id, draft, actorName);
     if (result.ok) {
       set({ record: result.record });
+      useProjectsStore.getState().invalidate();
       return { kind: "saved", project: result.record.project };
     }
     if (result.reason === "invalid") {

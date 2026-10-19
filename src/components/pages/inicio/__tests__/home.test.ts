@@ -2,6 +2,7 @@ import { createElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Project } from "../../../../types/project";
 
 function createMemoryStorage() {
   const data = new Map<string, string>();
@@ -23,6 +24,7 @@ vi.stubGlobal("window", { localStorage: storage });
 
 const { default: i18n } = await import("../../../../i18n");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
+const { listFacets } = await import("../../../../utils/indicators");
 const { Hero } = await import("../Hero");
 const { IndicatorBand } = await import("../IndicatorBand");
 const { InicioPage, InicioView } = await import("../index");
@@ -30,12 +32,14 @@ const { InicioPage, InicioView } = await import("../index");
 const render = (element: ReactElement): string =>
   renderToStaticMarkup(createElement(MemoryRouter, null, element));
 
-const hero = (projects: Parameters<typeof Hero>[0]["projects"]): string =>
-  render(createElement(Hero, { projects }));
+const counted = (projects: readonly Project[] | null) =>
+  projects === null ? null : listFacets(projects);
 
-const band = (
-  projects: Parameters<typeof IndicatorBand>[0]["projects"],
-): string => render(createElement(IndicatorBand, { projects }));
+const hero = (projects: readonly Project[] | null): string =>
+  render(createElement(Hero, { facets: counted(projects) }));
+
+const band = (projects: readonly Project[] | null): string =>
+  render(createElement(IndicatorBand, { facets: counted(projects) }));
 
 const countOf = (markup: string, needle: string): number =>
   markup.split(needle).length - 1;

@@ -176,7 +176,8 @@ function BreakdownTable({
  * drawing a status nothing computed.
  */
 export function ProgressoView({ draft }: ProgressoViewProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const project = withRolledAggregates(materializeDraft(draft.values));
 
   const derived = draft.saved?.derived ?? null;
@@ -262,7 +263,7 @@ export function ProgressoView({ draft }: ProgressoViewProps) {
               key={title}
               icon={icon}
               title={title}
-              rows={rows.map(toBreakdownRow)}
+              rows={rows.map((row) => toBreakdownRow(row, lang))}
             />
           ))}
         </div>

@@ -1,11 +1,13 @@
-import { Plus, X } from "lucide-react";
+import { AlertTriangle, Plus, X } from "lucide-react";
 import { useId, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { FALLBACK_REGION } from "../../../constants/regions";
 import type { AwaitingProject, ProjectConfirmation } from "../../../types/access";
 import type { ApiFailure } from "../../../types/session";
 import { formatDate, utcDay } from "../../../utils/format";
+import { getRegionLabelKey } from "../../../utils/region";
 import { Button, CheckboxField, Input, Label } from "../../ui";
-import { membersToSend, type MemberRow } from "./pending";
+import { membersToSend, regionToWrite, type MemberRow } from "./pending";
 import { RefusalNote } from "./RefusalNote";
 
 function rowsOf(project: AwaitingProject): MemberRow[] {
@@ -44,6 +46,7 @@ export function PendingProjectForm({
 
   const ready = languageName.trim() !== "";
   const filed = formatDate(utcDay(project.filedAt), t("locale"));
+  const region = regionToWrite(project, location);
 
   const edit = (key: string, field: "name" | "email", value: string) =>
     setMembers((current) =>
@@ -118,8 +121,26 @@ export function PendingProjectForm({
             <Input
               id={`${fieldId}-location`}
               value={location}
+              aria-describedby={`${fieldId}-region`}
               onChange={(event) => setLocation(event.target.value)}
             />
+            <div id={`${fieldId}-region`} aria-live="polite">
+              {region === FALLBACK_REGION ? (
+                <p className="flex items-start gap-1.5 text-micro leading-[1.45] font-semibold text-accent-press">
+                  <AlertTriangle
+                    size={14}
+                    strokeWidth={1.75}
+                    aria-hidden
+                    className="mt-px shrink-0"
+                  />
+                  <span>{t("acesso_pending_region_other")}</span>
+                </p>
+              ) : (
+                <p className="text-micro text-fg-muted">
+                  {t("acesso_pending_region", { region: t(getRegionLabelKey(region)) })}
+                </p>
+              )}
+            </div>
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={`${fieldId}-team`}>{t("f_facilitators")}</Label>

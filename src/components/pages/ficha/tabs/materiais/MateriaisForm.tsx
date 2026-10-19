@@ -152,7 +152,7 @@ export function MateriaisForm({ draft }: MateriaisFormProps) {
               <Button variant="secondary" size="sm" asChild>
                 <label
                   htmlFor={`ficha-material-arquivo-${index}`}
-                  className="cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent"
+                  className="relative cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent"
                 >
                   {material.fileName ? t("mat_replace") : t("mat_import")}
                   <input

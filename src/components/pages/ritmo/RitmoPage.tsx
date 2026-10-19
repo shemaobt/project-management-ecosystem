@@ -7,6 +7,7 @@ import {
   RITMO_MEETINGS,
 } from "../../../constants/meetings";
 import { useAuth } from "../../../contexts/session";
+import { useProjectListRead } from "../../../hooks/useProjectListRead";
 import { useFormsStore } from "../../../stores/formsStore";
 import { draftKey, useRhythmStore } from "../../../stores/rhythmStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
@@ -72,7 +73,6 @@ export function RitmoPage() {
   const { t } = useTranslation();
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
-  const hydrateProjects = useProjectsStore((state) => state.hydrate);
   const projectsFailure = useProjectsStore((state) => state.error);
   const reloadProjects = useProjectsStore((state) => state.reload);
   const regions = useRegionsStore((state) => state.regions);
@@ -95,12 +95,13 @@ export function RitmoPage() {
   const [editing, setEditing] = useState<Editing | null>(null);
   const [saving, setSaving] = useState(false);
 
+  useProjectListRead();
+
   useEffect(() => {
-    void hydrateProjects();
     void hydrateRegions();
     void reloadRhythm();
     void hydrateForms();
-  }, [hydrateProjects, hydrateRegions, reloadRhythm, hydrateForms]);
+  }, [hydrateRegions, reloadRhythm, hydrateForms]);
 
   const todayIso = toLocalIsoDate();
   const logReading: LogReading | null = logForbidden

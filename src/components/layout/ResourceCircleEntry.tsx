@@ -15,7 +15,7 @@ export function ResourceCircleEntry({ base, className }: ResourceCircleEntryProp
   return (
     <button
       type="button"
-      className={cn(className, "inline-flex items-center gap-1.5 disabled:cursor-wait")}
+      className={cn(className, "relative inline-flex items-center gap-1.5 disabled:cursor-wait")}
       title={t("rr_entry_hint")}
       disabled={opening}
       aria-busy={opening}

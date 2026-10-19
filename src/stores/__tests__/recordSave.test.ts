@@ -43,6 +43,8 @@ const { http } = await import("../../services/api/client");
 const { useProjectRecordStore, changedFields, withheldFields, tabOfFirstError } =
   await import("../projectRecordStore");
 const { useRecordStore } = await import("../recordStore");
+const { useProjectsStore } = await import("../projectsStore");
+const { emptyDraft } = await import("../../utils/assessment");
 
 interface Reply {
   status: number;
@@ -652,5 +654,65 @@ describe("o salvamento nunca envia campo que o leitor não pode gravar (OBT-532,
     await store().save(saved({ notes: "digitado" }, true));
 
     expect(patchBody()).toEqual({ notes: "digitado" });
+  });
+});
+
+describe("uma escrita que o servidor aceitou deixa a lista desatualizada (OBT-590)", () => {
+  const listOutdated = () => useProjectsStore.getState().outdated;
+  const REFUSED: Reply = {
+    status: 422,
+    data: { detail: [{ loc: ["body", "notes"], msg: "Value error, too long" }] },
+  };
+
+  beforeEach(() => {
+    useProjectsStore.setState({ outdated: false });
+  });
+
+  it("salvar o registro", async () => {
+    await openAt();
+    queue = [ok({ notes: "vai" }, '"8"')];
+
+    expect((await store().save(saving({ notes: "vai" }))).kind).toBe("saved");
+    expect(listOutdated()).toBe(true);
+  });
+
+  it("criar o registro", async () => {
+    queue = [ok({ id: "novo-slug" }, '"1"')];
+
+    expect(
+      (await store().save(creating({ ...record(), id: "novo-slug" } as never))).kind,
+    ).toBe("saved");
+    expect(listOutdated()).toBe(true);
+  });
+
+  it("registrar uma avaliação de saúde", async () => {
+    await openAt();
+    queue = [ok({ healthEmotional: "boa" }, '"8"')];
+    const draft = { ...emptyDraft("p1", new Date(2026, 4, 14)), ratings: {
+      emotional: "boa" as const,
+      relational: "" as const,
+      spiritual: "" as const,
+      physical: "" as const,
+    } };
+
+    expect((await store().submitAssessment(draft, "Ana")).kind).toBe("saved");
+    expect(listOutdated()).toBe(true);
+  });
+
+  it("um conflito, uma recusa, uma queda e um salvar sem mudança não escreveram nada", async () => {
+    await openAt();
+    queue = [CONFLICT, ok({}, '"9"')];
+    expect((await store().save(saving({ notes: "x" }))).kind).toBe("conflict");
+    queue = [REFUSED];
+    expect((await store().save(saving({ notes: "y" }))).kind).toBe("invalid");
+    queue = [{ status: 0 }];
+    expect((await store().save(saving({ notes: "z" }))).kind).toBe("failed");
+    expect((await store().save(saving({}))).kind).toBe("unchanged");
+    queue = [REFUSED];
+    expect(
+      (await store().save(creating({ ...record(), id: "outro" } as never))).kind,
+    ).toBe("invalid");
+
+    expect(listOutdated()).toBe(false);
   });
 });

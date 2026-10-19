@@ -1,0 +1,93 @@
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import {
+  BIBLE_BOOKS,
+  bookName,
+  bookNameById,
+} from "../../../../constants/bible";
+import { toBreakdownRow } from "../tabs/progresso/sections";
+
+const SRC = join(__dirname, "../../../..");
+
+function sourceFiles(dir: string): string[] {
+  return readdirSync(dir).flatMap((entry) => {
+    const path = join(dir, entry);
+    if (statSync(path).isDirectory()) {
+      return entry === "__tests__" ? [] : sourceFiles(path);
+    }
+    return /\.tsx?$/.test(entry) ? [path] : [];
+  });
+}
+
+function bypassesLanguage(source: string): boolean {
+  const text = source
+    .replace(/function bookName\([^)]*\)[^{]*\{[^}]*\}/, "")
+    .replace(/\bname:\s*book\.name\b/g, "");
+  const listsBooks = /BIBLE_BOOKS/.test(text);
+  const readsName = /\bbook\.(name|en)\b/.test(text);
+  const usesHelper = /bookName(ById)?\(/.test(text);
+  return readsName || (listsBooks && !usesHelper);
+}
+
+describe("nomes dos livros seguem o idioma", () => {
+  it("em EN usa o nome em inglês e em PT o português", () => {
+    for (const book of BIBLE_BOOKS) {
+      expect(bookName(book, "en")).toBe(book.en);
+      expect(bookName(book, "pt")).toBe(book.name);
+    }
+    expect(bookName(BIBLE_BOOKS[0], "en")).toBe("Genesis");
+  });
+
+  it("uma linha salva em português aparece em inglês, pela chave", () => {
+    expect(bookNameById("gen", "Gênesis", "en")).toBe("Genesis");
+    expect(bookNameById("gen", "Gênesis", "pt")).toBe("Gênesis");
+    expect(bookNameById("custom", "Outro", "en")).toBe("Outro");
+  });
+
+  it("nenhuma tela lista livros sem passar pelo idioma", () => {
+    const offenders = sourceFiles(SRC).filter((file) =>
+      bypassesLanguage(readFileSync(file, "utf8")),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it("a varredura julga cada leitura, não o arquivo", () => {
+    expect(bypassesLanguage("bookName(book, lang); <b>{book.name}</b>")).toBe(true);
+    expect(bypassesLanguage("BIBLE_BOOKS.map((book) => book.id)")).toBe(true);
+    expect(bypassesLanguage("({ id: book.id, name: book.name })")).toBe(false);
+    expect(bypassesLanguage("BIBLE_BOOKS.map((book) => bookName(book, lang))")).toBe(false);
+  });
+
+  it("a vista resolve o livro pelo idioma, pela chave da linha", () => {
+    const row = {
+      id: "gen",
+      name: "Gênesis",
+      chapters: 50,
+      translated: 1,
+      communityChecked: 0,
+      mentorApproved: 0,
+    };
+    expect(toBreakdownRow(row, "en").name).toBe("Genesis");
+    expect(toBreakdownRow(row, "pt").name).toBe("Gênesis");
+    expect(toBreakdownRow({ ...row, id: "custom", name: "Outro" }, "en").name).toBe("Outro");
+  });
+
+  it("quem monta a linha da vista passa o idioma", () => {
+    const offenders = sourceFiles(SRC).filter((file) => {
+      const text = readFileSync(file, "utf8");
+      const bare = /map\(\s*toBreakdownRow\s*\)/.test(text);
+      const calls = [...text.matchAll(/toBreakdownRow\(([^)]*)\)/g)];
+      return bare || calls.some(([, args]) => !/\blang\b/.test(args));
+    });
+    expect(offenders).toEqual([]);
+  });
+
+  it("a tela não imprime book.name nem row.name direto", () => {
+    const text = readFileSync(
+      join(SRC, "components/pages/ficha/tabs/progresso/BookTable.tsx"),
+      "utf8",
+    );
+    expect(text).not.toMatch(/\{(book|row)\.name\}|\$\{(book|row)\.name\}/);
+  });
+});

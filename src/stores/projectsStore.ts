@@ -8,6 +8,7 @@ import {
   type ProjectBrowseQuery,
 } from "../services/api";
 import type { Project } from "../types/project";
+import type { ListFacets } from "../types/projectBrowse";
 import { EMPTY_FILTERS } from "./filtersStore";
 import {
   createHydrationSlot,
@@ -32,8 +33,21 @@ interface ProjectsState extends HydrationStatus {
    * fixture list was read for nobody, so `withheldNotice` answers for it.
    */
   locationsWithheld: number | null;
+  /**
+   * The server's counts of the whole list, read in the same browse (OBT-590) — what the Início
+   * band shows, so each number is the one the server answers its link with. `null` with no
+   * server, where the band counts the fixture list itself, and while the list is `outdated`.
+   */
+  facets: ListFacets | null;
+  /**
+   * A write this console made — a record saved or created, a reading filed, an import, a
+   * project confirmed — changed the server's list after it was read. The list stays on
+   * screen, the counts do not, and the next screen that asks for it reads it again.
+   */
+  outdated: boolean;
   hydrate: () => Promise<void>;
   reload: () => Promise<void>;
+  invalidate: () => void;
   saveProject: (project: Project) => void;
   importProjects: (projects: Project[]) => void;
 }
@@ -60,12 +74,19 @@ const EVERY_PROJECT_IN_REACH: ProjectBrowseQuery = {
 export interface ProjectList {
   projects: Project[];
   locationsWithheld: number | null;
+  facets: ListFacets | null;
 }
 
 export async function loadProjectList(): Promise<ProjectList> {
-  if (!SERVED) return { projects: await projectsAPI.list(), locationsWithheld: null };
+  if (!SERVED) {
+    return { projects: await projectsAPI.list(), locationsWithheld: null, facets: null };
+  }
   const page = await projectBrowseAPI.browse(EVERY_PROJECT_IN_REACH);
-  return { projects: page.items, locationsWithheld: page.locationsWithheld };
+  return {
+    projects: page.items,
+    locationsWithheld: page.locationsWithheld,
+    facets: { counts: page.counts, matched: page.matched },
+  };
 }
 
 /** Whether the list is the server's — what tells a screen whose withheld count to trust. */
@@ -75,16 +96,30 @@ export const useProjectsStore = create<ProjectsState>()(
   persist<ProjectsState, [], [], PersistedProjects>(
     (set, get) => {
       const slot = createHydrationSlot();
-      const load = async () => {
-        set(await loadProjectList());
+      let writes = 0;
+      const load = async (): Promise<void> => {
+        const seen = writes;
+        const list = await loadProjectList();
+        // Read before the last write: that is not the list any more, so read it again.
+        if (seen !== writes) return load();
+        set({ ...list, outdated: false });
       };
 
       return {
         projects: [],
         locationsWithheld: null,
+        facets: null,
+        outdated: false,
         ...NOT_HYDRATED,
-        hydrate: () => hydrateOnce(slot, get, set, load),
+        hydrate: () => hydrateOnce(slot, get, set, load, get().outdated),
         reload: () => hydrateOnce(slot, get, set, load, true),
+        // Without a server the list is the fixture seed, which no record write reaches
+        // (the record double keeps its own overlay), so there is nothing to read again.
+        invalidate: () => {
+          if (!SERVED) return;
+          writes += 1;
+          set({ outdated: true, facets: null });
+        },
         importProjects: (projects) =>
           set({ projects, ...NOT_HYDRATED, hydrated: true }),
         saveProject: (project) =>

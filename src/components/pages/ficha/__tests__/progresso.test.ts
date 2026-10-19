@@ -354,7 +354,7 @@ describe("as tabelas seguem o escopo do objetivo", () => {
   });
 
   it("uma história vira linha de leitura sem contagens fantasmas", () => {
-    const row = toBreakdownRow({ name: "A criação", audioHours: 2 });
+    const row = toBreakdownRow({ name: "A criação", audioHours: 2 }, "pt");
     expect(row).toEqual({
       name: "A criação",
       chapters: 1,

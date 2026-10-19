@@ -444,7 +444,10 @@ because the prototype's names were real people hardcoded in a file. `GLOBAL_STRA
 Region membership is derived, not stored: `COUNTRY_REGION` maps 25 country strings — **keyed on the
 export's exact spelling**, including `São Tomé e Príncipe` in Portuguese and `East Timor` in
 English — and anything unmapped falls to `other`. **Server requirement: do not normalise country
-names on import**; every mapping is by that string.
+names on import**; every mapping is by that string. Since OBT-591 (16/oct/2026) `COUNTRY_SYNONYMS`
+sits beside it: the Portuguese, Spanish and English spellings of the same 25 countries, each
+pointing at the export's spelling, never at a region — **listed, still not normalised**, and held
+equal to the server's tables by `src/utils/__tests__/countryRegion.json` (§7.6).
 
 ### 5.4 Meetings
 
@@ -719,9 +722,16 @@ team was heard.**
 
 ### 7.6 Region, and the counts
 
-`getCountry` is `location.split(",")[0].trim()`; `getRegion` maps it through `COUNTRY_REGION` and
-falls back to `other`. Today: oceania 36, asia 31, south-america 29, africa 17, north-america 12,
-other 2, europe 0.
+`getCountry` is the first comma-separated item that is not blank, trimmed — `shema-api`'s
+`countries_named` since OBT-591, so a leading comma reads alike on both sides. `getRegion` maps it
+through `COUNTRY_REGION` — directly, or through the export's spelling a `COUNTRY_SYNONYMS` entry
+names (OBT-591) — and falls back to `other`. The first item only: `Cidade do Cabo, África do Sul`
+is `other`, by decision. `regionOfPlace` is the server's own reading of a typed place, where no
+region key reads as itself. `npm run emit:regions` writes both tables to
+`src/utils/__tests__/countryRegion.json`, which `shema-api` vendors byte for byte: each side's test
+fails when its tables leave the file, and the file crosses by copy, so a spelling changes as a diff
+to it in both repositories. Today: oceania 36, asia 31, south-america 29, africa 17,
+north-america 12, other 2, europe 0.
 
 `filterProjects` is one pass that produces the visible list **and** every facet count, using the
 rule that an option counts a record when the record passes every filter group except, at most, that
@@ -974,15 +984,22 @@ The Atlas reads the same response. `geoAPI.outlines()` stays a bundled asset (§
 > `readAs` (additive) says whether it carries the truth, and `locationsWithheld` is how many items are
 > withheld, addressed to coordination and `null` for anybody else. The console maps
 > `locationWithheld` onto `sensitiveCountry` and `readAs` onto the project, and the globe mounts its
-> overlay from `locationsWithheld` (FE-48).
+> overlay from `locationsWithheld` (FE-48). Since OBT-590 the Início band reads the envelope's
+> `counts` rather than recounting the cards (§9.2).
 
 ### 9.2 Início — FE-30, no endpoint of its own
 
-The six indicators are derived from `GET /api/shema/projects` through the same `filterProjects` the
-destination uses, so **the count is by construction what the link returns**. An `/indicators`
-endpoint would be a second owner of that relation and is explicitly not wanted. The globe below the
-band reads the fixture list, which no server read for anybody, so it announces no withheld count
-until the list integrates (FE-48); "Bases" counts only the bases the reader may see.
+The six indicators are cells of the counts `GET /api/shema/projects` answers with no filter — the
+same browse that brings the whole list (§9.1's envelope): how many the list holds (`matched`), a
+`status` option, the `attention` preset, the `atencao` staleness band (`atencao` ∪ `critico`, §7.3)
+and the distinct bases (`team`). By the facet rule (§7.6) each cell is exactly what its filter
+returns, so **the count is the server's own answer to the link** (OBT-590). Until then the console
+recounted the cards in the browser, and a card carries no progress history: staleness fell back to
+`startDate`, and a project in progress with progress recorded that day counted as *sem notícias*
+while the server's list did not. An `/indicators` endpoint would be a second owner of that relation
+and is explicitly not wanted. In fixture mode the same cells come from one `filterProjects` pass
+with no filter. The globe below the band reads the same list and the browse's `locationsWithheld`;
+"Bases" counts only the bases the reader may see.
 
 ### 9.3 Ficha do projeto — INT-03 ([OBT-408](https://linear.app/shema-obt/issue/OBT-408)) · BE-06 ([OBT-395](https://linear.app/shema-obt/issue/OBT-395))
 
@@ -1459,8 +1476,9 @@ All three are the Admin's, like §9.15's: any other role is a `403`, an id no ap
 `404`, a project already confirmed or discarded a `409`, and a confirmation without
 `sensitiveCountry` or a discard without a reason a `422`. They answer camelCase and
 `src/types/access.ts` types them. `AwaitingProject` is `{id, languageName, languageCode, location,
-team, requestId, requestName, filedAt, members: [{name, role, email}], locationWithheld}`.
-`ProjectConfirmation` is `{languageName, languageCode, location, team, sensitiveCountry, members:
+team, requestId, requestName, filedAt, members: [{name, role, email}], locationWithheld, region}` —
+`region` since OBT-591: the region confirming writes if the place is kept, which the conference
+shows under the place and warns about when it is `other`. `ProjectConfirmation` is `{languageName, languageCode, location, team, sensitiveCountry, members:
 [{name, email}]}` — the server keeps what was filed for a `languageCode`, `location` or `team` left
 out, and the console always sends all five. `ConfirmedProject` is `{id, languageName, requestIds,
 joined: [{email, userId}], invited: [{email, inviteId, inviteUrl, emailSent}], withoutEmail}` — the

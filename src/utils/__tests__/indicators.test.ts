@@ -7,12 +7,14 @@ import { decodeView } from "../filterSerialisation";
 import {
   INDICATORS,
   indicatorCount,
+  indicatorFilters,
   indicatorHref,
+  listFacets,
   type IndicatorSpec,
 } from "../indicators";
 import { matchesPreset } from "../presets";
 import { getStaleStatus, isNoNews, staleFilterMatches } from "../recency";
-import { filterProjects } from "../search";
+import { emptyCounts, filterProjects } from "../search";
 import { makeProject } from "./factory";
 
 const NOW = new Date("2026-05-14T00:00:00");
@@ -41,8 +43,9 @@ describe("indicadores ↔ destino", () => {
   const projects = loadRawProjects();
 
   it("cada indicador filtrado conta exatamente o que o link devolve", () => {
+    const facets = listFacets(projects, NOW);
     for (const spec of INDICATORS) {
-      if (spec.filters === null) continue;
+      if (indicatorFilters(spec) === null) continue;
       const href = indicatorHref(spec);
       const query = href.includes("?") ? href.slice(href.indexOf("?") + 1) : "";
       const decoded = decodeView(new URLSearchParams(query));
@@ -52,7 +55,7 @@ describe("indicadores ↔ destino", () => {
         decoded.search,
         NOW,
       ).projects.length;
-      expect(indicatorCount(spec, projects, NOW), spec.id).toBe(shown);
+      expect(indicatorCount(spec, facets), spec.id).toBe(shown);
     }
   });
 
@@ -65,7 +68,7 @@ describe("indicadores ↔ destino", () => {
   it("o link carrega a vista corrente e o decode aterrissa em no-op", () => {
     const prefs = { sort: "name", metaphor: "diario" } as const;
     for (const spec of INDICATORS) {
-      if (spec.filters === null) continue;
+      if (indicatorFilters(spec) === null) continue;
       const href = indicatorHref(spec, prefs);
       const decoded = decodeView(
         new URLSearchParams(href.slice(href.indexOf("?") + 1)),
@@ -74,14 +77,14 @@ describe("indicadores ↔ destino", () => {
       expect(decoded.metaphor, spec.id).toBe("diario");
       expect(decoded.filters, spec.id).toEqual({
         ...EMPTY_FILTERS,
-        ...spec.filters,
+        ...indicatorFilters(spec),
       });
     }
   });
 
   it("com as prefs default o link não escreve view nem sort", () => {
     for (const spec of INDICATORS) {
-      if (spec.filters === null) continue;
+      if (indicatorFilters(spec) === null) continue;
       const href = indicatorHref(spec);
       expect(href, spec.id).not.toContain("sort=");
       expect(href, spec.id).not.toContain("view=");
@@ -95,7 +98,35 @@ describe("indicadores ↔ destino", () => {
       makeProject({ team: "JOCUM Recife" }),
       makeProject({ team: "" }),
     ];
-    expect(indicatorCount(specById("bases"), shared, NOW)).toBe(2);
+    expect(indicatorCount(specById("bases"), listFacets(shared, NOW))).toBe(2);
+  });
+});
+
+describe("contra o servidor, cada número é a célula que o link pede (OBT-590)", () => {
+  it("lê das contagens servidas, sem refazer a conta no cliente", () => {
+    const counts = emptyCounts();
+    counts.status = { "em-andamento": 11, concluido: 7, pausado: 4 };
+    counts.preset = { attention: 5, prayer: 9, celebrate: 8, recent: 6 };
+    counts.stale = { "em-dia": 2, atencao: 3, critico: 1 };
+    counts.team = { "JOCUM Belém": 4, "JOCUM Recife": 9, "JOCUM Natal": 0 };
+    const facets = { counts, matched: 13 };
+
+    const shown = Object.fromEntries(
+      INDICATORS.map((spec) => [spec.id, indicatorCount(spec, facets)]),
+    );
+    expect(shown).toEqual({
+      languages: 13,
+      bases: 2,
+      inProgress: 11,
+      completed: 7,
+      urgent: 5,
+      noNews: 3,
+    });
+  });
+
+  it("um status que o servidor não mandou é zero, não ausência", () => {
+    const facets = { counts: emptyCounts(), matched: 0 };
+    expect(indicatorCount(specById("completed"), facets)).toBe(0);
   });
 });
 
@@ -117,7 +148,7 @@ describe("regra dos 60 dias — indicador e chip nunca divergem", () => {
       expect(isNoNews(getStaleStatus(project, NOW)), `dias=${days}`).toBe(
         counted,
       );
-      expect(indicatorCount(noNews, [project], NOW), `dias=${days}`).toBe(
+      expect(indicatorCount(noNews, listFacets([project], NOW)), `dias=${days}`).toBe(
         counted ? 1 : 0,
       );
       expect(matchesPreset(project, "recent", NOW), `dias=${days}`).toBe(
@@ -134,7 +165,7 @@ describe("regra dos 60 dias — indicador e chip nunca divergem", () => {
       lastUpdated: daysBefore(200),
     });
     expect(getStaleStatus(done, NOW)).toBeNull();
-    expect(indicatorCount(specById("noNews"), [done], NOW)).toBe(0);
+    expect(indicatorCount(specById("noNews"), listFacets([done], NOW))).toBe(0);
   });
 });
 
