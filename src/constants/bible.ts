@@ -70,3 +70,12 @@ export const BIBLE_BOOKS: readonly BibleBook[] = [
 ];
 
 export const BIBLE_CHAPTER_TOTAL = 1189;
+
+export function bookName(book: BibleBook, lang: string): string {
+  return lang.startsWith("en") ? book.en : book.name;
+}
+
+export function bookNameById(id: string, fallback: string, lang: string): string {
+  const book = BIBLE_BOOKS.find((entry) => entry.id === id);
+  return book ? bookName(book, lang) : fallback;
+}

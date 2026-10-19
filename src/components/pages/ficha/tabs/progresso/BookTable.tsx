@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { BIBLE_BOOKS } from "../../../../../constants/bible";
+import { BIBLE_BOOKS, bookName, bookNameById } from "../../../../../constants/bible";
 import type { BookProgressItem } from "../../../../../types/project";
 import { cn } from "../../../../../utils/cn";
 import {
@@ -26,7 +26,8 @@ export interface BookTableProps {
 }
 
 export function BookTable({ rows, onChange }: BookTableProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const used = new Set(rows.map((row) => row.id));
   const available = BIBLE_BOOKS.filter((book) => !used.has(book.id));
 
@@ -54,22 +55,24 @@ export function BookTable({ rows, onChange }: BookTableProps) {
         <span />
       </div>
 
-      {rows.map((row, index) => (
+      {rows.map((row, index) => {
+        const label = bookNameById(row.id, row.name, lang);
+        return (
         <div
           key={row.id}
           className={cn(COUNT_GRID, "border-b border-line last:border-b-0")}
         >
           <span
             className="truncate text-small font-medium text-fg"
-            title={row.name}
+            title={label}
           >
-            {row.name}
+            {label}
           </span>
           <span className="text-center text-small font-semibold tabular-nums text-fg-muted">
             {row.chapters}
           </span>
           <CountInput
-            label={`${row.name} · ${t("col_translated")}`}
+            label={`${label} · ${t("col_translated")}`}
             value={row.translated}
             max={row.chapters}
             onChange={(value) =>
@@ -77,7 +80,7 @@ export function BookTable({ rows, onChange }: BookTableProps) {
             }
           />
           <CountInput
-            label={`${row.name} · ${t("col_checked")}`}
+            label={`${label} · ${t("col_checked")}`}
             value={row.communityChecked}
             max={row.chapters}
             onChange={(value) =>
@@ -85,7 +88,7 @@ export function BookTable({ rows, onChange }: BookTableProps) {
             }
           />
           <CountInput
-            label={`${row.name} · ${t("col_approved")}`}
+            label={`${label} · ${t("col_approved")}`}
             value={row.mentorApproved}
             max={row.chapters}
             onChange={(value) =>
@@ -93,11 +96,12 @@ export function BookTable({ rows, onChange }: BookTableProps) {
             }
           />
           <RemoveRowButton
-            label={`${t("row_remove")} · ${row.name}`}
+            label={`${t("row_remove")} · ${label}`}
             onClick={() => onChange(removeRow(rows, index))}
           />
         </div>
-      ))}
+        );
+      })}
 
       <div className="border-t border-line bg-muted p-2.5">
         <Select value="" onValueChange={add}>
@@ -111,7 +115,7 @@ export function BookTable({ rows, onChange }: BookTableProps) {
                 .filter((book) => book.ot)
                 .map((book) => (
                   <SelectItem key={book.id} value={book.id}>
-                    {`${book.name} (${book.chapters})`}
+                    {`${bookName(book, lang)} (${book.chapters})`}
                   </SelectItem>
                 ))}
             </SelectGroup>
@@ -121,7 +125,7 @@ export function BookTable({ rows, onChange }: BookTableProps) {
                 .filter((book) => !book.ot)
                 .map((book) => (
                   <SelectItem key={book.id} value={book.id}>
-                    {`${book.name} (${book.chapters})`}
+                    {`${bookName(book, lang)} (${book.chapters})`}
                   </SelectItem>
                 ))}
             </SelectGroup>
