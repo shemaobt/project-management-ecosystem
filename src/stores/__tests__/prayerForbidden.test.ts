@@ -29,6 +29,7 @@ vi.stubGlobal("window", { localStorage: storage, sessionStorage: tabStorage });
 
 const { http } = await import("../../services/api/client");
 const { usePrayerStore } = await import("../prayerStore");
+const STORE_KEY = usePrayerStore.persist.getOptions().name ?? "";
 
 let status = 403;
 const adapter = async (config: InternalAxiosRequestConfig) => {
@@ -70,6 +71,15 @@ describe("o 403 de /prayer/intercessors", () => {
     expect(state.forbidden).toBe(true);
     expect(state.error).toBeNull();
     expect(state.intercessors).toEqual([]);
+  });
+
+  it("a aba reaberta começa na recusa guardada, não numa rede vazia", async () => {
+    status = 403;
+
+    await usePrayerStore.getState().reload();
+
+    const kept = JSON.parse(tabStorage.getItem(STORE_KEY) ?? "{}");
+    expect(kept.state).toMatchObject({ hydrated: true, intercessors: [], forbidden: true });
   });
 
   it("uma leitura que volta a funcionar desfaz o acesso negado", async () => {
