@@ -411,8 +411,15 @@ describe("a rede recusada ao papel (OBT-598)", () => {
     expect(refused()).not.toContain('href="/oracao/intercessores"');
   });
 
-  it("diz quem lê a rede pelos nomes dos papéis, em inglês também", async () => {
-    await i18n.changeLanguage("en");
+  it("diz quem lê a rede pelos nomes dos três papéis, em inglês também", async () => {
+    for (const lang of ["pt", "en"]) {
+      await i18n.changeLanguage(lang);
+      const html = refused();
+      for (const role of ["role_coordinator", "role_admin", "role_resource"]) {
+        expect(html).toContain(i18n.t(role));
+      }
+    }
     expect(refused()).toContain("that is why it does not appear for your role");
+    await i18n.changeLanguage("pt");
   });
 });

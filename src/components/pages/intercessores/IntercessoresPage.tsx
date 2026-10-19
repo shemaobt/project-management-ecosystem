@@ -186,6 +186,7 @@ export function IntercessoresView({
           />
           {t("int_forbidden", {
             coordinator: t("role_coordinator"),
+            admin: t("role_admin"),
             resourceCircle: t("role_resource"),
           })}
         </p>
