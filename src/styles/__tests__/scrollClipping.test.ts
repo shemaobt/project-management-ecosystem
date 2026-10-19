@@ -99,3 +99,24 @@ describe("um sr-only dentro de um controle não estica a página nas faixas com 
     expect(srOnlyWithoutPositionedControl(source)).toEqual([]);
   });
 });
+
+describe("a lista de um Select nunca passa da largura que a tela deixa", () => {
+  const select = readFileSync(
+    join(process.cwd(), "src/components/ui/Select.tsx"),
+    "utf8",
+  );
+
+  it("o conteúdo é limitado pela largura disponível que o Radix mede", () => {
+    expect(select).toContain("max-w-(--radix-select-content-available-width)");
+  });
+
+  it("o seletor de projeto do Hub usa o SelectContent, sem largura própria", () => {
+    const selector = readFileSync(
+      join(process.cwd(), "src/components/pages/formularios/ProjectSelector.tsx"),
+      "utf8",
+    );
+
+    expect(selector).toContain("<SelectContent>");
+    expect(selector).not.toMatch(/\bw-\[|\bmin-w-\[|max-w-none/u);
+  });
+});

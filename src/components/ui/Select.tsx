@@ -41,7 +41,7 @@ export function SelectContent({
       <SelectPrimitive.Content
         position={position}
         className={cn(
-          `z-50 max-h-72 min-w-(--radix-select-trigger-width) overflow-hidden rounded-sm ${surfaceOutlined} shadow-md`,
+          `z-50 max-h-72 min-w-(--radix-select-trigger-width) max-w-(--radix-select-content-available-width) overflow-hidden rounded-sm ${surfaceOutlined} shadow-md`,
           position === "popper" && "mt-1",
           className,
         )}
