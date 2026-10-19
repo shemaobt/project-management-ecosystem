@@ -75,7 +75,7 @@ describe("as submissões de Pulso vêm do servidor, não da cópia do navegador 
     expect(reported(useFormsStore.getState().submissions)).toBe(2);
   });
 
-  it("nada do que um líder escreveu fica no navegador", async () => {
+  it("nenhuma submissão recebida fica no navegador", async () => {
     vi.spyOn(formsAPI, "received").mockResolvedValue([submission("s1", "a", "2026-10-02")]);
     await useFormsStore.getState().hydrate();
 
