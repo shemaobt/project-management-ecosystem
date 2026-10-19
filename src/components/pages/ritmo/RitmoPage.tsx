@@ -41,7 +41,7 @@ import { LogMeetingDialog } from "./LogMeetingDialog";
 import { LogUnread, type LogReading } from "./LogUnread";
 import { MeetingCard } from "./MeetingCard";
 import { MeetingRow } from "./MeetingRow";
-import { withinReach, type RegionScope } from "./reach";
+import { emptyAgendaKey, withinReach, type RegionScope } from "./reach";
 
 interface Editing {
   meeting: MeetingDefinition;
@@ -78,7 +78,7 @@ export function RitmoPage() {
   const regions = useRegionsStore((state) => state.regions);
   const hydrateRegions = useRegionsStore((state) => state.hydrate);
   const regionsRead = useRegionsStore((state) => state.hydrated);
-  const { canSeeRegion } = useAuth();
+  const { canSeeRegion, user } = useAuth();
   const log = useRhythmStore((state) => state.log);
   const logRead = useRhythmStore((state) => state.hydrated);
   const logFailed = useRhythmStore((state) => state.error !== null);
@@ -210,11 +210,11 @@ export function RitmoPage() {
               {logReading ? null : rows.length === 0 ? (
                 <p className="text-micro leading-[1.45] text-fg-subtle">
                   {t(
-                    projects.length === 0
-                      ? "ritmo_no_projects"
-                      : regionsRead
-                        ? "ritmo_no_projects_reach"
-                        : "loading",
+                    emptyAgendaKey(
+                      projects.length,
+                      user.regionScope,
+                      regionsRead,
+                    ),
                   )}
                 </p>
               ) : (

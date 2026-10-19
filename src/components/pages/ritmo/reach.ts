@@ -18,3 +18,20 @@ export function withinReach(
       scope.key !== "global" && canSeeRegion(scope.key),
   );
 }
+
+/**
+ * The sentence a meeting card says when it has no row. The server cuts the list to the reader's
+ * regions, so an empty list does not say whether the installation has no projects or the reader
+ * reaches none of them: a reader scoped to regions (`regionScope`) is told about their regions,
+ * and only a reader who reaches everything is told there is no project at all.
+ */
+export function emptyAgendaKey(
+  projectCount: number,
+  regionScope: readonly RegionKey[] | null,
+  regionsRead: boolean,
+): "ritmo_no_projects" | "ritmo_no_projects_reach" | "loading" {
+  if (projectCount === 0) {
+    return regionScope ? "ritmo_no_projects_reach" : "ritmo_no_projects";
+  }
+  return regionsRead ? "ritmo_no_projects_reach" : "loading";
+}
