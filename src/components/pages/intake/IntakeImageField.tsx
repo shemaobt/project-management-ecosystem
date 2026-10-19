@@ -100,7 +100,7 @@ export function IntakeImageField({ id, value, onChange, upload, invalid }: Intak
         <label
           htmlFor={id}
           className={cn(
-            "inline-flex cursor-pointer items-center gap-1.5 rounded-pill border border-line-strong bg-elevated px-3 py-1.5 text-micro font-semibold text-fg hover:border-fg-muted",
+            "relative inline-flex cursor-pointer items-center gap-1.5 rounded-pill border border-line-strong bg-elevated px-3 py-1.5 text-micro font-semibold text-fg hover:border-fg-muted",
             "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent",
             phase.kind === "sending" && "pointer-events-none opacity-60",
           )}
