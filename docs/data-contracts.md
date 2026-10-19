@@ -1515,7 +1515,7 @@ can exist; `hydrate()` becomes the matching `GET`.
 | | `markRead(ids)` | `POST /notifications/read` (§9.11) |
 | `assessmentStore` (`shema-assessments-v1`) | `saveStep` / `discardDraft` | stays client-side; only the finished draft posts (§9.4) |
 | `recordStore` (`shema-record-drafts-v1`) | the record draft | stays client-side (§12.8) |
-| `formsStore` (`shema-form-submissions-v1`) | — read-only in wave 1 | `GET /forms/submissions`; the write is the import (§9.9) |
+| `formsStore` (`shema-form-submissions-v1`) | — read-only in wave 1 | `GET /forms/submissions`, read every session and **kept nowhere in the browser** since OBT-595 (the key holds no data); the write is the import (§9.9) |
 | `filtersStore`, `prefsStore`, `savedViewsStore` | filters, sort, metaphor, saved views | **stay client-side.** Saved views are per browser today; §12.9 is the question of whether they should follow the user. |
 
 There is no other write. Anything a wave-2 issue adds that is not on this list is new product, not
