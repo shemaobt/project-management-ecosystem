@@ -23,3 +23,26 @@ describe("o ritmo do sino", () => {
     expect(readsOnReturn(now - NOTIFICATION_STALE_MS - 1, now)).toBe(true);
   });
 });
+
+describe("as preferências do sino (OBT-604)", () => {
+  it("só pede as preferências quem tem papel no app Shemá", async () => {
+    const { readsSavedPrefs } = await import("../useNotifications");
+
+    expect(readsSavedPrefs(["gestor"])).toBe(false);
+    expect(readsSavedPrefs(["mesa", "gestor"])).toBe(false);
+    expect(readsSavedPrefs(["admin", "gestor"])).toBe(true);
+    expect(readsSavedPrefs(["coordinator"])).toBe(true);
+    expect(readsSavedPrefs(["gestor", "obtLab"])).toBe(true);
+  });
+});
+
+describe("a leitura das preferências (OBT-604)", () => {
+  it("a chamada ao servidor só sai atrás da pergunta por papel", async () => {
+    const source = (await import("../useNotifications?raw")).default;
+    const effect = source.slice(source.indexOf("if (!mayReadPrefs) return;"));
+
+    expect(source).toContain("const mayReadPrefs = readsSavedPrefs(user.roles);");
+    expect(effect.indexOf("api.prefs()")).toBeGreaterThan(0);
+    expect(source.match(/api\.prefs\(\)/g)).toHaveLength(1);
+  });
+});

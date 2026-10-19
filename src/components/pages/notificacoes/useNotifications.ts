@@ -11,12 +11,13 @@ import { useNotificationStore } from "../../../stores/notificationStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { NotificationPrefs, PanelEntry } from "../../../types/notification";
 import type { Project } from "../../../types/project";
-import type { ApiFailure } from "../../../types/session";
+import type { ApiFailure, SessionRole } from "../../../types/session";
 import {
   countUnread,
   routedNotifications,
   visibleNotifications,
 } from "../../../utils/notifications";
+import { holdsShemaGrant } from "../../../utils/access";
 import { getRegion } from "../../../utils/region";
 
 /** What the bell and its panel read — the same shape whichever side answers it. */
@@ -51,6 +52,15 @@ export const NOTIFICATION_STALE_MS = 60_000;
 
 export function readsOnReturn(lastRead: number | null, now: number): boolean {
   return lastRead === null || now - lastRead > NOTIFICATION_STALE_MS;
+}
+
+/**
+ * The preferences route sits behind the Shemá app's door, so an account that holds no Shemá
+ * role (a form-only account) would only meet a 403 for each ask (OBT-604). It keeps the
+ * defaults, and no request leaves.
+ */
+export function readsSavedPrefs(roles: readonly SessionRole[]): boolean {
+  return holdsShemaGrant(roles);
 }
 
 /**
@@ -180,7 +190,10 @@ function useServedFeed(api: NotificationsAPI): NotificationsFeed {
     };
   }, [api]);
 
+  const mayReadPrefs = readsSavedPrefs(user.roles);
+
   useEffect(() => {
+    if (!mayReadPrefs) return;
     let current = true;
     api.prefs().then(
       (saved) => {
@@ -196,7 +209,7 @@ function useServedFeed(api: NotificationsAPI): NotificationsFeed {
     return () => {
       current = false;
     };
-  }, [api, prefsAttempt]);
+  }, [api, prefsAttempt, mayReadPrefs]);
 
   const retryPrefs = useCallback(() => {
     setPrefsFailure(null);
