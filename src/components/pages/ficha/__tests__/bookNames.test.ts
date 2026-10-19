@@ -20,6 +20,16 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
+function bypassesLanguage(source: string): boolean {
+  const text = source
+    .replace(/function bookName\([^)]*\)[^{]*\{[^}]*\}/, "")
+    .replace(/\bname:\s*book\.name\b/g, "");
+  const listsBooks = /BIBLE_BOOKS/.test(text);
+  const readsName = /\bbook\.(name|en)\b/.test(text);
+  const usesHelper = /bookName(ById)?\(/.test(text);
+  return readsName || (listsBooks && !usesHelper);
+}
+
 describe("nomes dos livros seguem o idioma", () => {
   it("em EN usa o nome em inglês e em PT o português", () => {
     for (const book of BIBLE_BOOKS) {
@@ -36,14 +46,17 @@ describe("nomes dos livros seguem o idioma", () => {
   });
 
   it("nenhuma tela lista livros sem passar pelo idioma", () => {
-    const offenders = sourceFiles(SRC).filter((file) => {
-      const text = readFileSync(file, "utf8");
-      const listsBooks = /BIBLE_BOOKS/.test(text);
-      const readsName = /\bbook\.name\b|\bbook\.en\b/.test(text);
-      const usesHelper = /bookName(ById)?\(/.test(text);
-      return (listsBooks || readsName) && !usesHelper;
-    });
+    const offenders = sourceFiles(SRC).filter((file) =>
+      bypassesLanguage(readFileSync(file, "utf8")),
+    );
     expect(offenders).toEqual([]);
+  });
+
+  it("a varredura julga cada leitura, não o arquivo", () => {
+    expect(bypassesLanguage("bookName(book, lang); <b>{book.name}</b>")).toBe(true);
+    expect(bypassesLanguage("BIBLE_BOOKS.map((book) => book.id)")).toBe(true);
+    expect(bypassesLanguage("({ id: book.id, name: book.name })")).toBe(false);
+    expect(bypassesLanguage("BIBLE_BOOKS.map((book) => bookName(book, lang))")).toBe(false);
   });
 
   it("a vista resolve o livro pelo idioma, pela chave da linha", () => {
