@@ -105,11 +105,8 @@ export function removeRow<T>(rows: readonly T[], index: number): T[] {
   return rows.filter((_, i) => i !== index);
 }
 
-/**
- * A typed count as the row keeps it, and whether it was cut to the book's chapters
- * (OBT-605). The cut is the rule — the server refuses more chapters than the book has — and
- * it is never silent: `cappedAt` is what the table turns into a notice the person reads.
- */
+// The cut is the rule — the server refuses more chapters than the book has — and it is never
+// silent: `cappedAt` becomes the notice the table shows (OBT-605).
 export interface CountTyped {
   value: number;
   cappedAt: number | null;
@@ -127,18 +124,13 @@ export function clampCount(raw: string, max?: number): number {
 
 export type BookCountField = "translated" | "communityChecked" | "mentorApproved";
 
-/** The book and the ceiling a typed number was cut to — what the notice says. */
 export interface CappedCount {
   bookId: string;
   field: BookCountField;
   max: number;
 }
 
-/**
- * One keystroke in a book's count (OBT-605): the rows as they are kept, and the notice it
- * leaves — a cut to the book's chapters says so; a number within the book clears that
- * field's notice. Pure, so typing 9 in *Rute · Traduzido* is provable without a browser.
- */
+// Pure, so the cut and its notice are provable without a browser — the suite has no DOM.
 export function typeBookCount(
   rows: readonly BookProgressItem[],
   index: number,
