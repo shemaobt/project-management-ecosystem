@@ -153,6 +153,12 @@ export function FichaPage() {
       goToTab(REQUIRED_FIELD_TAB[first]);
       return;
     }
+    // `POST /projects` refuses a place outside the write scope (OBT-593); the field says why.
+    if (draft.outsideWrites) {
+      toast.error(t("record_save_blocked_region"));
+      goToTab("identidade");
+      return;
+    }
 
     // The slug is minted **once** and kept in the draft. A create that timed out may
     // well have landed, and a retry that minted a second id would file the record twice

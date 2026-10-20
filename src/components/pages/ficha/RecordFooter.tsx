@@ -3,6 +3,7 @@ import { REQUIRED_LABEL_KEYS } from "../../../stores/recordStore";
 import { footerRow } from "../../../styles";
 import { Button } from "../../ui";
 import type { RecordMode } from "./types";
+import { outsideWritesText } from "./outsideWrites";
 import type { DraftHandle } from "./useDraft";
 
 export interface RecordFooterProps {
@@ -39,7 +40,8 @@ export function RecordFooter({
     );
   }
 
-  const blocked = draft.missing.length > 0;
+  const outside = draft.outsideWrites ?? null;
+  const blocked = draft.missing.length > 0 || outside !== null;
 
   return (
     <div className={footerRow}>
@@ -49,7 +51,7 @@ export function RecordFooter({
             {t("record_draft_kept")}
           </span>
         )}
-        {blocked && (
+        {draft.missing.length > 0 ? (
           <span className="truncate text-micro font-semibold text-status-attention-fg">
             {t("record_missing_required", {
               fields: draft.missing
@@ -57,7 +59,11 @@ export function RecordFooter({
                 .join(", "),
             })}
           </span>
-        )}
+        ) : outside ? (
+          <span className="truncate text-micro font-semibold text-status-attention-fg">
+            {outsideWritesText(t, outside)}
+          </span>
+        ) : null}
       </div>
       {draft.hasChanges && (
         <Button variant="ghost" onClick={onDiscard}>
