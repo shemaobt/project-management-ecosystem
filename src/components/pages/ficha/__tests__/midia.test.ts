@@ -367,10 +367,17 @@ describe("MidiaView — a decisão do servidor é da foto, não do slot (OBT-582
   const LINK = 'data-photo-link=""';
 
   /** The tab over a saved record holding `serverPhoto`, with `draftPhoto` in the draft. */
-  const over = (draftPhoto: Record<string, unknown>) => {
+  // The coordinator persona writes in South America (OBT-593), so the record is placed there.
+  const over = (draftPhoto: Record<string, unknown>, location = "Peru") => {
     localStorage.setItem(MOCK_SESSION_KEY, "coordinator");
     const draft = handle({ mediaPhotos: [draftPhoto as never] });
-    const saved = { ...draft.values, id: "p1", readAs: "coordination" as const, mediaPhotos: [serverPhoto] };
+    const saved = {
+      ...draft.values,
+      id: "p1",
+      location,
+      readAs: "coordination" as const,
+      mediaPhotos: [serverPhoto],
+    };
     return render(
       createElement(
         AuthProvider,
@@ -402,6 +409,12 @@ describe("MidiaView — a decisão do servidor é da foto, não do slot (OBT-582
     expect(markup).toContain(i18n.t("media_auth_yes"));
     expect(markup).toContain(i18n.t("media_withdraw"));
     expect(markup).toContain(LINK);
+  });
+
+  it("fora da região onde a coordenação escreve, a retirada não aparece (OBT-593)", () => {
+    const markup = over({ ...serverPhoto, authorization: null }, "India");
+    expect(markup).toContain(i18n.t("media_auth_yes"));
+    expect(markup).not.toContain(i18n.t("media_withdraw"));
   });
 
   it("uma foto SEM id é deste aparelho e segue o rascunho, mesmo com o registro dizendo outra coisa", () => {

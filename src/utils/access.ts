@@ -27,20 +27,39 @@ const IMPORTING_ROLES: readonly SessionRole[] = [
 
 /**
  * Who may import a file of records — coordination, as BE-14's `import_projects` decides it:
- * a coordinator, the `admin` role (INT-11 · OBT-416). Reflection only;
- * an installation admin with none of these roles is the server's to admit.
+ * a coordinator, the `admin` role (INT-11 · OBT-416), and only an account that writes a project
+ * somewhere (OBT-593: the Admin alone writes none, and the import writes records). Reflection
+ * only; an installation admin with none of these roles is the server's to admit.
  */
-export function canImportProjects(roles: readonly SessionRole[]): boolean {
-  return roles.some((role) => IMPORTING_ROLES.includes(role));
+export function canImportProjects(
+  roles: readonly SessionRole[],
+  writeRegionScope?: readonly RegionKey[] | null,
+): boolean {
+  return roles.some((role) => IMPORTING_ROLES.includes(role)) && writesAnyProject(writeRegionScope);
+}
+
+/**
+ * Who is offered the leader link — an account that writes a project somewhere (OBT-593):
+ * `POST /intake-links` asks the write scope, so the Admin alone, who writes none, is not offered
+ * a button the route refuses. Read beside the header's own `formOnly` cut.
+ */
+export function canMintLeaderLinks(writeRegionScope?: readonly RegionKey[] | null): boolean {
+  return writesAnyProject(writeRegionScope);
 }
 
 /**
  * Who takes a photo's authorization back — `CoordinatorUser` on the server's withdraw route
  * (OBT-578): the coordinator, and nobody else; the Admin does not grant or refuse in the team's
- * place. Reflection only, so the button is not drawn for a reader the route refuses.
+ * place — and, given the project's region, only where the account writes (OBT-593). Reflection
+ * only, so the button is not drawn for a reader the route refuses.
  */
-export function canWithdrawMediaAuthorization(roles: readonly SessionRole[]): boolean {
-  return roles.includes("coordinator");
+export function canWithdrawMediaAuthorization(
+  roles: readonly SessionRole[],
+  writeRegionScope?: readonly RegionKey[] | null,
+  region?: RegionKey,
+): boolean {
+  if (!roles.includes("coordinator")) return false;
+  return region === undefined || writesProjectIn(writeRegionScope, region);
 }
 
 /**

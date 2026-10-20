@@ -2,7 +2,15 @@ import { describe, expect, it } from "vitest";
 import { mayOpenRecord, readMode } from "../../components/pages/ficha/recordMode";
 import type { RegionKey } from "../../types/region";
 import type { SessionRole } from "../../types/session";
-import { canCreateProjects, writesAnyProject, writesProjectIn } from "../access";
+import {
+  canCreateProjects,
+  canImportProjects,
+  canMintLeaderLinks,
+  canWithdrawMediaAuthorization,
+  writesAnyProject,
+  writesProjectIn,
+} from "../access";
+import { regionOf } from "../region";
 import { mayWrite, recordAccess } from "../recordAccess";
 import { makeProject } from "./factory";
 
@@ -109,5 +117,48 @@ describe("Novo projeto e /ficha/novo, por papel (OBT-593)", () => {
     expect(canCreateProjects(["admin"], undefined)).toBe(true);
     expect(canCreateProjects(["coordinator"], undefined)).toBe(true);
     expect(canCreateProjects(["resourceCircle"], undefined)).toBe(false);
+  });
+});
+
+describe("Importar, link do líder e retirada de autorização, por papel e região (OBT-593)", () => {
+  it("o Admin sozinho não importa nem gera link; com coordenação regional, faz os dois", () => {
+    expect(canImportProjects(ADMIN_ALONE.roles, ADMIN_ALONE.writes)).toBe(false);
+    expect(canMintLeaderLinks(ADMIN_ALONE.writes)).toBe(false);
+    expect(canImportProjects(ADMIN_ASIA.roles, ADMIN_ASIA.writes)).toBe(true);
+    expect(canMintLeaderLinks(ADMIN_ASIA.writes)).toBe(true);
+  });
+
+  it("a coordenação e a plataforma importam e geram link; o Resource Circle não", () => {
+    for (const who of [COORD_SA, PLATFORM]) {
+      expect(canImportProjects(who.roles, who.writes), who.name).toBe(true);
+      expect(canMintLeaderLinks(who.writes), who.name).toBe(true);
+    }
+    expect(canImportProjects(CIRCLE.roles, CIRCLE.writes)).toBe(false);
+    expect(canMintLeaderLinks(CIRCLE.writes)).toBe(false);
+  });
+
+  it("a retirada só aparece para a coordenação, e só onde ela escreve", () => {
+    expect(canWithdrawMediaAuthorization(ADMIN_ALONE.roles, ADMIN_ALONE.writes, "asia")).toBe(false);
+    expect(canWithdrawMediaAuthorization(ADMIN_ASIA.roles, ADMIN_ASIA.writes, "asia")).toBe(true);
+    expect(canWithdrawMediaAuthorization(ADMIN_ASIA.roles, ADMIN_ASIA.writes, "africa")).toBe(false);
+    expect(canWithdrawMediaAuthorization(COORD_SA.roles, COORD_SA.writes, "south-america")).toBe(true);
+    expect(canWithdrawMediaAuthorization(PLATFORM.roles, PLATFORM.writes, "africa")).toBe(true);
+    expect(canWithdrawMediaAuthorization(CIRCLE.roles, CIRCLE.writes, "asia")).toBe(false);
+  });
+
+  it("sem o campo, as três seguem a regra de hoje", () => {
+    expect(canImportProjects(["admin"], undefined)).toBe(true);
+    expect(canImportProjects(["resourceCircle"], undefined)).toBe(false);
+    expect(canMintLeaderLinks(undefined)).toBe(true);
+    expect(canWithdrawMediaAuthorization(["coordinator"], undefined, "africa")).toBe(true);
+    expect(canWithdrawMediaAuthorization(["coordinator"])).toBe(true);
+  });
+});
+
+describe("a região de um projeto tem uma leitura só (OBT-593)", () => {
+  it("o regionOf lê a região derivada do servidor antes do país", () => {
+    const derived = { ...INDIA(), derived: { region: "africa" } } as ReturnType<typeof INDIA>;
+    expect(regionOf(derived)).toBe("africa");
+    expect(regionOf(INDIA())).toBe("asia");
   });
 });

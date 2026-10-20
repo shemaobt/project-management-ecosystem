@@ -6,7 +6,10 @@ import { useProjectsStore } from "../../../stores/projectsStore";
 import type { IntakeLink, IntakeLinkCreated } from "../../../types/forms";
 import type { Project } from "../../../types/project";
 import type { ApiFailure } from "../../../types/session";
+import { useAuth } from "../../../contexts/AuthContext";
+import { writesProjectIn } from "../../../utils/access";
 import { selectableProjects } from "../../../utils/forms";
+import { regionOf } from "../../../utils/region";
 import { formatDate } from "../../../utils/format";
 import {
   Badge,
@@ -171,7 +174,14 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
   const [minting, setMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sorted = hydrated ? selectableProjects(projects) : [];
+  const { user } = useAuth();
+  // Only the projects a link can be minted for (OBT-593): the route writes in the account's
+  // write scope, and offering the rest would be a choice that ends in a 403.
+  const sorted = hydrated
+    ? selectableProjects(projects).filter((project) =>
+        writesProjectIn(user.writeRegionScope, regionOf(project)),
+      )
+    : [];
   // The default selection is derived at render, never set from an effect — the first
   // project stands in until the coordinator explicitly picks one (an event handler).
   const effectiveProjectId = selectedProjectId || sorted[0]?.id || "";
