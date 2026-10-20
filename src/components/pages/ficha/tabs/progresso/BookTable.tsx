@@ -113,21 +113,18 @@ export function BookTable({ rows, onChange }: BookTableProps) {
             label={`${label} · ${t("col_translated")}`}
             value={row.translated}
             max={row.chapters}
-            onChange={() => undefined}
             onTyped={typed(index, "translated")}
           />
           <CountInput
             label={`${label} · ${t("col_checked")}`}
             value={row.communityChecked}
             max={row.chapters}
-            onChange={() => undefined}
             onTyped={typed(index, "communityChecked")}
           />
           <CountInput
             label={`${label} · ${t("col_approved")}`}
             value={row.mentorApproved}
             max={row.chapters}
-            onChange={() => undefined}
             onTyped={typed(index, "mentorApproved")}
           />
           <RemoveRowButton
