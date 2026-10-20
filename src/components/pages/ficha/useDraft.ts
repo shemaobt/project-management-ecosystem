@@ -109,8 +109,8 @@ export function useDraft(recordId: string): DraftHandle {
   const writesHealth = canWriteHealth(user.roles);
 
   const place = useMemo(
-    () => recordAccess(stored, isNew, readsHealth, writesHealth),
-    [stored, isNew, readsHealth, writesHealth],
+    () => recordAccess(stored, isNew, readsHealth, writesHealth, user.writeRegionScope),
+    [stored, isNew, readsHealth, writesHealth, user.writeRegionScope],
   );
 
   // A draft is kept per record, not per person: what somebody else typed into a field

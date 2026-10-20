@@ -9,6 +9,7 @@ import {
 import { ROLE_DEFINITIONS } from "../constants/roles";
 import type { AccessAppKey, AccountGrants } from "../types/access";
 import type { RoleKey } from "../types/role";
+import type { RegionKey } from "../types/region";
 import type { SessionRole } from "../types/session";
 
 export function canAdministerAccess({
@@ -88,10 +89,33 @@ export function canKeepNetwork(roles: readonly SessionRole[]): boolean {
  * is refused too, the stricter of the two readings. Reflection only: without it the button
  * leads to a form the server refuses after it was filled, the worst kind of dead control.
  */
-export function canCreateProjects(roles: readonly SessionRole[]): boolean {
+export function canCreateProjects(
+  roles: readonly SessionRole[],
+  writeRegionScope?: readonly RegionKey[] | null,
+): boolean {
   const circle = roles.includes("resourceCircle");
   const coordinates = roles.includes("coordinator") || roles.includes(ADMIN_ROLE);
-  return !circle || coordinates;
+  return (!circle || coordinates) && writesAnyProject(writeRegionScope);
+}
+
+/**
+ * Where the account writes a project — the session's `writeRegionScope` (OBT-593, Daniel
+ * 19/oct: the Admin reads every region as the coordination and writes only access). The one
+ * rule *Editar*, the record's form and *Novo projeto* ask, so a control the server answers
+ * with 403 is not drawn. **Absent** — a server from before the field — is today's behaviour:
+ * it hides nothing and allows nothing new; it is not `null`, which means every region.
+ */
+export function writesProjectIn(
+  writeRegionScope: readonly RegionKey[] | null | undefined,
+  region: RegionKey,
+): boolean {
+  if (writeRegionScope === undefined || writeRegionScope === null) return true;
+  return writeRegionScope.includes(region);
+}
+
+export function writesAnyProject(writeRegionScope: readonly RegionKey[] | null | undefined): boolean {
+  if (writeRegionScope === undefined || writeRegionScope === null) return true;
+  return writeRegionScope.length > 0;
 }
 
 /**

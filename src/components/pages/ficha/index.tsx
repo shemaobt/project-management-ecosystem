@@ -166,6 +166,7 @@ export function FichaPage() {
       isNew: draft.isNew,
       readsHealth: draft.place.readsHealth,
       writesHealth: draft.place.writesHealth,
+      writeRegionScope: user.writeRegionScope,
     });
 
     switch (result.kind) {
@@ -212,7 +213,7 @@ export function FichaPage() {
   };
 
   // A new record the server would refuse at the save goes back to the list (OBT-571).
-  if (!mayOpenRecord(draft.isNew, user.roles)) {
+  if (!mayOpenRecord(draft.isNew, user.roles, user.writeRegionScope)) {
     return <Navigate to="/projetos" replace />;
   }
 

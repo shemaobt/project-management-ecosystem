@@ -61,7 +61,7 @@ export function AppHeader() {
   const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
   const formOnly = isFormOnly(user.roles);
   const imports = canImportProjects(user.roles);
-  const creates = canCreateProjects(user.roles);
+  const creates = canCreateProjects(user.roles, user.writeRegionScope);
   const requestLinks = canAdministerAccess(user) ? resourceRequestsAPI : null;
 
   const closeDialog = (open: boolean) => {
