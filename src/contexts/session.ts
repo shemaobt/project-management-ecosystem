@@ -16,6 +16,8 @@ export interface SessionPersona {
   role: SessionRole;
   roles: SessionRole[];
   regionScope: RegionKey[] | null;
+  /** `ShemaSession.writeRegionScope` — absent when the server does not say (OBT-593). */
+  writeRegionScope?: RegionKey[] | null;
 }
 
 export interface SessionUser extends SessionPersona {
