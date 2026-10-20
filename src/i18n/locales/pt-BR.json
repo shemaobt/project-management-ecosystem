@@ -1507,5 +1507,6 @@
   "media_withdraw_title": "Retirar a autorização desta foto?",
   "media_withdraw_body": "A foto deixa de sair do projeto daqui em diante e some do Pulso que a trouxe. O que já foi enviado não é recolhido.",
   "media_withdraw_confirm": "Retirar",
-  "media_withdraw_done": "Autorização retirada."
+  "media_withdraw_done": "Autorização retirada.",
+  "progress_capped": "O máximo de {{book}} é {{max}}; guardamos {{max}}."
 }
