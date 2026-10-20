@@ -42,6 +42,9 @@ export function personaOf(signed: SignedSession | null): SessionPersona {
     role: signed.session.role,
     roles: signed.session.roles,
     regionScope: signed.session.regionScope,
+    ...(signed.session.writeRegionScope === undefined
+      ? {}
+      : { writeRegionScope: signed.session.writeRegionScope }),
   };
 }
 

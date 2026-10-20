@@ -153,6 +153,12 @@ export function FichaPage() {
       goToTab(REQUIRED_FIELD_TAB[first]);
       return;
     }
+    // `POST /projects` refuses a place outside the write scope (OBT-593); the field says why.
+    if (draft.outsideWrites) {
+      toast.error(t("record_save_blocked_region"));
+      goToTab("identidade");
+      return;
+    }
 
     // The slug is minted **once** and kept in the draft. A create that timed out may
     // well have landed, and a retry that minted a second id would file the record twice
@@ -166,6 +172,7 @@ export function FichaPage() {
       isNew: draft.isNew,
       readsHealth: draft.place.readsHealth,
       writesHealth: draft.place.writesHealth,
+      writeRegionScope: user.writeRegionScope,
     });
 
     switch (result.kind) {
@@ -212,7 +219,7 @@ export function FichaPage() {
   };
 
   // A new record the server would refuse at the save goes back to the list (OBT-571).
-  if (!mayOpenRecord(draft.isNew, user.roles)) {
+  if (!mayOpenRecord(draft.isNew, user.roles, user.writeRegionScope)) {
     return <Navigate to="/projetos" replace />;
   }
 

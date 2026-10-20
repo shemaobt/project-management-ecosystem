@@ -41,6 +41,7 @@ import { LogMeetingDialog } from "./LogMeetingDialog";
 import { LogUnread, type LogReading } from "./LogUnread";
 import { MeetingCard } from "./MeetingCard";
 import { MeetingRow } from "./MeetingRow";
+import { writesProjectIn } from "../../../utils/access";
 import { emptyAgendaKey, withinReach, type RegionScope } from "./reach";
 
 interface Editing {
@@ -218,21 +219,28 @@ export function RitmoPage() {
                   )}
                 </p>
               ) : (
-                rows.map((row) => (
-                  <MeetingRow
-                    key={row.scope.key}
-                    scope={row.scope}
-                    status={row.status}
-                    nextDue={row.nextDue}
-                    periodLabel={row.periodLabel}
-                    readiness={row.readiness}
-                    participants={row.participants}
-                    onLog={() => setEditing({ meeting, scope: row.scope })}
-                    onUndo={() =>
-                      void undoMeeting(meeting.id, row.scope.key, row.period)
-                    }
-                  />
-                ))
+                rows.map((row) => {
+                  const writes = writesProjectIn(user.writeRegionScope, row.scope.key);
+                  return (
+                    <MeetingRow
+                      key={row.scope.key}
+                      scope={row.scope}
+                      status={row.status}
+                      nextDue={row.nextDue}
+                      periodLabel={row.periodLabel}
+                      readiness={row.readiness}
+                      participants={row.participants}
+                      onLog={
+                        writes ? () => setEditing({ meeting, scope: row.scope }) : undefined
+                      }
+                      onUndo={
+                        writes
+                          ? () => void undoMeeting(meeting.id, row.scope.key, row.period)
+                          : undefined
+                      }
+                    />
+                  );
+                })
               )}
             </MeetingCard>
           ))

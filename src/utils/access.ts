@@ -8,8 +8,11 @@ import {
 } from "../constants/access";
 import { ROLE_DEFINITIONS } from "../constants/roles";
 import type { AccessAppKey, AccountGrants } from "../types/access";
+import type { Project } from "../types/project";
 import type { RoleKey } from "../types/role";
+import type { RegionKey } from "../types/region";
 import type { SessionRole } from "../types/session";
+import { regionOf, regionOfPlace } from "./region";
 
 export function canAdministerAccess({
   roles,
@@ -26,20 +29,51 @@ const IMPORTING_ROLES: readonly SessionRole[] = [
 
 /**
  * Who may import a file of records — coordination, as BE-14's `import_projects` decides it:
- * a coordinator, the `admin` role (INT-11 · OBT-416). Reflection only;
- * an installation admin with none of these roles is the server's to admit.
+ * a coordinator, the `admin` role (INT-11 · OBT-416), and only an account that writes a project
+ * somewhere (OBT-593: the Admin alone writes none, and the import writes records). Reflection
+ * only; an installation admin with none of these roles is the server's to admit.
  */
-export function canImportProjects(roles: readonly SessionRole[]): boolean {
-  return roles.some((role) => IMPORTING_ROLES.includes(role));
+export function canImportProjects(
+  roles: readonly SessionRole[],
+  writeRegionScope?: readonly RegionKey[] | null,
+): boolean {
+  return roles.some((role) => IMPORTING_ROLES.includes(role)) && writesAnyProject(writeRegionScope);
+}
+
+/**
+ * Who is offered the leader link — an account that writes a project somewhere (OBT-593):
+ * `POST /intake-links` asks the write scope, so the Admin alone, who writes none, is not offered
+ * a button the route refuses. Read beside the header's own `formOnly` cut.
+ */
+export function canMintLeaderLinks(writeRegionScope?: readonly RegionKey[] | null): boolean {
+  return writesAnyProject(writeRegionScope);
+}
+
+/**
+ * The projects the leader-link dialog offers (OBT-593): only those in the account's write scope,
+ * since the route mints in it and any other choice ends in a 403. The selector and the default
+ * selection both read this list, so neither can reach a project outside it.
+ */
+export function leaderLinkProjects(
+  projects: readonly Project[],
+  writeRegionScope?: readonly RegionKey[] | null,
+): Project[] {
+  return projects.filter((project) => writesProjectIn(writeRegionScope, regionOf(project)));
 }
 
 /**
  * Who takes a photo's authorization back — `CoordinatorUser` on the server's withdraw route
  * (OBT-578): the coordinator, and nobody else; the Admin does not grant or refuse in the team's
- * place. Reflection only, so the button is not drawn for a reader the route refuses.
+ * place — and, given the project's region, only where the account writes (OBT-593). Reflection
+ * only, so the button is not drawn for a reader the route refuses.
  */
-export function canWithdrawMediaAuthorization(roles: readonly SessionRole[]): boolean {
-  return roles.includes("coordinator");
+export function canWithdrawMediaAuthorization(
+  roles: readonly SessionRole[],
+  writeRegionScope?: readonly RegionKey[] | null,
+  region?: RegionKey,
+): boolean {
+  if (!roles.includes("coordinator") || region === undefined) return false;
+  return writesProjectIn(writeRegionScope, region);
 }
 
 /**
@@ -88,10 +122,33 @@ export function canKeepNetwork(roles: readonly SessionRole[]): boolean {
  * is refused too, the stricter of the two readings. Reflection only: without it the button
  * leads to a form the server refuses after it was filled, the worst kind of dead control.
  */
-export function canCreateProjects(roles: readonly SessionRole[]): boolean {
+export function canCreateProjects(
+  roles: readonly SessionRole[],
+  writeRegionScope?: readonly RegionKey[] | null,
+): boolean {
   const circle = roles.includes("resourceCircle");
   const coordinates = roles.includes("coordinator") || roles.includes(ADMIN_ROLE);
-  return !circle || coordinates;
+  return (!circle || coordinates) && writesAnyProject(writeRegionScope);
+}
+
+/**
+ * Where the account writes a project — the session's `writeRegionScope` (OBT-593, Daniel
+ * 19/oct: the Admin reads every region as the coordination and writes only access). The one
+ * rule *Editar*, the record's form and *Novo projeto* ask, so a control the server answers
+ * with 403 is not drawn. **Absent** — a server from before the field — is today's behaviour:
+ * it hides nothing and allows nothing new; it is not `null`, which means every region.
+ */
+export function writesProjectIn(
+  writeRegionScope: readonly RegionKey[] | null | undefined,
+  region: RegionKey,
+): boolean {
+  if (writeRegionScope === undefined || writeRegionScope === null) return true;
+  return writeRegionScope.includes(region);
+}
+
+export function writesAnyProject(writeRegionScope: readonly RegionKey[] | null | undefined): boolean {
+  if (writeRegionScope === undefined || writeRegionScope === null) return true;
+  return writeRegionScope.length > 0;
 }
 
 /**
@@ -122,6 +179,32 @@ const HEALTH_WRITERS: readonly SessionRole[] = ["coordinator", "obtLab"];
 
 export function canWriteHealth(roles: readonly SessionRole[]): boolean {
   return roles.some((role) => HEALTH_WRITERS.includes(role));
+}
+
+/**
+ * Who files a health assessment for a project in this region — a health writer who also writes
+ * projects there (OBT-593): `POST /projects/{id}/health-assessments` takes the write scope, so
+ * Admin + coordenação da Ásia is not offered the questionnaire of an African project.
+ */
+export function canWriteHealthIn(
+  roles: readonly SessionRole[],
+  writeRegionScope: readonly RegionKey[] | null | undefined,
+  region: RegionKey,
+): boolean {
+  return canWriteHealth(roles) && writesProjectIn(writeRegionScope, region);
+}
+
+/**
+ * The region a new record's place falls in when the account does not write there, else `null`
+ * (OBT-593). `POST /projects` derives the region from `location` the way `regionOfPlace` reads
+ * it (OBT-591) and refuses outside the write scope, so the form says it before the save does.
+ */
+export function newRecordOutsideWrites(
+  writeRegionScope: readonly RegionKey[] | null | undefined,
+  location: string,
+): RegionKey | null {
+  const region = regionOfPlace(location);
+  return writesProjectIn(writeRegionScope, region) ? null : region;
 }
 
 export function holdsShemaGrant(roles: readonly SessionRole[]): boolean {
