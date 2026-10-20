@@ -15,9 +15,14 @@ export interface CountInputProps {
   value: number;
   max?: number;
   onChange: (value: number) => void;
+  /**
+   * The text as typed, for a caller that keeps a ceiling (OBT-605): it reads the cut itself
+   * with `readCount` and says so. When given, `onChange` is not called — one owner per keystroke.
+   */
+  onTyped?: (raw: string) => void;
 }
 
-export function CountInput({ label, value, max, onChange }: CountInputProps) {
+export function CountInput({ label, value, max, onChange, onTyped }: CountInputProps) {
   return (
     <Input
       type="number"
@@ -27,7 +32,9 @@ export function CountInput({ label, value, max, onChange }: CountInputProps) {
       aria-label={label}
       className="px-1.5 py-1.5 text-center tabular-nums"
       value={value}
-      onChange={(event) => onChange(clampCount(event.target.value, max))}
+      onChange={(event) =>
+        onTyped ? onTyped(event.target.value) : onChange(clampCount(event.target.value, max))
+      }
     />
   );
 }

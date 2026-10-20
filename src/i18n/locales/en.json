@@ -1507,5 +1507,6 @@
   "media_withdraw_title": "Withdraw this photo's authorization?",
   "media_withdraw_body": "The photo stops leaving the project from now on and is removed from the Pulse that brought it. What was already sent is not recalled.",
   "media_withdraw_confirm": "Withdraw",
-  "media_withdraw_done": "Authorization withdrawn."
+  "media_withdraw_done": "Authorization withdrawn.",
+  "progress_capped": "{{book}} has at most {{max}}; we kept {{max}}."
 }
