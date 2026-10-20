@@ -7,6 +7,7 @@ import {
   canImportProjects,
   canMintLeaderLinks,
   canWithdrawMediaAuthorization,
+  leaderLinkProjects,
   writesAnyProject,
   writesProjectIn,
 } from "../access";
@@ -160,5 +161,21 @@ describe("a região de um projeto tem uma leitura só (OBT-593)", () => {
     const derived = { ...INDIA(), derived: { region: "africa" } } as ReturnType<typeof INDIA>;
     expect(regionOf(derived)).toBe("africa");
     expect(regionOf(INDIA())).toBe("asia");
+  });
+});
+
+describe("o diálogo do link do líder oferece só onde a conta escreve (OBT-593)", () => {
+  const all = () => [INDIA(), MOZAMBIQUE(), PERU()];
+  const offered = (who: Who) => leaderLinkProjects(all(), who.writes).map((p) => p.location);
+
+  it("Admin + coordenação da Ásia vê só a Ásia; coordenação da América do Sul só a América do Sul", () => {
+    expect(offered(ADMIN_ASIA)).toEqual(["India"]);
+    expect(offered(COORD_SA)).toEqual(["Peru"]);
+  });
+
+  it("o Admin sozinho não vê nenhum; a plataforma e o campo ausente veem todos", () => {
+    expect(offered(ADMIN_ALONE)).toEqual([]);
+    expect(offered(PLATFORM)).toEqual(["India", "Mozambique", "Peru"]);
+    expect(leaderLinkProjects(all(), undefined)).toHaveLength(3);
   });
 });

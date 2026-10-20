@@ -8,9 +8,11 @@ import {
 } from "../constants/access";
 import { ROLE_DEFINITIONS } from "../constants/roles";
 import type { AccessAppKey, AccountGrants } from "../types/access";
+import type { Project } from "../types/project";
 import type { RoleKey } from "../types/role";
 import type { RegionKey } from "../types/region";
 import type { SessionRole } from "../types/session";
+import { regionOf } from "./region";
 
 export function canAdministerAccess({
   roles,
@@ -45,6 +47,18 @@ export function canImportProjects(
  */
 export function canMintLeaderLinks(writeRegionScope?: readonly RegionKey[] | null): boolean {
   return writesAnyProject(writeRegionScope);
+}
+
+/**
+ * The projects the leader-link dialog offers (OBT-593): only those in the account's write scope,
+ * since the route mints in it and any other choice ends in a 403. The selector and the default
+ * selection both read this list, so neither can reach a project outside it.
+ */
+export function leaderLinkProjects(
+  projects: readonly Project[],
+  writeRegionScope?: readonly RegionKey[] | null,
+): Project[] {
+  return projects.filter((project) => writesProjectIn(writeRegionScope, regionOf(project)));
 }
 
 /**
