@@ -233,9 +233,13 @@ describe("draft media updates", () => {
   });
 });
 
-/** The tab for a saved record — `p1` — whose photos came from the server. */
+/**
+ * The tab for a saved record — `p1`, in Peru, where the coordinator persona writes (OBT-593) —
+ * whose photos came from the server.
+ */
 const viewSaved = (values: Values) => {
   const draft = handle(values);
+  const readAs = draft.values.readAs ?? "coordination";
   return render(
     createElement(
       AuthProvider,
@@ -244,7 +248,8 @@ const viewSaved = (values: Values) => {
         mode: "ver",
         draft: {
           ...draft,
-          values: { ...draft.values, id: "p1", readAs: draft.values.readAs ?? "coordination" },
+          values: { ...draft.values, id: "p1", readAs },
+          saved: { ...draft.values, id: "p1", location: "Peru", readAs },
         },
       }),
     ),

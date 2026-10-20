@@ -12,7 +12,7 @@ import type { Project } from "../types/project";
 import type { RoleKey } from "../types/role";
 import type { RegionKey } from "../types/region";
 import type { SessionRole } from "../types/session";
-import { regionOf } from "./region";
+import { regionOf, regionOfPlace } from "./region";
 
 export function canAdministerAccess({
   roles,
@@ -72,8 +72,8 @@ export function canWithdrawMediaAuthorization(
   writeRegionScope?: readonly RegionKey[] | null,
   region?: RegionKey,
 ): boolean {
-  if (!roles.includes("coordinator")) return false;
-  return region === undefined || writesProjectIn(writeRegionScope, region);
+  if (!roles.includes("coordinator") || region === undefined) return false;
+  return writesProjectIn(writeRegionScope, region);
 }
 
 /**
@@ -179,6 +179,32 @@ const HEALTH_WRITERS: readonly SessionRole[] = ["coordinator", "obtLab"];
 
 export function canWriteHealth(roles: readonly SessionRole[]): boolean {
   return roles.some((role) => HEALTH_WRITERS.includes(role));
+}
+
+/**
+ * Who files a health assessment for a project in this region — a health writer who also writes
+ * projects there (OBT-593): `POST /projects/{id}/health-assessments` takes the write scope, so
+ * Admin + coordenação da Ásia is not offered the questionnaire of an African project.
+ */
+export function canWriteHealthIn(
+  roles: readonly SessionRole[],
+  writeRegionScope: readonly RegionKey[] | null | undefined,
+  region: RegionKey,
+): boolean {
+  return canWriteHealth(roles) && writesProjectIn(writeRegionScope, region);
+}
+
+/**
+ * The region a new record's place falls in when the account does not write there, else `null`
+ * (OBT-593). `POST /projects` derives the region from `location` the way `regionOfPlace` reads
+ * it (OBT-591) and refuses outside the write scope, so the form says it before the save does.
+ */
+export function newRecordOutsideWrites(
+  writeRegionScope: readonly RegionKey[] | null | undefined,
+  location: string,
+): RegionKey | null {
+  const region = regionOfPlace(location);
+  return writesProjectIn(writeRegionScope, region) ? null : region;
 }
 
 export function holdsShemaGrant(roles: readonly SessionRole[]): boolean {

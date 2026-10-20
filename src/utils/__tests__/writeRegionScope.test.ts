@@ -7,11 +7,14 @@ import {
   canImportProjects,
   canMintLeaderLinks,
   canWithdrawMediaAuthorization,
+  canWriteHealthIn,
+  newRecordOutsideWrites,
   leaderLinkProjects,
   writesAnyProject,
   writesProjectIn,
 } from "../access";
 import { regionOf } from "../region";
+import { assessmentRedirect } from "../../components/pages/avaliacao/writerGate";
 import { mayWrite, recordAccess } from "../recordAccess";
 import { makeProject } from "./factory";
 
@@ -33,6 +36,7 @@ const ADMIN_ASIA: Who = { name: "Admin + coordenação da Ásia", roles: ["coord
 const COORD_SA: Who = { name: "coordenação da América do Sul", roles: ["coordinator"], writes: ["south-america"] };
 const CIRCLE: Who = { name: "Resource Circle", roles: ["resourceCircle"], writes: [] };
 const PLATFORM: Who = { name: "admin da plataforma", roles: ["coordinator"], writes: null };
+const OBT_LAB: Who = { name: "OBT Lab da África", roles: ["obtLab"], writes: ["africa"] };
 
 const project = (location: string, readAs: "coordination" | "trusted" | "other" = "coordination") =>
   makeProject({ location, readAs });
@@ -152,7 +156,7 @@ describe("Importar, link do líder e retirada de autorização, por papel e regi
     expect(canImportProjects(["resourceCircle"], undefined)).toBe(false);
     expect(canMintLeaderLinks(undefined)).toBe(true);
     expect(canWithdrawMediaAuthorization(["coordinator"], undefined, "africa")).toBe(true);
-    expect(canWithdrawMediaAuthorization(["coordinator"])).toBe(true);
+    expect(canWithdrawMediaAuthorization(["coordinator"], undefined, "asia")).toBe(true);
   });
 });
 
@@ -177,5 +181,74 @@ describe("o diálogo do link do líder oferece só onde a conta escreve (OBT-593
     expect(offered(ADMIN_ALONE)).toEqual([]);
     expect(offered(PLATFORM)).toEqual(["India", "Mozambique", "Peru"]);
     expect(leaderLinkProjects(all(), undefined)).toHaveLength(3);
+  });
+});
+
+describe("Avaliação de Saúde por papel e região (OBT-593)", () => {
+  const files = (who: Who, region: RegionKey) => canWriteHealthIn(who.roles, who.writes, region);
+
+  it("o Admin sozinho não preenche; admin + coordenação da Ásia, só na Ásia", () => {
+    expect(files(ADMIN_ALONE, "asia")).toBe(false);
+    expect(files(ADMIN_ASIA, "asia")).toBe(true);
+    expect(files(ADMIN_ASIA, "africa")).toBe(false);
+  });
+
+  it("coordenação e OBT Lab na própria região, plataforma em todas, o Círculo em nenhuma", () => {
+    expect(files(COORD_SA, "south-america")).toBe(true);
+    expect(files(COORD_SA, "asia")).toBe(false);
+    expect(files(OBT_LAB, "africa")).toBe(true);
+    expect(files(OBT_LAB, "asia")).toBe(false);
+    expect(files(PLATFORM, "africa")).toBe(true);
+    expect(files(CIRCLE, "asia")).toBe(false);
+  });
+
+  it("sem o campo, como hoje: o papel decide", () => {
+    expect(canWriteHealthIn(["coordinator"], undefined, "africa")).toBe(true);
+    expect(canWriteHealthIn(["resourceCircle"], undefined, "africa")).toBe(false);
+  });
+
+  it("a rota volta aos formulários fora da região, depois de ler o registro", () => {
+    expect(assessmentRedirect(ADMIN_ASIA.roles, ADMIN_ASIA.writes)).toBeNull();
+    expect(assessmentRedirect(ADMIN_ASIA.roles, ADMIN_ASIA.writes, "asia")).toBeNull();
+    expect(assessmentRedirect(ADMIN_ASIA.roles, ADMIN_ASIA.writes, "africa")).toBe("/formularios");
+    expect(assessmentRedirect(ADMIN_ALONE.roles, ADMIN_ALONE.writes)).toBe("/formularios");
+    expect(assessmentRedirect(["coordinator"], undefined, "africa")).toBeNull();
+  });
+});
+
+describe("Ritmo e Equipe escrevem só a região da linha (OBT-593)", () => {
+  const writes = (who: Who, region: RegionKey) => writesProjectIn(who.writes, region);
+
+  it("a mesma regra da ficha, por região da linha", () => {
+    expect(writes(ADMIN_ALONE, "asia")).toBe(false);
+    expect(writes(ADMIN_ASIA, "asia")).toBe(true);
+    expect(writes(ADMIN_ASIA, "africa")).toBe(false);
+    expect(writes(COORD_SA, "south-america")).toBe(true);
+    expect(writes(OBT_LAB, "africa")).toBe(true);
+    expect(writes(PLATFORM, "oceania")).toBe(true);
+    expect(writesProjectIn(undefined, "oceania")).toBe(true);
+  });
+});
+
+describe("a ficha nova só aceita um local onde a conta escreve (OBT-593)", () => {
+  it("admin + coordenação da Ásia: Índia passa, Moçambique não, local vazio não", () => {
+    expect(newRecordOutsideWrites(ADMIN_ASIA.writes, "India, Delhi")).toBeNull();
+    expect(newRecordOutsideWrites(ADMIN_ASIA.writes, "Mozambique, Maputo")).toBe("africa");
+    expect(newRecordOutsideWrites(ADMIN_ASIA.writes, "")).toBe("other");
+  });
+
+  it("coordenação e OBT Lab na própria região; plataforma e campo ausente em qualquer lugar", () => {
+    expect(newRecordOutsideWrites(COORD_SA.writes, "Peru")).toBeNull();
+    expect(newRecordOutsideWrites(COORD_SA.writes, "India")).toBe("asia");
+    expect(newRecordOutsideWrites(OBT_LAB.writes, "Mozambique")).toBeNull();
+    expect(newRecordOutsideWrites(PLATFORM.writes, "Mozambique")).toBeNull();
+    expect(newRecordOutsideWrites(undefined, "Mozambique")).toBeNull();
+  });
+});
+
+describe("a retirada sem região conhecida não aparece (OBT-593)", () => {
+  it("o padrão é não", () => {
+    expect(canWithdrawMediaAuthorization(["coordinator"])).toBe(false);
+    expect(canWithdrawMediaAuthorization(PLATFORM.roles, PLATFORM.writes)).toBe(false);
   });
 });
