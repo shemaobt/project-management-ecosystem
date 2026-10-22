@@ -36,8 +36,7 @@ export interface IntercessoresViewProps {
   /** The server refused the network to this reader — the page says whose it is and stays so (OBT-598). */
   forbidden?: boolean;
   /** The read failed for a reason other than a refusal: said with a retry instead of a spinner that never ends (OBT-617). */
-  failure?: ApiFailure | null;
-  onRetry?: () => void;
+  unread?: { failure: ApiFailure; onRetry: () => void } | null;
   withheldCount: number;
   /** Of the withheld, how many are past their year — a number the server counted. */
   withheldReviewDueCount: number;
@@ -61,8 +60,7 @@ export interface IntercessoresViewProps {
 export function IntercessoresView({
   people,
   forbidden = false,
-  failure = null,
-  onRetry = () => undefined,
+  unread = null,
   withheldCount,
   withheldReviewDueCount,
   canWrite,
@@ -209,8 +207,8 @@ export function IntercessoresView({
       ) : null}
 
       {forbidden ? null : people === null ? (
-        failure ? (
-          <ProjectsUnread failure={failure} onRetry={onRetry} />
+        unread ? (
+          <ProjectsUnread failure={unread.failure} onRetry={unread.onRetry} />
         ) : (
           <div className="flex justify-center py-16">
             <LoadingSpinner size="lg" label={t("loading")} />
@@ -338,8 +336,7 @@ export function IntercessoresPage() {
     <IntercessoresView
       people={hydrated ? intercessors : null}
       forbidden={refused}
-      failure={failure}
-      onRetry={() => void reload()}
+      unread={failure ? { failure, onRetry: () => void reload() } : null}
       withheldCount={withheldCount}
       withheldReviewDueCount={withheldReviewDueCount}
       canWrite={canWriteNetwork(user.roles)}
