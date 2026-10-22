@@ -423,3 +423,41 @@ describe("a rede recusada ao papel (OBT-598)", () => {
     await i18n.changeLanguage("pt");
   });
 });
+
+describe("a leitura da rede que falha (OBT-617)", () => {
+  const failed = (kind: "server" | "offline") =>
+    renderToStaticMarkup(
+      createElement(
+        MemoryRouter,
+        null,
+        createElement(IntercessoresView, {
+          people: null,
+          failure: { kind, status: kind === "server" ? 500 : null, code: null, detail: null },
+          withheldCount: 0,
+          withheldReviewDueCount: 0,
+          canWrite: true,
+          canKeep: true,
+          onAdd: refuseAsync,
+          onUpdate: refuseAsync,
+          onRemove: refuseAsync,
+          onRevealContact: async () => null,
+          onReview: refuseAsync,
+        }),
+      ),
+    );
+
+  it.each(["server", "offline"] as const)(
+    "%s: o spinner sai e entra a frase de falha com tentar de novo",
+    (kind) => {
+      const html = failed(kind);
+      expect(html).not.toContain(i18n.t("loading"));
+      expect(html).toContain(i18n.t("net_retry"));
+      expect(html).toContain('role="alert"');
+    },
+  );
+
+  it("sem falha a página segue carregando, e o 403 continua mostrando o acesso negado", () => {
+    expect(view(null)).toContain(i18n.t("loading"));
+    expect(view(null)).not.toContain(i18n.t("net_retry"));
+  });
+});

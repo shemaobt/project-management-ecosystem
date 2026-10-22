@@ -18,8 +18,10 @@ import {
 } from "../../../utils/intercessors";
 import { canKeepNetwork, canWriteNetwork } from "../../../utils/access";
 import { countryName } from "../../../utils/countries";
+import type { ApiFailure } from "../../../types/session";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
+import { ProjectsUnread } from "../../common/ProjectsUnread";
 import { useReviewsPrayer } from "../../../hooks/useReviewsPrayer";
 import { SubNav } from "../oracao/SubNav";
 import { Input } from "../../ui";
@@ -33,6 +35,9 @@ export interface IntercessoresViewProps {
   people: readonly IntercessorEntry[] | null;
   /** The server refused the network to this reader — the page says whose it is and stays so (OBT-598). */
   forbidden?: boolean;
+  /** The read failed for a reason other than a refusal: said with a retry instead of a spinner that never ends (OBT-617). */
+  failure?: ApiFailure | null;
+  onRetry?: () => void;
   withheldCount: number;
   /** Of the withheld, how many are past their year — a number the server counted. */
   withheldReviewDueCount: number;
@@ -56,6 +61,8 @@ export interface IntercessoresViewProps {
 export function IntercessoresView({
   people,
   forbidden = false,
+  failure = null,
+  onRetry = () => undefined,
   withheldCount,
   withheldReviewDueCount,
   canWrite,
@@ -202,9 +209,13 @@ export function IntercessoresView({
       ) : null}
 
       {forbidden ? null : people === null ? (
-        <div className="flex justify-center py-16">
-          <LoadingSpinner size="lg" label={t("loading")} />
-        </div>
+        failure ? (
+          <ProjectsUnread failure={failure} onRetry={onRetry} />
+        ) : (
+          <div className="flex justify-center py-16">
+            <LoadingSpinner size="lg" label={t("loading")} />
+          </div>
+        )
       ) : (
         <>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -307,6 +318,7 @@ export function IntercessoresPage() {
   );
   const hydrated = usePrayerStore((state) => state.hydrated);
   const refused = usePrayerStore((state) => state.forbidden);
+  const failure = usePrayerStore((state) => state.error);
   const reload = usePrayerStore((state) => state.reload);
   const addIntercessor = usePrayerStore((state) => state.addIntercessor);
   const updateIntercessor = usePrayerStore((state) => state.updateIntercessor);
@@ -326,6 +338,8 @@ export function IntercessoresPage() {
     <IntercessoresView
       people={hydrated ? intercessors : null}
       forbidden={refused}
+      failure={failure}
+      onRetry={() => void reload()}
       withheldCount={withheldCount}
       withheldReviewDueCount={withheldReviewDueCount}
       canWrite={canWriteNetwork(user.roles)}
