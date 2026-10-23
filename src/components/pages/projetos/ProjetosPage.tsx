@@ -146,7 +146,9 @@ export function ProjetosPage() {
     if (!sortKeysFor(readsHealth).includes(sort)) setSort(DEFAULT_SORT);
   }, [readsHealth, sort, setSort]);
 
-  const rendered = live.data?.items;
+  // The list is drawn only once both browses answered (the spinner below waits for the two),
+  // and the baseline's bigger window tends to answer last against the server.
+  const rendered = live.data && baseline.data ? live.data.items : undefined;
   useEffect(() => {
     if (!returnTo.current || !rendered) return;
     focusCardOf(document, returnTo.current);
