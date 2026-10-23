@@ -3,6 +3,8 @@ import {
   CONTENT_ANCHOR_ID,
   focusIsLost,
   rescueFocus,
+  returnFocusState,
+  returnFocusTarget,
   type FocusHost,
 } from "../focus";
 
@@ -80,5 +82,21 @@ describe("o foco depois que um modal fecha", () => {
 
   it("a âncora tem um nome só, e é o que o skip link aponta", () => {
     expect(CONTENT_ANCHOR_ID).toBe("conteudo");
+  });
+});
+
+// OBT-621: fechar a Ficha levava o leitor ao começo do main, e não ao cartão que a abriu.
+describe("o cartão que abriu a Ficha recebe o foco de volta", () => {
+  it("o estado que o fechar leva é o que a lista lê", () => {
+    expect(returnFocusTarget(returnFocusState("afrikaans-kaaps"))).toBe(
+      "afrikaans-kaaps",
+    );
+  });
+
+  it("navegação sem esse estado não devolve foco a cartão nenhum", () => {
+    for (const state of [null, undefined, "afrikaans-kaaps", {}, { outro: "x" }]) {
+      expect(returnFocusTarget(state)).toBeNull();
+    }
+    expect(returnFocusTarget(returnFocusState(""))).toBeNull();
   });
 });
