@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
 import { SessionGate } from "./components/layout/SessionGate";
@@ -24,6 +25,13 @@ import { Toaster } from "./components/ui";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { accessAPI, passwordAPI } from "./services/api";
+
+// The label is read here, not inside `ui/Toaster`: that module is also loaded raw in a
+// browser by the toast-ink test, where react-i18next does not resolve.
+function AppToaster() {
+  const { t } = useTranslation();
+  return <Toaster label={t("toast_region")} />;
+}
 
 export default function App() {
   return (
@@ -103,7 +111,7 @@ export default function App() {
               }
             />
           </Routes>
-          <Toaster />
+          <AppToaster />
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
