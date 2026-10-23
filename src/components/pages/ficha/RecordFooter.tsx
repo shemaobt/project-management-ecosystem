@@ -5,6 +5,8 @@ import { Button } from "../../ui";
 import type { RecordMode } from "./types";
 import type { DraftHandle } from "./useDraft";
 
+const MISSING_ID = "ficha-falta-preencher";
+
 export interface RecordFooterProps {
   mode: RecordMode;
   draft: DraftHandle;
@@ -50,7 +52,10 @@ export function RecordFooter({
           </span>
         )}
         {blocked && (
-          <span className="truncate text-micro font-semibold text-status-attention-fg">
+          <span
+            id={MISSING_ID}
+            className="truncate text-micro font-semibold text-status-attention-fg"
+          >
             {t("record_missing_required", {
               fields: draft.missing
                 .map((field) => t(REQUIRED_LABEL_KEYS[field]))
@@ -64,7 +69,16 @@ export function RecordFooter({
           {t("record_discard_draft")}
         </Button>
       )}
-      <Button onClick={onSave} disabled={blocked || saving}>
+      {/* Blocked is `aria-disabled`, not `disabled`: a disabled button leaves the tab order, and
+          a reader tabbing through the form never learns there is a Salvar, nor what it waits
+          for (OBT-621). Pressed while blocked, the save still refuses — `attempt` says why and
+          opens the tab of the first missing field. */}
+      <Button
+        onClick={onSave}
+        disabled={saving}
+        aria-disabled={blocked || undefined}
+        aria-describedby={blocked ? MISSING_ID : undefined}
+      >
         {saving ? t("record_saving") : t("btn_save")}
       </Button>
     </div>

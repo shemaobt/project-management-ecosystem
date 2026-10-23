@@ -42,6 +42,7 @@ const { getRegionLabelKey } = await import("../../../../utils/region");
 const { writableDraft } = await import("../useDraft");
 const { IdentidadeTab } = await import("../tabs/Identidade");
 const { EquipeTab } = await import("../tabs/Equipe");
+const { RecordFooter } = await import("../RecordFooter");
 
 const noop = () => {};
 
@@ -251,5 +252,40 @@ describe("aba Equipe e rascunho — o que o leitor não grava não aparece nem f
       notes: "texto livre",
       mentor: "segue",
     });
+  });
+});
+
+// OBT-621: no Orca, "Nome da Língua, entry" — o asterisco é aria-hidden e nada mais dizia
+// que o campo era obrigatório, enquanto o rodapé dizia que ele faltava.
+describe("o leitor sabe o que é obrigatório e onde está o Salvar", () => {
+  it("campo com asterisco é aria-required; campo opcional não", () => {
+    const markup = render(IdentidadeTab, "editar", truth());
+
+    expect(inputTag(markup, "ficha-lang-name")).toContain('aria-required="true"');
+    expect(inputTag(markup, "ficha-bridge")).toContain('aria-required="true"');
+    expect(inputTag(markup, "ficha-lang-code")).not.toContain("aria-required");
+  });
+
+  it("Salvar bloqueado continua no Tab e aponta para o que falta", () => {
+    const draft = handle(truth({ bridgeLanguage: "" }));
+    expect(draft.missing.length).toBeGreaterThan(0);
+    const markup = renderToStaticMarkup(
+      createElement(RecordFooter, {
+        mode: "editar",
+        draft,
+        saving: false,
+        onEdit: noop,
+        onSave: noop,
+        onDiscard: noop,
+        onClose: noop,
+      }),
+    );
+    const save =
+      markup.match(new RegExp(`<button[^>]*>${i18n.t("btn_save")}</button>`, "u"))?.[0] ?? "";
+
+    expect(save).toContain('aria-disabled="true"');
+    expect(save).not.toMatch(/ disabled=""/u);
+    expect(save).toContain('aria-describedby="ficha-falta-preencher"');
+    expect(markup).toContain('id="ficha-falta-preencher"');
   });
 });

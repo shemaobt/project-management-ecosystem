@@ -19,6 +19,7 @@ export function SearchBox() {
         value={search}
         onChange={(event) => setSearch(event.target.value)}
         placeholder={t("search_placeholder")}
+        aria-label={t("search_label")}
         className="rounded-pill py-[11px] pr-9 pl-9 text-[13px]"
       />
       {search !== "" && (

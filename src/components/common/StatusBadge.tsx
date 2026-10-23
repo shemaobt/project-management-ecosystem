@@ -4,7 +4,7 @@ import { AlertTriangle, Check, Circle, Minus, X } from "lucide-react";
 import type { ComponentType } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  HEALTH_LABEL_KEYS,
+  HEALTH_SPOKEN_KEYS,
   HEALTH_SYMBOLS,
   PRIORITY_LABEL_KEYS,
   PRIORITY_SYMBOLS,
@@ -124,14 +124,15 @@ export function healthDotPhrase(
   label: string,
   state: OverallHealth,
 ): string {
-  return `${label}: ${t(HEALTH_LABEL_KEYS[state])}`;
+  return `${label}: ${t(HEALTH_SPOKEN_KEYS[state])}`;
 }
 
+/** Labelled like the health phrases: on its own, "Em andamento" does not say it is a priority. */
 export function priorityPhrase(
   t: TFunction,
   priority: ProjectPriority,
 ): string {
-  return t(PRIORITY_LABEL_KEYS[priority]);
+  return t("card_say_priority", { priority: t(PRIORITY_LABEL_KEYS[priority]) });
 }
 
 export interface StatusDotProps {

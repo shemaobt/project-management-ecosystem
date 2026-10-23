@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -22,6 +22,7 @@ import {
 } from "../../../stores/recordStore";
 import type { Project } from "../../../types/project";
 import { canReadHealth } from "../../../utils/access";
+import { focusFirstField, returnFocusState } from "../../../utils/focus";
 import { getLanguageNameDisplay } from "../../../utils/region";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
@@ -44,6 +45,7 @@ import { mayOpenRecord, readMode } from "./recordMode";
 import { useDraft } from "./useDraft";
 
 const MODE_PARAM = "modo";
+const RECORD_BODY_ID = "ficha-corpo";
 
 
 export function FichaPage() {
@@ -90,7 +92,9 @@ export function FichaPage() {
   }, [tab, shown, recordId, navigate]);
 
   const close = () => {
-    navigate("/projetos");
+    navigate("/projetos", {
+      state: recordId === NEW_RECORD ? undefined : returnFocusState(recordId),
+    });
   };
 
   const goToTab = (next: RecordTabId) => {
@@ -99,11 +103,19 @@ export function FichaPage() {
     navigate(`/ficha/${recordId}/${next}${search ? `?${search}` : ""}`);
   };
 
+  const editingStarted = useRef(false);
   const startEditing = () => {
+    editingStarted.current = true;
     const next = new URLSearchParams(params);
     next.set(MODE_PARAM, "editar");
     setParams(next, { replace: true });
   };
+
+  useEffect(() => {
+    if (mode !== "editar" || !editingStarted.current) return;
+    editingStarted.current = false;
+    focusFirstField(document.getElementById(RECORD_BODY_ID));
+  }, [mode]);
 
   /**
    * Forget what the server took; carry what it does not take yet to where the record now
@@ -265,7 +277,7 @@ export function FichaPage() {
           onValueChange={(next) => isRecordTab(next) && goToTab(next)}
         >
           <TabNav tabs={tabs} pending={mode === "editar" ? pending : []} />
-          <DialogBody className="max-h-[calc(100vh-330px)] pt-6">
+          <DialogBody id={RECORD_BODY_ID} className="max-h-[calc(100vh-330px)] pt-6">
             {outcome && (
               <div className="mb-5">
                 <SaveOutcomeNote

@@ -13,9 +13,15 @@ export const TOAST_CLASSNAMES = {
     "rounded-pill bg-branco/15 px-2.5 py-1 text-micro font-bold uppercase",
 };
 
-export function Toaster() {
+export interface ToasterProps {
+  /** The landmark's name. Sonner's default is "Notifications", in English (OBT-621). */
+  label: string;
+}
+
+export function Toaster({ label }: ToasterProps) {
   return (
     <SonnerToaster
+      containerAriaLabel={label}
       position="bottom-right"
       offset={24}
       toastOptions={{ unstyled: true, classNames: TOAST_CLASSNAMES }}
