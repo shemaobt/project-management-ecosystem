@@ -12,6 +12,32 @@ Cada um deve virar uma issue própria no Linear.
 
 ## 1. Ninguém passou um leitor de tela de verdade nesta interface
 
+**Primeira passada em [OBT-496](https://linear.app/shema-obt/issue/OBT-496)** (23/out/2026, Levi Gomes): o
+Orca 42, um leitor de tela real, percorreu Projetos e as dez abas da Ficha num Chromium, comandado por
+teclado de verdade. Ele está num servidor X virtual (Xvfb) e não tem voz; o que falaria fica no log de
+depuração. De dez paradas do roteiro, cinco passaram, quatro falharam e uma não pôde ser medida. As
+quatro foram consertadas em [OBT-621](https://linear.app/shema-obt/issue/OBT-621) e passaram numa segunda escuta:
+
+- **Resumo do cartão:** a prioridade ganhou o rótulo "Prioridade: …". A saúde não avaliada passou a ser
+  dita "Ainda não conversado", porque o sintetizador lia "N/A" como "ene a". O resumo deixou de ser lido
+  duas vezes (ver item 3).
+- **Modo editar da Ficha:**
+  - o foco vai para o primeiro campo, em vez de cair no diálogo, que era lido inteiro e com as palavras
+    coladas;
+  - os campos com * passaram a ser `aria-required`;
+  - o "Salvar" bloqueado ficou `aria-disabled` e continua no Tab, apontando para o "Falta preencher".
+- **Fechar a Ficha:** o foco volta ao cartão que a abriu, e não ao início do `main`.
+- **Menores:**
+  - o contador de resultados é `aria-atomic`;
+  - a região de avisos se chama "Avisos", e não "Notifications";
+  - a busca tem rótulo;
+  - "Resultados" virou um título, então a navegação por títulos chega aos cartões.
+
+**O que segue em aberto:** NVDA e VoiceOver por uma pessoa, de preferência quem use leitor de tela no dia
+a dia. O Orca não diz "aba N de 10", porque vem com essa opção desligada. Os glifos de saúde não foram
+ouvidos: nos dados de exemplo, toda saúde é desconhecida. O roteiro com as caixas para marcar está no
+artifact da OBT-496.
+
 **O que é.** A DoD pedia uma passada de leitor de tela em Projetos e na Ficha. Esta sessão não tinha
 leitor de tela nenhum (sem NVDA, sem VoiceOver, sem Orca) e nenhum foi instalado.
 
@@ -47,6 +73,8 @@ confirmar que o campo em foco não fica embaixo do teclado.
 ---
 
 ## 3. `role="button"` no cartão inteiro apaga o conteúdo dele do leitor de tela
+
+**Ajustado em [OBT-621](https://linear.app/shema-obt/issue/OBT-621)** (23/out/2026): o resumo fora do botão passou de `sr-only` a `hidden`. Deixado na árvore, ele era lido duas vezes no modo de navegação do Orca: como descrição do botão e de novo como parágrafo. A descrição continua sendo calculada a partir do nó oculto.
 
 **Resolvido em [OBT-495](https://linear.app/shema-obt/issue/OBT-495)** (30/set/2026): os dois cartões viram botão por um só componente (`OpenableCard`), com o nome curto "Abrir o projeto {idioma}" e um resumo `sr-only` fora do botão ligado por `aria-describedby` — prioridade, as três dimensões de saúde, o progresso traduzido com a unidade do projeto e a data da última atualização, nesta ordem e igual nos dois cartões. O conteúdo foi definido pela Karina em [OBT-550](https://linear.app/shema-obt/issue/OBT-550) (30/set/2026): saíram do resumo o selo de sem notícias, o prazo e as contagens de checado e aprovado (continuam no rosto dos cartões).
 
