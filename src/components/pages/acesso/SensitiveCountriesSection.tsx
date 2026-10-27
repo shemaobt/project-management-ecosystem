@@ -207,7 +207,6 @@ export interface SensitiveCountriesSectionProps {
   api: AccessAPI;
 }
 
-/** `/acesso`'s list of sensitive countries — the Admin's, as the server keeps it (OBT-616). */
 export function SensitiveCountriesSection({ api }: SensitiveCountriesSectionProps) {
   const { t } = useTranslation();
   const [attempt, setAttempt] = useState(0);

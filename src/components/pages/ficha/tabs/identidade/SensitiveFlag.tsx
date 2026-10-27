@@ -15,7 +15,6 @@ const CONSEQUENCES = [
   "f_sensitive_on_pending",
 ] as const;
 
-/** What the panel says about each mark (OBT-616) — `none` says nothing beyond the hint. */
 const MARK_NOTE: Record<SensitiveMark, string | null> = {
   country: "f_sensitive_by_country",
   project: "f_sensitive_by_project",

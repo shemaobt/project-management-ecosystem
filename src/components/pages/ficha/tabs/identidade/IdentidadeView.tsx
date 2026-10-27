@@ -20,7 +20,6 @@ export interface IdentidadeViewProps {
   draft: DraftHandle;
 }
 
-/** Why the project is sensitive, said under the place (OBT-616); `none` says nothing. */
 const MARK_NOTE: Record<SensitiveMark, string | null> = {
   country: "d_sensitive_by_country",
   project: "d_sensitive_by_project",

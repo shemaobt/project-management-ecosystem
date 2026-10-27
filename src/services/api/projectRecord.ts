@@ -244,9 +244,9 @@ export function readReadAs(value: unknown): ReadAs | undefined {
  * own. A server from before OBT-616 sends nothing, and reads the same way.
  */
 export function readListedCountries(value: unknown): readonly string[] {
-  return Array.isArray(value) && value.every((entry) => typeof entry === "string")
-    ? value
-    : [];
+  if (!Array.isArray(value)) return [];
+  const names = value.filter((entry): entry is string => typeof entry === "string");
+  return names.length === value.length ? names : [];
 }
 
 function authorization(

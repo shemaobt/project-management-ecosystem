@@ -718,7 +718,6 @@ export const accessAPI = {
     return data;
   },
 
-  /** The Admin's list of sensitive countries (OBT-616); anybody else is answered 403. */
   async sensitiveCountries(): Promise<SensitiveCountry[]> {
     const { data } = await http.get<unknown>(SENSITIVE_COUNTRIES);
     return readSensitiveCountries(data);

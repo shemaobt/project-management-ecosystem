@@ -40,7 +40,6 @@ export function listOfRows(rows: readonly SensitiveRow[]): SensitiveCountry[] {
     .filter((country) => country.name !== "");
 }
 
-/** Whether the rows would change the list as it was read — the save button's condition. */
 export function sameList(
   rows: readonly SensitiveRow[],
   saved: readonly SensitiveCountry[],

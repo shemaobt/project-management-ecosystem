@@ -30,7 +30,6 @@ export function sensitiveMark(
   return named ? "listedUnsaved" : "none";
 }
 
-/** The listed countries as a sentence names them: `Índia, Irã`. */
 export function listedNames(listed: readonly string[] | undefined): string {
   return (listed ?? []).join(", ");
 }
