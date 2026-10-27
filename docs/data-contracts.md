@@ -1024,9 +1024,11 @@ or the three contacts on a withheld one; the console never sends them (FE-48).
 sensitive countries that the record's **saved** place names, in the list's words — sent only to a
 reader of the truth (coordination and the Resource Circle), `[]` to anyone else. With
 `sensitiveCountry` it says why the project is sensitive (`sensitiveMark`, `src/utils/sensitiveMark.ts`):
-by its country, or by its own mark. The server raises the flag of a place that names a listed country
-on every create, save and confirmation and never lowers it, so the console locks the box the list
-holds. Read closed (`readListedCountries`): anything but a list of names is `[]`. Never written back.
+by its country, or by its own mark — and only to a reader of the truth, since the `[]` everybody else
+gets means *not told*. The server raises the flag of a place that names a listed country on every
+create, save and confirmation and never lowers it, so the console locks the box the list holds. Read
+closed (`readListedCountries`): anything but a list of names — a record not yet saved, a server from
+before OBT-616 — is no answer, and no answer says no reason. Never written back.
 
 **Server requirements on the write:**
 
