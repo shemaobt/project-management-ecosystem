@@ -2,11 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ApiSessionAction, ApiSessionState } from "../../../contexts/apiSession";
 import type { ApiFailure, ShemaSession } from "../../../types/session";
 
-/**
- * Sair esquece o endereço (OBT-626). Projetos guarda a busca e os filtros na URL e os relê ao
- * montar: um Sair que só limpasse o armazenamento deixaria `/projetos?status=…&q=…` na barra, e a
- * próxima conta a entrar na mesma aba abriria Projetos com a busca da anterior.
- */
 function createMemoryStorage() {
   const data = new Map<string, string>();
   return {
@@ -53,12 +48,9 @@ const IN: ApiSessionAction[] = [
   { type: "proved", accountId: "conta-a", session: SESSION },
 ];
 const TYPO: ApiSessionAction[] = [{ type: "proving" }, { type: "refused", failure: REFUSED }];
-// The header's Sair: the token event the logout fires, then the choice.
-const SAIR: ApiSessionAction[] = [{ type: "dropped" }, { type: "left" }];
-// The expired dialog's Sair: the tokens are already gone, so only the choice arrives.
-const SAIR_EXPIRADA: ApiSessionAction[] = [{ type: "left" }];
-// A re-authentication refused at the session read: its own logout is no news.
-const REENTRADA_RECUSADA: ApiSessionAction[] = [
+const SAIR_PELO_CABECALHO: ApiSessionAction[] = [{ type: "dropped" }, { type: "left" }];
+const SAIR_SEM_TOKENS_DA_SESSAO_EXPIRADA: ApiSessionAction[] = [{ type: "left" }];
+const REENTRADA_RECUSADA_NA_LEITURA_DA_SESSAO: ApiSessionAction[] = [
   { type: "proving" },
   { type: "dropped" },
   { type: "refused", failure: REFUSED },
@@ -94,7 +86,7 @@ describe("Sair esquece o endereço", () => {
     expect(useFiltersStore.getState().search).toBe("Lingala");
 
     forgetTokens("signedOut");
-    const address = forgets(READY, SAIR) ? SIGNED_OUT_ADDRESS : LEFT;
+    const address = forgets(READY, SAIR_PELO_CABECALHO) ? SIGNED_OUT_ADDRESS : LEFT;
 
     setTokens({ accessToken: token("conta-b"), refreshToken: "r" });
     const landed = new URL(address, ORIGIN);
@@ -109,7 +101,7 @@ describe("Sair esquece o endereço", () => {
   });
 
   it("sair pelo aviso de sessão expirada também leva ao início", () => {
-    expect(forgets(EXPIRED, SAIR_EXPIRADA)).toBe(true);
+    expect(forgets(EXPIRED, SAIR_SEM_TOKENS_DA_SESSAO_EXPIRADA)).toBe(true);
   });
 });
 
@@ -122,7 +114,7 @@ describe("só o Sair mexe no endereço", () => {
   it("expirar e reentrar não mexem no endereço, nem a reentrada recusada — o trabalho continua montado", () => {
     expect(forgets(READY, [{ type: "expired" }])).toBe(false);
     expect(forgets(EXPIRED, IN)).toBe(false);
-    expect(forgets(EXPIRED, REENTRADA_RECUSADA)).toBe(false);
+    expect(forgets(EXPIRED, REENTRADA_RECUSADA_NA_LEITURA_DA_SESSAO)).toBe(false);
   });
 
   it("a sessão mockada (fixtures) nunca muda o endereço", () => {
