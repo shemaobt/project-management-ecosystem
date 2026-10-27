@@ -35,12 +35,15 @@ export interface NotificationsFeed {
   prefsReady: boolean;
   /** Why the saved preferences could not be read; the panel then says so instead of showing defaults as saved. */
   prefsFailure: ApiFailure | null;
+  /** The account holds no Shemá grant: its preferences, and the list they scope, are not asked for. */
   prefsForbidden: boolean;
   /** Asks for the saved preferences again, after a failed read. */
   retryPrefs: () => void;
   savePrefs: (prefs: NotificationPrefs) => Promise<ApiFailure | null>;
   /** The projects the scope picker lists and *só os que mentoro* asks for a mentor. */
   projects: readonly Project[];
+  /** Asks for that list when the panel opens; nothing leaves for an account with `prefsForbidden`. */
+  readProjects: () => void;
 }
 
 /**
@@ -60,22 +63,32 @@ export function readsOnReturn(lastRead: number | null, now: number): boolean {
 /**
  * The preferences route sits behind the Shemá app's door, so an account that holds no Shemá
  * role (a form-only account) would only meet a 403 for each ask (OBT-604). It keeps the
- * defaults, and no request leaves.
+ * defaults, and no request leaves. The project list serves only these preferences — the picker
+ * and *só os que mentoro* — and is the Shemá browse, behind the same door, so it follows the
+ * same answer: asked for, it was a 403 and its toast on every open of the panel (OBT-635).
  */
 export function readsSavedPrefs(roles: readonly SessionRole[]): boolean {
   return holdsShemaGrant(roles);
 }
 
+/**
+ * An account with no Shemá grant reads why *Salvar* stays closed as a fact about the account,
+ * not as a failure (OBT-635): `net_forbidden` told someone who may use the bell to ask for
+ * access to it, and there is nothing to retry.
+ */
 export function prefsNotice(
   feed: Pick<NotificationsFeed, "prefsForbidden" | "prefsFailure" | "retryPrefs">,
   t: Translate,
-): { prefsUnread: string | null; onRetryPrefs?: () => void } {
-  if (feed.prefsForbidden) return { prefsUnread: t("net_forbidden") };
+): { prefsUnread: string | null; prefsNote: string | null; onRetryPrefs?: () => void } {
+  if (feed.prefsForbidden) {
+    return { prefsUnread: null, prefsNote: t("notif_prefs_shema_only") };
+  }
   return {
     prefsUnread:
       feed.prefsFailure === null
         ? null
         : `${t("notif_prefs_unread")} ${failureMessage(feed.prefsFailure, t)}`,
+    prefsNote: null,
     onRetryPrefs: feed.retryPrefs,
   };
 }
@@ -86,7 +99,11 @@ export function prefsNotice(
  * page open pay for it — Projetos included, racing that screen's own browse — on the field
  * connection the issue names. So the served feed reads it only when something needs it (OBT-557).
  */
-function useScopedProjects(read = true): { projects: readonly Project[]; hydrated: boolean } {
+function useScopedProjects(read = true): {
+  projects: readonly Project[];
+  hydrated: boolean;
+  ask: () => void;
+} {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const hydrate = useProjectsStore((state) => state.hydrate);
@@ -104,7 +121,10 @@ function useScopedProjects(read = true): { projects: readonly Project[]; hydrate
         : projects.filter((project) => scope.includes(getRegion(project))),
     [projects, scope],
   );
-  return { projects: scoped, hydrated };
+  const ask = useCallback(() => {
+    void hydrate();
+  }, [hydrate]);
+  return { projects: scoped, hydrated, ask };
 }
 
 /**
@@ -114,7 +134,7 @@ function useScopedProjects(read = true): { projects: readonly Project[]; hydrate
 function useDerivedFeed(): NotificationsFeed {
   const { user } = useAuth();
   const all = useProjectsStore((state) => state.projects);
-  const { projects, hydrated } = useScopedProjects();
+  const { projects, hydrated, ask } = useScopedProjects();
   const prefs = useNotificationStore((state) => state.prefs);
   const readIds = useNotificationStore((state) => state.readIds);
   const markRead = useNotificationStore((state) => state.markRead);
@@ -153,6 +173,7 @@ function useDerivedFeed(): NotificationsFeed {
     retryPrefs: noRetry,
     savePrefs,
     projects,
+    readProjects: ask,
   };
 }
 
@@ -236,8 +257,13 @@ function useServedFeed(api: NotificationsAPI): NotificationsFeed {
 
   const shownPrefs = prefs ?? NOTIF_DEFAULTS;
   // The list is needed by *só os que mentoro* (a served notice carries no mentor) and by the
-  // picker, which the panel asks for itself when it opens.
-  const { projects } = useScopedProjects(shownPrefs.scope === "mentored");
+  // picker, which the panel asks for when it opens.
+  const { projects, ask } = useScopedProjects(
+    mayReadPrefs && shownPrefs.scope === "mentored",
+  );
+  const readProjects = useCallback(() => {
+    if (mayReadPrefs) ask();
+  }, [mayReadPrefs, ask]);
   const entries = useMemo(
     () =>
       panel === null
@@ -290,6 +316,7 @@ function useServedFeed(api: NotificationsAPI): NotificationsFeed {
     retryPrefs,
     savePrefs,
     projects,
+    readProjects,
   };
 }
 
