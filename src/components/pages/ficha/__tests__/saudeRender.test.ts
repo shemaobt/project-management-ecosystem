@@ -400,7 +400,7 @@ describe("o que a aba diz do histórico e de quem grava as leituras (OBT-648)", 
 
     const { default: pt } = await import("../../../../i18n/locales/pt-BR.json");
     const { default: en } = await import("../../../../i18n/locales/en.json");
-    expect(pt.d_health_history).not.toMatch(/anterior/iu);
+    expect(pt.d_health_history).not.toMatch(/anterior|antig|passad/iu);
     expect(en.d_health_history).not.toMatch(/earlier|previous|past|former/iu);
   });
 
