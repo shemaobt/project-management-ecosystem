@@ -26,10 +26,29 @@ import type { ApiFailure } from "../types/session";
 import { mayWrite, recordAccess } from "../utils/recordAccess";
 import { useProjectsStore } from "./projectsStore";
 
-/** A field whose two values differ — `JSON` because half of them are arrays. */
+/** Objects with their keys sorted, all the way down; arrays keep their order. */
+function canonical(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value === null || typeof value !== "object") return value;
+  const entries = Object.entries(value as Record<string, unknown>);
+  return Object.fromEntries(
+    entries
+      .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+      .map(([key, item]) => [key, canonical(item)]),
+  );
+}
+
+/**
+ * A field whose two values differ — `JSON` because half of them are arrays, and with the keys
+ * sorted because key order is not a difference: the server answers a book row in its model's
+ * field order (`{name, …, id}`) and the progress tab builds it `{id, name, …}` (OBT-625).
+ */
 function differs(left: unknown, right: unknown): boolean {
   if (left === right) return false;
-  return JSON.stringify(left ?? null) !== JSON.stringify(right ?? null);
+  return (
+    JSON.stringify(canonical(left ?? null)) !==
+    JSON.stringify(canonical(right ?? null))
+  );
 }
 
 /**

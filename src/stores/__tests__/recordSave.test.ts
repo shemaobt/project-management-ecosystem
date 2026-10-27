@@ -231,6 +231,18 @@ describe("cada aba escreve só o que é dela", () => {
     expect(changedFields({ notes: "antigo" }, saved)).toEqual([]);
   });
 
+  it("a ordem das chaves não é diferença, o valor é (OBT-625)", () => {
+    // A linha como o servidor responde (`{name, …, id}`) e como a aba Progresso a monta.
+    const served = { name: "Rute", chapters: 4, translated: 1, communityChecked: 0, mentorApproved: 0, id: "RUT" };
+    const built = { id: "RUT", name: "Rute", chapters: 4, translated: 1, communityChecked: 0, mentorApproved: 0 };
+    const saved = { ...record(), bookProgress: [served] } as never;
+
+    expect(changedFields({ bookProgress: [built] }, saved)).toEqual([]);
+    expect(
+      changedFields({ bookProgress: [{ ...built, translated: 2 }] }, saved),
+    ).toEqual(["bookProgress"]);
+  });
+
   it("o que o PATCH ainda não aceita é separado, nunca mandado", () => {
     expect(
       withheldFields({ notes: "x", healthEmotional: "boa", needsItems: [] }),
