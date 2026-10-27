@@ -542,7 +542,8 @@ the prototype seeded a real person's email and a mock phone.
 
 `src/types/assessment.ts`. **Frozen, and client-side.** `AssessmentDraft` is the wizard's
 per-project autosave; only `applyAssessment` turns it into a `HealthAssessment` plus the pastoral
-answer and, **when one was actually written**, the prayer request and its consent. A save that
+answer — on the record only with a reading that becomes the current one (§9.4) — and, **when one was
+actually written**, the prayer request and its consent. A save that
 writes `prayerRequests: ""` unconditionally deletes an existing request as a side effect, which
 §8.2 forbids. The suggestion to escalate pastorally is returned **with its reasons** and never
 applied: `pastoral` stays `"nao"` until a person picks otherwise.
@@ -1046,9 +1047,10 @@ POST /api/shema/projects/{id}/health-assessments   {HealthAssessment + pastoral 
 GET  /api/shema/projects/{id}/health-assessments                                           -> HealthAssessment[]
 ```
 
-**Request body** — what `applyAssessment` produces: the `HealthAssessment` (with `dimensionNotes`,
-from which `notes` is derived), the pastoral answer (`needsPastoralIntervention`,
-`pastoralInterventionName`, `pastoralInterventionWhen`), and **only when one was written**, the
+**Request body** — what `buildSubmission` sends (`applyAssessment` is its fixture double): the
+`HealthAssessment` (with `dimensionNotes`, from which `notes` is derived), the pastoral answer
+(`needsPastoralIntervention`, `pastoralInterventionName`, `pastoralInterventionWhen`) **with every
+reading** — `nao`, `""`, `now` when nobody picked otherwise — and **only when one was written**, the
 prayer request plus its `prayerVisibility`.
 
 **Server requirements:**
@@ -1059,6 +1061,14 @@ prayer request plus its `prayerVisibility`.
   assessment must not overwrite a newer reading.
 - A record that predates `healthHistory` has its flat fields carried into the history before the
   append, so the first new assessment cannot erase what was already there.
+- **The pastoral answer lands only with a reading that becomes the current one**
+  ([OBT-623](https://linear.app/shema-obt/issue/OBT-623); the fixture double since
+  [OBT-644](https://linear.app/shema-obt/issue/OBT-644)). It is that reading's conclusion, so a
+  reading dated before the record's — or before the one carried in from a record that predates the
+  history — lands in the history and leaves the three pastoral fields where they were; its answer is
+  not kept anywhere, since the history has no column for it. A reading on the same day as the
+  record's becomes the current one. The prayer request is not part of the reading: it is sent only
+  when somebody wrote one, and a backdated reading still files it.
 - **Never write `prayerRequests: ""`** as a side effect (§8.2).
 - The pastoral escalation is **suggested with reasons and never applied** (§5.9).
 
