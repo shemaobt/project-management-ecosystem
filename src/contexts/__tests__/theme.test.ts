@@ -39,7 +39,7 @@ describe("o tema escuro é escolha de quem clica (OBT-505)", () => {
     expect(classes.has("dark")).toBe(false);
   });
 
-  it("a escolha guardada vale antes da primeira pintura", () => {
+  it("a escolha guardada é a que vale", () => {
     stored.set("shema-theme-v1", "dark");
     applyStoredTheme();
     expect(classes.has("dark")).toBe(true);
