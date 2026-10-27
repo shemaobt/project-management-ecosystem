@@ -161,14 +161,14 @@ function report(
 
 function refusal(
   result: Exclude<RecordSaveResult, { ok: true }>,
-  draft: Partial<Project>,
+  typed: Partial<Project>,
 ): SaveOutcome {
   switch (result.reason) {
     case "conflict":
       return {
         kind: "conflict",
         conflict: result.conflict,
-        overlap: overlappingFields(result.conflict, draft),
+        overlap: overlappingFields(result.conflict, typed),
       };
     case "invalid":
       return { kind: "invalid", errors: result.errors };
@@ -250,7 +250,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
         useProjectsStore.getState().invalidate();
         return outcome;
       }
-      const outcome = refusal(result, draft);
+      const outcome = refusal(result, typed);
       set({ saving: false, outcome });
       return outcome;
     }
