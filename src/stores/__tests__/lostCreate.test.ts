@@ -36,6 +36,7 @@ const { useProjectRecordStore } = await import("../projectRecordStore");
 const { materializeDraft, makeEmptyProject, NEW_RECORD, useRecordStore } =
   await import("../recordStore");
 const { useProjectsStore } = await import("../projectsStore");
+const { landedAddress } = await import("../../components/pages/ficha/recordMode");
 
 type Wire = Record<string, unknown>;
 type WireNeed = Record<string, unknown>;
@@ -298,6 +299,7 @@ describe("a criação cuja resposta se perdeu (OBT-625, PME-PRJ-052)", () => {
     // disso é diferença.
     expect(again.pending).toEqual([]);
     expect(again.carried).toEqual({});
+    expect(landedAddress(again.id, "equipe", again.pending)).toBe(`/ficha/${ID}/equipe`);
     expect(writes("post").map((config) => JSON.parse(String(config.data)).id)).toEqual([ID, ID]);
     expect(server.size).toBe(1);
     expect(useProjectsStore.getState().outdated).toBe(true);
@@ -322,6 +324,7 @@ describe("a criação cuja resposta se perdeu (OBT-625, PME-PRJ-052)", () => {
     expect(again.kind).toBe("landed");
     if (again.kind !== "landed") return;
     expect(again.pending).toEqual(["needsItems", "notes"]);
+    expect(landedAddress(again.id, "notas", again.pending)).toBe(`/ficha/${ID}/notas?modo=editar`);
 
     await landAsThePage();
     const applied = await store().save(savingLanded());

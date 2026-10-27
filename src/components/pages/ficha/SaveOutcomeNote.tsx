@@ -8,6 +8,7 @@ import type { RecordField, RecordFieldError } from "../../../types/projectRecord
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
 import { Button } from "../../ui";
+import { savedSentence } from "./saveReport";
 
 export interface SaveOutcomeNoteProps {
   outcome: SaveOutcome;
@@ -16,12 +17,12 @@ export interface SaveOutcomeNoteProps {
   onGoToTab: (tab: RecordTabId) => void;
 }
 
-type Tone = "conflict" | "refused" | "failed";
+type Tone = "attention" | "refused" | "quiet";
 
 const TONES: Record<Tone, string> = {
-  conflict: "border-status-attention-fg bg-status-attention-bg",
+  attention: "border-status-attention-fg bg-status-attention-bg",
   refused: "border-telha bg-accent-soft",
-  failed: "border-line-strong bg-muted",
+  quiet: "border-line-strong bg-muted",
 };
 
 function Panel({
@@ -109,13 +110,14 @@ export function SaveOutcomeNote({
   const list = (fields: readonly RecordField[], extra: readonly string[] = []) =>
     [...fields.map(fieldName), ...extra].join(" · ");
 
-  const retry = (
+  const action = (label: string) => (
     <div>
       <Button size="sm" onClick={onRetry} disabled={saving}>
-        {saving ? t("record_saving") : t("record_save_retry")}
+        {saving ? t("record_saving") : label}
       </Button>
     </div>
   );
+  const retry = action(t("record_save_retry"));
 
   switch (outcome.kind) {
     case "conflict": {
@@ -123,7 +125,7 @@ export function SaveOutcomeNote({
       const named =
         conflict.changedFields.length > 0 || conflict.unknownFields.length > 0;
       return (
-        <Panel tone="conflict" title={t("record_conflict_title")}>
+        <Panel tone="attention" title={t("record_conflict_title")}>
           <p>{t("record_conflict_kept")}</p>
           <p>
             {conflict.changedBy
@@ -172,9 +174,38 @@ export function SaveOutcomeNote({
         </Panel>
       );
 
+    // The create's own 409, read for what it is: no word here may blame somebody else for
+    // what was this draft's first send (OBT-625).
+    case "landed": {
+      const kept = savedSentence([], outcome.withheld, t);
+      return (
+        <Panel tone="quiet" title={t("record_landed_title")}>
+          <p>{t("record_landed_body")}</p>
+          {outcome.pending.length > 0 && (
+            <>
+              <p className="font-semibold">
+                {t("record_landed_pending", { fields: list(outcome.pending) })}
+              </p>
+              {action(t("record_landed_apply"))}
+            </>
+          )}
+          {kept && <p>{kept}</p>}
+        </Panel>
+      );
+    }
+
+    case "landedUnread":
+      return (
+        <Panel tone="quiet" title={failureMessage(outcome.failure, t)}>
+          <p>{t("record_landed_unread")}</p>
+          {/* A record out of this reader's reach answers the same way every time. */}
+          {outcome.failure.kind !== "notFound" && action(t("net_retry"))}
+        </Panel>
+      );
+
     case "failed":
       return (
-        <Panel tone="failed" title={failureMessage(outcome.failure, t)}>
+        <Panel tone="quiet" title={failureMessage(outcome.failure, t)}>
           <p>{t("record_save_failed")}</p>
           {retry}
         </Panel>

@@ -1,6 +1,10 @@
+import type { RecordTabId } from "../../../constants/recordTabs";
+import type { RecordField } from "../../../types/projectRecord";
 import type { SessionRole } from "../../../types/session";
 import { canCreateProjects } from "../../../utils/access";
 import type { RecordMode } from "./types";
+
+export const MODE_PARAM = "modo";
 
 /**
  * The mode the address asks for, unless the record is read-only for this reader (OBT-571:
@@ -22,4 +26,18 @@ export function readMode(raw: string | null, isNew: boolean, readOnly: boolean):
  */
 export function mayOpenRecord(isNew: boolean, roles: readonly SessionRole[]): boolean {
   return !isNew || canCreateProjects(roles);
+}
+
+/**
+ * Where a create whose answer was lost takes the reader once the record it filed is read
+ * (OBT-625): that record, on the tab they were on — editing only when the draft holds a
+ * difference to apply, because with nothing left there is nothing to edit.
+ */
+export function landedAddress(
+  id: string,
+  tab: RecordTabId,
+  pending: readonly RecordField[],
+): string {
+  const mode = pending.length > 0 ? `?${MODE_PARAM}=editar` : "";
+  return `/ficha/${id}/${tab}${mode}`;
 }

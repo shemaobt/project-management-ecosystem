@@ -23,7 +23,7 @@ vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("window", { localStorage: storage });
 
 const { default: i18n } = await import("../../../../i18n");
-const { RECORD_TABS } = await import("../../../../constants/recordTabs");
+const { RECORD_TABS, TAB_LABEL_KEYS } = await import("../../../../constants/recordTabs");
 const { PENDING_WRITE } = await import("../../../../constants/recordFields");
 const { mapRecord } = await import("../../../../services/api/projectRecord");
 const { TAB_COMPONENTS } = await import("../tabs");
@@ -316,6 +316,59 @@ describe("o conflito é explicado, e diz que nada foi descartado", () => {
     });
     expect(markup).toContain(i18n.t("record_conflict_by_unnamed"));
     expect(markup).toContain(i18n.t("record_conflict_changed_unknown"));
+  });
+});
+
+describe("o envio que já tinha chegado não culpa ninguém (OBT-625)", () => {
+  const LANDED = {
+    kind: "landed" as const,
+    id: "9eecfb4c",
+    carried: {},
+    pending: [] as never[],
+    withheld: [] as never[],
+  };
+  const blames = (markup: string) =>
+    markup.includes(i18n.t("record_conflict_title")) ||
+    markup.includes(i18n.t("record_conflict_by_unnamed"));
+
+  it("sem diferença, diz que a ficha é a que o primeiro envio criou, sem botão", () => {
+    const markup = outcomeMarkup(LANDED);
+    expect(markup).toContain(i18n.t("record_landed_title"));
+    expect(markup).toContain(i18n.t("record_landed_body"));
+    expect(markup).not.toContain("<button");
+    expect(blames(markup)).toBe(false);
+  });
+
+  it("com diferença, nomeia os campos e oferece aplicar só isso", () => {
+    const markup = outcomeMarkup({
+      ...LANDED,
+      pending: ["needsItems", "notes"] as never,
+      withheld: ["mediaVideos"] as never,
+    });
+    expect(markup).toContain(i18n.t("sec_needs"));
+    expect(markup).toContain(i18n.t("f_notes"));
+    expect(markup).toContain(i18n.t("record_landed_apply"));
+    expect(markup).toContain(i18n.t(TAB_LABEL_KEYS.midia));
+    expect(blames(markup)).toBe(false);
+  });
+
+  it("se a ficha não abre, diz que ela existe; fora do alcance, sem tentar de novo para sempre", () => {
+    const offline = outcomeMarkup({
+      kind: "landedUnread",
+      id: "9eecfb4c",
+      failure: { kind: "offline", status: null, code: null, detail: null },
+    });
+    expect(offline).toContain(i18n.t("record_landed_unread"));
+    expect(offline).toContain(i18n.t("net_retry"));
+    expect(blames(offline)).toBe(false);
+
+    const unreachable = outcomeMarkup({
+      kind: "landedUnread",
+      id: "9eecfb4c",
+      failure: { kind: "notFound", status: 404, code: null, detail: null },
+    });
+    expect(unreachable).toContain(i18n.t("record_landed_unread"));
+    expect(unreachable).not.toContain("<button");
   });
 });
 

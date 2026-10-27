@@ -41,10 +41,14 @@ import { SaveOutcomeNote } from "./SaveOutcomeNote";
 import { savedSentence, unchangedSentence } from "./saveReport";
 import { TabNav } from "./TabNav";
 import { TAB_COMPONENTS } from "./tabs";
-import { mayOpenRecord, readMode } from "./recordMode";
+import {
+  landedAddress,
+  mayOpenRecord,
+  MODE_PARAM,
+  readMode,
+} from "./recordMode";
 import { useDraft } from "./useDraft";
 
-const MODE_PARAM = "modo";
 const RECORD_BODY_ID = "ficha-corpo";
 
 
@@ -151,12 +155,13 @@ export function FichaPage() {
   };
 
   /**
-   * One attempt, four answers — and the draft survives all four.
+   * One attempt, and the draft survives every answer.
    *
    * Only a save the server accepted takes anything out of the draft, and it takes
    * exactly the tabs it wrote (`settleDraft`): a conflict, a refusal and a dead
    * connection all leave every keystroke where it was, which is what lets the same
-   * button be pressed again.
+   * button be pressed again. A create that had already landed moves to the record it
+   * filed, and what the draft holds that the record does not goes with it (OBT-625).
    */
   const attempt = async () => {
     if (draft.missing.length > 0) {
@@ -168,7 +173,7 @@ export function FichaPage() {
 
     // The slug is minted **once** and kept in the draft. A create that timed out may
     // well have landed, and a retry that minted a second id would file the record twice
-    // instead of meeting the server's own slug collision.
+    // instead of meeting the server's own slug collision — which reads the record it names.
     const filed = draft.isNew ? promote(draft.values) : null;
     if (filed && filed.id !== draft.values.id) draft.set("id", filed.id);
 
@@ -211,6 +216,12 @@ export function FichaPage() {
         // thing typed was a tab the record write does not carry yet, that is what the
         // sentence says — the same wording a real save uses for its withheld half.
         toast(unchangedSentence(result.withheld, t));
+        return;
+      }
+      case "landed": {
+        dropDraft(recordId);
+        if (Object.keys(result.carried).length > 0) moveDraft(result.id, result.carried);
+        navigate(landedAddress(result.id, active, result.pending), { replace: true });
         return;
       }
       case "invalid": {
