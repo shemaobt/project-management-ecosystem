@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Project } from "../../types/project";
 
 /**
  * The test environment pins `VITE_DATA_SOURCE=fixtures` (vite.config.ts), which is what
@@ -756,5 +757,50 @@ describe("uma escrita que o servidor aceitou deixa a lista desatualizada (OBT-59
     ).toBe("invalid");
 
     expect(listOutdated()).toBe(false);
+  });
+});
+
+describe("editar só o texto do pedido não decide a autorização (OBT-597)", () => {
+  const TEXT_A = "Orem pela colheita do vale";
+  const TEXT_B = "Orem pela colheita do vale e pela chuva";
+
+  /** The screen hands the merge — the whole record under the overlay — and what was typed. */
+  async function rewording(typed: Partial<Project>) {
+    queue = [
+      ok({ readAs: "coordination", prayerRequests: TEXT_A, prayerVisibility: "rede" }),
+    ];
+    store().forget();
+    await store().open("p1");
+    const project = store().record?.project;
+    if (!project) throw new Error("the record did not open");
+    queue = [ok({ readAs: "coordination", ...typed, prayerVisibility: "rede" }, '"8"')];
+    return store().save({
+      values: { ...project, ...typed },
+      typed,
+      isNew: false,
+      readsHealth: true,
+      writesHealth: true,
+    });
+  }
+
+  const patchBody = () =>
+    JSON.parse(
+      String(sent.find((config) => config.method === "patch")?.data),
+    ) as Record<string, unknown>;
+
+  it("trocar só o texto de um pedido em rede manda só o texto — nem null, nem palpite", async () => {
+    const outcome = await rewording({ prayerRequests: TEXT_B });
+
+    expect(outcome.kind).toBe("saved");
+    expect(patchBody()).toEqual({ prayerRequests: TEXT_B });
+  });
+
+  it("desmarcar a rede junto com o texto manda os dois", async () => {
+    await rewording({ prayerRequests: TEXT_B, prayerVisibility: "coordenacao" });
+
+    expect(patchBody()).toEqual({
+      prayerRequests: TEXT_B,
+      prayerVisibility: "coordenacao",
+    });
   });
 });
