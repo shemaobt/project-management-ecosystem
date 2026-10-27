@@ -1,6 +1,11 @@
 import { ShieldAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../../../../utils/cn";
+import {
+  listedNames,
+  sensitiveMark,
+  type SensitiveMark,
+} from "../../../../../utils/sensitiveMark";
 import { CheckboxField } from "../../../../ui";
 import { roleLabelVars } from "../../roleLabelVars";
 
@@ -10,18 +15,35 @@ const CONSEQUENCES = [
   "f_sensitive_on_pending",
 ] as const;
 
+/** What the panel says about each mark (OBT-616) — `none` says nothing beyond the hint. */
+const MARK_NOTE: Record<SensitiveMark, string | null> = {
+  country: "f_sensitive_by_country",
+  project: "f_sensitive_by_project",
+  listedUnsaved: "f_sensitive_listed_unsaved",
+  none: null,
+};
+
 export interface SensitiveFlagProps {
   checked: boolean;
   disabled?: boolean;
+  /**
+   * The listed sensitive countries the **saved** place names (`listedCountries`, OBT-616). A
+   * project the list holds cannot be lowered here: the server raises it again on any save, so
+   * the box is locked instead of pretending.
+   */
+  listed?: readonly string[];
   onChange: (checked: boolean) => void;
 }
 
 export function SensitiveFlag({
   checked,
   disabled = false,
+  listed,
   onChange,
 }: SensitiveFlagProps) {
   const { t } = useTranslation();
+  const mark = sensitiveMark(checked, listed);
+  const note = MARK_NOTE[mark];
 
   return (
     <div
@@ -42,12 +64,20 @@ export function SensitiveFlag({
             id="ficha-sensitive"
             label={t("f_sensitive")}
             checked={checked}
-            disabled={disabled}
+            disabled={disabled || mark === "country"}
             onCheckedChange={(next) => onChange(next === true)}
           />
           <p className="mt-1 text-micro text-fg-subtle">
             {t("f_sensitive_hint")}
           </p>
+          {note && (
+            <p
+              data-sensitive-mark={mark}
+              className="mt-2 text-micro leading-[1.45] font-semibold text-fg"
+            >
+              {t(note, { countries: listedNames(listed) })}
+            </p>
+          )}
         </div>
       </div>
 

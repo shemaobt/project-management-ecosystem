@@ -3,6 +3,11 @@ import { VITALITY_SCALE } from "../../../../../constants/project";
 import { formatNumber } from "../../../../../utils/format";
 import { hasPlottableCoords } from "../../../../../utils/identity";
 import {
+  listedNames,
+  sensitiveMark,
+  type SensitiveMark,
+} from "../../../../../utils/sensitiveMark";
+import {
   getLanguageNameDisplay,
   getLocationDisplay,
 } from "../../../../../utils/region";
@@ -15,10 +20,20 @@ export interface IdentidadeViewProps {
   draft: DraftHandle;
 }
 
+/** Why the project is sensitive, said under the place (OBT-616); `none` says nothing. */
+const MARK_NOTE: Record<SensitiveMark, string | null> = {
+  country: "d_sensitive_by_country",
+  project: "d_sensitive_by_project",
+  listedUnsaved: "d_sensitive_listed_unsaved",
+  none: null,
+};
+
 export function IdentidadeView({ draft }: IdentidadeViewProps) {
   const { t } = useTranslation();
   const locale = t("locale");
   const values = draft.values;
+  const mark = sensitiveMark(Boolean(values.sensitiveCountry), values.listedCountries);
+  const markNote = MARK_NOTE[mark];
   const withheld = draft.place.withheld;
   const place = draft.saved ? getLocationDisplay(draft.saved) : null;
   const speakers = Number(values.speakerCount);
@@ -74,6 +89,14 @@ export function IdentidadeView({ draft }: IdentidadeViewProps) {
           <Badge tone="accent" className="ml-2.5 align-middle not-italic">
             {t("d_sensitive_tag")}
           </Badge>
+        )}
+        {markNote && (
+          <span
+            data-sensitive-mark={mark}
+            className="mt-1 block font-sans text-micro leading-[1.45] not-italic text-fg-muted"
+          >
+            {t(markNote, { countries: listedNames(values.listedCountries) })}
+          </span>
         )}
       </DetailItem>
 

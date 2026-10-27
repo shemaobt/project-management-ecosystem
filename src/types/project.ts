@@ -375,6 +375,13 @@ export interface Project {
    * region key when none is registered (OBT-560). `getLanguageNameDisplay` reads it.
    */
   languageNameWithheld?: boolean;
+  /**
+   * The countries on the sensitive list that this record's place names, in the list's words
+   * (OBT-616) — sent only to a reader of the truth. With `sensitiveCountry` it says why the
+   * project is sensitive: by its country, or by its own mark (`sensitiveMark`). Read-only: the
+   * server derives it, so it is never written back.
+   */
+  listedCountries?: readonly string[];
   statusComments: string;
   statusGoal: string;
   orgRole: string;

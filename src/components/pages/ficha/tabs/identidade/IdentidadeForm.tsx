@@ -259,6 +259,7 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
       <SensitiveFlag
         checked={Boolean(values.sensitiveCountry)}
         disabled={locked}
+        listed={values.listedCountries}
         onChange={(next) => draft.set("sensitiveCountry", next)}
       />
 

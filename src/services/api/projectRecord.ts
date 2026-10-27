@@ -184,6 +184,8 @@ interface WireRecord {
   publicLanguageName?: string | null;
   /** OBT-560, additive: `languageName` is not the language's own. */
   languageNameWithheld?: boolean;
+  /** OBT-616, additive: the listed sensitive countries the place names — a reader of the truth's. */
+  listedCountries?: unknown;
   /** OBT-528, additive: who this record was built for. */
   readAs?: string;
   statusComments: string;
@@ -234,6 +236,17 @@ export function readReadAs(value: unknown): ReadAs | undefined {
   return value === "coordination" || value === "trusted" || value === "other"
     ? value
     : undefined;
+}
+
+/**
+ * The listed sensitive countries the place names (OBT-616), read closed: anything but a list of
+ * names is no answer, and no answer is `[]` — which says the flag, if raised, is the project's
+ * own. A server from before OBT-616 sends nothing, and reads the same way.
+ */
+export function readListedCountries(value: unknown): readonly string[] {
+  return Array.isArray(value) && value.every((entry) => typeof entry === "string")
+    ? value
+    : [];
 }
 
 function authorization(
@@ -458,6 +471,7 @@ export function mapRecord(wire: WireRecord): Project {
     sensitiveCountry: wire.sensitiveCountry || wire.locationWithheld === true,
     publicLanguageName: maybe(wire.publicLanguageName ?? null),
     languageNameWithheld: wire.languageNameWithheld === true,
+    listedCountries: readListedCountries(wire.listedCountries),
     readAs: readReadAs(wire.readAs),
     statusComments: wire.statusComments,
     statusGoal: wire.statusGoal,
