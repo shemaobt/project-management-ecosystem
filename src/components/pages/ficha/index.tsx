@@ -8,7 +8,7 @@ import {
   type RecordTabId,
 } from "../../../constants/recordTabs";
 import { useAuth } from "../../../contexts/AuthContext";
-import { failureMessage } from "../../../services/api";
+import { FILED_VERSION, failureMessage } from "../../../services/api";
 import {
   tabOfFirstError,
   useProjectRecordStore,
@@ -71,6 +71,9 @@ export function FichaPage() {
 
   const moveDraft = useRecordStore((state) => state.updateDraft);
   const dropDraft = useRecordStore((state) => state.discardDraft);
+  const filedAt = useRecordStore((state) => state.filedAt[recordId]);
+  const markFiled = useRecordStore((state) => state.markFiled);
+  const forgetFiled = useRecordStore((state) => state.forgetFiled);
 
   // The session's roles and not the record's access: the tabs are known before the record
   // is read, so a reader on /saude is not sent away while it loads (OBT-553).
@@ -183,6 +186,7 @@ export function FichaPage() {
       isNew: draft.isNew,
       readsHealth: draft.place.readsHealth,
       writesHealth: draft.place.writesHealth,
+      filedAt,
     });
 
     switch (result.kind) {
@@ -221,9 +225,13 @@ export function FichaPage() {
       case "landed": {
         dropDraft(recordId);
         if (Object.keys(result.carried).length > 0) moveDraft(result.id, result.carried);
+        if (result.pending.length > 0) markFiled(result.id, FILED_VERSION);
         navigate(landedAddress(result.id, active, result.pending), { replace: true });
         return;
       }
+      case "conflict":
+        forgetFiled(recordId);
+        return;
       case "invalid": {
         const target = tabOfFirstError(result.errors);
         if (target && target !== active) goToTab(target);

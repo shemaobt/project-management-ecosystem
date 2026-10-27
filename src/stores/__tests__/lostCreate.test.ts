@@ -33,10 +33,11 @@ vi.stubGlobal("window", { localStorage: storage });
 
 const { http } = await import("../../services/api/client");
 const { useProjectRecordStore } = await import("../projectRecordStore");
-const { materializeDraft, makeEmptyProject, NEW_RECORD, useRecordStore } =
+const { flushDraftWrites, materializeDraft, makeEmptyProject, NEW_RECORD, useRecordStore } =
   await import("../recordStore");
 const { useProjectsStore } = await import("../projectsStore");
 const { landedAddress } = await import("../../components/pages/ficha/recordMode");
+const { FILED_VERSION } = await import("../../services/api");
 
 type Wire = Record<string, unknown>;
 type WireNeed = Record<string, unknown>;
@@ -53,6 +54,7 @@ interface Held {
 const server = new Map<string, Held>();
 const sent: InternalAxiosRequestConfig[] = [];
 let loseNextAnswer = false;
+let dropNextPatch = false;
 let readAs: "coordination" | "other" = "coordination";
 let needSeq = 0;
 
@@ -186,7 +188,13 @@ const adapter = async (config: InternalAxiosRequestConfig) => {
   const held = server.get(id);
   if (!held) return reply(config, 404, { detail: "Project not found", code: "NOT_FOUND" });
   if (config.method === "get") return reply(config, 200, asRead(held.wire), held.version);
-  if (config.method === "patch") return patch(config, held);
+  if (config.method === "patch") {
+    if (dropNextPatch) {
+      dropNextPatch = false;
+      throw new AxiosError("Network Error", "ERR_NETWORK", config);
+    }
+    return patch(config, held);
+  }
   return reply(config, 500, null);
 };
 
@@ -250,6 +258,7 @@ async function landAsThePage() {
   if (Object.keys(outcome.carried).length > 0) {
     useRecordStore.getState().updateDraft(outcome.id, outcome.carried);
   }
+  if (outcome.pending.length > 0) useRecordStore.getState().markFiled(outcome.id, FILED_VERSION);
   await store().open(outcome.id);
   return outcome;
 }
@@ -263,8 +272,19 @@ const savingLanded = () => {
     isNew: false,
     readsHealth: true,
     writesHealth: true,
+    filedAt: useRecordStore.getState().filedAt[ID],
   };
 };
+
+/** What the page does with a save's answer on `/ficha/<id>`. */
+async function applyAsThePage() {
+  const outcome = await store().save(savingLanded());
+  if (outcome.kind === "saved") {
+    useRecordStore.getState().settleDraft(ID, outcome.report.writtenFields);
+  }
+  if (outcome.kind === "conflict") useRecordStore.getState().forgetFiled(ID);
+  return outcome;
+}
 
 async function loseTheFirstAnswer() {
   useRecordStore.getState().updateDraft(NEW_RECORD, structuredClone(TYPED));
@@ -278,9 +298,10 @@ beforeEach(() => {
   server.clear();
   sent.length = 0;
   loseNextAnswer = false;
+  dropNextPatch = false;
   readAs = "coordination";
   needSeq = 0;
-  useRecordStore.setState({ drafts: {} });
+  useRecordStore.setState({ drafts: {}, filedAt: {} });
   useProjectsStore.setState({ outdated: false });
   store().forget();
 });
@@ -380,7 +401,7 @@ describe("a criação cuja resposta se perdeu (OBT-625, PME-PRJ-052)", () => {
     await landAsThePage();
     expect(store().record?.version).toBe('"2"');
 
-    const applied = await store().save(savingLanded());
+    const applied = await applyAsThePage();
 
     expect(applied.kind).toBe("conflict");
     if (applied.kind !== "conflict") return;
@@ -391,8 +412,31 @@ describe("a criação cuja resposta se perdeu (OBT-625, PME-PRJ-052)", () => {
     expect(drafts()[ID]).toEqual({ notes: "o meu texto" });
 
     // Visto o conflito, salvar de novo cita a versão relida e passa.
-    expect((await store().save(savingLanded())).kind).toBe("saved");
+    expect((await applyAsThePage()).kind).toBe("saved");
     expect(server.get(ID)!.wire.notes).toBe("o meu texto");
+  });
+
+  it("a versão de criação sobrevive a um envio que caiu e a um recarregamento", async () => {
+    await loseTheFirstAnswer();
+    editedBySomebody({ notes: "texto da Maria" });
+    useRecordStore.getState().updateDraft(NEW_RECORD, { notes: "o meu texto" });
+    await store().save(creating());
+    await landAsThePage();
+
+    dropNextPatch = true;
+    expect((await applyAsThePage()).kind).toBe("failed");
+    // Recarregar a página: o store da ficha não guarda nada; o rascunho e a versão a citar, sim.
+    flushDraftWrites();
+    const kept = JSON.parse(storage.getItem("shema-record-drafts-v1") ?? "{}");
+    expect(kept.state.filedAt).toEqual({ [ID]: '"1"' });
+    store().forget();
+    await store().open(ID);
+    const applied = await applyAsThePage();
+
+    expect(applied.kind).toBe("conflict");
+    expect(writes("patch").map((config) => config.headers["If-Match"])).toEqual(['"1"', '"1"']);
+    expect(server.get(ID)!.wire.notes).toBe("texto da Maria");
+    expect(useRecordStore.getState().filedAt[ID]).toBeUndefined();
   });
 
   it("se a ficha não abre depois do 409, o rascunho fica e o aviso diz que ela existe", async () => {

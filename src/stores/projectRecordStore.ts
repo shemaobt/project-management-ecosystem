@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import {
-  FILED_VERSION,
   healthAssessmentsAPI,
   projectRecordAPI,
   toApiFailure,
@@ -48,6 +47,8 @@ export interface SaveAttempt {
   isNew: boolean;
   readsHealth: boolean;
   writesHealth: boolean;
+  /** The version the draft's own save must quote — `recordStore.filedAt` (OBT-625). */
+  filedAt?: string;
 }
 
 export type SaveOutcome =
@@ -200,7 +201,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
    * decision, and it is the coordinator's. A create's 409 is not a conflict: it is the
    * record this draft already filed, and it lands (`readLanded`).
    */
-  save: async ({ values: draft, typed, isNew, readsHealth, writesHealth }) => {
+  save: async ({ values: draft, typed, isNew, readsHealth, writesHealth, filedAt }) => {
     const withheld = withheldFields(typed);
 
     if (isNew) {
@@ -235,7 +236,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
       return outcome;
     }
 
-    const { id, record, outcome: previous } = get();
+    const { id, record } = get();
     if (!id || !record) {
       const outcome: SaveOutcome = {
         kind: "failed",
@@ -262,12 +263,9 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
       return outcome;
     }
 
-    // The difference a landing carried is quoted against the version the record was filed at:
-    // whoever saved it since is the server's 409, with who and what, not an overwrite (OBT-625).
-    const quoted =
-      previous?.kind === "landed" && previous.id === id && previous.pending.length > 0
-        ? FILED_VERSION
-        : record.version;
+    // A lost create's difference quotes the version the record was filed at: whoever saved it
+    // since is the server's 409, with who and what, not an overwrite (OBT-625).
+    const quoted = filedAt ?? record.version;
     set({ saving: true, outcome: null });
     const result = await projectRecordAPI.patch(id, toWire(draft, fields), quoted);
 
