@@ -40,6 +40,7 @@
   "sb_needs_section": "Necessidades",
   "sb_media": "Mídia",
   "sb_active_filters": "Filtros ativos",
+  "sb_active_remove": "Tirar o filtro {{filter}}",
   "sb_clear_all": "Limpar tudo",
   "sb_results_count": "Mostrando",
   "sb_results_of": "de",
