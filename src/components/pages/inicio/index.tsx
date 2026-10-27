@@ -1,6 +1,9 @@
+import { Bell } from "lucide-react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { DEFAULT_TAB } from "../../../constants/recordTabs";
+import { useAuth } from "../../../contexts/AuthContext";
 import { useProjectListRead } from "../../../hooks/useProjectListRead";
 import {
   PROJECT_LIST_SERVED,
@@ -9,8 +12,10 @@ import {
 import type { Project } from "../../../types/project";
 import type { ListFacets } from "../../../types/projectBrowse";
 import type { ApiFailure } from "../../../types/session";
+import { holdsShemaGrant } from "../../../utils/access";
 import { listFacets } from "../../../utils/indicators";
 import { withheldNotice } from "../../../utils/region";
+import { EmptyState } from "../../common/EmptyState";
 import { ProjectsUnread } from "../../common/ProjectsUnread";
 import { Globe } from "../projetos/Atlas/Globe";
 import { Hero } from "./Hero";
@@ -79,7 +84,37 @@ export function InicioView({
   );
 }
 
+/**
+ * The Início of an account holding no Shemá grant — a project team member (OBT-642). The band and
+ * the globe are the project list, which it does not read, so in their place it is told what it
+ * opens here; a note, not the access alert, since nothing is missing that it was meant to have.
+ */
+export function InicioShemaOnly() {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <Hero facets={null} showBand={false} />
+      <div className="mx-auto w-full max-w-(--container-wide) px-5 pt-6 pb-20 sm:px-8">
+        <EmptyState
+          icon={<Bell size={28} strokeWidth={1.75} aria-hidden />}
+          message={t("inicio_shema_only", { bell: t("notif_bell") })}
+        />
+      </div>
+    </>
+  );
+}
+
+/**
+ * The list is the Shemá browse, behind the app's door: an account holding no Shemá grant would
+ * meet a 403 and its alert on every visit (OBT-642), so the reader of the list is not even mounted.
+ */
 export function InicioPage() {
+  const { user } = useAuth();
+  return holdsShemaGrant(user.roles) ? <InicioListPage /> : <InicioShemaOnly />;
+}
+
+function InicioListPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const served = useProjectsStore((state) => state.locationsWithheld);
