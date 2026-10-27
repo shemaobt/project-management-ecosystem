@@ -145,10 +145,7 @@ export function answerLength(text: string): number {
   return [...text].length;
 }
 
-/**
- * The element carries no `maxlength` (OBT-624): a browser cuts a paste there without a word.
- * An empty answer is never too long — the server skips it before any limit (`_is_empty`).
- */
+/** An empty answer is never too long — the server skips it before any limit (`_is_empty`). */
 export function tooLongKey(field: IntakeField, value: unknown): "intake_err_too_long" | null {
   if (field.type !== "text" && field.type !== "longText") return null;
   if (field.maxLength === null || isEmptyAnswer(value)) return null;
