@@ -6,6 +6,8 @@ import { useProjectsStore } from "../../../stores/projectsStore";
 import type { IntakeLink, IntakeLinkCreated } from "../../../types/forms";
 import type { Project } from "../../../types/project";
 import type { ApiFailure } from "../../../types/session";
+import { useAuth } from "../../../contexts/AuthContext";
+import { leaderLinkProjects } from "../../../utils/access";
 import { selectableProjects } from "../../../utils/forms";
 import { formatDate } from "../../../utils/format";
 import {
@@ -171,7 +173,9 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
   const [minting, setMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sorted = hydrated ? selectableProjects(projects) : [];
+  const { user } = useAuth();
+  const offered = leaderLinkProjects(projects, user.writeRegionScope);
+  const sorted = hydrated ? selectableProjects(offered) : [];
   // The default selection is derived at render, never set from an effect — the first
   // project stands in until the coordinator explicitly picks one (an event handler).
   const effectiveProjectId = selectedProjectId || sorted[0]?.id || "";
@@ -247,7 +251,7 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
         </DialogHeader>
         <DialogBody>
           <LeaderLinkDialogBody
-            projects={hydrated ? projects : null}
+            projects={hydrated ? offered : null}
             selectedProjectId={effectiveProjectId}
             onSelectProject={selectProject}
             links={links}

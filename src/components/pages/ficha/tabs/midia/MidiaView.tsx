@@ -7,6 +7,7 @@ import {
   photoSlots,
 } from "../../../../../utils/media";
 import { readsFreeText } from "../../../../../utils/recordAccess";
+import { regionOf } from "../../../../../utils/region";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { PhotoSlotHint } from "../../../../common/ImageUpload";
 import type { DraftHandle } from "../../useDraft";
@@ -85,7 +86,11 @@ export function MidiaView({ draft }: MidiaViewProps) {
                 <AuthStatus authorization={photo.authorization} />
               )}
               {offersWithdrawal(values, photo) ? (
-                <WithdrawPhotoAuthorization projectId={projectId!} itemId={photo.id!} />
+                <WithdrawPhotoAuthorization
+                  projectId={projectId!}
+                  itemId={photo.id!}
+                  region={draft.saved && regionOf(draft.saved)}
+                />
               ) : null}
             </div>
           );

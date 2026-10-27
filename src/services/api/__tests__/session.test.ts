@@ -393,3 +393,27 @@ describe("a sessão expira e o trabalho não salvo continua onde estava", () => 
     expect(store.get(RECORD_DRAFTS)).toBe(HALF_FILLED_RECORD);
   });
 });
+
+describe("writeRegionScope na sessão (OBT-593)", () => {
+  const base = { role: "admin", roles: ["admin"], regionScope: null };
+
+  it("ausente fica ausente — não vira null, que quer dizer todas as regiões", () => {
+    const session = readSession(base);
+    expect("writeRegionScope" in session).toBe(false);
+    expect(session.writeRegionScope).toBeUndefined();
+  });
+
+  it("null, lista vazia e lista de regiões passam como vieram", () => {
+    expect(readSession({ ...base, writeRegionScope: null }).writeRegionScope).toBeNull();
+    expect(readSession({ ...base, writeRegionScope: [] }).writeRegionScope).toEqual([]);
+    expect(
+      readSession({ role: "coordinator", roles: ["coordinator", "admin"], regionScope: null, writeRegionScope: ["asia"] })
+        .writeRegionScope,
+    ).toEqual(["asia"]);
+  });
+
+  it("uma região fora do vocabulário, ou um valor que não é lista, recusa a sessão", () => {
+    expect(() => readSession({ ...base, writeRegionScope: ["lua"] })).toThrow();
+    expect(() => readSession({ ...base, writeRegionScope: "asia" })).toThrow();
+  });
+});

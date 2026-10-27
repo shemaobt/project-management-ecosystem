@@ -18,6 +18,7 @@ import { DimensionStep } from "./DimensionStep";
 import { PrayerRequestStep } from "./PrayerRequestStep";
 import { SubmitOutcomeNote, type SubmitOutcome } from "./SubmitOutcomeNote";
 import { assessmentRedirect } from "./writerGate";
+import { regionOf } from "../../../utils/region";
 
 const LAST_STEP = HEALTH_DIMENSIONS.length;
 
@@ -182,8 +183,7 @@ export function AvaliacaoPage() {
   // The server refuses the filing to whoever is outside `HEALTH_WRITERS` (OBT-571); a reader
   // who typed or kept the address goes back to the forms before the record is even read, instead
   // of walking the four dimensions to meet that refusal (OBT-579).
-  const redirect = assessmentRedirect(user.roles);
-  const writesHealth = redirect === null;
+  const writesHealth = assessmentRedirect(user.roles) === null;
 
   const open = useProjectRecordStore((state) => state.open);
   const reload = useProjectRecordStore((state) => state.reload);
@@ -220,6 +220,11 @@ export function AvaliacaoPage() {
     [drafts, projectId, draftFor],
   );
 
+  const redirect = assessmentRedirect(
+    user.roles,
+    user.writeRegionScope,
+    project ? regionOf(project) : undefined,
+  );
   if (redirect !== null) return <Navigate to={redirect} replace />;
 
   return (
