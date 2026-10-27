@@ -124,6 +124,12 @@ describe("a faixa Filtros ativos (OBT-643)", () => {
     expect(attr(chip, "aria-label")).toBe("Tirar o filtro Em andamento");
   });
 
+  it("o ✕ do chip não leva véu: tinta inteira sobre a telha (4,60), não 3,5 composta (§7.1)", () => {
+    const markup = render(withFilters({ status: "em-andamento" }));
+    expect(attr(buttons(markup)[0], "class")).toContain("text-on-brand");
+    expect(markup).not.toMatch(/class="[^"]*\bopacity-\d/);
+  });
+
   it("um filtro de Mais filtros vira um chip, sem depender de a seção estar aberta", () => {
     const markup = render(withFilters({ stale: "atencao" }));
     expect(buttons(markup).map((chip) => chip.text)).toEqual([

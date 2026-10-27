@@ -125,7 +125,7 @@ export function ActiveFiltersView({
                 <X
                   size={11}
                   strokeWidth={2}
-                  className="ml-0.5 shrink-0 opacity-80"
+                  className="ml-0.5 shrink-0"
                 />
               </button>
             </li>
