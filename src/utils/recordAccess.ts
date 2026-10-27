@@ -4,8 +4,10 @@ import {
   WITHHELD_WRITES,
 } from "../constants/recordFields";
 import type { Project } from "../types/project";
+import type { RegionKey } from "../types/region";
+import { writesProjectIn } from "./access";
 import type { RecordField } from "../types/projectRecord";
-import { getLocationDisplay } from "./region";
+import { getLocationDisplay, regionOf } from "./region";
 
 /**
  * What the record's reader may see and write of its place — read off the server's
@@ -65,14 +67,18 @@ export function recordAccess(
   isNew: boolean,
   readsHealth: boolean,
   writesHealth: boolean,
+  writeRegionScope?: readonly RegionKey[] | null,
 ): RecordAccess {
   if (isNew) return { ...FULL_ACCESS, readsHealth, writesHealth };
   if (!saved) return NO_ACCESS;
   const coordination = saved.readAs === "coordination";
-  const readOnly = saved.readAs === "trusted";
+  // A record outside where the account writes is read-only even when it reads as the
+  // coordination (OBT-593: the Admin) — the server answers its PATCH with 403.
+  const outsideWrites = !writesProjectIn(writeRegionScope, regionOf(saved));
+  const readOnly = saved.readAs === "trusted" || outsideWrites;
   return {
     withheld: getLocationDisplay(saved).withheld,
-    placeWritable: coordination,
+    placeWritable: coordination && !readOnly,
     baseWritable: !readOnly && (coordination || !saved.sensitiveCountry),
     readsHealth,
     writesHealth: writesHealth && !readOnly,

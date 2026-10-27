@@ -166,6 +166,7 @@ export function patchRecord(
     false,
     readsHealth(mockPersona()),
     writesHealth(mockPersona()),
+    mockPersona().writeRegionScope,
   );
   const refused = Object.keys(patch).filter(
     (field) => !mayWrite(access, field as keyof Project),

@@ -4,12 +4,15 @@ import { useAuth } from "../../../../../contexts/AuthContext";
 import { failureMessage, projectRecordAPI, toApiFailure } from "../../../../../services/api";
 import { useProjectRecordStore } from "../../../../../stores/projectRecordStore";
 import { canWithdrawMediaAuthorization } from "../../../../../utils/access";
+import type { RegionKey } from "../../../../../types/region";
 import { ConfirmDialog } from "../../../../common/ConfirmDialog";
 import { Button, toast } from "../../../../ui";
 
 export interface WithdrawPhotoAuthorizationProps {
   projectId: string;
   itemId: string;
+  /** The saved record's region — the route refuses where the account does not write (OBT-593). */
+  region?: RegionKey;
 }
 
 /**
@@ -19,14 +22,14 @@ export interface WithdrawPhotoAuthorizationProps {
  * decision off that saved record, not off the draft (`asServerHoldsIt`) — so the decision on
  * screen is the server's, and the picture, no longer shared, stops being asked for.
  */
-export function WithdrawPhotoAuthorization({ projectId, itemId }: WithdrawPhotoAuthorizationProps) {
+export function WithdrawPhotoAuthorization({ projectId, itemId, region }: WithdrawPhotoAuthorizationProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const reload = useProjectRecordStore((state) => state.reload);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  if (!canWithdrawMediaAuthorization(user.roles)) return null;
+  if (!canWithdrawMediaAuthorization(user.roles, user.writeRegionScope, region)) return null;
 
   const withdraw = async () => {
     setBusy(true);

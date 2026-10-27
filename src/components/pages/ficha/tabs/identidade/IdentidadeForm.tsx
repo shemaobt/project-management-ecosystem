@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "../../../../ui";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
+import { outsideWritesText } from "../../outsideWrites";
 import { Field, FieldGrid } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { SensitiveFlag } from "./SensitiveFlag";
@@ -183,7 +184,12 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
           )}
         </Field>
 
-        <Field id="ficha-location" label={t("f_location")} full>
+        <Field
+          id="ficha-location"
+          label={t("f_location")}
+          full
+          error={draft.outsideWrites ? outsideWritesText(t, draft.outsideWrites) : undefined}
+        >
           {(control) => (
             <Input
               {...control}
