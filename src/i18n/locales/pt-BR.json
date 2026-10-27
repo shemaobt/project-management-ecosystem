@@ -1512,5 +1512,7 @@
   "media_withdraw_body": "A foto deixa de sair do projeto daqui em diante e some do Pulso que a trouxe. O que já foi enviado não é recolhido.",
   "media_withdraw_confirm": "Retirar",
   "media_withdraw_done": "Autorização retirada.",
-  "progress_capped": "O máximo de {{book}} é {{max}}; guardamos {{max}}."
+  "progress_capped": "O máximo de {{book}} é {{max}}; guardamos {{max}}.",
+  "record_region_outside_writes": "Este local fica em {{region}}, onde você não cadastra projetos. Você cadastra em: {{regions}}.",
+  "record_save_blocked_region": "O local fica numa região onde você não cadastra projetos."
 }

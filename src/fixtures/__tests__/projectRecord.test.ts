@@ -10,6 +10,7 @@ import {
   submitAssessment,
 } from "../projectRecord";
 import { loadProjects } from "../projects";
+import { getRegion } from "../../utils/region";
 import { MOCK_SESSION_KEY } from "../session";
 
 const stored = new Map<string, string>();
@@ -167,6 +168,8 @@ describe("o dublê da ficha recusa o texto livre e o pastoral como o servidor (O
     const created = createRecord({
       ...createEmptyProject("sintetico"),
       languageName: "Sintético",
+      // In the OBT Lab persona's region, so what is refused is the free text and not the record.
+      location: "Egypt, Vila Sintética",
       sensitiveCountry: true,
       needsItems: [
         { id: "n1", category: "equipment", urgency: "low", status: "open", description: "Precisamos de gravadores" },
@@ -176,7 +179,10 @@ describe("o dublê da ficha recusa o texto livre e o pastoral como o servidor (O
     expect(created.ok).toBe(true);
     return loadSeeded("sintetico");
   };
-  const sensitive = () => loadProjects().find((project) => project.sensitiveCountry)!;
+  // The OBT Lab persona writes in Africa (its `writeRegionScope`, OBT-593): the withheld record
+  // it is refused free text on has to be one it writes at all — Egypt, not Mexico.
+  const sensitive = () =>
+    loadProjects().find((project) => project.sensitiveCountry && getRegion(project) === "africa")!;
   const open = () => loadProjects().find((project) => !project.sensitiveCountry)!;
 
   const loadSeeded = (id: string) => {
