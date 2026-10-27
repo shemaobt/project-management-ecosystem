@@ -22,11 +22,9 @@ export interface ActiveFilterChip {
 const SECTIONS = [...PRIMARY_SECTIONS, ...ADVANCED_SECTIONS];
 
 /**
- * One chip per active filter, as the prototype's strip builds them (`app.jsx:243-262`): a
- * chip says what its option says in the sidebar — `buildFilterOptions` is that label's
- * owner — and a value the sidebar does not list (a base no project carries any more) reads
- * as itself. A group the reader is not told draws no chip, for the reason `shownSections`
- * draws no section.
+ * A chip reads its label off `buildFilterOptions`, so it cannot say something the option in
+ * the sidebar does not; a value the sidebar no longer lists (a base no project carries any
+ * more) reads as itself rather than vanishing from a list it still narrows.
  */
 export function activeFilterChips(
   filters: ProjectFilters,
@@ -68,11 +66,6 @@ export function chipLabel(chip: ActiveFilterChip, t: TFunction): string {
   return chip.titleKey ? `${t(chip.titleKey)}: ${label}` : label;
 }
 
-/**
- * Which chip takes focus once the one at `removed` is gone: the chip that slid into its
- * place, or the one before it when the last went. `null` when no chip is left — the strip
- * leaves with it, and focus goes to what follows it.
- */
 export function focusIndexAfterRemoval(
   removed: number,
   remaining: number,
