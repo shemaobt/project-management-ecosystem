@@ -190,6 +190,11 @@ const creating = (values: never, typed: Record<string, unknown> = {}) => ({
 });
 
 const store = () => useProjectRecordStore.getState();
+
+const patchBody = () => {
+  const patch = sent.find((config) => config.method === "patch");
+  return JSON.parse(String(patch?.data)) as Record<string, unknown>;
+};
 const drafts = () => useRecordStore.getState().drafts;
 
 async function openAt(version = '"7"') {
@@ -591,11 +596,6 @@ describe("a recusa do servidor cai na aba certa", () => {
 });
 
 describe("o salvamento nunca envia campo que o leitor não pode gravar (OBT-532, OBT-553, OBT-556)", () => {
-  const patchBody = () => {
-    const patch = sent.find((config) => config.method === "patch");
-    return JSON.parse(String(patch?.data)) as Record<string, unknown>;
-  };
-
   it("lido como other num registro retido, local, base e contatos ficam de fora", async () => {
     queue = [ok({ readAs: "other", sensitiveCountry: true, team: "", ywamBase: "" })];
     store().forget();
@@ -772,7 +772,7 @@ describe("editar só o texto do pedido não decide a autorização (OBT-597)", (
     await store().open("p1");
     const project = store().record?.project;
     if (!project) throw new Error("the record did not open");
-    queue = [ok({ readAs: "coordination", ...typed, prayerVisibility: "rede" }, '"8"')];
+    queue = [ok({ readAs: "coordination", prayerVisibility: "rede", ...typed }, '"8"')];
     return store().save({
       values: { ...project, ...typed },
       typed,
@@ -781,11 +781,6 @@ describe("editar só o texto do pedido não decide a autorização (OBT-597)", (
       writesHealth: true,
     });
   }
-
-  const patchBody = () =>
-    JSON.parse(
-      String(sent.find((config) => config.method === "patch")?.data),
-    ) as Record<string, unknown>;
 
   it("trocar só o texto de um pedido em rede manda só o texto — nem null, nem palpite", async () => {
     const outcome = await rewording({ prayerRequests: TEXT_B });
