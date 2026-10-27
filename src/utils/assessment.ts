@@ -110,12 +110,9 @@ export interface AssessmentEntryMeta {
  * never calls this directly, it posts to `healthAssessmentsAPI.submit` and reads the
  * server's own record back.
  *
- * The pastoral answer lands only when the entry becomes the record's current reading —
- * the server's `projected is assessed` (OBT-623). The wizard sends one with every reading,
- * `nao` when nobody picked otherwise, so a backdated reading would otherwise replace the
- * current one's escalation with a default nobody chose. The prayer request is not held
- * back: it travels only when somebody wrote one, so it is a person's request, not the
- * reading's answer.
+ * The wizard sends a pastoral answer with every reading, `nao` when nobody picked, so a
+ * backdated one would replace the current escalation (OBT-623). The prayer request travels
+ * only when somebody wrote one, so it is kept.
  */
 export function applyAssessment(
   project: Project,
