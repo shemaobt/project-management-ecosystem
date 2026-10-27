@@ -42,12 +42,14 @@ const view = (
   regions: Region[] | null,
   changes: RoleChange[] = [],
   projects = [{ ...createEmptyProject("p1"), location: "Peru" }],
+  writes?: (key: Region["key"]) => boolean,
 ) =>
   renderToStaticMarkup(
     createElement(EquipeView, {
       regions,
       projects,
       changes,
+      writes,
       onSave: () =>
         Promise.resolve({
           outcome: { changed: 0, filled: 0, cleared: 0 },
@@ -200,5 +202,33 @@ describe("a tela não afirma o que ainda não sabe", () => {
 
     expect(markup).not.toContain(i18n.t("equipe_no_regions"));
     expect(markup).toContain(i18n.t("loading"));
+  });
+});
+
+describe("a Equipe só deixa editar as regiões onde a conta escreve (OBT-593)", () => {
+  const two = () => [
+    region("asia", "continent_asia"),
+    region("africa", "continent_africa"),
+  ];
+  const disabledInputs = (markup: string) => (markup.match(/<input[^>]*disabled=""/g) ?? []).length;
+  const inputs = (markup: string) => (markup.match(/<input/g) ?? []).length;
+  const scopeOf = (list: Region["key"][] | null) => (key: Region["key"]) =>
+    list === null || list.includes(key);
+
+  it("admin + coordenação da Ásia: a Ásia editável, a África só leitura", () => {
+    const markup = view(two(), [], undefined, scopeOf(["asia"]));
+    expect(disabledInputs(markup)).toBe(inputs(markup) / 2);
+    expect(markup).toContain(i18n.t("equipe_save"));
+  });
+
+  it("o Admin sozinho: tudo só leitura, e sem a barra de salvar", () => {
+    const markup = view(two(), [], undefined, scopeOf([]));
+    expect(disabledInputs(markup)).toBe(inputs(markup));
+    expect(markup).not.toContain(i18n.t("equipe_save"));
+  });
+
+  it("plataforma e campo ausente: tudo editável, como hoje", () => {
+    expect(disabledInputs(view(two(), [], undefined, scopeOf(null)))).toBe(0);
+    expect(disabledInputs(view(two()))).toBe(0);
   });
 });

@@ -11,12 +11,23 @@ import { useProjectRecordStore } from "../../../stores/projectRecordStore";
 import type { Project } from "../../../types/project";
 import type { RecordField, RecordFieldError } from "../../../types/projectRecord";
 import { useAuth } from "../../../contexts/AuthContext";
-import { canReadHealth, canWriteHealth } from "../../../utils/access";
+import { canReadHealth, canWriteHealth, newRecordOutsideWrites } from "../../../utils/access";
+import type { RegionKey } from "../../../types/region";
 import {
   recordAccess,
   writableDraft,
   type RecordAccess,
 } from "../../../utils/recordAccess";
+
+function outsideWritesOf(
+  isNew: boolean,
+  writeRegionScope: readonly RegionKey[] | null | undefined,
+  location: string,
+): DraftHandle["outsideWrites"] {
+  if (!isNew || !writeRegionScope) return null;
+  const region = newRecordOutsideWrites(writeRegionScope, location);
+  return region === null ? null : { region, writes: writeRegionScope };
+}
 
 export interface DraftHandle {
   values: ProjectDraft;
@@ -26,6 +37,11 @@ export interface DraftHandle {
   isNew: boolean;
   hasChanges: boolean;
   missing: RequiredField[];
+  /**
+   * A new record whose place falls outside where the account writes (OBT-593): the region the
+   * place falls in and the regions it may file in. `null` (or absent) when the save can go.
+   */
+  outsideWrites?: { region: RegionKey; writes: readonly RegionKey[] } | null;
   /** What this reader may see and write of the place — from the server's `readAs` (OBT-532). */
   place: RecordAccess;
   /** The server's refusals for this record, located — empty until a save is refused. */
@@ -56,8 +72,8 @@ export function useDraft(recordId: string): DraftHandle {
   const writesHealth = canWriteHealth(user.roles);
 
   const place = useMemo(
-    () => recordAccess(stored, isNew, readsHealth, writesHealth),
-    [stored, isNew, readsHealth, writesHealth],
+    () => recordAccess(stored, isNew, readsHealth, writesHealth, user.writeRegionScope),
+    [stored, isNew, readsHealth, writesHealth, user.writeRegionScope],
   );
 
   // A draft is kept per record, not per person: what somebody else typed into a field
@@ -115,6 +131,7 @@ export function useDraft(recordId: string): DraftHandle {
     isNew,
     hasChanges: Object.keys(writable).length > 0,
     missing: missingRequired(values, place),
+    outsideWrites: outsideWritesOf(isNew, user.writeRegionScope, values.location ?? ""),
     place,
     errors,
     errorsFor,

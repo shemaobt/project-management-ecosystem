@@ -1516,5 +1516,7 @@
   "media_withdraw_body": "The photo stops leaving the project from now on and is removed from the Pulse that brought it. What was already sent is not recalled.",
   "media_withdraw_confirm": "Withdraw",
   "media_withdraw_done": "Authorization withdrawn.",
-  "progress_capped": "{{book}} has at most {{max}}; we kept {{max}}."
+  "progress_capped": "{{book}} has at most {{max}}; we kept {{max}}.",
+  "record_region_outside_writes": "This place is in {{region}}, where you do not file projects. You file in: {{regions}}.",
+  "record_save_blocked_region": "The place is in a region where you do not file projects."
 }
