@@ -5,10 +5,11 @@ import {
   type GlobeFocusPoint,
 } from "../../../../constants/geo";
 import { geoAPI } from "../../../../services/api";
+import { TOUCH_TARGET_PX } from "../../../../styles";
 import { prefersReducedMotion } from "../../../../utils/motion";
 import type { Project } from "../../../../types/project";
 import type { GeoOutline } from "../../../../types/region";
-import { GlobeMarkers, type ProjectedMarker } from "./GlobeMarkers";
+import { GlobeMarkers } from "./GlobeMarkers";
 import {
   GlobeControls,
   GlobeHint,
@@ -16,17 +17,20 @@ import {
   SensitiveNotice,
 } from "./GlobeOverlays";
 import { GlobeDefs, GlobeGraticule, GlobeLand } from "./GlobeScenery";
-import { buildMarkerSources, buildNightStats } from "./markers";
-import { Medallion } from "./Medallion";
 import {
-  densifyPolygon,
-  orthoProject,
-  projectPolygonOutline,
-  spreadOverlapping,
-} from "./projection";
+  buildMarkerSources,
+  buildNightStats,
+  markerClick,
+  placeMarkers,
+  type ProjectedMarker,
+} from "./markers";
+import { Medallion } from "./Medallion";
+import { densifyPolygon, projectPolygonOutline } from "./projection";
 import { STAGE_BACKGROUND, STAR_FIELD, STAR_LAYER } from "./nightTheme";
+import { useUnitScale } from "./useUnitScale";
 
 const R = 180;
+const VIEWBOX = 2 * (R + 30);
 
 interface Rotation {
   lambda: number;
@@ -61,6 +65,7 @@ export function Globe({
   const [autoRotate, setAutoRotate] = useState(!reducedMotion);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [spread, setSpread] = useState<readonly string[] | null>(null);
   const [medPos, setMedPos] = useState<{
     x: number;
     y: number;
@@ -82,6 +87,9 @@ export function Globe({
     setPrevProjects(projects);
     if (selectedId && !projects.some((p) => p.id === selectedId)) {
       setSelectedId(null);
+    }
+    if (spread && !spread.every((id) => projects.some((p) => p.id === id))) {
+      setSpread(null);
     }
   }
 
@@ -106,7 +114,7 @@ export function Globe({
     const step = (now: number) => {
       const dt = (now - lastTimeRef.current) / 1000;
       lastTimeRef.current = now;
-      if (autoRotate && !dragRef.current && !selectedId) {
+      if (autoRotate && !dragRef.current && !selectedId && !spread) {
         setRotation((r) => ({
           ...r,
           lambda: ((r.lambda - dt * 6 + 540) % 360) - 180,
@@ -116,10 +124,11 @@ export function Globe({
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [autoRotate, selectedId]);
+  }, [autoRotate, selectedId, spread]);
 
   const onMouseDown = (event: React.MouseEvent) => {
     if ((event.target as Element).closest(".g-marker")) return;
+    setSpread(null);
     dragRef.current = {
       startX: event.clientX,
       startY: event.clientY,
@@ -182,21 +191,13 @@ export function Globe({
   );
 
   const sources = useMemo(() => buildMarkerSources(projects), [projects]);
+  const pxPerUnit = useUnitScale(svgRef, VIEWBOX);
+  const gap = TOUCH_TARGET_PX / pxPerUnit;
 
-  const markers = useMemo<ProjectedMarker[]>(() => {
-    const projected = sources.map((source) => {
-      const [lng, lat] = source.placement.coords;
-      const p = orthoProject(lng, lat, rotation.lambda, rotation.phi);
-      return {
-        source,
-        x: p.x * R,
-        y: -p.y * R,
-        z: p.z,
-        visible: p.z > -0.05,
-      };
-    });
-    return spreadOverlapping(projected);
-  }, [sources, rotation]);
+  const markers = useMemo(
+    () => placeMarkers({ sources, rotation, radius: R, gap, spread }),
+    [sources, rotation, gap, spread],
+  );
 
   const stats = useMemo(() => buildNightStats(projects), [projects]);
 
@@ -229,15 +230,15 @@ export function Globe({
   }, [selectedMarker]);
 
   const handleMarkerClick = (marker: ProjectedMarker) => {
-    setSelectedId(marker.source.project.id);
-    focusOn(
-      marker.source.placement.coords[0],
-      marker.source.placement.coords[1],
-    );
+    const click = markerClick(marker, markers);
+    setSpread(click.spread);
+    setSelectedId(click.select);
+    focusOn(click.focus[0], click.focus[1]);
   };
 
   const handleFocusPoint = (point: GlobeFocusPoint) => {
     setSelectedId(null);
+    setSpread(null);
     focusOn(point.coords[0], point.coords[1]);
   };
 
@@ -278,7 +279,7 @@ export function Globe({
         <svg
           aria-hidden="true"
           ref={svgRef}
-          viewBox={`-${R + 30} -${R + 30} ${2 * (R + 30)} ${2 * (R + 30)}`}
+          viewBox={`-${VIEWBOX / 2} -${VIEWBOX / 2} ${VIEWBOX} ${VIEWBOX}`}
           className="relative z-1 block h-auto w-full max-w-[640px] cursor-grab select-none active:cursor-grabbing"
           onMouseDown={onMouseDown}
         >
@@ -287,7 +288,11 @@ export function Globe({
           <circle r={R + 28} fill="url(#night-glow)" />
           <circle r={R} fill="url(#night-sphere)" />
 
-          <GlobeGraticule lambda={rotation.lambda} phi={rotation.phi} radius={R} />
+          <GlobeGraticule
+            lambda={rotation.lambda}
+            phi={rotation.phi}
+            radius={R}
+          />
           <GlobeLand segments={continentSegments} />
 
           {selectedMarker && selectedMarker.visible && (
@@ -313,20 +318,28 @@ export function Globe({
 
           <GlobeMarkers
             markers={markers}
+            hitRadius={gap / 2}
             hoveredId={hoveredId}
             selectedId={selectedId}
             onHover={setHoveredId}
             onSelect={handleMarkerClick}
           />
 
-          <circle r={R} fill="url(#terminator)" pointerEvents="none" />
-          <circle r={R} fill="none" stroke="rgba(0,0,0,0.42)" strokeWidth="1" />
-          <circle
-            r={R - 0.5}
-            fill="none"
-            className="stroke-telha/22"
-            strokeWidth="0.5"
-          />
+          <g pointerEvents="none">
+            <circle r={R} fill="url(#terminator)" />
+            <circle
+              r={R}
+              fill="none"
+              stroke="rgba(0,0,0,0.42)"
+              strokeWidth="1"
+            />
+            <circle
+              r={R - 0.5}
+              fill="none"
+              className="stroke-telha/22"
+              strokeWidth="0.5"
+            />
+          </g>
         </svg>
 
         {selected && selectedMarker && selectedMarker.visible && (
