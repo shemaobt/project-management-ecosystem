@@ -10,10 +10,11 @@ import { useProjectsStore } from "../../../stores/projectsStore";
 import type { ReceivedSubmission, ReceivedSubmissionDetail } from "../../../types/forms";
 import type { ApiFailure } from "../../../types/session";
 import type { Project } from "../../../types/project";
-import { canWriteHealth } from "../../../utils/access";
+import type { RegionKey } from "../../../types/region";
+import { canWriteHealth, writesProjectIn } from "../../../utils/access";
 import { formOf, formReadiness, reportingFor, selectableProjects } from "../../../utils/forms";
 import { toLocalIsoDate } from "../../../utils/format";
-import { getLanguageNameDisplay } from "../../../utils/region";
+import { getLanguageNameDisplay, regionOf } from "../../../utils/region";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { ProjectsUnread } from "../../common/ProjectsUnread";
@@ -44,6 +45,11 @@ export interface FormulariosViewProps {
    * a form walked through to a refusal is the dead control the console does not draw.
    */
   writesHealth?: boolean;
+  /**
+   * Where the reader writes a project (`writeRegionScope`, OBT-593): the filing takes the write
+   * scope, so a project outside it draws no button either. Absent is today's behaviour.
+   */
+  writeRegionScope?: readonly RegionKey[] | null;
 }
 
 export function FormulariosView({
@@ -54,6 +60,7 @@ export function FormulariosView({
   onRetry,
   readSubmission,
   writesHealth = true,
+  writeRegionScope,
 }: FormulariosViewProps) {
   const { t } = useTranslation();
   const [picked, setPicked] = useState("");
@@ -134,7 +141,9 @@ export function FormulariosView({
                   form={form}
                   reporting={state}
                   action={
-                    form.mechanism === "inApp" && writesHealth ? (
+                    form.mechanism === "inApp" &&
+                    writesHealth &&
+                    writesProjectIn(writeRegionScope, regionOf(project)) ? (
                       <Button asChild>
                         <Link to={`/formularios/avaliacao/${project.id}`}>
                           {t("forms_open_health")}
@@ -201,6 +210,7 @@ export function FormulariosPage() {
       onRetry={() => void reloadProjects()}
       readSubmission={(id) => formsAPI.readSubmission(id)}
       writesHealth={canWriteHealth(user.roles)}
+      writeRegionScope={user.writeRegionScope}
     />
   );
 }
