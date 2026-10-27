@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { RegionKey } from "../../../types/region";
 import type { SessionRole } from "../../../types/session";
 
 vi.mock("../../../services/api", async (importOriginal) => {
@@ -58,7 +59,11 @@ const DATA_ACTIONS = ["btn_field", "btn_export", "btn_import", "btn_reload", "bt
 
 const INICIO = "CONTEUDO-DO-INICIO";
 
-function visit(roles: SessionRole[], form: string | null = FORM): string {
+function visit(
+  roles: SessionRole[],
+  form: string | null = FORM,
+  writeRegionScope?: RegionKey[] | null,
+): string {
   const value = {
     status: "ready" as const,
     user: {
@@ -66,6 +71,7 @@ function visit(roles: SessionRole[], form: string | null = FORM): string {
       role: roles[0],
       roles,
       regionScope: [],
+      ...(writeRegionScope === undefined ? {} : { writeRegionScope }),
       name: null,
     },
     apps: { resourceRequestForm: form },
@@ -199,19 +205,24 @@ describe("o botão Importar é só de quem importa (OBT-559)", () => {
     }
   });
 
-  it("OBT Lab não vê o Importar, e continua com as outras ações de dados", () => {
+  it("OBT Lab não vê o Importar nem o Link do líder (OBT-620), e continua com as outras ações de dados", () => {
     const html = visit(["obtLab"]);
     expect(importButton(html)).toBe(false);
-    for (const key of DATA_ACTIONS.filter((key) => key !== "btn_import")) {
+    expect(html).not.toContain(i18n.t("btn_intake"));
+    for (const key of DATA_ACTIONS.filter((key) => key !== "btn_import" && key !== "btn_intake")) {
       expect(html, key).toContain(i18n.t(key));
     }
   });
 
-  it("o Círculo de Recursos não vê o Importar nem o Novo projeto (OBT-571), e continua com o resto", () => {
+  it("o Círculo de Recursos não vê o Importar, o Novo projeto (OBT-571) nem o Link do líder (OBT-620), e continua com o resto", () => {
     const html = visit(["resourceCircle"]);
     expect(importButton(html)).toBe(false);
     expect(html).not.toContain(i18n.t("btn_new"));
-    for (const key of DATA_ACTIONS.filter((key) => key !== "btn_import" && key !== "btn_new")) {
+    expect(html).not.toContain(i18n.t("btn_intake"));
+    const kept = DATA_ACTIONS.filter(
+      (key) => key !== "btn_import" && key !== "btn_new" && key !== "btn_intake",
+    );
+    for (const key of kept) {
       expect(html, key).toContain(i18n.t(key));
     }
   });
@@ -219,6 +230,47 @@ describe("o botão Importar é só de quem importa (OBT-559)", () => {
   it("quem soma um papel que importa a um que não importa recebe o botão", () => {
     expect(importButton(visit(["obtLab", "coordinator"]))).toBe(true);
     expect(importButton(visit(["resourceCircle", "obtLab"]))).toBe(false);
+  });
+});
+
+describe("o Link do líder é de quem o POST /intake-links admite (OBT-620)", () => {
+  const intakeButton = (html: string) => html.includes(`${i18n.t("btn_intake")}</button>`);
+
+  it("a coordenação que escreve vê o botão, com o campo presente ou ausente", () => {
+    expect(intakeButton(visit(["coordinator"], FORM, ["south-america"]))).toBe(true);
+    expect(intakeButton(visit(["coordinator"]))).toBe(true);
+  });
+
+  it("a coordenação sem região onde escrever não vê o botão", () => {
+    expect(intakeButton(visit(["coordinator"], FORM, []))).toBe(false);
+  });
+
+  it("OBT Lab, Resource Circle e Admin sozinho não veem o botão, com o campo presente ou ausente", () => {
+    const cases: [SessionRole, RegionKey[]][] = [
+      ["obtLab", ["africa"]],
+      ["resourceCircle", []],
+      ["admin", []],
+    ];
+    for (const [role, writes] of cases) {
+      expect(intakeButton(visit([role], FORM, writes)), `${role} presente`).toBe(false);
+      expect(intakeButton(visit([role])), `${role} ausente`).toBe(false);
+    }
+  });
+
+  it("a plataforma (writeRegionScope null) vê o botão mesmo sem o papel coordinator", () => {
+    expect(intakeButton(visit(["admin"], FORM, null))).toBe(true);
+    expect(intakeButton(visit(["obtLab"], FORM, null))).toBe(true);
+  });
+
+  it("o cabeçalho pergunta o papel, e o diálogo com a lista de links só monta para quem gera o link", () => {
+    const header = readFileSync(join(process.cwd(), "src/components/layout/AppHeader.tsx"), "utf8")
+      .replace(/\s+/gu, " ")
+      .replace(/\( /gu, "(")
+      .replace(/,? \)/gu, ")");
+    expect(header).toContain("canMintLeaderLinks(user.roles, user.writeRegionScope)");
+    const mounts = header.split("<LeaderLinkDialog");
+    expect(mounts).toHaveLength(2);
+    expect(mounts[0].slice(-40)).toMatch(/mintsLinks (\?|&&)/u);
   });
 });
 

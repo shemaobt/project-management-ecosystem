@@ -1,11 +1,4 @@
 import { create } from "zustand";
-import { RECORD_TABS, type RecordTabId } from "../constants/recordTabs";
-import {
-  allWritableFields,
-  PENDING_WRITE,
-  SERVER_WRITABLE,
-  tabOf,
-} from "../constants/recordFields";
 import {
   healthAssessmentsAPI,
   projectRecordAPI,
@@ -26,77 +19,22 @@ import type {
 import type { ApiFailure } from "../types/session";
 import { mayWrite, recordAccess } from "../utils/recordAccess";
 import { useProjectsStore } from "./projectsStore";
+import {
+  changedFields,
+  filedDraft,
+  overlappingFields,
+  tabsOf,
+  withheldFields,
+} from "./recordDiff";
 
-/** A field whose two values differ — `JSON` because half of them are arrays. */
-function differs(left: unknown, right: unknown): boolean {
-  if (left === right) return false;
-  return JSON.stringify(left ?? null) !== JSON.stringify(right ?? null);
-}
-
-/**
- * What a save is about to send: the fields the coordinator changed, and nothing else.
- *
- * This is the whole of *save what changed, per tab, not the record* — a field a tab did
- * not touch never travels, so tab 3 cannot write tab 7's values as they stood when tab
- * 3 was opened. It is a **diff**, not a tab cut: cutting by tab would either still send
- * that tab's untouched fields (the same overwrite, one tab narrower) or need one
- * request per tab, and a twenty-row progress table has to be one write with one result.
- */
-export function changedFields(
-  draft: Partial<Project>,
-  saved: Project | null,
-): RecordField[] {
-  return allWritableFields().filter(
-    (field) =>
-      field in draft && (saved === null || differs(draft[field], saved[field])),
-  );
-}
-
-/**
- * Fields a tab still edits that this endpoint does not take — kept, never reported.
- *
- * It reads the **typed** draft, not the merged values: the merge carries every field of
- * the record, so asking it would report the whole pending list on every save and promise
- * to keep input nobody entered.
- */
-export function withheldFields(typed: Partial<Project>): RecordField[] {
-  return RECORD_TABS.flatMap((tab) => PENDING_WRITE[tab]?.fields ?? []).filter(
-    (field) => field in typed && !SERVER_WRITABLE.has(field),
-  );
-}
-
-/** The tabs a save actually wrote, in the record's own order. */
-export function tabsOf(fields: readonly RecordField[]): RecordTabId[] {
-  return RECORD_TABS.filter((tab) =>
-    fields.some((field) => tabOf(field) === tab),
-  );
-}
-
-/** The tab a refusal points at, so a blocked save can land the reader on it. */
-export function tabOfFirstError(
-  errors: readonly RecordFieldError[],
-): RecordTabId | null {
-  for (const error of errors) {
-    const tab = error.field ? tabOf(error.field) : null;
-    if (tab) return tab;
-  }
-  return null;
-}
-
-/**
- * A conflict, read against what this coordinator had typed.
- *
- * The overlap is the sentence that matters: *somebody else changed this record* can be
- * answered by pressing save again, while *you and Maria both changed the status* cannot
- * be answered without a person looking at it. Both are said, and neither decides
- * anything.
- */
-export function overlappingFields(
-  conflict: RecordConflict,
-  draft: Partial<Project>,
-): RecordField[] {
-  return conflict.changedFields.filter((field) => field in draft);
-}
+export {
+  changedFields,
+  filedDraft,
+  overlappingFields,
+  tabOfFirstError,
+  tabsOf,
+  withheldFields,
+} from "./recordDiff";
 
 /**
  * `values` is what the record would become and `typed` is what somebody actually wrote.
@@ -111,10 +49,19 @@ export interface SaveAttempt {
   readsHealth: boolean;
   writesHealth: boolean;
   writeRegionScope?: readonly RegionKey[] | null;
+  filedAt?: string;
 }
 
 export type SaveOutcome =
   | { kind: "saved"; report: RecordSaveReport }
+  | {
+      kind: "landed";
+      id: string;
+      carried: Partial<Project>;
+      pending: RecordField[];
+      withheld: RecordField[];
+    }
+  | { kind: "landedUnread"; id: string; failure: ApiFailure }
   | { kind: "conflict"; conflict: RecordConflict; overlap: RecordField[] }
   | { kind: "invalid"; errors: RecordFieldError[] }
   | { kind: "failed"; failure: ApiFailure }
@@ -178,6 +125,37 @@ function refusal(
 }
 
 /**
+ * A create's 409 on the draft's own id, read for what it is (OBT-625): the slug is minted once
+ * and never leaves the draft, so the record the server names is the one an earlier attempt of
+ * this draft filed — its answer lost, not its write. The record is read and set underneath,
+ * and what the draft still holds is `filedDraft`'s; a read that fails says the record exists
+ * rather than that somebody else saved it. Either way the list is outdated: the write landed.
+ */
+async function readLanded(
+  id: string,
+  typed: Partial<Project>,
+  readsHealth: boolean,
+  writesHealth: boolean,
+  writeRegionScope: readonly RegionKey[] | null | undefined,
+): Promise<SaveOutcome> {
+  useProjectsStore.getState().invalidate();
+  try {
+    const record = await projectRecordAPI.read(id);
+    useProjectRecordStore.setState({ id, record });
+    const access = recordAccess(
+      record.project,
+      false,
+      readsHealth,
+      writesHealth,
+      writeRegionScope,
+    );
+    return { kind: "landed", id, ...filedDraft(typed, record.project, access) };
+  } catch (thrown) {
+    return { kind: "landedUnread", id, failure: toApiFailure(thrown) };
+  }
+}
+
+/**
  * The ficha's own store: one record at a time, its version, and the result of the last
  * save attempt.
  *
@@ -223,14 +201,15 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
   },
 
   /**
-   * One request carrying the diff, and four answers — none of which touches the draft.
+   * One request carrying the diff, and its answers — none of which touches the draft.
    *
    * A conflict re-reads the record so the next attempt quotes the current version and
    * the reader can see what the other person wrote, **and stops there**: retrying by
    * itself is last-write-wins with an extra round trip. Pressing save again is the
-   * decision, and it is the coordinator's.
+   * decision, and it is the coordinator's. A create's 409 is not a conflict: it is the
+   * record this draft already filed, and it lands (`readLanded`).
    */
-  save: async ({ values: draft, typed, isNew, readsHealth, writesHealth, writeRegionScope }) => {
+  save: async ({ values: draft, typed, isNew, readsHealth, writesHealth, writeRegionScope, filedAt }) => {
     const withheld = withheldFields(typed);
 
     if (isNew) {
@@ -248,6 +227,17 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
           outcome,
         });
         useProjectsStore.getState().invalidate();
+        return outcome;
+      }
+      if (result.reason === "conflict") {
+        const outcome = await readLanded(
+          (draft as Project).id,
+          typed,
+          readsHealth,
+          writesHealth,
+          writeRegionScope,
+        );
+        set({ saving: false, outcome });
         return outcome;
       }
       const outcome = refusal(result, typed);
@@ -282,12 +272,11 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
       return outcome;
     }
 
+    // A lost create's difference quotes the version the record was filed at: whoever saved it
+    // since is the server's 409, with who and what, not an overwrite (OBT-625).
+    const quoted = filedAt ?? record.version;
     set({ saving: true, outcome: null });
-    const result = await projectRecordAPI.patch(
-      id,
-      toWire(draft, fields),
-      record.version,
-    );
+    const result = await projectRecordAPI.patch(id, toWire(draft, fields), quoted);
 
     if (result.ok) {
       const outcome: SaveOutcome = {

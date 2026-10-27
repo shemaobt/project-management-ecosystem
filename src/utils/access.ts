@@ -41,12 +41,55 @@ export function canImportProjects(
 }
 
 /**
- * Who is offered the leader link — an account that writes a project somewhere (OBT-593):
- * `POST /intake-links` asks the write scope, so the Admin alone, who writes none, is not offered
- * a button the route refuses. Read beside the header's own `formOnly` cut.
+ * Whether the session is the installation's admin — `users.is_platform_admin`, which passes every
+ * guard on the server, and not the `admin` role the PME labels *Admin da plataforma* (OBT-620).
+ * The session carries no flag for it; `writeRegionScope: null` is the one sign, because shema-api
+ * answers `null` to that account alone: `writing_scope` hands back the regional reach, global only
+ * for an installation admin, and every other account — the `admin` role included — gets a list.
+ * Absent (a server from before OBT-593) recognizes nobody.
  */
-export function canMintLeaderLinks(writeRegionScope?: readonly RegionKey[] | null): boolean {
-  return writesAnyProject(writeRegionScope);
+function isInstallationAdmin(writeRegionScope: readonly RegionKey[] | null | undefined): boolean {
+  return writeRegionScope === null;
+}
+
+/**
+ * Whom shema-api's `CoordinatorUser` admits — the `coordinator` grant, or the installation admin
+ * (OBT-620). The leader link, a region's seats and a photo's withdrawal sit behind it and take the
+ * write scope beside it, so each capability below asks both halves: the OBT Lab writes its own
+ * region and is still refused by the role. The grant half reads no field, so it holds whether the
+ * server sent `writeRegionScope` or not.
+ */
+function admittedAsCoordinator(
+  roles: readonly SessionRole[],
+  writeRegionScope: readonly RegionKey[] | null | undefined,
+): boolean {
+  return roles.includes("coordinator") || isInstallationAdmin(writeRegionScope);
+}
+
+/**
+ * Who is offered the leader link — whom `POST /intake-links` admits: `CoordinatorUser` (OBT-620:
+ * the OBT Lab was offered a button the route answers with 403) and the write scope (OBT-593: the
+ * Admin alone writes none). The header mounts the dialog, and the list of links in it, only for
+ * this reader.
+ */
+export function canMintLeaderLinks(
+  roles: readonly SessionRole[],
+  writeRegionScope?: readonly RegionKey[] | null,
+): boolean {
+  return admittedAsCoordinator(roles, writeRegionScope) && writesAnyProject(writeRegionScope);
+}
+
+/**
+ * Who types over a region's seats on Equipe — whom `PUT /regions/{key}/team` admits:
+ * `CoordinatorUser` and the write scope (OBT-620). The OBT Lab reads its region's seats and saves
+ * none; a coordinator saves only where it writes a project (OBT-593).
+ */
+export function canWriteRegionTeam(
+  roles: readonly SessionRole[],
+  writeRegionScope: readonly RegionKey[] | null | undefined,
+  region: RegionKey,
+): boolean {
+  return admittedAsCoordinator(roles, writeRegionScope) && writesProjectIn(writeRegionScope, region);
 }
 
 /**
@@ -63,17 +106,18 @@ export function leaderLinkProjects(
 
 /**
  * Who takes a photo's authorization back — `CoordinatorUser` on the server's withdraw route
- * (OBT-578): the coordinator, and nobody else; the Admin does not grant or refuse in the team's
- * place — and, given the project's region, only where the account writes (OBT-593). Reflection
- * only, so the button is not drawn for a reader the route refuses.
+ * (OBT-578): the coordinator, and the installation admin that guard also admits (OBT-620); the
+ * Admin does not grant or refuse in the team's place — and, given the project's region, only where
+ * the account writes (OBT-593). Reflection only, so the button is not drawn for a reader the route
+ * refuses.
  */
 export function canWithdrawMediaAuthorization(
   roles: readonly SessionRole[],
   writeRegionScope?: readonly RegionKey[] | null,
   region?: RegionKey,
 ): boolean {
-  if (!roles.includes("coordinator") || region === undefined) return false;
-  return writesProjectIn(writeRegionScope, region);
+  if (region === undefined) return false;
+  return admittedAsCoordinator(roles, writeRegionScope) && writesProjectIn(writeRegionScope, region);
 }
 
 /**

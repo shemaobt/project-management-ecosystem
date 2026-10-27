@@ -28,6 +28,10 @@ export type FilterSectionConfig = {
     id: Id;
     titleKey: string;
     criticalValues?: readonly FacetOptionValue<Id>[];
+    /** The option alone does not say what it filters (*Sim*, *0–25%*), so its chip in the
+     * *Filtros ativos* strip carries the section's title first — the prototype's three,
+     * `app.jsx:257-259`. */
+    titledChip?: boolean;
   };
 }[FilterSectionId];
 
@@ -41,10 +45,10 @@ export const ADVANCED_SECTIONS: readonly FilterSectionConfig[] = [
   { id: "country", titleKey: "sb_country" },
   { id: "objective", titleKey: "sb_objective" },
   { id: "translationType", titleKey: "sb_translation_type" },
-  { id: "eten", titleKey: "sb_eten" },
-  { id: "sensitive", titleKey: "sb_sensitive" },
+  { id: "eten", titleKey: "sb_eten", titledChip: true },
+  { id: "sensitive", titleKey: "sb_sensitive", titledChip: true },
   { id: "financial", titleKey: "sb_financial" },
-  { id: "progressRange", titleKey: "sb_progress_range" },
+  { id: "progressRange", titleKey: "sb_progress_range", titledChip: true },
   { id: "vitality", titleKey: "sb_vitality" },
   { id: "needCategory", titleKey: "sb_needs_section" },
   { id: "hasOpenNeeds", titleKey: "sb_open_needs" },

@@ -1,0 +1,188 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Project } from "../../../../types/project";
+
+function createMemoryStorage() {
+  const data = new Map<string, string>();
+  return {
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      data.set(key, value);
+    },
+    removeItem: (key: string) => {
+      data.delete(key);
+    },
+    clear: () => data.clear(),
+  };
+}
+
+const storage = createMemoryStorage();
+vi.stubGlobal("localStorage", storage);
+vi.stubGlobal("window", { localStorage: storage });
+
+const { default: i18n } = await import("../../../../i18n");
+const { makeEmptyProject, missingRequired } = await import(
+  "../../../../stores/recordStore"
+);
+const { recordAccess } = await import("../../../../utils/recordAccess");
+const { makeProject } = await import("../../../../utils/__tests__/factory");
+const { sensitiveMark } = await import("../../../../utils/sensitiveMark");
+const { IdentidadeTab } = await import("../tabs/Identidade");
+
+const noop = () => {};
+
+const handle = (saved: Project) => {
+  const place = recordAccess(saved, false, true, true);
+  const values = { ...makeEmptyProject(), ...saved };
+  return {
+    values,
+    typed: {},
+    saved,
+    isNew: false,
+    hasChanges: false,
+    missing: missingRequired(values, place),
+    place,
+    errors: [],
+    errorsFor: () => [],
+    set: noop,
+    update: noop,
+    discard: noop,
+  };
+};
+
+const render = (mode: "ver" | "editar", saved: Project) =>
+  renderToStaticMarkup(
+    createElement(
+      MemoryRouter,
+      null,
+      createElement(IdentidadeTab, { mode, draft: handle(saved) }),
+    ),
+  );
+
+const record = (over: Partial<Project>): Project =>
+  makeProject({
+    id: "vale",
+    languageName: "Língua do Vale",
+    location: "Teerã, Irã",
+    readAs: "coordination",
+    ...over,
+  });
+
+const box = (markup: string) =>
+  markup.match(/<button[^>]*id="ficha-sensitive"[^>]*>/)?.[0] ?? "";
+
+const said = (markup: string) =>
+  markup.match(/data-sensitive-mark="([^"]+)"/)?.[1] ?? null;
+
+beforeEach(async () => {
+  await i18n.changeLanguage("pt");
+});
+
+afterEach(() => storage.clear());
+
+describe("a marca por país e a marca por projeto (OBT-616)", () => {
+  it("a marca pelo país trava a caixa e nomeia o país da lista", () => {
+    const form = render(
+      "editar",
+      record({ sensitiveCountry: true, listedCountries: ["Irã"] }),
+    );
+
+    expect(said(form)).toBe("country");
+    expect(box(form)).toContain('disabled=""');
+    expect(form).toContain(
+      i18n.t("f_sensitive_by_country", { countries: "Irã" }),
+    );
+  });
+
+  it("a marca própria fica editável e diz que o país não está na lista", () => {
+    const form = render(
+      "editar",
+      record({ location: "Roraima, Brasil", sensitiveCountry: true, listedCountries: [] }),
+    );
+
+    expect(said(form)).toBe("project");
+    expect(box(form)).not.toContain('disabled=""');
+    expect(form).toContain(i18n.t("f_sensitive_by_project"));
+  });
+
+  it("um projeto de país listado ainda sem marca diz que ela liga ao salvar", () => {
+    const form = render(
+      "editar",
+      record({ sensitiveCountry: false, listedCountries: ["Irã"] }),
+    );
+
+    expect(said(form)).toBe("listedUnsaved");
+    expect(box(form)).not.toContain('disabled=""');
+    expect(form).toContain(
+      i18n.t("f_sensitive_listed_unsaved", { countries: "Irã" }),
+    );
+  });
+
+  it("um projeto aberto fora da lista não diz marca nenhuma", () => {
+    const form = render(
+      "editar",
+      record({ location: "Laos", sensitiveCountry: false, listedCountries: [] }),
+    );
+
+    expect(said(form)).toBeNull();
+    expect(form).toContain(i18n.t("f_sensitive_hint"));
+  });
+
+  it("a ficha em leitura diz por que o projeto é sensível", () => {
+    const byCountry = render(
+      "ver",
+      record({ sensitiveCountry: true, listedCountries: ["Irã"] }),
+    );
+    const byProject = render(
+      "ver",
+      record({ location: "Roraima, Brasil", sensitiveCountry: true, listedCountries: [] }),
+    );
+
+    expect(byCountry).toContain(i18n.t("d_sensitive_by_country", { countries: "Irã" }));
+    expect(byProject).toContain(i18n.t("d_sensitive_by_project"));
+  });
+
+  it("a dica da caixa diz o que cada marca faz e onde está a lista", () => {
+    const hint = i18n.t("f_sensitive_hint");
+
+    expect(hint).toContain("marca por país");
+    expect(hint).toContain("marca por projeto");
+    expect(hint).toContain("nunca a desliga");
+    expect(hint).toContain("Acesso");
+  });
+
+  it("a dica nomeia a confirmação, que a conferência do pendente reusa e que também liga a marca", () => {
+    expect(i18n.t("f_sensitive_hint")).toContain("criado, salvo ou confirmado");
+    expect(i18n.t("f_sensitive_hint", { lng: "en" })).toContain("created, saved or confirmed");
+  });
+
+  it("quem não lê a verdade não ouve o porquê — o [] do servidor não quer dizer fora da lista", () => {
+    const lab = render(
+      "ver",
+      record({ sensitiveCountry: true, listedCountries: [], readAs: "other" }),
+    );
+    const unanswered = render(
+      "editar",
+      record({ sensitiveCountry: true, listedCountries: [], readAs: undefined }),
+    );
+
+    expect(said(lab)).toBeNull();
+    expect(lab).not.toContain(i18n.t("d_sensitive_by_project"));
+    expect(said(unanswered)).toBeNull();
+    expect(sensitiveMark(true, [], false)).toBe("none");
+    expect(sensitiveMark(true, [], true)).toBe("project");
+  });
+
+  it("um registro ainda sem resposta do servidor não diz porquê, nem marcado", () => {
+    const unsaved = render(
+      "editar",
+      record({ location: "Irã", sensitiveCountry: true, listedCountries: undefined }),
+    );
+
+    expect(said(unsaved)).toBeNull();
+    expect(box(unsaved)).not.toContain('disabled=""');
+    expect(sensitiveMark(true, undefined, true)).toBe("none");
+  });
+});

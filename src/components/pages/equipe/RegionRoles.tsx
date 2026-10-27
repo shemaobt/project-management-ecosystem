@@ -18,8 +18,9 @@ export interface RegionRolesProps {
   changes: readonly RoleChange[];
   onChange: (role: RoleKey, holder: string) => void;
   /**
-   * `false` where the reader does not write this region (OBT-593): `PUT /regions/{key}/team`
-   * takes the write scope, so the seats are read here and not typed over. Defaults to `true`.
+   * `false` where the reader may not write this region's seats (OBT-593, OBT-620):
+   * `PUT /regions/{key}/team` is the coordinator's and takes the write scope, so the seats are
+   * read here and not typed over. Defaults to `true`.
    */
   editable?: boolean;
 }

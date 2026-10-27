@@ -10,6 +10,7 @@ import { InvitesSection, type InvitePrefill } from "./InvitesSection";
 import { NotAuthorized } from "./NotAuthorized";
 import { PendingProjectsSection } from "./PendingProjects";
 import { PersonSection } from "./PersonSection";
+import { SensitiveCountriesSection } from "./SensitiveCountriesSection";
 
 export interface AcessoPageProps {
   api: AccessAPI;
@@ -60,6 +61,7 @@ function AccessScreen({ api }: AcessoPageProps) {
           }}
         />
         <InvitesSection api={api} prefill={prefill} revision={revision} />
+        <SensitiveCountriesSection api={api} />
         <HistorySection api={api} revision={revision} />
       </div>
     </section>

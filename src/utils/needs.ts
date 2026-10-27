@@ -150,6 +150,94 @@ export function needMoneyError(need: NeedItem): "amount" | "currency" | null {
   return hasAmount ? "currency" : "amount";
 }
 
+const text = (value: string | undefined): string => value ?? "";
+
+const sameAmount = (left: string | undefined, right: string | undefined): boolean =>
+  !left || !right ? !left && !right : Number(left) === Number(right);
+
+const currency = (value: string | undefined): string => text(value).trim().toUpperCase();
+
+/**
+ * Whether `filed` is the need the server made of `typed` — a create's own echo, read back
+ * (OBT-625). What the server adds of its own is not a difference: the row's `id`, the day it
+ * stamps on a need sent without one, the acknowledgement it stamps for the gesture or for a
+ * status that is not `open`, the two decimals `Numeric(14, 2)` hands back and the upper-cased
+ * currency. A reader who is handed the free text empty (a withheld record read as `other`)
+ * cannot tell two descriptions apart, so `readsText` leaves them out.
+ */
+export function isFiledNeed(
+  typed: NeedItem,
+  filed: NeedItem,
+  readsText: boolean,
+): boolean {
+  if (typed.category !== filed.category) return false;
+  if (typed.urgency !== filed.urgency || typed.status !== filed.status) return false;
+  if (readsText && typed.description !== filed.description) return false;
+  if (typed.submittedAt && typed.submittedAt !== filed.submittedAt) return false;
+  if (typed.acknowledged && !filed.acknowledgedAt) return false;
+  if (!sameAmount(typed.estimatedAmount, filed.estimatedAmount)) return false;
+  if (currency(typed.estimatedCurrency) !== currency(filed.estimatedCurrency)) return false;
+  if (Boolean(typed.prayerShared) !== Boolean(filed.prayerShared)) return false;
+  if (Boolean(typed.prayerAnswered) !== Boolean(filed.prayerAnswered)) return false;
+  return (
+    [
+      "estimatedValue",
+      "deadline",
+      "fulfilledBy",
+      "fulfilledDate",
+      "droppedDate",
+      "submittedBy",
+    ] as const
+  ).every((field) => text(typed[field]) === text(filed[field]));
+}
+
+/**
+ * The needs a draft still has to carry onto the record its own lost create filed — or `null`
+ * when every one of them is already there (OBT-625).
+ *
+ * The server creates every row sent without an id and never deletes one (`plan_needs`), so a
+ * need it already filed must never travel again as new: each typed need is matched one to one
+ * with its echo. What is left was typed after the send. A leftover with **exactly one**
+ * leftover saved need of its category is that need, edited — it goes back under the saved
+ * one's id and is updated in place; anything else goes as a new row, beside the saved list,
+ * because pairing among several would hand one need's history to another. The order the
+ * server answers in cannot pair them: needs filed together share their day and creation
+ * instant, and the rest is the id.
+ */
+export function reconcileFiledNeeds(
+  typed: readonly NeedItem[],
+  filed: readonly NeedItem[],
+  readsText: boolean,
+): NeedItem[] | null {
+  const unheld = [...filed];
+  const left: NeedItem[] = [];
+  for (const need of typed) {
+    const at = unheld.findIndex((saved) => isFiledNeed(need, saved, readsText));
+    if (at >= 0) unheld.splice(at, 1);
+    else left.push(need);
+  }
+  if (left.length === 0) return null;
+
+  const edited = new Map<NeedItem, NeedItem>();
+  const added: NeedItem[] = [];
+  for (const need of left) {
+    const typedAlike = left.filter((other) => other.category === need.category);
+    const savedAlike = unheld.filter((saved) => saved.category === need.category);
+    if (typedAlike.length === 1 && savedAlike.length === 1) {
+      const [saved] = savedAlike;
+      edited.set(saved, {
+        ...saved,
+        ...need,
+        id: saved.id,
+        description: readsText ? need.description : saved.description,
+      });
+    } else {
+      added.push(need);
+    }
+  }
+  return [...filed.map((saved) => edited.get(saved) ?? saved), ...added];
+}
+
 export interface NeedsQuery {
   region?: RegionKey;
   from?: string;

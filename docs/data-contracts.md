@@ -1020,6 +1020,16 @@ reads withheld — and folds
 `location`, `location2`, `coords`, `sensitiveCountry` or `sensitivity` on any record, and for the base
 or the three contacts on a withheld one; the console never sends them (FE-48).
 
+**`listedCountries` (OBT-616), additive and read-only:** the countries on the Admin's list of
+sensitive countries that the record's **saved** place names, in the list's words — sent only to a
+reader of the truth (coordination and the Resource Circle), `[]` to anyone else. With
+`sensitiveCountry` it says why the project is sensitive (`sensitiveMark`, `src/utils/sensitiveMark.ts`):
+by its country, or by its own mark — and only to a reader of the truth, since the `[]` everybody else
+gets means *not told*. The server raises the flag of a place that names a listed country on every
+create, save and confirmation and never lowers it, so the console locks the box the list holds. Read
+closed (`readListedCountries`): anything but a list of names — a record not yet saved, a server from
+before OBT-616 — is no answer, and no answer says no reason. Never written back.
+
 **Server requirements on the write:**
 
 - Validate exactly the four required fields of §5.1.1 and nothing more.
@@ -1494,6 +1504,25 @@ membership (§9.14).
 every refusal sentence. **In the console:** the *Aguardando confirmação* section of `/acesso`
 (`CLAUDE.md` §5.12), on `accessAPI` — `null` in fixtures (§9.15).
 
+### 9.18 Países sensíveis — [OBT-616](https://linear.app/shema-obt/issue/OBT-616), 27/out/2026
+
+```
+GET /api/shema/sensitive-countries        -> {countries: SensitiveCountry[]}   # ordered by name
+PUT /api/shema/sensitive-countries        {countries: SensitiveCountry[]} -> {countries: SensitiveCountry[]}
+```
+
+Both the Admin's, like §9.15's: any other role is a `403`. `SensitiveCountry` is `{name,
+spellings}` — the country in the list's words (Karina's Portuguese) and the other ways a place may
+write it. The `PUT` carries the whole list; a country left out is off it. The server trims, drops
+blank spellings, and answers `422` for a blank name, a name or spelling with a comma (the place is
+split on commas) or one spelling — accents and case aside — given to two countries; two saves landing at the same
+moment answer the second a `409`. A place that
+names a listed country, at any position, raises the project's flag on the next create, save or
+confirmation; no stored project moves, and taking a country off the list lowers nobody.
+**Server requirements:** `shema-api` `docs/shema.md` §9.5. **In the console:** the *Países
+sensíveis* section of `/acesso` (`SensitiveCountriesSection.tsx`), on `accessAPI` — `null` in
+fixtures (§9.15).
+
 ---
 
 ## 10. Every wave-1 write, and the endpoint it becomes
@@ -1615,8 +1644,10 @@ scheduled before anything that emits data. One concrete question was open and na
 **the base name.** ~~Redacting it everywhere is a second rule and it belongs to this gate.~~ **GATE-04
 answered it** (Karina 22/sep, Daniel 23/sep): the base is hidden from everything that leaves and from
 every reader who is not coordination. OBT-528 built the server half, FE-48 the console's — one owner,
-`PlaceDisplay.base`, not surface by surface. The gate stays open only for the list of sensitive
-countries.
+`PlaceDisplay.base`, not surface by surface. ~~The gate stays open only for the list of sensitive
+countries.~~ **The list arrived** (Karina, 19/out/2026, [OBT-616](https://linear.app/shema-obt/issue/OBT-616)):
+India, China, Iran, Iraq, the Middle East, and Egypt, Turkey and Cyprus — kept on the server and
+edited by the Admin (§9.18).
 
 ---
 

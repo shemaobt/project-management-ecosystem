@@ -11,6 +11,7 @@ import { mayWrite } from "../../../../../utils/recordAccess";
 import {
   getLanguageNameDisplay,
   getLocationDisplay,
+  readsTruth,
 } from "../../../../../utils/region";
 import {
   Input,
@@ -259,6 +260,8 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
       <SensitiveFlag
         checked={Boolean(values.sensitiveCountry)}
         disabled={locked}
+        listed={values.listedCountries}
+        readsTruth={readsTruth(values.readAs)}
         onChange={(next) => draft.set("sensitiveCountry", next)}
       />
 
