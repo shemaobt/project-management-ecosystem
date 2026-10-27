@@ -1,12 +1,13 @@
 import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { ProjectFilters } from "../../../../../stores/filtersStore";
 import { useFiltersStore } from "../../../../../stores/filtersStore";
 import { cn } from "../../../../../utils/cn";
 import type { GatedFacet } from "../../../../../utils/gatedFacets";
 import type { FacetCounts } from "../../../../../utils/search";
 import { FilterSection } from "./FilterSection";
-import type { FilterSectionConfig } from "./sections";
+import type { FilterSectionConfig, FilterSectionId } from "./sections";
 import {
   ADVANCED_SECTIONS,
   PRIMARY_SECTIONS,
@@ -21,14 +22,25 @@ export interface DetailedFiltersProps {
   hidden: readonly GatedFacet[];
 }
 
-export function DetailedFilters({
+export interface DetailedFiltersViewProps extends DetailedFiltersProps {
+  filters: ProjectFilters;
+  onSelect: (section: FilterSectionId, value: string | null) => void;
+}
+
+export function DetailedFilters(props: DetailedFiltersProps) {
+  const filters = useFiltersStore((state) => state.filters);
+  const setFilter = useFiltersStore((state) => state.setFilter);
+  return <DetailedFiltersView {...props} filters={filters} onSelect={setFilter} />;
+}
+
+export function DetailedFiltersView({
   baseline,
   counts,
   hidden,
-}: DetailedFiltersProps) {
+  filters,
+  onSelect,
+}: DetailedFiltersViewProps) {
   const { t } = useTranslation();
-  const filters = useFiltersStore((state) => state.filters);
-  const setFilter = useFiltersStore((state) => state.setFilter);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(
     () => new Set(PRIMARY_SECTIONS.map((section) => section.id)),
   );
@@ -65,7 +77,7 @@ export function DetailedFilters({
         label: option.labelKey ? t(option.labelKey) : option.value,
       }))}
       activeValue={filters[section.id]}
-      onSelect={(value) => setFilter(section.id, value)}
+      onSelect={(value) => onSelect(section.id, value)}
     />
   );
 
