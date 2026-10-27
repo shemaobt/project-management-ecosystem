@@ -11,6 +11,7 @@ import type { Project } from "../../../types/project";
 import type { Region, RegionKey, RoleChange } from "../../../types/region";
 import type { RoleKey } from "../../../types/role";
 import type { SaveOutcome, TeamSaveResult } from "../../../types/team";
+import { writesProjectIn } from "../../../utils/access";
 import { getRegion } from "../../../utils/region";
 import { draftsFor, unassignedCount } from "../../../utils/team";
 import { EmptyState } from "../../common/EmptyState";
@@ -28,13 +29,21 @@ export interface EquipeViewProps {
   projects?: readonly Project[] | null;
   changes?: readonly RoleChange[];
   onSave: (drafts: ReturnType<typeof draftsFor>) => Promise<TeamSaveResult>;
+  /**
+   * Whether the reader writes this region's seats (OBT-593) — `writesProjectIn` over the
+   * session's `writeRegionScope`. Absent, every visible region is editable, as before.
+   */
+  writes?: (region: RegionKey) => boolean;
 }
+
+const WRITES_EVERY_REGION = () => true;
 
 export function EquipeView({
   regions,
   projects = [],
   changes = [],
   onSave,
+  writes = WRITES_EVERY_REGION,
 }: EquipeViewProps) {
   const { t } = useTranslation();
   const [edits, setEdits] = useState<Record<string, string>>({});
@@ -82,6 +91,7 @@ export function EquipeView({
   );
 
   const pending = unassignedCount(drafts);
+  const writesAny = visible.some((region) => writes(region.key));
 
   return (
     <section className="mx-auto w-full max-w-(--container-max) px-(--container-pad) pt-8 pb-20">
@@ -126,6 +136,7 @@ export function EquipeView({
                   count={counts === null ? null : (counts.get(region.key) ?? 0)}
                   draft={drafts[region.key] ?? region.team}
                   changes={changes}
+                  editable={writes(region.key)}
                   onChange={(role, holder) => {
                     setOutcome(null);
                     setEdits((current) => ({
@@ -140,33 +151,37 @@ export function EquipeView({
 
           {outcome ? <SaveSummary outcome={outcome} /> : null}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-muted px-5 py-4">
-            <p className="text-small leading-normal text-fg-muted">
-              {t("equipe_hint")}
-            </p>
-            <Button
-              disabled={!dirty || saving}
-              onClick={() => {
-                setSaving(true);
-                onSave(drafts)
-                  .then(({ outcome, failedRegions }) => {
-                    setOutcome(outcome);
-                    setEdits((current) =>
-                      Object.fromEntries(
-                        Object.entries(current).filter(([key]) =>
-                          failedRegions.includes(
-                            key.slice(0, key.lastIndexOf(":")) as RegionKey,
+          {/* No save bar for a reader who writes none of these regions (OBT-593): the seats are
+              read-only, and a button that can never be enabled is the dead control. */}
+          {writesAny ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-muted px-5 py-4">
+              <p className="text-small leading-normal text-fg-muted">
+                {t("equipe_hint")}
+              </p>
+              <Button
+                disabled={!dirty || saving}
+                onClick={() => {
+                  setSaving(true);
+                  onSave(drafts)
+                    .then(({ outcome, failedRegions }) => {
+                      setOutcome(outcome);
+                      setEdits((current) =>
+                        Object.fromEntries(
+                          Object.entries(current).filter(([key]) =>
+                            failedRegions.includes(
+                              key.slice(0, key.lastIndexOf(":")) as RegionKey,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  })
-                  .finally(() => setSaving(false));
-              }}
-            >
-              {saving ? t("equipe_saving") : t("equipe_save")}
-            </Button>
-          </div>
+                      );
+                    })
+                    .finally(() => setSaving(false));
+                }}
+              >
+                {saving ? t("equipe_saving") : t("equipe_save")}
+              </Button>
+            </div>
+          ) : null}
 
           <p className="max-w-[80ch] text-micro leading-normal text-fg-subtle">
             {t("equipe_history_note")}
@@ -212,6 +227,7 @@ export function EquipePage() {
       projects={projectsRead ? projects : null}
       changes={changes}
       onSave={(drafts) => saveTeams(drafts, changedBy)}
+      writes={(region) => writesProjectIn(user.writeRegionScope, region)}
     />
   );
 }
