@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CURRENT_QUESTION_SET_VERSION } from "../../constants/health";
+import type { AssessmentDraft } from "../../types/assessment";
 import { emptyDraft } from "../../utils/assessment";
 import { createEmptyProject } from "../blank";
 import {
@@ -127,6 +128,44 @@ describe("submitAssessment — o duplo do POST .../health-assessments (BE-07)", 
     if (!first.ok || !second.ok) return;
     expect(second.record.version).not.toBe(first.record.version);
     expect(second.record.project.healthHistory).toHaveLength(2);
+  });
+
+  it("uma retroativa depois de uma atual com pastoral sim deixa os três campos onde estavam, como o servidor (OBT-623)", () => {
+    seeded();
+    const reading = (date: string, over: Partial<AssessmentDraft> = {}): AssessmentDraft => ({
+      ...emptyDraft("kadiweu", NOW),
+      date,
+      ratings: { emotional: "atencao", relational: "", spiritual: "", physical: "" },
+      ...over,
+    });
+
+    submitAssessment(
+      "kadiweu",
+      reading("2026-10-26", {
+        pastoral: "sim",
+        pastoralWho: "Daniel — visita de campo em junho",
+        pastoralWhen: "30d",
+      }),
+      "Ana",
+    );
+    const outcome = submitAssessment(
+      "kadiweu",
+      reading("2026-08-15", {
+        ratings: { emotional: "critica", relational: "", spiritual: "", physical: "" },
+      }),
+      "Ana",
+    );
+
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const { project } = outcome.record;
+    expect(project.needsPastoralIntervention).toBe("sim");
+    expect(project.pastoralInterventionName).toBe("Daniel — visita de campo em junho");
+    expect(project.pastoralInterventionWhen).toBe("30d");
+    expect(project.healthHistory?.map((entry) => entry.date)).toEqual([
+      "2026-08-15",
+      "2026-10-26",
+    ]);
   });
 });
 
