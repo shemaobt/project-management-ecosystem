@@ -49,3 +49,25 @@ describe("a leitura das preferências (OBT-604)", () => {
     expect(source.match(/api\.prefs\(\)/g)).toHaveLength(1);
   });
 });
+
+describe("a lista de projetos do sino (OBT-635)", () => {
+  const squash = (text: string) =>
+    text.replace(/\s+/g, " ").replace(/\( /g, "(").replace(/ \)/g, ")");
+
+  it("o painel não lê a lista de projetos por conta própria, e o feed só a pede atrás da pergunta por papel", async () => {
+    const panel = (await import("../NotificationsPanel?raw")).default;
+    const feed = squash((await import("../useNotifications?raw")).default);
+    const served = feed.slice(
+      feed.indexOf("function useServedFeed("),
+      feed.indexOf("function liveFeedOf("),
+    );
+
+    expect(panel).not.toContain("useProjectsStore");
+    expect(panel).toContain("readProjects()");
+    expect(feed.match(/useProjectsStore\(\(state\) => state\.hydrate\)/g)).toHaveLength(1);
+    expect(served.match(/useScopedProjects\(/g)).toHaveLength(1);
+    expect(served).toContain("useScopedProjects(mayReadPrefs && ");
+    expect(served.match(/ask\(\)/g)).toHaveLength(1);
+    expect(served).toContain("if (mayReadPrefs) ask();");
+  });
+});
