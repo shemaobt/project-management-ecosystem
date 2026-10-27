@@ -356,10 +356,11 @@ export interface Project {
    * normal state and not an error.
    *
    * **The console reads it from both server shapes**: the record's 74th key (`mapRecord`,
-   * INT-08, OBT-413) and the list's card (`mapCard`, OBT-622), which is the one the annual report
-   * reads. Both leave it absent on `null` — a `concluido` from before the stamp, which the report
-   * counts apart as undated. The spelling is the one the camelCase alias generator produces. The ETEN report does not depend on
-   * it: the server reads the column itself and the line carries it as `completedDate`.
+   * INT-08, OBT-413) and the list's card (`mapCard`, OBT-622), which is the one the annual
+   * report reads. Both leave it absent on `null` — a `concluido` from before the stamp, which
+   * the report counts apart as undated. The spelling is the one the camelCase alias generator
+   * produces. The ETEN report does not depend on it: the server reads the column itself and the
+   * line carries it as `completedDate`.
    */
   completedDate?: string;
   sensitivity: string;

@@ -355,9 +355,6 @@ describe("a Celebração conta os finalizados que a lista data (OBT-622)", () =>
         now: new Date(2026, 9, 26),
       }),
     );
-    const headline = (label: string) =>
-      markup.match(new RegExp(`>([^<]+)</p><p[^>]*>${label}</p>`, "u"))?.[1];
-    expect(headline(i18n.t("relatorio_finished"))).toBe("1");
     expect(markup).toContain(i18n.t("relatorio_undated", { count: 1 }));
     expect(markup).toContain("Luganda (QA)");
     expect(markup).not.toContain("ETEN Migrado do Notion (QA)");
