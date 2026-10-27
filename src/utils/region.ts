@@ -71,7 +71,7 @@ export function getRegion(project: Located): RegionKey {
   );
 }
 
-function regionOf(project: Project): RegionKey {
+export function regionOf(project: Project): RegionKey {
   return project.derived?.region ?? getRegion(project);
 }
 
