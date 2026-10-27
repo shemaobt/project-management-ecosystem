@@ -8,11 +8,6 @@ import {
   canWriteRegionTeam,
 } from "../access";
 
-/**
- * OBT-620 — `POST /intake-links` (with its list and revoke), `PUT /regions/{key}/team` and a
- * photo's withdrawal are `CoordinatorUser` and take the write scope. The PME draws them only for
- * whom both halves admit: the `coordinator` grant or the installation admin, where it writes.
- */
 type Scope = readonly RegionKey[] | null | undefined;
 
 interface Who {
