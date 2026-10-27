@@ -367,6 +367,7 @@
   "equipe_unassigned_count_one": "{{count}} papel ainda sem responsável.",
   "equipe_unassigned_count_other": "{{count}} papéis ainda sem responsável.",
   "equipe_fill_hint": "Digite o nome no campo do papel para preencher.",
+  "equipe_seats_coordination_only": "Os nomes de uma região são editados só pelo {{regional}} daquela região — onde a sua conta não edita, os campos ficam travados, só para leitura.",
   "equipe_projects_count_one": "{{count}} projeto",
   "equipe_projects_count_other": "{{count}} projetos",
   "equipe_saved_changed_one": "{{count}} nome atualizado.",

@@ -279,6 +279,22 @@ describe("a Equipe só é editável para a coordenação e a plataforma, na regi
     }
   });
 
+  it("onde a conta só lê, a tela diz de quem são os assentos; quem edita tudo não recebe o aviso", () => {
+    const reason = i18n.t("equipe_seats_coordination_only", {
+      regional: i18n.t("role_coordinator"),
+    });
+    for (const [roles, scope] of [
+      [["obtLab"], ["africa"]],
+      [["resourceCircle"], undefined],
+      [["admin"], []],
+      [["coordinator"], ["south-america"]],
+    ] as [SessionRole[], RegionKey[] | undefined][]) {
+      expect(as(roles, scope), roles.join("+")).toContain(reason);
+    }
+    expect(as(["admin"], null)).not.toContain(reason);
+    expect(view(two())).not.toContain(reason);
+  });
+
   it("a página pergunta o papel e o escopo da sessão, não só o escopo", () => {
     const page = readFileSync(join(process.cwd(), "src/components/pages/equipe/index.tsx"), "utf8")
       .replace(/\s+/gu, " ")

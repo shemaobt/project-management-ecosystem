@@ -367,6 +367,7 @@
   "equipe_unassigned_count_one": "{{count}} role still has nobody assigned.",
   "equipe_unassigned_count_other": "{{count}} roles still have nobody assigned.",
   "equipe_fill_hint": "Type a name in the role’s field to fill it.",
+  "equipe_seats_coordination_only": "A region's names are edited only by that region's {{regional}} — where your account does not edit, the fields are locked, for reading only.",
   "equipe_projects_count_one": "{{count}} project",
   "equipe_projects_count_other": "{{count}} projects",
   "equipe_saved_changed_one": "{{count}} name updated.",
