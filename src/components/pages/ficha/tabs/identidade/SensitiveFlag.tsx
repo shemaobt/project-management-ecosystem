@@ -31,6 +31,7 @@ export interface SensitiveFlagProps {
    * the box is locked instead of pretending.
    */
   listed?: readonly string[];
+  readsTruth: boolean;
   onChange: (checked: boolean) => void;
 }
 
@@ -38,10 +39,11 @@ export function SensitiveFlag({
   checked,
   disabled = false,
   listed,
+  readsTruth,
   onChange,
 }: SensitiveFlagProps) {
   const { t } = useTranslation();
-  const mark = sensitiveMark(checked, listed);
+  const mark = sensitiveMark(checked, listed, readsTruth);
   const note = MARK_NOTE[mark];
 
   return (

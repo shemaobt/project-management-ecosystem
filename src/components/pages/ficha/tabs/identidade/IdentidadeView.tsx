@@ -10,6 +10,7 @@ import {
 import {
   getLanguageNameDisplay,
   getLocationDisplay,
+  readsTruth,
 } from "../../../../../utils/region";
 import { Badge } from "../../../../ui";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
@@ -31,7 +32,11 @@ export function IdentidadeView({ draft }: IdentidadeViewProps) {
   const { t } = useTranslation();
   const locale = t("locale");
   const values = draft.values;
-  const mark = sensitiveMark(Boolean(values.sensitiveCountry), values.listedCountries);
+  const mark = sensitiveMark(
+    Boolean(values.sensitiveCountry),
+    values.listedCountries,
+    readsTruth(values.readAs),
+  );
   const markNote = MARK_NOTE[mark];
   const withheld = draft.place.withheld;
   const place = draft.saved ? getLocationDisplay(draft.saved) : null;

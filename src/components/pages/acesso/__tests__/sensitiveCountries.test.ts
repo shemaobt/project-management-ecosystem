@@ -1,8 +1,3 @@
-/**
- * OBT-616 — the list of sensitive countries is the Admin's: it lives in `/acesso`, which only the
- * Admin opens, and it is edited and saved whole. The server refuses it to every other role; what
- * this file holds is the screen's half — where it is, and what it sends.
- */
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -102,13 +97,21 @@ describe("o que a lista manda ao servidor", () => {
     const rows = [
       ...rowsOf(LISTED),
       { key: "a", name: "  Síria ", spellings: "Syria, , Syria ,Siria" },
-      { key: "b", name: "   ", spellings: "nada" },
+      { key: "b", name: "   ", spellings: " , " },
     ];
 
     expect(listOfRows(rows)).toEqual([
       { name: "Irã", spellings: ["Iran", "Irão"] },
       { name: "Índia", spellings: ["India"] },
       { name: "Síria", spellings: ["Syria", "Siria"] },
+    ]);
+  });
+
+  it("apagar o nome de um país não o tira da lista calado: a linha vai e o servidor recusa", () => {
+    const [, india] = rowsOf(LISTED);
+
+    expect(listOfRows([{ ...india, name: "  " }])).toEqual([
+      { name: "", spellings: ["India"] },
     ]);
   });
 

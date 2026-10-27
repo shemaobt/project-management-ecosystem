@@ -1,8 +1,3 @@
-/**
- * OBT-616 — the ficha says why a project is sensitive: by its country on the Admin's list, or by
- * its own mark. The pair it reads is the server's (`sensitiveCountry` and `listedCountries`), and
- * the box a list holds is locked rather than offered: the server raises it again on any save.
- */
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
@@ -158,8 +153,20 @@ describe("a marca por país e a marca por projeto (OBT-616)", () => {
     expect(hint).toContain("Acesso");
   });
 
-  it("sem resposta do servidor sobre a lista, a marca é a do projeto", () => {
-    expect(sensitiveMark(true, undefined)).toBe("project");
-    expect(sensitiveMark(false, undefined)).toBe("none");
+  it("quem não lê a verdade não ouve o porquê — o [] do servidor não quer dizer fora da lista", () => {
+    const lab = render(
+      "ver",
+      record({ sensitiveCountry: true, listedCountries: [], readAs: "other" }),
+    );
+    const unanswered = render(
+      "editar",
+      record({ sensitiveCountry: true, listedCountries: [], readAs: undefined }),
+    );
+
+    expect(said(lab)).toBeNull();
+    expect(lab).not.toContain(i18n.t("d_sensitive_by_project"));
+    expect(said(unanswered)).toBeNull();
+    expect(sensitiveMark(true, [], false)).toBe("none");
+    expect(sensitiveMark(true, [], true)).toBe("project");
   });
 });

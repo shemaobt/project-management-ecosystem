@@ -1,10 +1,5 @@
 import type { SensitiveCountry } from "../../../types/access";
 
-/**
- * The Admin's list of sensitive countries as the editor holds it (OBT-616): one row per country,
- * its other spellings typed as one line separated by commas — the separator the place itself is
- * split on, so a spelling can never hold one.
- */
 export interface SensitiveRow {
   key: string;
   name: string;
@@ -20,9 +15,8 @@ export function rowsOf(countries: readonly SensitiveCountry[]): SensitiveRow[] {
 }
 
 /**
- * The rows as the server takes them: names and spellings trimmed, blank spellings and repeats
- * dropped, and a row with no name left out — an empty line is not a country. What the server
- * refuses (one spelling for two countries) it refuses with a sentence, shown as it came.
+ * Only a row with nothing typed is left out. A row with spellings and no name goes to the server,
+ * whose 422 the Admin reads — dropping it would take a country off the list with no word said.
  */
 export function listOfRows(rows: readonly SensitiveRow[]): SensitiveCountry[] {
   return rows
@@ -37,7 +31,7 @@ export function listOfRows(rows: readonly SensitiveRow[]): SensitiveCountry[] {
         ),
       ],
     }))
-    .filter((country) => country.name !== "");
+    .filter((country) => country.name !== "" || country.spellings.length > 0);
 }
 
 export function sameList(

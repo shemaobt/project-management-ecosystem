@@ -22,11 +22,6 @@ export interface SensitiveCountriesEditorProps {
   onSave: (countries: SensitiveCountry[]) => void;
 }
 
-/**
- * The list as the Admin edits it: a country per row, its other spellings beside it, saved whole
- * (OBT-616). Mounted only inside `/acesso`, which only the Admin opens — the server refuses the
- * list to every other role with a 403 all the same.
- */
 export function SensitiveCountriesEditor({
   saved,
   working,

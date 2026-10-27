@@ -668,7 +668,6 @@ const GUEST_HEADERS = { Accept: "application/json" };
 
 const SENSITIVE_COUNTRIES = `${SHEMA}/sensitive-countries`;
 
-/** The list as the server answers it, read closed: a name and its spellings, and nothing else. */
 export function readSensitiveCountries(value: unknown): SensitiveCountry[] {
   return listOf(fieldsOf(value).countries).map((entry) => {
     const fields = fieldsOf(entry);
@@ -723,7 +722,6 @@ export const accessAPI = {
     return readSensitiveCountries(data);
   },
 
-  /** The list as it is to stand — whole; a country left out is off it. */
   async saveSensitiveCountries(
     countries: readonly SensitiveCountry[],
   ): Promise<SensitiveCountry[]> {

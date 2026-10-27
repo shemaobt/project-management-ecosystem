@@ -238,11 +238,6 @@ export function readReadAs(value: unknown): ReadAs | undefined {
     : undefined;
 }
 
-/**
- * The listed sensitive countries the place names (OBT-616), read closed: anything but a list of
- * names is no answer, and no answer is `[]` — which says the flag, if raised, is the project's
- * own. A server from before OBT-616 sends nothing, and reads the same way.
- */
 export function readListedCountries(value: unknown): readonly string[] {
   if (!Array.isArray(value)) return [];
   const names = value.filter((entry): entry is string => typeof entry === "string");
