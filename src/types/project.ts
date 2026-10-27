@@ -355,11 +355,10 @@ export interface Project {
    * before the stamp existed, and in fixture mode, so a finished project with no date is a
    * normal state and not an error.
    *
-   * **The console reads it as the record's 74th key** (INT-08, OBT-413): `mapRecord` takes it
-   * when the server sends it and leaves it absent when the server answers `null` or still the
-   * 73 keys FE-44 froze (`app/models/shema_record.py`) — a server in that state leaves every
-   * `concluido` undated in the annual report, which is the honest reading. The spelling is the
-   * one the record's camelCase alias generator produces. The ETEN report does not depend on
+   * **The console reads it from both server shapes**: the record's 74th key (`mapRecord`,
+   * INT-08, OBT-413) and the list's card (`mapCard`, OBT-622), which is the one the annual report
+   * reads. Both leave it absent on `null` — a `concluido` from before the stamp, which the report
+   * counts apart as undated. The spelling is the one the camelCase alias generator produces. The ETEN report does not depend on
    * it: the server reads the column itself and the line carries it as `completedDate`.
    */
   completedDate?: string;
