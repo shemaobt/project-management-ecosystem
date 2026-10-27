@@ -31,12 +31,7 @@ function versionLabel(
     : t("d_health_version", { version });
 }
 
-/**
- * What the section says about how many conversations its history lists. The history holds
- * every reading, the current one included — the flat fields are only its projection — so
- * *first* needs exactly one entry; with none nobody has talked to the team yet, which is its
- * own sentence (OBT-632).
- */
+/** The history holds the current reading too, so *first* needs exactly one entry (OBT-632). */
 function historyNoteKey(
   count: number,
 ): "d_health_history_empty" | "d_health_history_first" | null {
