@@ -31,9 +31,23 @@ function versionLabel(
     : t("d_health_version", { version });
 }
 
+/**
+ * What the section says about how many conversations its history lists. The history holds
+ * every reading, the current one included — the flat fields are only its projection — so
+ * *first* needs exactly one entry; with none nobody has talked to the team yet, which is its
+ * own sentence (OBT-632).
+ */
+function historyNoteKey(
+  count: number,
+): "d_health_history_empty" | "d_health_history_first" | null {
+  if (count === 0) return "d_health_history_empty";
+  return count === 1 ? "d_health_history_first" : null;
+}
+
 export function AssessmentHistory({ entries }: AssessmentHistoryProps) {
   const { t } = useTranslation();
   const locale = t("locale");
+  const note = historyNoteKey(entries.length);
 
   return (
     <section>
@@ -41,11 +55,9 @@ export function AssessmentHistory({ entries }: AssessmentHistoryProps) {
         {t("d_health_history")}
       </h3>
 
-      {entries.length === 0 ? (
-        <p className="mt-2 text-micro text-fg-subtle">
-          {t("d_health_history_empty")}
-        </p>
-      ) : (
+      {note && <p className="mt-2 text-micro text-fg-subtle">{t(note)}</p>}
+
+      {entries.length > 0 && (
         <ol className="mt-2.5 flex flex-col gap-2">
           {[...entries].reverse().map((entry, index) => {
             const overall = entry.overall ?? overallOfEntry(entry);
