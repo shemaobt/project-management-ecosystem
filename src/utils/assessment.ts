@@ -13,7 +13,12 @@ import type {
   Project,
 } from "../types/project";
 import { toLocalIsoDate } from "./format";
-import { getOverallHealth, overallOfEntry, recordAssessment } from "./health";
+import {
+  currentAssessment,
+  getOverallHealth,
+  overallOfEntry,
+  recordAssessment,
+} from "./health";
 
 const EMPTY_RATINGS: Record<HealthDimensionKey, HealthRating> = {
   emotional: "",
@@ -104,6 +109,13 @@ export interface AssessmentEntryMeta {
  * `meta` exists for the fixture double standing in for BE-07 (INT-04): the live wizard
  * never calls this directly, it posts to `healthAssessmentsAPI.submit` and reads the
  * server's own record back.
+ *
+ * The pastoral answer lands only when the entry becomes the record's current reading —
+ * the server's `projected is assessed` (OBT-623). The wizard sends one with every reading,
+ * `nao` when nobody picked otherwise, so a backdated reading would otherwise replace the
+ * current one's escalation with a default nobody chose. The prayer request is not held
+ * back: it travels only when somebody wrote one, so it is a person's request, not the
+ * reading's answer.
  */
 export function applyAssessment(
   project: Project,
@@ -111,13 +123,19 @@ export function applyAssessment(
   label: (key: string) => string,
   meta: AssessmentEntryMeta = {},
 ): Project {
+  const entry = toAssessment(draft, label, meta);
+  const recorded = recordAssessment(project, entry);
   const raised = draft.prayerRequest.trim();
 
   return {
-    ...recordAssessment(project, toAssessment(draft, label, meta)),
-    needsPastoralIntervention: draft.pastoral,
-    pastoralInterventionName: draft.pastoralWho,
-    pastoralInterventionWhen: draft.pastoralWhen,
+    ...recorded,
+    ...(currentAssessment(recorded) === entry
+      ? {
+          needsPastoralIntervention: draft.pastoral,
+          pastoralInterventionName: draft.pastoralWho,
+          pastoralInterventionWhen: draft.pastoralWhen,
+        }
+      : {}),
     ...(raised === ""
       ? {}
       : { prayerRequests: raised, prayerVisibility: draft.prayerVisibility }),
