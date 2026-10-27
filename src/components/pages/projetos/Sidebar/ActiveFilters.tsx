@@ -70,7 +70,6 @@ export function ActiveFiltersView({
   const options = useMemo(() => buildFilterOptions(baseline), [baseline]);
   const chips = activeFilterChips(filters, options, hidden);
 
-  // The chip that had focus is gone by now; left alone, focus falls to <body> (§7.5).
   useLayoutEffect(() => {
     const next = pending.current;
     if (!next) return;
