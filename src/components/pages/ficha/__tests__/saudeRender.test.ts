@@ -271,7 +271,6 @@ describe("a intervenção pastoral se vê sem abrir nada", () => {
     expect(tab("ver", ASSESSED)).not.toContain(i18n.t("d_pastoral"));
   });
 
-  /** What the pastoral callout says, read as text: the tags out, the sentence in. */
   const pastoralLine = (markup: string) => {
     const at = markup.indexOf(i18n.t("d_pastoral"));
     if (at === -1) return null;

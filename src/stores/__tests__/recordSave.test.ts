@@ -761,7 +761,6 @@ describe("uma escrita que o servidor aceitou deixa a lista desatualizada (OBT-59
 });
 
 describe("um sim marcado na ficha não herda o agora do Não do wizard (OBT-628)", () => {
-  /** The two writes the record's checkbox makes, in order, over the saved record. */
   const tick = (typed: Record<string, unknown>, answer: "sim" | "nao") => ({
     ...typed,
     needsPastoralIntervention: answer,
