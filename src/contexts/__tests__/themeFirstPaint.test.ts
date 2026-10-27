@@ -131,7 +131,7 @@ describe("o index.html aplica o tema guardado antes do módulo (OBT-651)", () =>
     }
   });
 
-  it("sem acesso ao armazenamento, não derruba a página e fica no claro", () => {
+  it("sem acesso ao armazenamento, o script não lança e deixa o claro", () => {
     systemDark = true;
     expect(() => viaIndexHtml("blocked")).not.toThrow();
     expect(viaIndexHtml("blocked").dark).toBe(false);
