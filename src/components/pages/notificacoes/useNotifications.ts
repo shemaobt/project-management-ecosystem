@@ -70,11 +70,7 @@ export function readsSavedPrefs(roles: readonly SessionRole[]): boolean {
   return holdsShemaGrant(roles);
 }
 
-/**
- * An account with no Shemá grant reads why *Salvar* stays closed as a fact about the account,
- * not as a failure (OBT-635): `net_forbidden` told someone who may use the bell to ask for
- * access to it, and there is nothing to retry.
- */
+/** No Shemá grant is a fact about the account, not a failure: a note, with nothing to retry (OBT-635). */
 export function prefsNotice(
   feed: Pick<NotificationsFeed, "prefsForbidden" | "prefsFailure" | "retryPrefs">,
   t: Translate,
