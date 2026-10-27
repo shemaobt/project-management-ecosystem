@@ -298,6 +298,9 @@
   --shadow-paper-hover: 0 2px 0 rgba(63, 62, 32, 0.06),
     0 14px 30px -12px rgba(63, 62, 32, 0.28),
     0 30px 50px -28px rgba(63, 62, 32, 0.18);
+  /* The Filtros ativos strip: app.css:3629 flattens its old card (no fill, border or padding)
+     and keeps the first rule's telha shadow (app.css:237), so the prototype draws a soft halo. */
+  --shadow-accent-soft: 0 4px 12px rgba(190, 74, 1, 0.1);
   --color-paper: var(--paper);
 
   --color-status-good: var(--status-good);

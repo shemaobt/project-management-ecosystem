@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { writableDraft } from "../../components/pages/ficha/useDraft";
 import { FREE_TEXT_FIELDS, PASTORAL_WRITES } from "../../constants/recordFields";
 import type { NeedItem } from "../../types/project";
 import { canReadHealth } from "../access";
@@ -8,6 +7,7 @@ import {
   mayWrite,
   mayWriteNeedDescription,
   recordAccess,
+  writableDraft,
 } from "../recordAccess";
 import { makeProject } from "./factory";
 
