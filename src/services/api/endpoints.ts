@@ -141,6 +141,15 @@ export function readApps(payload: unknown): SessionApps {
   return { resourceRequestForm: appAddress(apps.resourceRequestForm) };
 }
 
+function readRegionKeys(keys: unknown[]): RegionKey[] {
+  return keys.map((key) => {
+    if (typeof key !== "string" || !REGION_KEYS.has(key)) {
+      throw failure("invalid", null, UNKNOWN_VOCABULARY);
+    }
+    return key as RegionKey;
+  });
+}
+
 export function readSession(payload: unknown): ShemaSession {
   const body = (payload ?? {}) as Record<string, unknown>;
   const listed = body.roles;
@@ -156,20 +165,23 @@ export function readSession(payload: unknown): ShemaSession {
   }
 
   const regionScope =
-    scope === null || scope === undefined
-      ? null
-      : scope.map((key) => {
-          if (typeof key !== "string" || !REGION_KEYS.has(key)) {
-            throw failure("invalid", null, UNKNOWN_VOCABULARY);
-          }
-          return key as RegionKey;
-        });
+    scope === null || scope === undefined ? null : readRegionKeys(scope);
+
+  // Absent stays absent (OBT-593): a server from before the field is not "writes everywhere",
+  // which is what `null` says. Distinguishing the two is the whole point of reading it.
+  const writes = body.writeRegionScope;
+  if (writes !== undefined && writes !== null && !Array.isArray(writes)) {
+    throw failure("invalid", null, UNKNOWN_VOCABULARY);
+  }
+  const writeRegionScope =
+    writes === undefined ? undefined : writes === null ? null : readRegionKeys(writes);
 
   const name = body.name;
   return {
     role,
     roles,
     regionScope,
+    ...(writeRegionScope === undefined ? {} : { writeRegionScope }),
     name: typeof name === "string" && name ? name : null,
     apps: readApps(body.apps),
   };

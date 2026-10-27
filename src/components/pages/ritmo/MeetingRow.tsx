@@ -24,8 +24,12 @@ export interface MeetingRowProps {
   periodLabel: string;
   readiness: MeetingReadinessCount | null;
   participants: readonly MeetingParticipant[];
-  onLog: () => void;
-  onUndo: () => void;
+  /**
+   * Absent where the reader does not write this region (OBT-593): `POST`/`DELETE /meetings/log`
+   * take the write scope, so the row still says the status and offers neither button.
+   */
+  onLog?: () => void;
+  onUndo?: () => void;
 }
 
 export function MeetingRow({
@@ -104,18 +108,22 @@ export function MeetingRow({
             <span className="mr-auto font-serif text-micro leading-none italic text-fg-muted">
               {t("ritmo_done_this")} {periodLabel}
             </span>
-            <Button variant="secondary" size="sm" onClick={onUndo}>
-              {t("ritmo_undo")}
-            </Button>
+            {onUndo ? (
+              <Button variant="secondary" size="sm" onClick={onUndo}>
+                {t("ritmo_undo")}
+              </Button>
+            ) : null}
           </>
         ) : (
           <>
             <span className="mr-auto text-micro font-medium text-fg-muted">
               {t("ritmo_next")}: {nextDue}
             </span>
-            <Button size="sm" onClick={onLog}>
-              {t("ritmo_register")}
-            </Button>
+            {onLog ? (
+              <Button size="sm" onClick={onLog}>
+                {t("ritmo_register")}
+              </Button>
+            ) : null}
           </>
         )}
       </div>

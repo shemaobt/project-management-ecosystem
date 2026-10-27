@@ -435,3 +435,24 @@ describe("nenhuma reunião de fora da região de quem lê", () => {
     expect(withinReach(scopes, () => false)).toEqual([]);
   });
 });
+
+describe("a linha fora da região de escrita não oferece registrar nem desfazer (OBT-593)", () => {
+  it("sem os dois handlers, o status fica e os botões somem", () => {
+    const pending = row({ onLog: undefined, onUndo: undefined });
+    expect(pending).not.toContain(i18n.t("ritmo_register"));
+    expect(pending).toContain(i18n.t("ritmo_next"));
+
+    const done = row({
+      status: { state: "done", date: "2026-05-02" },
+      onLog: undefined,
+      onUndo: undefined,
+    });
+    expect(done).not.toContain(i18n.t("ritmo_undo"));
+    expect(done).toContain(i18n.t("ritmo_done_this"));
+  });
+
+  it("com eles, os botões continuam", () => {
+    expect(row()).toContain(i18n.t("ritmo_register"));
+    expect(row({ status: { state: "done", date: "2026-05-02" } })).toContain(i18n.t("ritmo_undo"));
+  });
+});
