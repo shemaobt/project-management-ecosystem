@@ -80,13 +80,6 @@ const RESTING: OpenSections = {
   fittedTo: EMPTY_FILTERS,
 };
 
-/**
- * A *Mais filtros* filter that comes to hold a value opens the toggle and its own section, so
- * a filter set by the address, the Início band or a saved view never narrows the list from
- * behind a closed toggle (OBT-634). Only a value that changed opens anything: what the reader
- * closed with the filter already set stays closed, and a group the reader is not told opens
- * nothing.
- */
 export function fitOpenSections(
   open: OpenSections,
   filters: ProjectFilters,
