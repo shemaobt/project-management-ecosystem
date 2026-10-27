@@ -169,4 +169,15 @@ describe("a marca por país e a marca por projeto (OBT-616)", () => {
     expect(sensitiveMark(true, [], false)).toBe("none");
     expect(sensitiveMark(true, [], true)).toBe("project");
   });
+
+  it("um registro ainda sem resposta do servidor não diz porquê, nem marcado", () => {
+    const unsaved = render(
+      "editar",
+      record({ location: "Irã", sensitiveCountry: true, listedCountries: undefined }),
+    );
+
+    expect(said(unsaved)).toBeNull();
+    expect(box(unsaved)).not.toContain('disabled=""');
+    expect(sensitiveMark(true, undefined, true)).toBe("none");
+  });
 });

@@ -238,10 +238,10 @@ export function readReadAs(value: unknown): ReadAs | undefined {
     : undefined;
 }
 
-export function readListedCountries(value: unknown): readonly string[] {
-  if (!Array.isArray(value)) return [];
+export function readListedCountries(value: unknown): readonly string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
   const names = value.filter((entry): entry is string => typeof entry === "string");
-  return names.length === value.length ? names : [];
+  return names.length === value.length ? names : undefined;
 }
 
 function authorization(
