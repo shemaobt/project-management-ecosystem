@@ -70,7 +70,7 @@ interface WireProjectCard {
   startDate: string | null;
   deadline: string | null;
   lastUpdated: string | null;
-  completedDate: string | null;
+  completedDate?: string | null;
   inEten: boolean;
   needsNotes: string;
   notes: string;
