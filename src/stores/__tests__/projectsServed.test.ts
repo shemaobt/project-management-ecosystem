@@ -108,6 +108,8 @@ const { INDICATORS, indicatorCount, listFacets } = await import("../../utils/ind
 const { getStaleStatus } = await import("../../utils/recency");
 const { IndicatorBand } = await import("../../components/pages/inicio/IndicatorBand");
 const { InicioView } = await import("../../components/pages/inicio");
+const { RelatorioView } = await import("../../components/pages/ritmo/relatorio/RelatorioPage");
+const { buildAnnualReport } = await import("../../utils/annualReport");
 
 describe("a lista inteira contra o servidor", () => {
   it("vem da busca do servidor, sem filtro e sem página", async () => {
@@ -306,5 +308,58 @@ describe("a lista relê depois de uma escrita, e só então (OBT-590)", () => {
     expect(calls).toHaveLength(2);
     expect(store().facets?.matched).toBe(2);
     expect(store().outdated).toBe(false);
+  });
+});
+
+/**
+ * The Celebration reads the list, not the record (OBT-557), so a completion date the card
+ * drops makes every `concluido` undated and empties *Finalizados* (OBT-622).
+ */
+const concluded = (id: string, languageName: string, location: string, completedDate: string | null) => ({
+  ...CHICHEWA,
+  id,
+  languageName,
+  location,
+  startDate: null,
+  completedDate,
+  derived: { ...CHICHEWA.derived, status: "concluido" },
+});
+
+describe("a Celebração conta os finalizados que a lista data (OBT-622)", () => {
+  beforeEach(freshSession);
+
+  it("um concluído datado em 2026 entra nos finalizados de 2026; só o sem data fica à parte", async () => {
+    pages = [
+      {
+        ...PAGE,
+        items: [
+          concluded("luganda", "Luganda (QA)", "Uganda, Kampala", "2026-07-31"),
+          concluded("tete", "ETEN Migrado do Notion (QA)", "Mozambique, Tete", null),
+        ],
+        matched: 2,
+        total: 2,
+        locationsWithheld: null,
+      },
+    ];
+    await store().hydrate();
+
+    const report = buildAnnualReport(store().projects, 2026);
+    expect(report.finished).toBe(1);
+    expect(report.finishedUndated).toBe(1);
+
+    const markup = renderToStaticMarkup(
+      createElement(RelatorioView, {
+        projects: store().projects,
+        year: 2026,
+        onYearChange: () => undefined,
+        now: new Date(2026, 9, 26),
+      }),
+    );
+    const headline = (label: string) =>
+      markup.match(new RegExp(`>([^<]+)</p><p[^>]*>${label}</p>`, "u"))?.[1];
+    expect(headline(i18n.t("relatorio_finished"))).toBe("1");
+    expect(markup).toContain(i18n.t("relatorio_undated", { count: 1 }));
+    expect(markup).toContain("Luganda (QA)");
+    expect(markup).not.toContain("ETEN Migrado do Notion (QA)");
   });
 });
