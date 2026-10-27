@@ -27,6 +27,16 @@ export const HEALTH_LABEL_KEYS: Record<OverallHealth, string> = {
   na: "health_na",
 };
 
+/**
+ * What a reader says for each health state. The eye reads "N/A" next to a dot; a speech
+ * synthesizer says "ene a" (OBT-621, heard in Orca with espeak-ng), so the spoken state
+ * of a dimension nobody assessed is the product's own sentence for it.
+ */
+export const HEALTH_SPOKEN_KEYS: Record<OverallHealth, string> = {
+  ...HEALTH_LABEL_KEYS,
+  na: "health_not_assessed",
+};
+
 export const STALE_LABEL_KEYS: Record<StaleStatus, string> = {
   "em-dia": "stale_uptodate",
   atencao: "stale_attention",

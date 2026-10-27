@@ -212,7 +212,10 @@ describe("o cartão lido pela árvore de acessibilidade", () => {
     }
   });
 
-  it("o resumo mora fora do botão, num nó só, que o leitor alcança", async () => {
+  // OBT-621: deixado na árvore, o resumo era lido duas vezes no modo de navegação — como
+  // descrição do botão e de novo como parágrafo. Oculto, a descrição continua sendo
+  // calculada dele (accname segue a referência mesmo num nó oculto).
+  it("o resumo mora fora do botão, num nó só, dito como descrição e não de novo como texto", async () => {
     for (const markup of [diario(assessed()), atlas(assessed())]) {
       const card = onlyCard(markup);
 
@@ -220,8 +223,9 @@ describe("o cartão lido pela árvore de acessibilidade", () => {
       const [summary] = card.describedBy;
       expect(isInside(summary, card.button)).toBe(false);
       expect(isInside(card.button, summary)).toBe(false);
-      expect(hiddenFromReader(summary)).toBe(false);
+      expect(hiddenFromReader(summary)).toBe(true);
       expect(spokenText(summary)).toBe(card.description);
+      expect(card.description).not.toBe("");
     }
   });
 
@@ -241,7 +245,7 @@ describe("o cartão lido pela árvore de acessibilidade", () => {
     const card = onlyCard(diario(assessed()));
 
     expect(card.description).toBe(
-      "Precisa de atenção agora. Emocional: Boa. Relacional: Atenção. Espiritual: Crítica. 110 de 1189 livros traduzidos. Sem atualização registrada.",
+      "Prioridade: Precisa de atenção agora. Emocional: Boa. Relacional: Atenção. Espiritual: Crítica. 110 de 1189 livros traduzidos. Sem atualização registrada.",
     );
   });
 
@@ -251,7 +255,7 @@ describe("o cartão lido pela árvore de acessibilidade", () => {
 
     expect(card.name).toBe("Open the Língua Avaliada project");
     expect(card.description).toBe(
-      "Needs attention now. Emotional: Good. Relational: Attention. Spiritual: Critical. 110 of 1189 livros translated. No update recorded.",
+      "Priority: Needs attention now. Emotional: Good. Relational: Attention. Spiritual: Critical. 110 of 1189 livros translated. No update recorded.",
     );
   });
 
@@ -299,6 +303,7 @@ describe("o resumo diz o que a Karina definiu, nesta ordem (OBT-550)", () => {
     ).split(/(?<=\.) /u);
 
     expect(sentences.length).toBeGreaterThanOrEqual(6);
+    expect(sentences[0]).toMatch(/^Prioridade: /u);
     expect(sentences[1]).toMatch(/^Emocional/u);
     expect(sentences[2]).toMatch(/^Relacional/u);
     expect(sentences[3]).toMatch(/^Espiritual/u);

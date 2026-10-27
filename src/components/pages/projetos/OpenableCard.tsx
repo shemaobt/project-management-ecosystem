@@ -14,8 +14,14 @@ export interface OpenableCardProps {
 /**
  * The one way a project card becomes a button. `role="button"` has presentational children, so
  * the summary cannot live inside the card: it is a sibling, outside the button, tied to it by
- * `aria-describedby` — the reader hears the short name, then the summary, and still reaches the
- * summary as text in browse mode.
+ * `aria-describedby` — the reader hears the short name, then the summary.
+ *
+ * The summary is `hidden`. A description is computed from a hidden node all the same, and
+ * leaving it in the tree made browse mode read it twice: once as the button's description,
+ * again as a paragraph of its own (OBT-621, heard in Orca). It was visible to the reader
+ * since OBT-495 so that browse mode would still reach it; the description already does.
+ *
+ * `data-record-id` is how closing the ficha finds the card that opened it (`returnFocus`).
  */
 export function OpenableCard({
   project,
@@ -28,6 +34,7 @@ export function OpenableCard({
   return (
     <>
       <article
+        data-record-id={project.id}
         {...openableCardProps({
           label: t("card_open", { language: getLanguageNameDisplay(project, t) }),
           describedBy: summaryId,
@@ -37,7 +44,7 @@ export function OpenableCard({
       >
         {children}
       </article>
-      <p id={summaryId} className="sr-only">
+      <p id={summaryId} hidden>
         {cardSummary(project, t)}
       </p>
     </>

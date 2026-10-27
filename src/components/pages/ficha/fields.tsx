@@ -61,9 +61,15 @@ function FieldMessages({
   return null;
 }
 
+/**
+ * What every control inside a `Field` spreads. `aria-required` travels here because the
+ * asterisk is `aria-hidden`: before OBT-621 a reader heard "Nome da Língua, entry" and
+ * never "required", while the footer said the field was missing.
+ */
 export interface FieldControlProps {
   id: string;
   "aria-describedby": string | undefined;
+  "aria-required": true | undefined;
 }
 
 export interface FieldProps {
@@ -91,7 +97,11 @@ export function Field({
         {label}
         {required && <RequiredMark />}
       </Label>
-      {children({ id, "aria-describedby": messageId(id, error, hint) })}
+      {children({
+        id,
+        "aria-describedby": messageId(id, error, hint),
+        "aria-required": required || undefined,
+      })}
       <FieldMessages id={id} error={error} hint={hint} />
     </div>
   );

@@ -92,7 +92,7 @@ describe("o cartão do Diário renderizado", () => {
       }),
     );
 
-    expect(semAvaliacao).toContain("Emocional: N/A");
+    expect(semAvaliacao).toContain("Emocional: Ainda não conversado");
     expect(avaliado).toContain("Emocional: Boa");
     expect(avaliado).toContain("Relacional: Atenção");
     expect(avaliado).toContain("Espiritual: Crítica");

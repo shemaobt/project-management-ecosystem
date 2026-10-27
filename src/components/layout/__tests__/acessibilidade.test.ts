@@ -31,12 +31,16 @@ const { OVERALL_HEALTH_STATES, PROJECT_PRIORITIES, STALE_STATUSES } =
 const { MEETING_STATES } = await import("../../../constants/meetings");
 const {
   HEALTH_LABEL_KEYS,
+  HEALTH_SPOKEN_KEYS,
   PRIORITY_LABEL_KEYS,
   PRIORITY_SYMBOLS,
   RHYTHM_LABEL_KEYS,
   STALE_LABEL_KEYS,
 } = await import("../../../constants/status");
 const { CONTENT_ANCHOR_ID } = await import("../../../utils/focus");
+const { ResultCount } = await import(
+  "../../pages/projetos/Sidebar/ResultCount"
+);
 
 const SRC = join(process.cwd(), "src");
 
@@ -152,9 +156,16 @@ describe("nenhum estado é distinguível só por cor", () => {
         createElement(StatusDot, { state, label: "Emocional" }),
       );
       expect(html, state).toContain("sr-only");
-      expect(html, state).toContain(i18n.t(HEALTH_LABEL_KEYS[state]));
+      expect(html, state).toContain(i18n.t(HEALTH_SPOKEN_KEYS[state]));
       expect(html, state).toContain("Emocional");
     }
+  });
+
+  // OBT-621: no Orca, "Emocional: N/A" saiu como "Emocional: ene a".
+  it("dimensão não avaliada é dita por extenso, não como N/A", () => {
+    const html = markup(createElement(StatusDot, { state: "na", label: "Emocional" }));
+    expect(html).toContain(`<span class="sr-only">Emocional: ${i18n.t("health_not_assessed")}</span>`);
+    expect(html).not.toContain(">Emocional: N/A<");
   });
 
   it("cada estado de atualização e de reunião também tem dois canais", () => {
@@ -190,7 +201,12 @@ describe("nenhum estado é distinguível só por cor", () => {
   it("o alfinete de prioridade do Diário diz o que a cor diz", () => {
     for (const priority of PROJECT_PRIORITIES) {
       const html = markup(createElement(PriorityPin, { priority }));
-      const label = i18n.t(PRIORITY_LABEL_KEYS[priority]);
+      // Com o rótulo, como as dimensões de saúde (OBT-621): "Em andamento" sozinho não diz
+      // que é uma prioridade.
+      const label = i18n.t("card_say_priority", {
+        priority: i18n.t(PRIORITY_LABEL_KEYS[priority]),
+      });
+      expect(label, priority).toMatch(/^Prioridade: /u);
       expect(html, priority).toContain(
         `<span class="sr-only">${label}</span>`,
       );
@@ -331,10 +347,27 @@ describe("a tela cabe num aparelho emprestado", () => {
 });
 
 describe("Projetos e a Ficha se leem em voz alta", () => {
+  // OBT-621: com os dois números em <strong>, o Orca anunciava a frase e de novo "127"
+  // sozinho. A região viva é um nó de texto só, e o desenho fica fora do leitor.
+  it("a contagem de resultados é anunciada como uma frase inteira", () => {
+    const html = renderToStaticMarkup(
+      createElement(ResultCount, { shown: 3, total: 10 }),
+    );
+    const live = html.match(/<span aria-live="polite"[^>]*>([^<]*)<\/span>/u);
+    expect(live?.[0]).toContain('aria-atomic="true"');
+    expect(live?.[1]).toBe(
+      `${i18n.t("sb_results_count")} 3 ${i18n.t("sb_results_of")} 10`,
+    );
+    expect(html.match(/aria-live/gu)).toHaveLength(1);
+  });
+
   it("Projetos abre com um h1 e nomeia as duas regiões da tela", () => {
     const page = read("src/components/pages/projetos/ProjetosPage.tsx");
     expect(page).toContain('<h1 className="sr-only">{t("projetos_title")}</h1>');
-    expect(page).toContain('aria-label={t("projetos_results_label")}');
+    // A região de resultados é nomeada pelo próprio título, para a navegação por títulos
+    // também chegar aos cartões (OBT-621).
+    expect(page).toContain('<section aria-labelledby="projetos-resultados">');
+    expect(page).toContain('<h2 id="projetos-resultados" className="sr-only">');
     const sidebar = read("src/components/pages/projetos/Sidebar/index.tsx");
     expect(sidebar).toContain('aria-label={t("projetos_filters_label")}');
   });
