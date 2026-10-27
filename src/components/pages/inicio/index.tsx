@@ -85,9 +85,8 @@ export function InicioView({
 }
 
 /**
- * The Início of an account holding no Shemá grant — a project team member (OBT-642). The band and
- * the globe are the project list, which it does not read, so in their place it is told what it
- * opens here; a note, not the access alert, since nothing is missing that it was meant to have.
+ * The band and the globe are the project list, so they go with it (OBT-642); a note, not the
+ * access alert, since nothing is missing that this account was meant to have.
  */
 export function InicioShemaOnly() {
   const { t } = useTranslation();
