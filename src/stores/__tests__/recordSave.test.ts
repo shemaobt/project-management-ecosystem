@@ -1,4 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -156,7 +158,7 @@ const ok = (over: Record<string, unknown> = {}, version = '"7"'): Reply => ({
   headers: { etag: version },
 });
 
-const CONFLICT: Reply = {
+const conflictOver = (changedFields: string[]): Reply => ({
   status: 409,
   headers: { etag: '"9"' },
   data: {
@@ -164,16 +166,19 @@ const CONFLICT: Reply = {
     code: "CONFLICT",
     expectedVersion: 7,
     currentVersion: 9,
-    changedFields: ["statusComments", "notes"],
+    changedFields,
     changedBy: "Maria",
     changedAt: "2026-09-11T14:02:00+00:00",
   },
-};
+});
 
-/** The screen hands `values` (the merge) and `typed` (the overlay); a patch's draft is
- * both, and a create's typed half is what the coordinator entered. */
+const CONFLICT = conflictOver(["statusComments", "notes"]);
+
+/** The screen hands `values` — the record loaded underneath with the overlay on top, so
+ * every field of the record (useDraft) — and `typed`, the overlay alone; a create's typed
+ * half is what the coordinator entered. */
 const saving = (typed: Record<string, unknown>) => ({
-  values: { ...typed } as never,
+  values: { ...store().record?.project, ...typed } as never,
   typed: { ...typed } as never,
   isNew: false,
   readsHealth: true,
@@ -298,6 +303,41 @@ describe("o conflito avisa e não descarta o que foi digitado", () => {
     // versão que existe.
     expect(store().record?.version).toBe('"9"');
     expect(store().record?.project.notes).toBe("texto da Maria");
+  });
+
+  it("A digitou só as notas e B, que salvou antes, mudou notas e língua ponte: o aviso de A nomeia só as notas (OBT-647)", async () => {
+    await openAt('"7"');
+    useRecordStore.getState().updateDraft("p1", { notes: "versão A" });
+
+    queue = [
+      conflictOver(["bridgeLanguage", "notes"]),
+      ok({ notes: "versão B", bridgeLanguage: "Francês" }, '"9"'),
+    ];
+    const outcome = await store().save(saving(drafts().p1));
+
+    expect(outcome.kind).toBe("conflict");
+    if (outcome.kind !== "conflict") return;
+    expect(outcome.conflict.changedFields).toEqual(["bridgeLanguage", "notes"]);
+    expect(outcome.overlap).toEqual(["notes"]);
+
+    const { default: i18n } = await import("../../i18n");
+    const { SaveOutcomeNote } = await import(
+      "../../components/pages/ficha/SaveOutcomeNote"
+    );
+    const markup = renderToStaticMarkup(
+      createElement(SaveOutcomeNote, {
+        outcome,
+        saving: false,
+        onRetry: () => {},
+        onGoToTab: () => {},
+      }),
+    );
+    const bridge = i18n.t("f_bridge");
+    const notes = i18n.t("f_notes");
+    expect(markup).toContain(i18n.t("record_conflict_overlap", { fields: notes }));
+    expect(markup).toContain(
+      i18n.t("record_conflict_changed", { fields: `${bridge} · ${notes}` }),
+    );
   });
 
   it("não salva de novo sozinho: uma tentativa, uma requisição de escrita", async () => {

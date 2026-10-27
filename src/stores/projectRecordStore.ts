@@ -299,7 +299,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
       return outcome;
     }
 
-    const outcome = refusal(result, draft);
+    const outcome = refusal(result, typed);
     if (result.reason === "conflict") {
       // Take the other person's record underneath the draft, so the next attempt quotes
       // a version that exists and the reader can see what moved. The draft is untouched.
