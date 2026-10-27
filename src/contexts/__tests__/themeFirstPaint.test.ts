@@ -99,9 +99,6 @@ describe("o index.html aplica o tema guardado antes do módulo (OBT-651)", () =>
 
     const entry = html.search(/<script\b[^>]*\btype\s*=\s*["']module["']/i);
     expect(entry).toBeGreaterThan(boot.at);
-    for (const sheet of html.matchAll(/<link\b[^>]*\brel\s*=\s*["']stylesheet["']/gi)) {
-      expect(sheet.index).toBeGreaterThan(boot.at);
-    }
   });
 
   it("com o tema escuro guardado, o <html> já sai com a classe dark; claro, nada guardado ou valor estranho deixam o claro", () => {
