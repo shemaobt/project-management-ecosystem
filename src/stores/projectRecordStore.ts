@@ -7,6 +7,7 @@ import {
   tabOf,
 } from "../constants/recordFields";
 import {
+  FILED_VERSION,
   healthAssessmentsAPI,
   projectRecordAPI,
   toApiFailure,
@@ -23,7 +24,14 @@ import type {
   RecordSaveReport,
 } from "../types/projectRecord";
 import type { ApiFailure } from "../types/session";
-import { mayWrite, recordAccess } from "../utils/recordAccess";
+import { reconcileFiledNeeds } from "../utils/needs";
+import {
+  mayWrite,
+  readsFreeText,
+  recordAccess,
+  writableDraft,
+  type RecordAccess,
+} from "../utils/recordAccess";
 import { useProjectsStore } from "./projectsStore";
 
 /** Objects with their keys sorted, all the way down; arrays keep their order. */
@@ -117,6 +125,35 @@ export function overlappingFields(
 }
 
 /**
+ * What a draft holds that the record its own lost create filed does not (OBT-625).
+ *
+ * Read as this reader may write it (`writableDraft`), and compared on what was **typed**,
+ * never on the merge: a field nobody typed is never carried over somebody's later edit, and a
+ * field equal to the record is not carried either, because an overlay that repeats the record
+ * only hides the next change underneath it. The needs go through `reconcileFiledNeeds`, since
+ * the record's carry the ids and stamps the draft never had. `withheld` is what the record
+ * write does not take yet, carried as a create carries it.
+ */
+export function filedDraft(
+  typed: Partial<Project>,
+  filed: Project,
+  access: RecordAccess,
+): { carried: Partial<Project>; pending: RecordField[]; withheld: RecordField[] } {
+  const mine = writableDraft(typed, access, filed);
+  const needs = mine.needsItems
+    ? reconcileFiledNeeds(mine.needsItems, filed.needsItems, readsFreeText(access))
+    : null;
+  const compared = { ...mine, needsItems: needs ?? filed.needsItems };
+  const pending = changedFields(compared, filed);
+  const withheld = withheldFields(typed);
+
+  const carried: Partial<Project> = {};
+  for (const field of pending) Object.assign(carried, { [field]: compared[field] });
+  for (const field of withheld) Object.assign(carried, { [field]: typed[field] });
+  return { carried, pending, withheld };
+}
+
+/**
  * `values` is what the record would become and `typed` is what somebody actually wrote.
  * They are two arguments because the two questions are different: the diff is taken
  * against the merged view, and *what did this person enter* can only be read off the
@@ -132,6 +169,14 @@ export interface SaveAttempt {
 
 export type SaveOutcome =
   | { kind: "saved"; report: RecordSaveReport }
+  | {
+      kind: "landed";
+      id: string;
+      carried: Partial<Project>;
+      pending: RecordField[];
+      withheld: RecordField[];
+    }
+  | { kind: "landedUnread"; id: string; failure: ApiFailure }
   | { kind: "conflict"; conflict: RecordConflict; overlap: RecordField[] }
   | { kind: "invalid"; errors: RecordFieldError[] }
   | { kind: "failed"; failure: ApiFailure }
@@ -195,6 +240,30 @@ function refusal(
 }
 
 /**
+ * A create's 409 on the draft's own id, read for what it is (OBT-625): the slug is minted once
+ * and never leaves the draft, so the record the server names is the one an earlier attempt of
+ * this draft filed — its answer lost, not its write. The record is read and set underneath,
+ * and what the draft still holds is `filedDraft`'s; a read that fails says the record exists
+ * rather than that somebody else saved it. Either way the list is outdated: the write landed.
+ */
+async function readLanded(
+  id: string,
+  typed: Partial<Project>,
+  readsHealth: boolean,
+  writesHealth: boolean,
+): Promise<SaveOutcome> {
+  useProjectsStore.getState().invalidate();
+  try {
+    const record = await projectRecordAPI.read(id);
+    useProjectRecordStore.setState({ id, record });
+    const access = recordAccess(record.project, false, readsHealth, writesHealth);
+    return { kind: "landed", id, ...filedDraft(typed, record.project, access) };
+  } catch (thrown) {
+    return { kind: "landedUnread", id, failure: toApiFailure(thrown) };
+  }
+}
+
+/**
  * The ficha's own store: one record at a time, its version, and the result of the last
  * save attempt.
  *
@@ -240,12 +309,13 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
   },
 
   /**
-   * One request carrying the diff, and four answers — none of which touches the draft.
+   * One request carrying the diff, and its answers — none of which touches the draft.
    *
    * A conflict re-reads the record so the next attempt quotes the current version and
    * the reader can see what the other person wrote, **and stops there**: retrying by
    * itself is last-write-wins with an extra round trip. Pressing save again is the
-   * decision, and it is the coordinator's.
+   * decision, and it is the coordinator's. A create's 409 is not a conflict: it is the
+   * record this draft already filed, and it lands (`readLanded`).
    */
   save: async ({ values: draft, typed, isNew, readsHealth, writesHealth }) => {
     const withheld = withheldFields(typed);
@@ -267,12 +337,22 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
         useProjectsStore.getState().invalidate();
         return outcome;
       }
+      if (result.reason === "conflict") {
+        const outcome = await readLanded(
+          (draft as Project).id,
+          typed,
+          readsHealth,
+          writesHealth,
+        );
+        set({ saving: false, outcome });
+        return outcome;
+      }
       const outcome = refusal(result, draft);
       set({ saving: false, outcome });
       return outcome;
     }
 
-    const { id, record } = get();
+    const { id, record, outcome: previous } = get();
     if (!id || !record) {
       const outcome: SaveOutcome = {
         kind: "failed",
@@ -299,12 +379,14 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
       return outcome;
     }
 
+    // The difference a landing carried is quoted against the version the record was filed at:
+    // whoever saved it since is the server's 409, with who and what, not an overwrite (OBT-625).
+    const quoted =
+      previous?.kind === "landed" && previous.id === id && previous.pending.length > 0
+        ? FILED_VERSION
+        : record.version;
     set({ saving: true, outcome: null });
-    const result = await projectRecordAPI.patch(
-      id,
-      toWire(draft, fields),
-      record.version,
-    );
+    const result = await projectRecordAPI.patch(id, toWire(draft, fields), quoted);
 
     if (result.ok) {
       const outcome: SaveOutcome = {

@@ -241,3 +241,14 @@ describe("o dublê da ficha recusa o texto livre e o pastoral como o servidor (O
     expect(patchRecord(truth.id, { needsPastoralIntervention: "sim" }, readable.version).ok).toBe(true);
   });
 });
+
+describe("o dublê responde a criação no id tomado como o servidor (OBT-625)", () => {
+  it("um id já criado volta como o 409 do servidor, não como recusa de campo", () => {
+    seeded();
+    const again = createRecord({ ...createEmptyProject("kadiweu"), languageName: "Kadiwéu" });
+
+    expect(again.ok).toBe(false);
+    if (again.ok || again.reason !== "conflict") throw new Error("esperava conflict");
+    expect(again.conflict.detail).toBe("kadiweu: a project already exists at this id");
+  });
+});

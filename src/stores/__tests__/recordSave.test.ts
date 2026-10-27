@@ -502,19 +502,26 @@ describe("um registro novo é filed no slug que o cliente cunhou", () => {
     expect(store().id).toBe("novo-slug");
   });
 
-  it("o slug já tomado volta como recusa legível, não como registro criado", async () => {
+  it("o 409 da criação lê a ficha pelo id, e não acusa outra pessoa (OBT-625)", async () => {
     queue = [
       {
         status: 409,
         data: {
-          detail: "novo-slug: a project already exists at this slug",
+          detail: "novo-slug: a project already exists at this id",
           code: "CONFLICT",
         },
       },
+      ok({ id: "novo-slug" }, '"1"'),
     ];
-    const outcome = await store().save(creating({ ...record(), id: "novo-slug" } as never));
+    const outcome = await store().save(
+      creating({ ...record(), id: "novo-slug" } as never, { languageName: "Asháninka" }),
+    );
 
-    expect(outcome.kind).toBe("conflict");
+    expect(outcome.kind).toBe("landed");
+    expect(sent.map((config) => config.method)).toEqual(["post", "get"]);
+    expect(sent[1].url).toBe("/shema/projects/novo-slug");
+    expect(store().id).toBe("novo-slug");
+    expect(store().record?.version).toBe('"1"');
   });
 
   it("um registro novo guarda só o que foi digitado nas abas pendentes", async () => {
