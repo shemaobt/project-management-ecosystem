@@ -35,7 +35,6 @@ export interface NotificationsFeed {
   prefsReady: boolean;
   /** Why the saved preferences could not be read; the panel then says so instead of showing defaults as saved. */
   prefsFailure: ApiFailure | null;
-  /** The account holds no Shemá grant: its preferences, and the list they scope, are not asked for. */
   prefsForbidden: boolean;
   /** Asks for the saved preferences again, after a failed read. */
   retryPrefs: () => void;
