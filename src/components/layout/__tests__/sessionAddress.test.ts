@@ -79,7 +79,7 @@ beforeEach(() => {
 });
 
 describe("Sair esquece o endereço", () => {
-  it("sair em /projetos?status=em-andamento&q=Lingala e entrar com outra conta: o endereço volta ao início e os filtros e a busca chegam vazios", () => {
+  it("sair em /projetos?status=em-andamento&q=Lingala e entrar com outra conta: a regra do gate manda para / e o armazenamento entrega os filtros e a busca vazios (a ligação do gate com o roteador é provada na bancada, PME-ACE-015)", () => {
     setTokens({ accessToken: token("conta-a"), refreshToken: "r" });
     const read = decodeView(new URL(LEFT, ORIGIN).searchParams);
     useFiltersStore.getState().applyState(read.filters, read.search);
