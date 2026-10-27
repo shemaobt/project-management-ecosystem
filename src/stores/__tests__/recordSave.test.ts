@@ -764,7 +764,6 @@ describe("editar só o texto do pedido não decide a autorização (OBT-597)", (
   const TEXT_A = "Orem pela colheita do vale";
   const TEXT_B = "Orem pela colheita do vale e pela chuva";
 
-  /** The screen hands the merge — the whole record under the overlay — and what was typed. */
   async function rewording(typed: Partial<Project>) {
     queue = [
       ok({ readAs: "coordination", prayerRequests: TEXT_A, prayerVisibility: "rede" }),
