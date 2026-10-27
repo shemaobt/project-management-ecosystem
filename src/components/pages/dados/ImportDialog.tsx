@@ -266,7 +266,7 @@ export function ImportDialog({ open, onOpenChange }: HeaderDialogProps) {
           />
           <ImportDialogBody
             target={transferAPI === null ? "local" : "server"}
-            allowed={transferAPI === null || canImportProjects(user.roles)}
+            allowed={transferAPI === null || canImportProjects(user.roles, user.writeRegionScope)}
             pick={pick}
             applying={applying}
             refusal={refusal}

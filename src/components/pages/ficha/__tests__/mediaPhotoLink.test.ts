@@ -78,10 +78,10 @@ describe("o link da foto é pedido na hora e re-pedido antes de expirar (OBT-582
   });
 
   it("só o coordenador retira — como o CoordinatorUser da rota", () => {
-    expect(canWithdrawMediaAuthorization(["coordinator"])).toBe(true);
-    expect(canWithdrawMediaAuthorization(["admin"])).toBe(false);
-    expect(canWithdrawMediaAuthorization(["obtLab"])).toBe(false);
-    expect(canWithdrawMediaAuthorization(["resourceCircle"])).toBe(false);
+    expect(canWithdrawMediaAuthorization(["coordinator"], undefined, "asia")).toBe(true);
+    expect(canWithdrawMediaAuthorization(["admin"], undefined, "asia")).toBe(false);
+    expect(canWithdrawMediaAuthorization(["obtLab"], undefined, "asia")).toBe(false);
+    expect(canWithdrawMediaAuthorization(["resourceCircle"], undefined, "asia")).toBe(false);
   });
 });
 

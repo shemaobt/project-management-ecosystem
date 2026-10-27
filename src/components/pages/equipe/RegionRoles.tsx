@@ -17,6 +17,11 @@ export interface RegionRolesProps {
   draft: RegionTeam;
   changes: readonly RoleChange[];
   onChange: (role: RoleKey, holder: string) => void;
+  /**
+   * `false` where the reader does not write this region (OBT-593): `PUT /regions/{key}/team`
+   * takes the write scope, so the seats are read here and not typed over. Defaults to `true`.
+   */
+  editable?: boolean;
 }
 
 export function RegionRoles({
@@ -25,6 +30,7 @@ export function RegionRoles({
   draft,
   changes,
   onChange,
+  editable = true,
 }: RegionRolesProps) {
   const { t } = useTranslation();
   const fieldId = useId();
@@ -62,6 +68,7 @@ export function RegionRoles({
               <Input
                 id={inputId}
                 value={holder}
+                disabled={!editable}
                 placeholder={t("equipe_placeholder")}
                 onChange={(event) => onChange(role.key, event.target.value)}
               />
