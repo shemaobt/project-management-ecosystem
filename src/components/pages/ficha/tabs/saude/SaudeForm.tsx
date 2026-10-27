@@ -1,11 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { HEALTH_DIMENSIONS } from "../../../../../constants/health";
 import type { HealthRating, PrayerVisibility } from "../../../../../types/project";
-import {
-  assessmentHistory,
-  dimensionRating,
-  pastoralWhenFor,
-} from "../../../../../utils/health";
+import { assessmentHistory, dimensionRating } from "../../../../../utils/health";
 import { getPrayerVisibility } from "../../../../../utils/prayer";
 import { mayWrite } from "../../../../../utils/recordAccess";
 import { CheckboxField, Input, Textarea } from "../../../../ui";
@@ -13,6 +9,7 @@ import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { Field, FieldGrid } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { AssessmentHistory } from "./AssessmentHistory";
+import { setPastoralAnswer } from "./pastoral";
 import { PrayerConsent } from "./PrayerConsent";
 import { RatingChoice } from "./RatingChoice";
 
@@ -135,14 +132,7 @@ export function SaudeForm({ draft }: SaudeFormProps) {
           id="saude-pastoral"
           label={t("f_pastoral")}
           checked={pastoral}
-          onCheckedChange={(next) => {
-            const answer = next === true ? "sim" : "nao";
-            draft.set("needsPastoralIntervention", answer);
-            draft.set(
-              "pastoralInterventionWhen",
-              pastoralWhenFor(draft.saved, answer),
-            );
-          }}
+          onCheckedChange={(next) => setPastoralAnswer(draft, next)}
         />
         {pastoral && (
           <div className="mt-3">

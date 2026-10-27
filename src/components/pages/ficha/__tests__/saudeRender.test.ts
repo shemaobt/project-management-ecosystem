@@ -34,6 +34,7 @@ const { makeEmptyProject } = await import("../../../../stores/recordStore");
 const { HEALTH_DIMENSIONS } = await import("../../../../constants/health");
 const { HEALTH_SYMBOLS } = await import("../../../../constants/status");
 const { SaudeTab } = await import("../tabs/Saude");
+const { setPastoralAnswer } = await import("../tabs/saude/pastoral");
 const { Completion } = await import("../../avaliacao/Completion");
 const { emptyDraft } = await import("../../../../utils/assessment");
 const { PASTORAL_WHEN_LABEL_KEYS } = await import("../../../../constants/health");
@@ -347,18 +348,43 @@ describe("a intervenção pastoral se vê sem abrir nada", () => {
   });
 
   it("a caixa da ficha muda a resposta e o quando juntos", () => {
+    const after = (
+      saved: Pick<Project, "needsPastoralIntervention" | "pastoralInterventionWhen">,
+      ...ticks: boolean[]
+    ) => {
+      const written: Partial<Project> = {};
+      const draft = {
+        saved: { ...makeEmptyProject(), ...saved, id: "p1" } as Project,
+        set: <K extends keyof Project>(field: K, value: Project[K]) => {
+          written[field] = value;
+        },
+      };
+      for (const checked of ticks) setPastoralAnswer(draft, checked);
+      return written;
+    };
+    const wizardNo = { needsPastoralIntervention: "nao" as const, pastoralInterventionWhen: "now" };
+
+    expect(after(wizardNo, true)).toEqual({
+      needsPastoralIntervention: "sim",
+      pastoralInterventionWhen: "",
+    });
+    expect(after(wizardNo, true, false)).toEqual({
+      needsPastoralIntervention: "nao",
+      pastoralInterventionWhen: "now",
+    });
+  });
+
+  it("a caixa da ficha não escreve a resposta pastoral por fora do setPastoralAnswer", () => {
     const form = readFileSync(
       join(process.cwd(), "src/components/pages/ficha/tabs/saude/SaudeForm.tsx"),
       "utf8",
-    ).replace(/\s+/gu, "");
-    const answer = /draft\.set\("needsPastoralIntervention",(\w+)\)/u.exec(form)?.[1];
-    expect(answer).toBeDefined();
-    expect(form).toMatch(
-      new RegExp(
-        `draft\\.set\\("pastoralInterventionWhen",pastoralWhenFor\\(draft\\.saved,${answer}\\),?\\)`,
-        "u",
-      ),
     );
+    expect(form).not.toMatch(/"needsPastoralIntervention"|"pastoralInterventionWhen"/u);
+  });
+
+  it("um nome só de espaços não deixa separador sobrando", () => {
+    expect(pastoral("now", "   ")).toBe("Intervenção pastoral · Sim, agora");
+    expect(pastoral("", "   ")).toBe("Intervenção pastoral · Sim");
   });
 
   it("o Não do wizard não mostra o agora que ele grava", () => {
