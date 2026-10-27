@@ -1515,7 +1515,8 @@ Both the Admin's, like §9.15's: any other role is a `403`. `SensitiveCountry` i
 spellings}` — the country in the list's words (Karina's Portuguese) and the other ways a place may
 write it. The `PUT` carries the whole list; a country left out is off it. The server trims, drops
 blank spellings, and answers `422` for a blank name, a name or spelling with a comma (the place is
-split on commas) or one spelling — accents and case aside — given to two countries. A place that
+split on commas) or one spelling — accents and case aside — given to two countries; two saves landing at the same
+moment answer the second a `409`. A place that
 names a listed country, at any position, raises the project's flag on the next create, save or
 confirmation; no stored project moves, and taking a country off the list lowers nobody.
 **Server requirements:** `shema-api` `docs/shema.md` §9.5. **In the console:** the *Países
