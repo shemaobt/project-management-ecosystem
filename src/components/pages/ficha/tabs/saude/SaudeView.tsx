@@ -36,12 +36,10 @@ export function SaudeView({ draft }: SaudeViewProps) {
   const storedWhen = values.pastoralInterventionWhen ?? "";
   const when = isPastoralWhen(storedWhen)
     ? t(PASTORAL_WHEN_LABEL_KEYS[storedWhen])
-    : storedWhen.trim() === ""
-      ? ""
-      : storedWhen;
+    : storedWhen;
   const pastoralLine =
-    [when, values.pastoralInterventionName]
-      .filter((part) => part !== "")
+    [when, values.pastoralInterventionName ?? ""]
+      .filter((part) => part.trim() !== "")
       .join(" · ") || t("sim");
 
   return (
