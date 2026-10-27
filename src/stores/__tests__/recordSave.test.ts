@@ -834,7 +834,15 @@ describe("editar só o texto do pedido não decide a autorização (OBT-597)", (
         need.id === "n1" ? { ...need, description: TEXT_B } : need,
       ),
     };
-    queue = [ok({ readAs: "coordination" }, '"8"')];
+    queue = [
+      ok(
+        {
+          readAs: "coordination",
+          needsItems: [wireNeed("n1", TEXT_B, true), wireNeed("n2", "Um gerador", false)],
+        },
+        '"8"',
+      ),
+    ];
     await store().save({
       values: { ...project, ...typed },
       typed,
