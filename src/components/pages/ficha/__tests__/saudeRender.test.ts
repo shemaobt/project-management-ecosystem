@@ -403,4 +403,17 @@ describe("o que a aba diz do histórico e de quem grava as leituras (OBT-648)", 
     expect(pt.d_health_history).not.toMatch(/anterior/iu);
     expect(en.d_health_history).not.toMatch(/earlier|previous|past|former/iu);
   });
+
+  it("o aviso do modo editar manda as leituras à Avaliação de Saúde, em Formulários, pelos nomes da tela — notas sobre a saúde incluídas — PT e EN", async () => {
+    expect(tab("editar", ASSESSED)).toContain(i18n.t("record_pending_health"));
+
+    const { default: pt } = await import("../../../../i18n/locales/pt-BR.json");
+    const { default: en } = await import("../../../../i18n/locales/en.json");
+    for (const catalogue of [pt, en]) {
+      const note = catalogue.record_pending_health;
+      expect(note).toContain(catalogue.forms_health_title);
+      expect(note).toContain(catalogue.nav_formularios);
+      expect(note.toLowerCase()).toContain(catalogue.f_health_notes.toLowerCase());
+    }
+  });
 });
