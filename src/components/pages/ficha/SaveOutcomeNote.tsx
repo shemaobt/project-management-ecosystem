@@ -174,8 +174,6 @@ export function SaveOutcomeNote({
         </Panel>
       );
 
-    // The create's own 409, read for what it is: no word here may blame somebody else for
-    // what was this draft's first send (OBT-625).
     case "landed": {
       const kept = savedSentence([], outcome.withheld, t);
       return (
