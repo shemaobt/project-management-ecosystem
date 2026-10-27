@@ -18,7 +18,9 @@ function radioIn(group: Element, target: EventTarget): HTMLElement | null {
  * to run the timer in time — moved focus and left the choice behind (OBT-629, the first
  * arrow after a click on the prayer wall's chips). The group finishes the move Radix started,
  * once: a click Radix makes itself closes it before the focus bubbles here, and the timer
- * below runs after Radix's, so a move that took focus nowhere does not outlive its key.
+ * below runs after Radix's, so a move that took focus nowhere does not outlive its key. The
+ * timer clears only its own move: a second tap can land before it runs, since Chrome serves
+ * input ahead of a queued timer, and must not lose its move to the first one's clear.
  */
 export function RadioGroup({
   className,
@@ -27,7 +29,7 @@ export function RadioGroup({
   onFocus,
   ...props
 }: ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>) {
-  const arrowMove = useRef(false);
+  const arrowMove = useRef<object | null>(null);
 
   return (
     <RadioGroupPrimitive.Root
@@ -36,20 +38,21 @@ export function RadioGroup({
         onKeyDown?.(event);
         if (!event.defaultPrevented || !ARROW_KEYS.has(event.key)) return;
         if (!radioIn(event.currentTarget, event.target)) return;
-        arrowMove.current = true;
+        const move = {};
+        arrowMove.current = move;
         setTimeout(() => {
-          arrowMove.current = false;
+          if (arrowMove.current === move) arrowMove.current = null;
         });
       }}
       onClickCapture={(event) => {
         onClickCapture?.(event);
-        arrowMove.current = false;
+        arrowMove.current = null;
       }}
       onFocus={(event) => {
         onFocus?.(event);
         const radio = radioIn(event.currentTarget, event.target);
         if (!arrowMove.current || !radio) return;
-        arrowMove.current = false;
+        arrowMove.current = null;
         radio.click();
       }}
       {...props}

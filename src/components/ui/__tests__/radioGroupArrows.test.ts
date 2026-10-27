@@ -15,8 +15,10 @@ import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { RadioButton, RadioField, RadioGroup } from "/src/components/ui/RadioGroup.tsx";
 
-const pause = (ms) => new Promise((done) => setTimeout(done, ms));
+const realSetTimeout = window.setTimeout.bind(window);
+const pause = (ms) => new Promise((done) => realSetTimeout(done, ms));
 let root = null;
+let held = null;
 let calls = {};
 
 function Group({ name, values, initial, inForm }) {
@@ -81,6 +83,23 @@ window.probe = {
   },
   async settle() {
     await pause(80);
+  },
+  holdTimers() {
+    held = [];
+    window.setTimeout = (callback) => {
+      held.push(callback);
+      return 0;
+    };
+  },
+  heldCount() {
+    return held.length;
+  },
+  runHeld(index) {
+    held[index]();
+  },
+  releaseTimers() {
+    window.setTimeout = realSetTimeout;
+    held = null;
   },
   read(name) {
     const checked = document.querySelector('[aria-label="' + name + '"] [role="radio"][aria-checked="true"]');
@@ -157,6 +176,24 @@ describe.skipIf(!CHROME)("a seta no grupo de escolha única (Chrome headless)", 
       expect(await read(group)).toEqual({ focused: "b", checked: "b", calls: ["b"] });
     },
   );
+
+  it("a segunda seta que chega antes do timer de limpeza da primeira também marca o vizinho", async () => {
+    await run(`window.probe.focus("solto", "a")`);
+    await run("window.probe.holdTimers()");
+    try {
+      await run(`window.probe.tap("ArrowRight")`);
+      expect(await run<number>("window.probe.heldCount()")).toBe(2);
+      await run("window.probe.runHeld(0)");
+      await run(`window.probe.tap("ArrowRight")`);
+      expect(await run<number>("window.probe.heldCount()")).toBe(4);
+      for (const index of [1, 2, 3]) await run(`window.probe.runHeld(${index})`);
+    } finally {
+      await run("window.probe.releaseTimers()");
+    }
+    await run("window.probe.settle()");
+
+    expect(await read("solto")).toEqual({ focused: "c", checked: "c", calls: ["b", "c"] });
+  });
 
   it("uma seta que não leva o foco a lugar nenhum não marca nada depois", async () => {
     await run(`window.probe.focus("sozinho", "x")`);
