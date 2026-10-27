@@ -1,6 +1,10 @@
 import { Church, HandHeart } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { HEALTH_DIMENSIONS } from "../../../../../constants/health";
+import {
+  HEALTH_DIMENSIONS,
+  isPastoralWhen,
+  PASTORAL_WHEN_LABEL_KEYS,
+} from "../../../../../constants/health";
 import { PRAYER_VISIBILITY_LABEL_KEYS } from "../../../../../constants/prayer";
 import { HEALTH_LABEL_KEYS } from "../../../../../constants/status";
 import { formatDate } from "../../../../../utils/format";
@@ -29,6 +33,16 @@ export function SaudeView({ draft }: SaudeViewProps) {
   const values = draft.values;
   const visibility = getPrayerVisibility(values);
   const notesWithheld = !readsFreeText(draft.place);
+  const storedWhen = values.pastoralInterventionWhen ?? "";
+  const when = isPastoralWhen(storedWhen)
+    ? t(PASTORAL_WHEN_LABEL_KEYS[storedWhen])
+    : storedWhen.trim() === ""
+      ? ""
+      : storedWhen;
+  const pastoralLine =
+    [when, values.pastoralInterventionName]
+      .filter((part) => part !== "")
+      .join(" · ") || t("sim");
 
   return (
     <div className="flex flex-col gap-5">
@@ -85,7 +99,7 @@ export function SaudeView({ draft }: SaudeViewProps) {
           <span>
             <span className="font-bold">{t("d_pastoral")}</span>
             {" · "}
-            {values.pastoralInterventionName || t("sim")}
+            {pastoralLine}
           </span>
         </p>
       )}
