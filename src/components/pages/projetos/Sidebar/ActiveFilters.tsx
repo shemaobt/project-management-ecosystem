@@ -85,7 +85,7 @@ export function ActiveFiltersView({
   if (chips.length === 0) return null;
 
   return (
-    <div ref={stripRef} className="mb-1.5">
+    <div ref={stripRef} className="mb-1.5 shadow-accent-soft">
       <div className="mt-4 mb-2 flex items-center justify-between">
         <h2
           id={headingId}
