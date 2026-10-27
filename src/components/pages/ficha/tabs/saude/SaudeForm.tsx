@@ -1,7 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { HEALTH_DIMENSIONS } from "../../../../../constants/health";
 import type { HealthRating, PrayerVisibility } from "../../../../../types/project";
-import { assessmentHistory, dimensionRating } from "../../../../../utils/health";
+import {
+  assessmentHistory,
+  dimensionRating,
+  pastoralWhenFor,
+} from "../../../../../utils/health";
 import { getPrayerVisibility } from "../../../../../utils/prayer";
 import { mayWrite } from "../../../../../utils/recordAccess";
 import { CheckboxField, Input, Textarea } from "../../../../ui";
@@ -131,9 +135,14 @@ export function SaudeForm({ draft }: SaudeFormProps) {
           id="saude-pastoral"
           label={t("f_pastoral")}
           checked={pastoral}
-          onCheckedChange={(next) =>
-            draft.set("needsPastoralIntervention", next === true ? "sim" : "nao")
-          }
+          onCheckedChange={(next) => {
+            const answer = next === true ? "sim" : "nao";
+            draft.set("needsPastoralIntervention", answer);
+            draft.set(
+              "pastoralInterventionWhen",
+              pastoralWhenFor(draft.saved, answer),
+            );
+          }}
         />
         {pastoral && (
           <div className="mt-3">

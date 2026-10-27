@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -342,6 +344,17 @@ describe("a intervenção pastoral se vê sem abrir nada", () => {
   it("um quando que o wizard não oferece aparece como foi gravado", () => {
     expect(pastoral("depois da colheita")).toBe(
       "Intervenção pastoral · depois da colheita · Pastor da base",
+    );
+  });
+
+  it("a caixa da ficha muda a resposta e o quando juntos", () => {
+    const form = readFileSync(
+      join(process.cwd(), "src/components/pages/ficha/tabs/saude/SaudeForm.tsx"),
+      "utf8",
+    ).replace(/\s+/gu, "");
+    expect(form).toContain('draft.set("needsPastoralIntervention",answer);');
+    expect(form).toContain(
+      'draft.set("pastoralInterventionWhen",pastoralWhenFor(draft.saved,answer),);',
     );
   });
 
