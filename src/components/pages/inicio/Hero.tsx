@@ -4,7 +4,10 @@ import { IndicatorBand } from "./IndicatorBand";
 
 export interface HeroProps {
   facets: ListFacets | null;
-  /** `false` when the list could not be read — the band would otherwise spin forever (OBT-557). */
+  /**
+   * `false` when there is no list to count: it could not be read — the band would otherwise spin
+   * forever (OBT-557) — or the account does not read it (OBT-642).
+   */
   showBand?: boolean;
 }
 

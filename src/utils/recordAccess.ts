@@ -138,3 +138,55 @@ export const mayWriteStoryPlace = mayWriteNeedDescription;
 export function mayWriteCaption(access: RecordAccess): boolean {
   return mayWriteNeedDescription(access, true);
 }
+
+const EMPTY_DRAFT: Partial<Project> = {};
+
+function withSavedDescriptions(
+  draft: Partial<Project>,
+  saved: Project | undefined,
+): Partial<Project> {
+  const needs = draft.needsItems;
+  if (!needs || !saved) return draft;
+  const held = new Map(saved.needsItems.map((need) => [need.id, need]));
+  const kept = needs.map((need) => {
+    const stored = need.id ? held.get(need.id) : undefined;
+    return stored ? { ...need, description: stored.description } : need;
+  });
+  return { ...draft, needsItems: kept };
+}
+
+/** The saved stories' places back on the rows that name them — `""` for a withheld reader. */
+function withSavedPlaces(
+  draft: Partial<Project>,
+  saved: Project | undefined,
+): Partial<Project> {
+  const stories = draft.storyProgress;
+  if (!stories || !saved) return draft;
+  const held = new Map<string, string[]>();
+  for (const row of saved.storyProgress ?? []) {
+    held.set(row.name, [...(held.get(row.name) ?? []), row.recordLocation ?? ""]);
+  }
+  const kept = stories.map((row) => {
+    const places = held.get(row.name);
+    return places?.length ? { ...row, recordLocation: places.shift() } : row;
+  });
+  return { ...draft, storyProgress: kept };
+}
+
+export function writableDraft(
+  draft: Partial<Project> | undefined,
+  place: RecordAccess,
+  saved?: Project,
+): Partial<Project> {
+  if (!draft) return EMPTY_DRAFT;
+  const kept = Object.entries(draft).filter(
+    ([field]) => field !== "readAs" && mayWrite(place, field as RecordField),
+  );
+  const writable =
+    kept.length === Object.keys(draft).length
+      ? draft
+      : (Object.fromEntries(kept) as Partial<Project>);
+  return mayWriteNeedDescription(place, true)
+    ? writable
+    : withSavedPlaces(withSavedDescriptions(writable, saved), saved);
+}

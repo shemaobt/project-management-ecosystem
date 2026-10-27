@@ -1,3 +1,5 @@
+export const TOUCH_TARGET_PX = 24;
+
 export const touchTargetPseudo: string =
   "relative before:absolute before:-inset-0.5";
 

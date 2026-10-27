@@ -28,6 +28,8 @@ const { listFacets } = await import("../../../../utils/indicators");
 const { Hero } = await import("../Hero");
 const { IndicatorBand } = await import("../IndicatorBand");
 const { InicioPage, InicioView } = await import("../index");
+const { AuthContext } = await import("../../../../contexts/session");
+const { sessionFor } = await import("../../acesso/__tests__/stubs");
 
 const render = (element: ReactElement): string =>
   renderToStaticMarkup(createElement(MemoryRouter, null, element));
@@ -116,7 +118,13 @@ describe("faixa de indicadores", () => {
 
 describe("página Início", () => {
   it("antes da hidratação mostra o hero sem números e sem globo", () => {
-    const markup = render(createElement(InicioPage));
+    const markup = render(
+      createElement(
+        AuthContext.Provider,
+        { value: sessionFor(["coordinator"]) },
+        createElement(InicioPage),
+      ),
+    );
     expect(countOf(markup, "—")).toBe(6);
     expect(markup).not.toContain(">0<");
     expect(markup).not.toContain(i18n.t("atlas_stat_languages"));
