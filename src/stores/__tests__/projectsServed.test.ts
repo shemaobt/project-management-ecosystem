@@ -311,10 +311,6 @@ describe("a lista relê depois de uma escrita, e só então (OBT-590)", () => {
   });
 });
 
-/**
- * The Celebration reads the list, not the record (OBT-557), so a completion date the card
- * drops makes every `concluido` undated and empties *Finalizados* (OBT-622).
- */
 const concluded = (id: string, languageName: string, location: string, completedDate: string | null) => ({
   ...CHICHEWA,
   id,
