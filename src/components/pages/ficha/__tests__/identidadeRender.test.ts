@@ -39,7 +39,7 @@ const { FULL_ACCESS, recordAccess } = await import(
 );
 const { makeProject } = await import("../../../../utils/__tests__/factory");
 const { getRegionLabelKey } = await import("../../../../utils/region");
-const { writableDraft } = await import("../useDraft");
+const { writableDraft } = await import("../../../../utils/recordAccess");
 const { IdentidadeTab } = await import("../tabs/Identidade");
 const { EquipeTab } = await import("../tabs/Equipe");
 const { RecordFooter } = await import("../RecordFooter");
