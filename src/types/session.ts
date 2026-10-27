@@ -16,6 +16,12 @@ export interface ShemaSession {
   role: SessionRole;
   roles: SessionRole[];
   regionScope: RegionKey[] | null;
+  /**
+   * Where the account writes a project (OBT-593): `null` every region, a list only those,
+   * `[]` none — the Admin alone reads every region and writes none. **Absent** is a server from
+   * before OBT-593 and means today's behaviour: nothing hidden, nothing newly allowed.
+   */
+  writeRegionScope?: RegionKey[] | null;
   name: string | null;
   apps: SessionApps;
 }
