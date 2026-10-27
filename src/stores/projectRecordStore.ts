@@ -15,6 +15,7 @@ import {
 } from "../services/api";
 import type { AssessmentDraft } from "../types/assessment";
 import type { Project } from "../types/project";
+import type { RegionKey } from "../types/region";
 import type {
   LoadedRecord,
   RecordConflict,
@@ -109,6 +110,7 @@ export interface SaveAttempt {
   isNew: boolean;
   readsHealth: boolean;
   writesHealth: boolean;
+  writeRegionScope?: readonly RegionKey[] | null;
 }
 
 export type SaveOutcome =
@@ -228,7 +230,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
    * itself is last-write-wins with an extra round trip. Pressing save again is the
    * decision, and it is the coordinator's.
    */
-  save: async ({ values: draft, typed, isNew, readsHealth, writesHealth }) => {
+  save: async ({ values: draft, typed, isNew, readsHealth, writesHealth, writeRegionScope }) => {
     const withheld = withheldFields(typed);
 
     if (isNew) {
@@ -265,7 +267,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
 
     // Second net under the draft filter (useDraft): a field this reader may not write
     // never travels, so a stale draft cannot turn the whole save into a 403 (OBT-532).
-    const access = recordAccess(record.project, false, readsHealth, writesHealth);
+    const access = recordAccess(record.project, false, readsHealth, writesHealth, writeRegionScope);
     const fields = changedFields(draft, record.project).filter((field) =>
       mayWrite(access, field),
     );

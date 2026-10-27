@@ -24,24 +24,28 @@ export const MOCK_SESSION_PERSONAS: Record<MockRole, MockPersona> = {
     role: "coordinator",
     roles: ["coordinator", "admin"],
     regionScope: null,
+    writeRegionScope: null,
   },
   coordinator: {
     id: "mock-coordinator",
     role: "coordinator",
     roles: ["coordinator"],
     regionScope: ["south-america"],
+    writeRegionScope: ["south-america"],
   },
   obtLab: {
     id: "mock-obt-lab",
     role: "obtLab",
     roles: ["obtLab"],
     regionScope: ["africa"],
+    writeRegionScope: ["africa"],
   },
   resourceCircle: {
     id: "mock-resource-circle",
     role: "resourceCircle",
     roles: ["resourceCircle"],
     regionScope: ["oceania"],
+    writeRegionScope: [],
   },
 };
 
