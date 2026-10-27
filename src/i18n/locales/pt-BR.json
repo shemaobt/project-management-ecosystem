@@ -810,7 +810,7 @@
   "hw_overall_preview_note": "A leitura que conta é a que o servidor confirma ao salvar.",
   "hw_critical_notice": "Esta leitura está vindo como crítica. Ao salvar, a coordenação da região é notificada na hora.",
   "hw_overallnote_local_only": "Fica só neste rascunho, no seu navegador — hoje isto não é enviado com a avaliação.",
-  "d_health_history": "Conversas anteriores",
+  "d_health_history": "Conversas registradas",
   "d_health_history_empty": "Esta é a primeira conversa registrada.",
   "d_health_author": "Registrado por",
   "d_health_version_current": "Perguntas desta versão",
