@@ -12,6 +12,8 @@ import {
   ADVANCED_SECTIONS,
   PRIMARY_SECTIONS,
   buildFilterOptions,
+  fitOpenSections,
+  openSectionsFor,
   resolveSectionOptions,
   shownSections,
 } from "./sections";
@@ -41,21 +43,22 @@ export function DetailedFiltersView({
   onSelect,
 }: DetailedFiltersViewProps) {
   const { t } = useTranslation();
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(
-    () => new Set(PRIMARY_SECTIONS.map((section) => section.id)),
-  );
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [open, setOpen] = useState(() => openSectionsFor(filters, hidden));
+  if (open.fittedTo !== filters) {
+    setOpen(fitOpenSections(open, filters, hidden));
+  }
+  const showAdvanced = open.advanced;
   const options = useMemo(() => buildFilterOptions(baseline), [baseline]);
 
-  const toggleSection = (id: string) => {
-    setExpanded((previous) => {
-      const next = new Set(previous);
-      if (next.has(id)) {
-        next.delete(id);
+  const toggleSection = (id: FilterSectionId) => {
+    setOpen((previous) => {
+      const sections = new Set(previous.sections);
+      if (sections.has(id)) {
+        sections.delete(id);
       } else {
-        next.add(id);
+        sections.add(id);
       }
-      return next;
+      return { ...previous, sections };
     });
   };
 
@@ -64,7 +67,7 @@ export function DetailedFiltersView({
       key={section.id}
       id={section.id}
       title={t(section.titleKey)}
-      open={expanded.has(section.id)}
+      open={open.sections.has(section.id)}
       onToggle={() => toggleSection(section.id)}
       allCount={counts.groupAll[section.id]}
       options={resolveSectionOptions(
@@ -96,7 +99,9 @@ export function DetailedFiltersView({
         type="button"
         aria-expanded={showAdvanced}
         aria-controls="sb-advanced-filters"
-        onClick={() => setShowAdvanced((previous) => !previous)}
+        onClick={() =>
+          setOpen((previous) => ({ ...previous, advanced: !previous.advanced }))
+        }
         className={cn(
           "mt-3 mb-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-pill border border-dashed border-line-strong px-3.5 py-2.5",
           "text-micro font-semibold tracking-button text-fg",
