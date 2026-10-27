@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { failureMessage } from "../../../services/api";
-import { useProjectsStore } from "../../../stores/projectsStore";
 import type {
   NotificationPrefs,
   NotificationPrefsHandlers,
@@ -51,6 +50,8 @@ export interface NotificationsPanelBodyProps {
   unreadable?: string | null;
   /** Why the saved preferences are not what is shown, when they could not be read. */
   prefsUnread?: string | null;
+  /** Why they are not what is shown when that is a fact about the account, not a failure. */
+  prefsNote?: string | null;
   onRetryPrefs?: () => void;
   projects: readonly Project[];
   prefs: NotificationPrefs;
@@ -62,6 +63,7 @@ export function NotificationsPanelBody({
   entries,
   unreadable = null,
   prefsUnread = null,
+  prefsNote = null,
   onRetryPrefs,
   projects,
   prefs,
@@ -72,6 +74,11 @@ export function NotificationsPanelBody({
 
   return (
     <DialogBody className="pt-6">
+      {prefsNote !== null && (
+        <p className="mb-4 rounded-md border border-line bg-muted px-4 py-3 text-small leading-[1.45] text-fg-muted">
+          {prefsNote}
+        </p>
+      )}
       {prefsUnread !== null && (
         <div
           role="alert"
@@ -122,7 +129,7 @@ export function NotificationsPanel({
   feed,
 }: NotificationsPanelProps) {
   const { t } = useTranslation();
-  const hydrateProjects = useProjectsStore((state) => state.hydrate);
+  const { readProjects } = feed;
   const [draft, setDraft] = useState<NotificationPrefs | null>(null);
   const [saving, setSaving] = useState(false);
   const [refusal, setRefusal] = useState<ApiFailure | null>(null);
@@ -133,10 +140,11 @@ export function NotificationsPanel({
   );
 
   // The scope picker lists the reader's projects; the list is read when the panel opens, not
-  // when the bell mounts on every page (OBT-557).
+  // when the bell mounts on every page (OBT-557), and the feed decides whether it is read at
+  // all (OBT-635).
   useEffect(() => {
-    if (open) void hydrateProjects();
-  }, [open, hydrateProjects]);
+    if (open) readProjects();
+  }, [open, readProjects]);
 
   const close = (next: boolean) => {
     if (!next) {

@@ -329,7 +329,7 @@ describe("o painel contra o servidor (INT-11)", () => {
     expect(markup).toContain(i18n.t("net_retry"));
   });
 
-  it("a conta sem papel no Shemá lê por que Salvar fica fechado, sem um tentar de novo que não chega a lugar nenhum (OBT-604)", () => {
+  it("a conta sem papel no Shemá lê por que Salvar fica fechado numa nota, sem o alerta de acesso e sem um tentar de novo (OBT-604, OBT-635)", () => {
     const retry = () => {};
     const forbidden = prefsNotice(
       { prefsForbidden: true, prefsFailure: null, retryPrefs: retry },
@@ -350,8 +350,9 @@ describe("o painel contra o servidor (INT-11)", () => {
     );
 
     expect(forbidden.onRetryPrefs).toBeUndefined();
-    expect(markup).toContain('role="alert"');
-    expect(markup).toContain(i18n.t("net_forbidden"));
+    expect(markup).toContain(i18n.t("notif_prefs_shema_only"));
+    expect(markup).not.toContain(i18n.t("net_forbidden"));
+    expect(markup).not.toContain('role="alert"');
     expect(markup).not.toContain(i18n.t("net_retry"));
 
     const failed = prefsNotice(
@@ -363,6 +364,7 @@ describe("o painel contra o servidor (INT-11)", () => {
       i18n.t,
     );
     expect(failed.prefsUnread).toContain(i18n.t("notif_prefs_unread"));
+    expect(failed.prefsNote).toBeNull();
     expect(failed.onRetryPrefs).toBe(retry);
 
     const read = prefsNotice(
@@ -370,6 +372,7 @@ describe("o painel contra o servidor (INT-11)", () => {
       i18n.t,
     );
     expect(read.prefsUnread).toBeNull();
+    expect(read.prefsNote).toBeNull();
   });
 
   it("uma lista que não pôde ser lida diz por quê, em vez de girar para sempre", () => {

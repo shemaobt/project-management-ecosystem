@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { GatedFacet } from "../../../../utils/gatedFacets";
 import type { FacetCounts } from "../../../../utils/search";
+import { ActiveFilters } from "./ActiveFilters";
 import { Chips } from "./Chips";
 import { DetailedFilters } from "./Filters";
 import { ResultCount } from "./ResultCount";
@@ -36,6 +37,8 @@ export function Sidebar({ baseline, shown, total, counts, hidden }: SidebarProps
       <SavedViews counts={baseline} />
 
       <TeamByRegion baseline={baseline.continent} counts={counts.continent} />
+
+      <ActiveFilters baseline={baseline} hidden={hidden} />
 
       <DetailedFilters baseline={baseline} counts={counts} hidden={hidden} />
     </aside>

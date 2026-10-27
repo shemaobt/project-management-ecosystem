@@ -62,7 +62,7 @@ export function AppHeader() {
   const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
   const formOnly = isFormOnly(user.roles);
   const imports = canImportProjects(user.roles, user.writeRegionScope);
-  const mintsLinks = canMintLeaderLinks(user.writeRegionScope);
+  const mintsLinks = canMintLeaderLinks(user.roles, user.writeRegionScope);
   const creates = canCreateProjects(user.roles, user.writeRegionScope);
   const requestLinks = canAdministerAccess(user) ? resourceRequestsAPI : null;
 
@@ -174,7 +174,9 @@ export function AppHeader() {
       />
       <ExportDialog open={dialog === "export"} onOpenChange={closeDialog} />
       <ImportDialog open={dialog === "import"} onOpenChange={closeDialog} />
-      <LeaderLinkDialog open={dialog === "intake"} onOpenChange={closeDialog} />
+      {mintsLinks ? (
+        <LeaderLinkDialog open={dialog === "intake"} onOpenChange={closeDialog} />
+      ) : null}
       {requestLinks ? (
         <RequestLinkDialog
           api={requestLinks}
