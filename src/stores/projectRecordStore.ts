@@ -136,12 +136,19 @@ async function readLanded(
   typed: Partial<Project>,
   readsHealth: boolean,
   writesHealth: boolean,
+  writeRegionScope: readonly RegionKey[] | null | undefined,
 ): Promise<SaveOutcome> {
   useProjectsStore.getState().invalidate();
   try {
     const record = await projectRecordAPI.read(id);
     useProjectRecordStore.setState({ id, record });
-    const access = recordAccess(record.project, false, readsHealth, writesHealth);
+    const access = recordAccess(
+      record.project,
+      false,
+      readsHealth,
+      writesHealth,
+      writeRegionScope,
+    );
     return { kind: "landed", id, ...filedDraft(typed, record.project, access) };
   } catch (thrown) {
     return { kind: "landedUnread", id, failure: toApiFailure(thrown) };
@@ -228,6 +235,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
           typed,
           readsHealth,
           writesHealth,
+          writeRegionScope,
         );
         set({ saving: false, outcome });
         return outcome;

@@ -439,6 +439,19 @@ describe("a criação cuja resposta se perdeu (OBT-625, PME-PRJ-052)", () => {
     expect(useRecordStore.getState().filedAt[ID]).toBeUndefined();
   });
 
+  it("ficha levada para fora de onde a conta escreve não oferece diferença que o servidor recusaria", async () => {
+    await loseTheFirstAnswer();
+    editedBySomebody({ location: "Brazil, Manaus" });
+    useRecordStore.getState().updateDraft(NEW_RECORD, { notes: "contei depois do corte" });
+
+    const again = await store().save({ ...creating(), writeRegionScope: ["africa"] });
+
+    expect(again.kind).toBe("landed");
+    if (again.kind !== "landed") return;
+    expect(again.pending).toEqual([]);
+    expect(landedAddress(again.id, "notas", again.pending)).toBe(`/ficha/${ID}/notas`);
+  });
+
   it("se a ficha não abre depois do 409, o rascunho fica e o aviso diz que ela existe", async () => {
     await loseTheFirstAnswer();
     const held = server.get(ID)!;
