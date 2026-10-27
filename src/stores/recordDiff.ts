@@ -18,7 +18,6 @@ import {
   type RecordAccess,
 } from "../utils/recordAccess";
 
-/** Objects with their keys sorted, all the way down; arrays keep their order. */
 function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical);
   if (value === null || typeof value !== "object") return value;

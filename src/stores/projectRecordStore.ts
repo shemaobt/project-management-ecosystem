@@ -47,7 +47,6 @@ export interface SaveAttempt {
   isNew: boolean;
   readsHealth: boolean;
   writesHealth: boolean;
-  /** The version the draft's own save must quote — `recordStore.filedAt` (OBT-625). */
   filedAt?: string;
 }
 
