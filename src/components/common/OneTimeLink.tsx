@@ -10,6 +10,11 @@ export interface OneTimeLinkProps {
   footer?: ReactNode;
 }
 
+/**
+ * The address breaks inside its own block and never truncates (OBT-633): a failed copy asks the
+ * reader to select it by hand, and an ellipsis would hide what they must select. On a phone it takes
+ * the whole row, with Copy below it, instead of a narrow column beside the button.
+ */
 export function OneTimeLink({ url, heading, note, footer }: OneTimeLinkProps) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
@@ -31,7 +36,7 @@ export function OneTimeLink({ url, heading, note, footer }: OneTimeLinkProps) {
       </p>
       <p className="text-small leading-body text-fg">{note}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <code className="min-w-0 flex-1 truncate rounded-sm bg-elevated px-2.5 py-1.5 text-tag text-fg-strong">
+        <code className="min-w-0 flex-1 basis-60 rounded-sm bg-elevated px-2.5 py-1.5 text-tag wrap-anywhere text-fg-strong">
           {url}
         </code>
         <Button type="button" size="sm" variant="secondary" onClick={copyLink}>

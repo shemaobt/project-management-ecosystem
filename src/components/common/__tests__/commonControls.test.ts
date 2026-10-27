@@ -77,6 +77,35 @@ describe("OneTimeLink — o bloco do link que aparece uma vez", () => {
     expect(out).toContain("Copie agora.");
     expect(out).toContain(i18n.t("link_copy"));
   });
+
+  const LONG_URL =
+    "https://project-management-ecosystem.exemplo.org/convite?token=Zm9vYmFyYmF6cXV4LXVtLXRva2VuLWxvbmdvLWRlLXZlcmRhZGU";
+  const CUTS_THE_LINE =
+    /^(?:truncate|text-ellipsis|text-clip|whitespace-nowrap|text-nowrap|overflow-(?:hidden|clip|x-hidden|x-clip)|line-clamp-\d+)$/u;
+
+  function linkMarkup() {
+    const out = renderToStaticMarkup(
+      createElement(OneTimeLink, { url: LONG_URL, heading: "Link pronto", note: "Copie agora." }),
+    );
+    const match = /<div class="([^"]*)"><code class="([^"]*)">([^<]*)<\/code>/u.exec(out);
+    expect(match).not.toBeNull();
+    const [, row, code, text] = match!;
+    return { row: row.split(/\s+/u), code: code.split(/\s+/u), text };
+  }
+
+  it("o endereço aparece inteiro: quebra dentro do próprio bloco em vez de sair cortado com reticências", () => {
+    const { code, text } = linkMarkup();
+    expect(text).toBe(LONG_URL);
+    expect(code).toContain("wrap-anywhere");
+    expect(code.filter((name) => CUTS_THE_LINE.test(name))).toEqual([]);
+  });
+
+  it("numa tela estreita o endereço pede a linha toda antes de dividi-la com o Copiar", () => {
+    const { row, code } = linkMarkup();
+    expect(row).toContain("flex-wrap");
+    expect(code).toContain("flex-1");
+    expect(code.some((name) => /^basis-/u.test(name))).toBe(true);
+  });
 });
 
 describe("ConfirmDialog", () => {
