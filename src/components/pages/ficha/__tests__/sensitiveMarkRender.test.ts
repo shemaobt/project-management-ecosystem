@@ -153,6 +153,11 @@ describe("a marca por país e a marca por projeto (OBT-616)", () => {
     expect(hint).toContain("Acesso");
   });
 
+  it("a dica nomeia a confirmação, que a conferência do pendente reusa e que também liga a marca", () => {
+    expect(i18n.t("f_sensitive_hint")).toContain("criado, salvo ou confirmado");
+    expect(i18n.t("f_sensitive_hint", { lng: "en" })).toContain("created, saved or confirmed");
+  });
+
   it("quem não lê a verdade não ouve o porquê — o [] do servidor não quer dizer fora da lista", () => {
     const lab = render(
       "ver",
