@@ -10,7 +10,9 @@ export type RecordField = keyof Project;
  * `version` is the ETag verbatim, quotes and all: it is handed straight back as
  * `If-Match` and never parsed, so a server that changes how it spells a version costs
  * this client nothing. `RecordConflict.currentVersion` is the one place a number is
- * read out of it, and only because the 409's body states it separately.
+ * read out of it, and only because the 409's body states it separately. `FILED_VERSION` is
+ * the one version this client spells: a create files at it, and a create whose answer was
+ * lost knows its record by nothing else (OBT-625).
  */
 export interface LoadedRecord {
   project: Project;

@@ -108,14 +108,16 @@ export function createRecord(project: Project): RecordSaveResult {
   if (taken) {
     return {
       ok: false,
-      reason: "invalid",
-      errors: [
-        {
-          field: null,
-          index: null,
-          message: `${project.id}: a project already exists at this slug`,
-        },
-      ],
+      reason: "conflict",
+      conflict: {
+        expectedVersion: null,
+        currentVersion: null,
+        changedFields: [],
+        unknownFields: [],
+        changedBy: "",
+        changedAt: null,
+        detail: `${project.id}: a project already exists at this id`,
+      },
     };
   }
   const filed = applyProgressUpdate(null, clone(project), toLocalIsoDate());

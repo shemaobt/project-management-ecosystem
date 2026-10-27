@@ -4,12 +4,15 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Checkbox, Radio, RadioGroup } from "../../components/ui";
-import { touchTargetInline, touchTargetPseudo } from "../touch";
+import {
+  TOUCH_TARGET_PX,
+  touchTargetInline,
+  touchTargetPseudo,
+} from "../touch";
 
 const EQUIPE_TAB = "src/components/pages/ficha/tabs/equipe";
 const peopleField = readFileSync(join(process.cwd(), EQUIPE_TAB, "PeopleField.tsx"), "utf8");
 const regionalRoles = readFileSync(join(process.cwd(), EQUIPE_TAB, "RegionalRoles.tsx"), "utf8");
-const MIN_TARGET_PX = 24;
 const REM_STEP_PX = 4;
 
 function scaleOf(classes: string, pattern: RegExp): number {
@@ -32,7 +35,7 @@ describe("o × de remover pessoa tem alvo de 24×24 sem mudar o desenho", () => 
 
     expect(touchTargetPseudo).toContain("relative");
     expect(touchTargetPseudo).toContain("before:absolute");
-    expect(drawn + 2 * reach).toBeGreaterThanOrEqual(MIN_TARGET_PX);
+    expect(drawn + 2 * reach).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
   });
 
   it("o botão usa a constante e não desenha o pseudo-elemento por conta própria", () => {
@@ -55,7 +58,7 @@ describe("o link Abrir a área Equipe tem altura de alvo de 24 px", () => {
     const lineHeightOfMicroText = 18.6;
 
     expect(lineHeightOfMicroText + 2 * padding).toBeGreaterThanOrEqual(
-      MIN_TARGET_PX,
+      TOUCH_TARGET_PX,
     );
   });
 
