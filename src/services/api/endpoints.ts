@@ -26,6 +26,7 @@ import type {
   ProjectConfirmation,
   RoleGrantPayload,
   RoleRevokePayload,
+  SensitiveCountry,
   SentInvite,
 } from "../../types/access";
 import type { EtenCreditEntry, EtenYearReport } from "../../types/eten";
@@ -665,6 +666,16 @@ const guest = (path: string) => `${API_BASE_URL}${path}`;
 
 const GUEST_HEADERS = { Accept: "application/json" };
 
+const SENSITIVE_COUNTRIES = `${SHEMA}/sensitive-countries`;
+
+/** The list as the server answers it, read closed: a name and its spellings, and nothing else. */
+export function readSensitiveCountries(value: unknown): SensitiveCountry[] {
+  return listOf(fieldsOf(value).countries).map((entry) => {
+    const fields = fieldsOf(entry);
+    return { name: textOf(fields.name), spellings: listOf(fields.spellings).map(textOf) };
+  });
+}
+
 export const accessAPI = {
   async person(email: string): Promise<AccountGrants> {
     const { data } = await http.get<unknown>(`${ACCESS}/people`, {
@@ -705,6 +716,20 @@ export const accessAPI = {
   async changes(): Promise<GrantChange[]> {
     const { data } = await http.get<GrantChange[]>(`${ACCESS}/changes`);
     return data;
+  },
+
+  /** The Admin's list of sensitive countries (OBT-616); anybody else is answered 403. */
+  async sensitiveCountries(): Promise<SensitiveCountry[]> {
+    const { data } = await http.get<unknown>(SENSITIVE_COUNTRIES);
+    return readSensitiveCountries(data);
+  },
+
+  /** The list as it is to stand — whole; a country left out is off it. */
+  async saveSensitiveCountries(
+    countries: readonly SensitiveCountry[],
+  ): Promise<SensitiveCountry[]> {
+    const { data } = await http.put<unknown>(SENSITIVE_COUNTRIES, { countries });
+    return readSensitiveCountries(data);
   },
 
   async pendingProjects(): Promise<AwaitingProject[]> {

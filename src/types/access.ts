@@ -174,3 +174,13 @@ export interface DiscardedProject {
   requestProjectId: string | null;
   detail: string;
 }
+
+/**
+ * One country on the Admin's list of sensitive countries (OBT-616): its name in the list's words
+ * and the other ways a project's place may write it. A place that names any of them, at any
+ * position, makes a project sensitive when it is created or saved.
+ */
+export interface SensitiveCountry {
+  name: string;
+  spellings: readonly string[];
+}

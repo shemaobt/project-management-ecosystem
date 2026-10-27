@@ -358,3 +358,45 @@ describe("o convidado — describeInvite e join", () => {
     expect(personaOf(state.signed).regionScope).toEqual(["asia"]);
   });
 });
+
+describe("a lista de países sensíveis do Admin (OBT-616)", () => {
+  it("o PUT leva a lista inteira para /shema/sensitive-countries e lê a resposta", async () => {
+    const list = [{ name: "Irã", spellings: ["Iran", "Irão"] }];
+    script = (call) => ({ status: 200, data: { countries: call.body ? (call.body as { countries: unknown }).countries : list } });
+
+    const read = await accessAPI.sensitiveCountries();
+    const saved = await accessAPI.saveSensitiveCountries([
+      ...list,
+      { name: "Chipre", spellings: ["Cyprus"] },
+    ]);
+
+    expect(calls.map((call) => [call.method, call.path])).toEqual([
+      ["get", "/shema/sensitive-countries"],
+      ["put", "/shema/sensitive-countries"],
+    ]);
+    expect(calls[1].body).toEqual({
+      countries: [
+        { name: "Irã", spellings: ["Iran", "Irão"] },
+        { name: "Chipre", spellings: ["Cyprus"] },
+      ],
+    });
+    expect(read).toEqual(list);
+    expect(saved.map((country) => country.name)).toEqual(["Irã", "Chipre"]);
+  });
+
+  it("uma resposta fora do formato é recusada, não lida pela metade", async () => {
+    script = () => ({ status: 200, data: { countries: [{ name: "Irã", spellings: "Iran" }] } });
+
+    const refused = await accessAPI.sensitiveCountries().catch((error: unknown) => error);
+
+    expect(isApiFailure(refused)).toBe(true);
+  });
+
+  it("quem não é Admin recebe a recusa do servidor", async () => {
+    script = () => ({ status: 403, data: { detail: "Role 'admin' is required for this action." } });
+
+    const refused = await accessAPI.sensitiveCountries().catch((error: unknown) => error);
+
+    expect(isApiFailure(refused) && refused.kind).toBe("forbidden");
+  });
+});
