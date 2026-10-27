@@ -9,6 +9,7 @@ import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import { Field, FieldGrid } from "../../fields";
 import type { DraftHandle } from "../../useDraft";
 import { AssessmentHistory } from "./AssessmentHistory";
+import { setPastoralAnswer } from "./pastoral";
 import { PrayerConsent } from "./PrayerConsent";
 import { RatingChoice } from "./RatingChoice";
 
@@ -131,9 +132,7 @@ export function SaudeForm({ draft }: SaudeFormProps) {
           id="saude-pastoral"
           label={t("f_pastoral")}
           checked={pastoral}
-          onCheckedChange={(next) =>
-            draft.set("needsPastoralIntervention", next === true ? "sim" : "nao")
-          }
+          onCheckedChange={(next) => setPastoralAnswer(draft, next)}
         />
         {pastoral && (
           <div className="mt-3">

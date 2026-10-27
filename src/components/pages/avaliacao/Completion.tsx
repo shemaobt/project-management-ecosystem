@@ -1,6 +1,6 @@
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
-import { HEALTH_DIMENSIONS } from "../../../constants/health";
+import { HEALTH_DIMENSIONS, PASTORAL_WHEN_LABEL_KEYS } from "../../../constants/health";
 import { HEALTH_LABEL_KEYS } from "../../../constants/status";
 import { surfaceOutlined } from "../../../styles";
 import type { AssessmentDraft, PastoralAnswer, PastoralWhen } from "../../../types/assessment";
@@ -15,8 +15,8 @@ const PASTORAL_CHOICES: {
   when: PastoralWhen;
   labelKey: string;
 }[] = [
-  { value: "sim-now", answer: "sim", when: "now", labelKey: "hw_pastoral_now" },
-  { value: "sim-30d", answer: "sim", when: "30d", labelKey: "hw_pastoral_30d" },
+  { value: "sim-now", answer: "sim", when: "now", labelKey: PASTORAL_WHEN_LABEL_KEYS.now },
+  { value: "sim-30d", answer: "sim", when: "30d", labelKey: PASTORAL_WHEN_LABEL_KEYS["30d"] },
   { value: "nao", answer: "nao", when: "now", labelKey: "hw_pastoral_no" },
 ];
 

@@ -10,6 +10,7 @@ import type {
   OverallHealth,
   Project,
   ProjectPriority,
+  YesNo,
 } from "../types/project";
 import { getProjectStatus } from "./progress";
 import { getStaleStatus } from "./recency";
@@ -84,6 +85,21 @@ export function recordAssessment(
     healthAssessor: newest.assessor,
     healthNotes: newest.notes,
   };
+}
+
+/**
+ * The when that goes with the pastoral answer the record's checkbox sets. The form has no when,
+ * and the wizard's "Não" still stores its radio's `now`: a yes the saved record did not hold
+ * starts with none rather than show a "Sim, agora" nobody chose, and going back to the saved
+ * answer gives the saved when back, so a tick and an untick are no save (OBT-628).
+ */
+export function pastoralWhenFor(
+  saved: Pick<Project, "needsPastoralIntervention" | "pastoralInterventionWhen"> | undefined,
+  next: YesNo,
+): string | undefined {
+  return next === "sim" && saved?.needsPastoralIntervention !== "sim"
+    ? ""
+    : saved?.pastoralInterventionWhen;
 }
 
 export function getOverallHealth(project: AssessedProject): OverallHealth {

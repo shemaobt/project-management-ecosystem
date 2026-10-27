@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -6,6 +8,7 @@ import type {
   Project,
   ProjectDerived,
 } from "../../../../types/project";
+import type { PastoralWhen } from "../../../../types/assessment";
 import { FULL_ACCESS } from "../../../../utils/recordAccess";
 
 function createMemoryStorage() {
@@ -31,6 +34,10 @@ const { makeEmptyProject } = await import("../../../../stores/recordStore");
 const { HEALTH_DIMENSIONS } = await import("../../../../constants/health");
 const { HEALTH_SYMBOLS } = await import("../../../../constants/status");
 const { SaudeTab } = await import("../tabs/Saude");
+const { setPastoralAnswer } = await import("../tabs/saude/pastoral");
+const { Completion } = await import("../../avaliacao/Completion");
+const { emptyDraft } = await import("../../../../utils/assessment");
+const { PASTORAL_WHEN_LABEL_KEYS } = await import("../../../../constants/health");
 
 const noop = () => {};
 
@@ -263,6 +270,131 @@ describe("a intervenção pastoral se vê sem abrir nada", () => {
 
   it("não pedida, não ocupa espaço no modo ver", () => {
     expect(tab("ver", ASSESSED)).not.toContain(i18n.t("d_pastoral"));
+  });
+
+  const pastoralLine = (markup: string) => {
+    const at = markup.indexOf(i18n.t("d_pastoral"));
+    if (at === -1) return null;
+    return markup
+      .slice(markup.lastIndexOf("<p", at), markup.indexOf("</p>", at))
+      .replace(/<[^>]+>/gu, "")
+      .replace(/\s+/gu, " ")
+      .trim();
+  };
+
+  const pastoral = (when: string, name = "Pastor da base") =>
+    pastoralLine(
+      tab("ver", {
+        ...ASSESSED,
+        needsPastoralIntervention: "sim",
+        pastoralInterventionName: name,
+        pastoralInterventionWhen: when,
+      }),
+    );
+
+  it("diz quando, com o rótulo do wizard, ao lado de quem vai fazer", async () => {
+    expect(pastoral("30d", "Daniel — visita de campo em junho")).toBe(
+      "Intervenção pastoral · Sim, em 30 dias · Daniel — visita de campo em junho",
+    );
+
+    await i18n.changeLanguage("en");
+    const english = pastoral("30d", "Daniel — visita de campo em junho");
+    await i18n.changeLanguage("pt");
+    expect(english).toBe(
+      "Pastoral intervention · Yes, within 30 days · Daniel — visita de campo em junho",
+    );
+  });
+
+  it("o quando da ficha é o rótulo que o mentor marcou no wizard", () => {
+    const marked = (pastoralWhen: PastoralWhen) => {
+      const markup = renderToStaticMarkup(
+        createElement(Completion, {
+          draft: { ...emptyDraft("p1"), pastoral: "sim", pastoralWhen },
+          onChange: noop,
+        }),
+      );
+      const chosen = [...markup.matchAll(/<button([^>]*)>([^<]*)<\/button>/gu)].filter(
+        ([, attributes]) =>
+          attributes.includes('role="radio"') &&
+          attributes.includes('data-state="checked"'),
+      );
+      expect(chosen).toHaveLength(1);
+      return chosen[0][2];
+    };
+
+    const whens: PastoralWhen[] = ["now", "30d"];
+    expect(Object.keys(PASTORAL_WHEN_LABEL_KEYS)).toEqual(whens);
+    const words = whens.map((when) => {
+      const label = marked(when);
+      expect(pastoral(when), when).toBe(`Intervenção pastoral · ${label} · Pastor da base`);
+      return label;
+    });
+    expect(new Set(words).size).toBe(words.length);
+  });
+
+  it("sem nome, o quando ocupa o lugar do Sim", () => {
+    expect(pastoral("now", "")).toBe("Intervenção pastoral · Sim, agora");
+  });
+
+  it("um sim sem quando continua dizendo só quem vai fazer", () => {
+    expect(pastoral("")).toBe("Intervenção pastoral · Pastor da base");
+    expect(pastoral("  ")).toBe("Intervenção pastoral · Pastor da base");
+  });
+
+  it("um quando que o wizard não oferece aparece como foi gravado", () => {
+    expect(pastoral("depois da colheita")).toBe(
+      "Intervenção pastoral · depois da colheita · Pastor da base",
+    );
+  });
+
+  it("a caixa da ficha muda a resposta e o quando juntos", () => {
+    const after = (
+      saved: Pick<Project, "needsPastoralIntervention" | "pastoralInterventionWhen">,
+      ...ticks: boolean[]
+    ) => {
+      const written: Partial<Project> = {};
+      const draft = {
+        saved: { ...makeEmptyProject(), ...saved, id: "p1" } as Project,
+        set: <K extends keyof Project>(field: K, value: Project[K]) => {
+          written[field] = value;
+        },
+      };
+      for (const checked of ticks) setPastoralAnswer(draft, checked);
+      return written;
+    };
+    const wizardNo = { needsPastoralIntervention: "nao" as const, pastoralInterventionWhen: "now" };
+
+    expect(after(wizardNo, true)).toEqual({
+      needsPastoralIntervention: "sim",
+      pastoralInterventionWhen: "",
+    });
+    expect(after(wizardNo, true, false)).toEqual({
+      needsPastoralIntervention: "nao",
+      pastoralInterventionWhen: "now",
+    });
+  });
+
+  it("a caixa da ficha não escreve a resposta pastoral por fora do setPastoralAnswer", () => {
+    const form = readFileSync(
+      join(process.cwd(), "src/components/pages/ficha/tabs/saude/SaudeForm.tsx"),
+      "utf8",
+    );
+    expect(form).not.toMatch(/"needsPastoralIntervention"|"pastoralInterventionWhen"/u);
+  });
+
+  it("um nome só de espaços não deixa separador sobrando", () => {
+    expect(pastoral("now", "   ")).toBe("Intervenção pastoral · Sim, agora");
+    expect(pastoral("", "   ")).toBe("Intervenção pastoral · Sim");
+  });
+
+  it("o Não do wizard não mostra o agora que ele grava", () => {
+    const markup = tab("ver", {
+      ...ASSESSED,
+      needsPastoralIntervention: "nao",
+      pastoralInterventionWhen: "now",
+    });
+    expect(markup).not.toContain(i18n.t("d_pastoral"));
+    expect(markup).not.toContain(i18n.t("hw_pastoral_now"));
   });
 });
 
