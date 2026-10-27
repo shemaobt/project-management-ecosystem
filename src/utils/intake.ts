@@ -137,6 +137,19 @@ function isEmptyAnswer(value: unknown): boolean {
 
 const PERIOD_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
+/**
+ * The sentence for a text answer longer than its field holds, or `null` (OBT-624). The element
+ * carries no `maxlength`: a browser cuts a paste there without a word, and the leader loses the
+ * end of the report. So the field reads this live, to say it while the text is still too long,
+ * and `validateIntakeAnswers` reads it again to bar the send. An empty answer is never too long —
+ * the validator and the server (`_is_empty`) skip it before any limit.
+ */
+export function tooLongKey(field: IntakeField, value: unknown): "intake_err_too_long" | null {
+  if (field.type !== "text" && field.type !== "longText") return null;
+  if (field.maxLength === null || isEmptyAnswer(value)) return null;
+  return String(value).length > field.maxLength ? "intake_err_too_long" : null;
+}
+
 /** One i18n key per field that fails — never the field's fault text, which is English. */
 export function validateIntakeAnswers(
   fields: readonly IntakeField[],
@@ -152,13 +165,8 @@ export function validateIntakeAnswers(
     if (field.type === "period" && !PERIOD_PATTERN.test(String(value))) {
       errors[field.key] = "intake_err_period";
     }
-    if (
-      (field.type === "text" || field.type === "longText") &&
-      field.maxLength !== null &&
-      String(value).length > field.maxLength
-    ) {
-      errors[field.key] = "intake_err_too_long";
-    }
+    const tooLong = tooLongKey(field, value);
+    if (tooLong) errors[field.key] = tooLong;
     if (field.type === "choice" && !field.options.includes(String(value))) {
       errors[field.key] = "intake_err_choice";
     }

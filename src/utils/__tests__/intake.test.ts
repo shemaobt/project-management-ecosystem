@@ -9,6 +9,7 @@ import {
   loadIntakeDraft,
   parseSubmitFaults,
   saveIntakeDraft,
+  tooLongKey,
   validateIntakeAnswers,
 } from "../intake";
 
@@ -207,6 +208,30 @@ describe("validação do lado do cliente — a primeira leitura, não a última"
       voice: "onze caracteres!",
     });
     expect(errors.voice).toBe("intake_err_too_long");
+  });
+
+  it("o limite é inclusivo: o que cabe não é marcado, um caractere a mais é; sem limite ou fora de texto, nada é grande demais", () => {
+    const voice = FIELDS[2];
+    const name = FIELDS[0];
+    const period = FIELDS[1];
+    expect(tooLongKey(voice, "dez letras")).toBeNull();
+    expect(tooLongKey(voice, "onze letras")).toBe("intake_err_too_long");
+    expect(tooLongKey(name, "n".repeat(200))).toBeNull();
+    expect(tooLongKey(name, "n".repeat(201))).toBe("intake_err_too_long");
+    expect(tooLongKey({ ...voice, maxLength: null }, "v".repeat(5000))).toBeNull();
+    expect(tooLongKey(period, "2026-09".repeat(50))).toBeNull();
+  });
+
+  it("resposta só de espaços nunca é grande demais — é vazia, como no servidor", () => {
+    const voice = FIELDS[2];
+    expect(tooLongKey(voice, " ".repeat(40))).toBeNull();
+    expect(
+      validateIntakeAnswers(FIELDS, {
+        submittedBy: "Kuaray",
+        period: "2026-09",
+        voice: " ".repeat(40),
+      }),
+    ).toEqual({});
   });
 
   it("uma escolha fora do vocabulário é marcada", () => {
