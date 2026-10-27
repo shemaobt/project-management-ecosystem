@@ -6,11 +6,6 @@ import type { SessionRole } from "../../../../types/session";
 
 vi.mock("../../../../hooks/useProjectListRead", () => ({ useProjectListRead: vi.fn() }));
 
-/**
- * The project list is the Shemá browse, behind the app's door (OBT-642): an account holding no
- * Shemá grant — a project team member — would only meet a 403 for it, and the access alert with a
- * retry that changes nothing. Its Início asks for nothing and says what it opens here instead.
- */
 function createMemoryStorage() {
   const data = new Map<string, string>();
   return {
