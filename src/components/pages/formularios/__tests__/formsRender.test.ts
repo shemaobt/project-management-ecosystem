@@ -62,12 +62,19 @@ const view = (
   projects: Project[] | null,
   submissions: ReceivedSubmission[] | null = [],
   writesHealth = true,
+  writeRegionScope?: readonly import("../../../../types/region").RegionKey[] | null,
 ) =>
   renderToStaticMarkup(
     createElement(
       MemoryRouter,
       null,
-      createElement(FormulariosView, { projects, submissions, now: NOW, writesHealth }),
+      createElement(FormulariosView, {
+        projects,
+        submissions,
+        now: NOW,
+        writesHealth,
+        writeRegionScope,
+      }),
     ),
   );
 
@@ -399,5 +406,25 @@ describe("o botão da Avaliação de Saúde é de quem a grava (OBT-579)", () =>
     expect(canWriteHealth(["resourceCircle"])).toBe(false);
     expect(canWriteHealth(["coordinator"])).toBe(true);
     expect(canWriteHealth(["obtLab"])).toBe(true);
+  });
+});
+
+describe("o botão da Avaliação de Saúde segue a região onde a conta escreve (OBT-593)", () => {
+  const brazil = () => [project()];
+
+  it("admin + coordenação da Ásia não vê o botão num projeto do Brasil", () => {
+    const markup = view(brazil(), [], true, ["asia"]);
+    expect(markup).not.toContain(i18n.t("forms_open_health"));
+    expect(markup).toContain(i18n.t("forms_health_title"));
+  });
+
+  it("a coordenação da América do Sul, a plataforma e o campo ausente veem", () => {
+    expect(view(brazil(), [], true, ["south-america"])).toContain(i18n.t("forms_open_health"));
+    expect(view(brazil(), [], true, null)).toContain(i18n.t("forms_open_health"));
+    expect(view(brazil(), [], true, undefined)).toContain(i18n.t("forms_open_health"));
+  });
+
+  it("o Admin sozinho não vê", () => {
+    expect(view(brazil(), [], true, [])).not.toContain(i18n.t("forms_open_health"));
   });
 });

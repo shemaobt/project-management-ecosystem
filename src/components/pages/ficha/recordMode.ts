@@ -1,3 +1,4 @@
+import type { RegionKey } from "../../../types/region";
 import type { SessionRole } from "../../../types/session";
 import { canCreateProjects } from "../../../utils/access";
 import type { RecordMode } from "./types";
@@ -20,6 +21,10 @@ export function readMode(raw: string | null, isNew: boolean, readOnly: boolean):
  * and the server refused only at the save, after everything was typed. Same case `readMode`
  * closes for `?modo=editar`; a record that is not new is the server's to answer.
  */
-export function mayOpenRecord(isNew: boolean, roles: readonly SessionRole[]): boolean {
-  return !isNew || canCreateProjects(roles);
+export function mayOpenRecord(
+  isNew: boolean,
+  roles: readonly SessionRole[],
+  writeRegionScope?: readonly RegionKey[] | null,
+): boolean {
+  return !isNew || canCreateProjects(roles, writeRegionScope);
 }

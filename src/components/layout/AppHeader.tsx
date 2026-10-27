@@ -23,6 +23,7 @@ import {
   canAdministerAccess,
   canCreateProjects,
   canImportProjects,
+  canMintLeaderLinks,
   isFormOnly,
 } from "../../utils/access";
 import { cn } from "../../utils/cn";
@@ -60,8 +61,9 @@ export function AppHeader() {
   const { signOut, user, apps } = useAuth();
   const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
   const formOnly = isFormOnly(user.roles);
-  const imports = canImportProjects(user.roles);
-  const creates = canCreateProjects(user.roles);
+  const imports = canImportProjects(user.roles, user.writeRegionScope);
+  const mintsLinks = canMintLeaderLinks(user.writeRegionScope);
+  const creates = canCreateProjects(user.roles, user.writeRegionScope);
   const requestLinks = canAdministerAccess(user) ? resourceRequestsAPI : null;
 
   const closeDialog = (open: boolean) => {
@@ -120,7 +122,8 @@ export function AppHeader() {
         {formOnly
           ? null
           : HEADER_ACTIONS.filter(
-              (action) => action.key !== "import" || imports,
+              (action) =>
+                (action.key !== "import" || imports) && (action.key !== "intake" || mintsLinks),
             ).map((action) => (
               <button
                 key={action.key}
