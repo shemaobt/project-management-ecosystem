@@ -138,16 +138,21 @@ function isEmptyAnswer(value: unknown): boolean {
 const PERIOD_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 /**
- * The sentence for a text answer longer than its field holds, or `null` (OBT-624). The element
- * carries no `maxlength`: a browser cuts a paste there without a word, and the leader loses the
- * end of the report. So the field reads this live, to say it while the text is still too long,
- * and `validateIntakeAnswers` reads it again to bar the send. An empty answer is never too long —
- * the validator and the server (`_is_empty`) skip it before any limit.
+ * Counted as the server's `len()` counts, in code points: `.length` counts an emoji twice, and
+ * a report the server would take must not be refused here.
+ */
+export function answerLength(text: string): number {
+  return [...text].length;
+}
+
+/**
+ * The element carries no `maxlength` (OBT-624): a browser cuts a paste there without a word.
+ * An empty answer is never too long — the server skips it before any limit (`_is_empty`).
  */
 export function tooLongKey(field: IntakeField, value: unknown): "intake_err_too_long" | null {
   if (field.type !== "text" && field.type !== "longText") return null;
   if (field.maxLength === null || isEmptyAnswer(value)) return null;
-  return String(value).length > field.maxLength ? "intake_err_too_long" : null;
+  return answerLength(String(value)) > field.maxLength ? "intake_err_too_long" : null;
 }
 
 /** One i18n key per field that fails — never the field's fault text, which is English. */

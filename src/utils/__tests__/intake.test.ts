@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { IntakeField } from "../../types/forms";
 import {
+  answerLength,
   classifyIntakeLinkProblem,
   clearIntakeDraft,
   draftKeyOf,
@@ -220,6 +221,14 @@ describe("validação do lado do cliente — a primeira leitura, não a última"
     expect(tooLongKey(name, "n".repeat(201))).toBe("intake_err_too_long");
     expect(tooLongKey({ ...voice, maxLength: null }, "v".repeat(5000))).toBeNull();
     expect(tooLongKey(period, "2026-09".repeat(50))).toBeNull();
+  });
+
+  it("o tamanho conta como o servidor conta, por caractere — um emoji não vale dois", () => {
+    const voice = FIELDS[2];
+    expect("🙏".repeat(10)).toHaveLength(20);
+    expect(answerLength("🙏".repeat(10))).toBe(10);
+    expect(tooLongKey(voice, "🙏".repeat(10))).toBeNull();
+    expect(tooLongKey(voice, "🙏".repeat(11))).toBe("intake_err_too_long");
   });
 
   it("resposta só de espaços nunca é grande demais — é vazia, como no servidor", () => {

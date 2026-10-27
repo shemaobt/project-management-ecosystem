@@ -95,6 +95,12 @@ describe("o campo não corta o que se cola — o limite é dito, não imposto (O
     expect(markup).not.toContain("aria-invalid");
   });
 
+  it("o contador conta emoji como o servidor: 4000 emojis cabem e dizem 4000/4000", () => {
+    const markup = render({ voice: "🙏".repeat(4000) });
+    expect(markup).toContain("4000/4000");
+    expect(markup).not.toContain(i18n.t("intake_err_too_long"));
+  });
+
   it("o nome com 201 é marcado também, mesmo sem contador", () => {
     const markup = render({ submittedBy: "n".repeat(201) });
     expect(markup).toContain(i18n.t("intake_err_too_long"));

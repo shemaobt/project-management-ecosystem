@@ -9,7 +9,7 @@ import type { BookProgressItem } from "../../../types/project";
 import { BookTable } from "../ficha/tabs/progresso/BookTable";
 import { PrayerConsent } from "../ficha/tabs/saude/PrayerConsent";
 import { cn } from "../../../utils/cn";
-import { tooLongKey, type IntakeImageUpload } from "../../../utils/intake";
+import { answerLength, tooLongKey, type IntakeImageUpload } from "../../../utils/intake";
 import { CheckboxField, Input, Label, Radio, RadioGroup, Textarea } from "../../ui";
 import { IntakeImageField } from "./IntakeImageField";
 
@@ -117,7 +117,7 @@ export function IntakeFieldInput({
                 tooLong ? "font-semibold text-telha" : "text-fg-subtle",
               )}
             >
-              {asString(value).length}/{field.maxLength}
+              {answerLength(asString(value))}/{field.maxLength}
             </p>
           ) : null}
         </>
