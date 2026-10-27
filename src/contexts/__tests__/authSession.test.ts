@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { REGIONS } from "../../constants/regions";
 import { ROLES, SESSION_ROLES } from "../../constants/roles";
 import { regionsAPI } from "../../fixtures";
 import en from "../../i18n/locales/en.json";
@@ -112,5 +113,12 @@ describe("o vocabulário da sessão", () => {
     expect(MOCK_SESSION_PERSONAS.admin.roles).toEqual(["coordinator", "admin"]);
     expect(MOCK_SESSION_PERSONAS.admin.role).toBe("coordinator");
     expect(MOCK_SESSION_PERSONAS.admin.regionScope).toBeNull();
+  });
+
+  it("nenhuma persona mockada se passa pelo admin da instalação: writeRegionScope nunca é null, e a Admin escreve nas sete regiões pela lista (OBT-620)", () => {
+    for (const [key, persona] of Object.entries(MOCK_SESSION_PERSONAS)) {
+      expect(persona.writeRegionScope, key).not.toBeNull();
+    }
+    expect(MOCK_SESSION_PERSONAS.admin.writeRegionScope).toEqual(REGIONS.map((region) => region.key));
   });
 });
