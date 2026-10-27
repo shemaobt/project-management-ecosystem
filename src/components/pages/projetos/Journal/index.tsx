@@ -7,10 +7,8 @@ export interface JournalViewProps {
 }
 
 /**
- * Each item is a grid so its card stretches to the height of the row. Its track is `grid-cols-1`,
- * `minmax(0, 1fr)`: the implicit `auto` track starts at the card's min-content, which is the whole
- * name since the title is `truncate` (nowrap), so a long name widened the card over the next
- * column (OBT-630). `min-w-0` on the item does not do it — the item already has the column's width.
+ * Each item is a grid so its card stretches to the row's height, and its track is `minmax(0, 1fr)`:
+ * an implicit `auto` track starts at the whole `truncate`d name and widens the card (OBT-630).
  */
 export function JournalView({ projects, onOpen }: JournalViewProps) {
   return (
