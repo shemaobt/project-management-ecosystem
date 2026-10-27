@@ -23,4 +23,4 @@ export {
   titleText,
 } from "./layout";
 export { disabledControl, transitionAll, transitionColors } from "./states";
-export { touchTargetInline, touchTargetPseudo } from "./touch";
+export { TOUCH_TARGET_PX, touchTargetInline, touchTargetPseudo } from "./touch";

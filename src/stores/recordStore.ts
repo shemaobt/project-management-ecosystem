@@ -115,6 +115,16 @@ export function materializeDraft(draft: ProjectDraft, id = ""): Project {
 
 interface RecordState {
   drafts: Record<string, ProjectDraft>;
+  /**
+   * The version a record's draft must quote on its next save instead of the one just read —
+   * set when a lost create's difference lands on the record it filed (OBT-625), and kept with
+   * the draft, so a reload, a refused save or a dropped connection cannot turn that difference
+   * into an overwrite of somebody's later edit. A save the server took, a conflict it answered
+   * and a discard end it.
+   */
+  filedAt: Record<string, string>;
+  markFiled: (recordId: string, version: string) => void;
+  forgetFiled: (recordId: string) => void;
   updateDraft: (recordId: string, patch: ProjectDraft) => void;
   updateDraftValue: <K extends keyof Project>(
     recordId: string,
@@ -125,12 +135,24 @@ interface RecordState {
   settleDraft: (recordId: string, written: readonly (keyof Project)[]) => void;
 }
 
-type PersistedRecords = Pick<RecordState, "drafts">;
+type PersistedRecords = Pick<RecordState, "drafts" | "filedAt">;
+
+function without(map: Record<string, string>, key: string): Record<string, string> {
+  if (!(key in map)) return map;
+  const rest = { ...map };
+  delete rest[key];
+  return rest;
+}
 
 export const useRecordStore = create<RecordState>()(
   persist<RecordState, [], [], PersistedRecords>(
     (set) => ({
       drafts: {},
+      filedAt: {},
+      markFiled: (recordId, version) =>
+        set((state) => ({ filedAt: { ...state.filedAt, [recordId]: version } })),
+      forgetFiled: (recordId) =>
+        set((state) => ({ filedAt: without(state.filedAt, recordId) })),
       updateDraft: (recordId, patch) =>
         set((state) => ({
           drafts: {
@@ -153,7 +175,7 @@ export const useRecordStore = create<RecordState>()(
         set((state) => {
           const drafts = { ...state.drafts };
           delete drafts[recordId];
-          return { drafts };
+          return { drafts, filedAt: without(state.filedAt, recordId) };
         }),
       /**
        * Forget exactly what the server took, and keep the rest.
@@ -168,19 +190,19 @@ export const useRecordStore = create<RecordState>()(
       settleDraft: (recordId, written) =>
         set((state) => {
           const draft = state.drafts[recordId];
-          if (!draft) return state;
+          if (!draft) return { filedAt: without(state.filedAt, recordId) };
           const kept: ProjectDraft = { ...draft };
           for (const field of written) delete kept[field];
           const drafts = { ...state.drafts };
           if (Object.keys(kept).length === 0) delete drafts[recordId];
           else drafts[recordId] = kept;
-          return { drafts };
+          return { drafts, filedAt: without(state.filedAt, recordId) };
         }),
     }),
     {
       name: DRAFTS_KEY,
       storage: draftStorage,
-      partialize: (state) => ({ drafts: state.drafts }),
+      partialize: (state) => ({ drafts: state.drafts, filedAt: state.filedAt }),
     },
   ),
 );
