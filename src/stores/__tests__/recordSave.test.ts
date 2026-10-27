@@ -797,4 +797,57 @@ describe("editar só o texto do pedido não decide a autorização (OBT-597)", (
       prayerVisibility: "coordenacao",
     });
   });
+
+  it("reescrever só a descrição de uma necessidade compartilhada manda a necessidade inteira, com o prayerShared", async () => {
+    const wireNeed = (id: string, description: string, prayerShared: boolean) => ({
+      id,
+      category: "financial",
+      urgency: "high",
+      status: "open",
+      description,
+      estimatedValue: null,
+      estimatedAmount: null,
+      estimatedCurrency: null,
+      deadline: null,
+      prayerShared,
+      prayerAnswered: false,
+      fulfilledBy: null,
+      fulfilledDate: null,
+      droppedDate: null,
+      submittedBy: null,
+      submittedAt: null,
+      acknowledgedAt: null,
+      acknowledgedBy: null,
+    });
+    queue = [
+      ok({
+        readAs: "coordination",
+        needsItems: [wireNeed("n1", TEXT_A, true), wireNeed("n2", "Um gerador", false)],
+      }),
+    ];
+    store().forget();
+    await store().open("p1");
+    const project = store().record?.project;
+    if (!project) throw new Error("the record did not open");
+    const typed = {
+      needsItems: project.needsItems.map((need) =>
+        need.id === "n1" ? { ...need, description: TEXT_B } : need,
+      ),
+    };
+    queue = [ok({ readAs: "coordination" }, '"8"')];
+    await store().save({
+      values: { ...project, ...typed },
+      typed,
+      isNew: false,
+      readsHealth: true,
+      writesHealth: true,
+    });
+
+    const body = patchBody();
+    expect(Object.keys(body)).toEqual(["needsItems"]);
+    expect(body.needsItems).toEqual([
+      expect.objectContaining({ id: "n1", description: TEXT_B, prayerShared: true }),
+      expect.objectContaining({ id: "n2", description: "Um gerador", prayerShared: false }),
+    ]);
+  });
 });
