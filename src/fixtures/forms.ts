@@ -13,6 +13,7 @@ import type {
   ReceivedSubmission,
   ReceivedSubmissionDetail,
 } from "../types/forms";
+import { answerLength } from "../utils/intake";
 import { getRegion } from "../utils/region";
 import { loadProject } from "./projects";
 import { asReadBy, readerOf } from "./reader";
@@ -377,10 +378,10 @@ function validate(token: string, answers: IntakeAnswers): void {
     if (
       (field.type === "text" || field.type === "longText") &&
       field.maxLength &&
-      String(value).length > field.maxLength
+      answerLength(String(value)) > field.maxLength
     ) {
       faults.push(
-        `${field.key}: ${String(value).length} characters, and the field holds ${field.maxLength}`,
+        `${field.key}: ${answerLength(String(value))} characters, and the field holds ${field.maxLength}`,
       );
     }
     if (field.type === "choice" && !field.options.includes(String(value))) {

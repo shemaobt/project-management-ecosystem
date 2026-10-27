@@ -82,6 +82,22 @@ describe("o dublê do link do líder — a mesma forma da BE-12", () => {
     ).rejects.toMatchObject({ kind: "invalid" });
   });
 
+  it("o tamanho conta como o servidor conta, por caractere: 4000 emojis na voz cabem, 4001 não", async () => {
+    const fits = await formsAPI.mintIntakeLink({ projectId });
+    await formsAPI.submitIntake(fits.token, {
+      definitionVersion: fits.definitionVersion,
+      answers: { submittedBy: "Kuaray", period: "2026-09", voice: "🙏".repeat(4000) },
+    });
+
+    const over = await formsAPI.mintIntakeLink({ projectId });
+    await expect(
+      formsAPI.submitIntake(over.token, {
+        definitionVersion: over.definitionVersion,
+        answers: { submittedBy: "Kuaray", period: "2026-09", voice: "🙏".repeat(4001) },
+      }),
+    ).rejects.toMatchObject({ kind: "invalid", detail: expect.stringContaining("voice: 4001 characters") });
+  });
+
   it("uma submissão válida é aceita, e o link deixa de estar pendente", async () => {
     const created = await formsAPI.mintIntakeLink({ projectId });
 
