@@ -193,11 +193,19 @@ export function SaveOutcomeNote({
     }
 
     case "landedUnread":
+      // The 409 proved the record exists, so a 404 here is reach, never absence — and the
+      // read's own sentence would say the opposite. Out of reach answers the same every time.
       return (
-        <Panel tone="quiet" title={failureMessage(outcome.failure, t)}>
-          <p>{t("record_landed_unread")}</p>
-          {/* A record out of this reader's reach answers the same way every time. */}
-          {outcome.failure.kind !== "notFound" && action(t("net_retry"))}
+        <Panel tone="quiet" title={t("record_landed_title")}>
+          {outcome.failure.kind === "notFound" ? (
+            <p>{t("record_landed_unreachable")}</p>
+          ) : (
+            <>
+              <p>{t("record_landed_unread")}</p>
+              <p>{failureMessage(outcome.failure, t)}</p>
+              {action(t("net_retry"))}
+            </>
+          )}
         </Panel>
       );
 

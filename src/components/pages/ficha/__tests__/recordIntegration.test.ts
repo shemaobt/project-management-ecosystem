@@ -358,7 +358,9 @@ describe("o envio que já tinha chegado não culpa ninguém (OBT-625)", () => {
       id: "9eecfb4c",
       failure: { kind: "offline", status: null, code: null, detail: null },
     });
+    expect(offline).toContain(i18n.t("record_landed_title"));
     expect(offline).toContain(i18n.t("record_landed_unread"));
+    expect(offline).toContain(i18n.t("net_offline"));
     expect(offline).toContain(i18n.t("net_retry"));
     expect(blames(offline)).toBe(false);
 
@@ -367,8 +369,17 @@ describe("o envio que já tinha chegado não culpa ninguém (OBT-625)", () => {
       id: "9eecfb4c",
       failure: { kind: "notFound", status: 404, code: null, detail: null },
     });
-    expect(unreachable).toContain(i18n.t("record_landed_unread"));
+    expect(unreachable).toContain(i18n.t("record_landed_unreachable"));
     expect(unreachable).not.toContain("<button");
+  });
+
+  it("fora do alcance, o aviso não diz que a ficha não existe logo acima de dizer que existe", () => {
+    const unreachable = outcomeMarkup({
+      kind: "landedUnread",
+      id: "9eecfb4c",
+      failure: { kind: "notFound", status: 404, code: null, detail: null },
+    });
+    expect(unreachable).not.toContain(i18n.t("net_not_found"));
   });
 });
 
