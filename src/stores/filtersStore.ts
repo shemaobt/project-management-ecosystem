@@ -72,10 +72,21 @@ export const EMPTY_FILTERS: ProjectFilters = {
 
 const FILTERS_KEY = "shema-filters-v1";
 
+const FILTER_KEYS = Object.keys(EMPTY_FILTERS) as (keyof ProjectFilters)[];
+
+/**
+ * The filters that hold a value, in the order `EMPTY_FILTERS` declares them — the prototype's
+ * `emptyFilters` order, which its *Filtros ativos* strip walks (`app.jsx:245`). *Limpar tudo*
+ * and the strip both read this walk, so neither can show a filter the other does not.
+ */
+export function activeFilterKeys(
+  filters: ProjectFilters,
+): (keyof ProjectFilters)[] {
+  return FILTER_KEYS.filter((key) => filters[key] !== EMPTY_FILTERS[key]);
+}
+
 export function hasActiveFilters(filters: ProjectFilters): boolean {
-  return (Object.keys(EMPTY_FILTERS) as (keyof ProjectFilters)[]).some(
-    (key) => filters[key] !== EMPTY_FILTERS[key],
-  );
+  return activeFilterKeys(filters).length > 0;
 }
 
 interface FiltersState {
@@ -86,6 +97,7 @@ interface FiltersState {
     value: ProjectFilters[K],
   ) => void;
   togglePreset: (preset: PresetId) => void;
+  clearFilter: <K extends keyof ProjectFilters>(key: K) => void;
   setSearch: (search: string) => void;
   applyState: (filters: ProjectFilters, search: string) => void;
   clearAll: () => void;
@@ -101,6 +113,10 @@ export const useFiltersStore = create<FiltersState>()(
       togglePreset: (preset) =>
         set((state) => ({
           filters: { ...state.filters, [preset]: !state.filters[preset] },
+        })),
+      clearFilter: (key) =>
+        set((state) => ({
+          filters: { ...state.filters, [key]: EMPTY_FILTERS[key] },
         })),
       setSearch: (search) => set({ search }),
       applyState: (filters, search) =>

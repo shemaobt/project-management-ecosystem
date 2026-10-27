@@ -96,3 +96,110 @@ export function spreadOverlapping<T extends { x: number; y: number }>(
   }
   return spread;
 }
+
+export interface Offset {
+  x: number;
+  y: number;
+}
+
+export function groupWithin(
+  points: readonly Offset[],
+  distance: number,
+): number[][] {
+  const parent = points.map((_, index) => index);
+  const root = (index: number): number => {
+    let at = index;
+    while (parent[at] !== at) {
+      parent[at] = parent[parent[at]];
+      at = parent[at];
+    }
+    return at;
+  };
+  const cells = new Map<string, number[]>();
+  points.forEach((point, index) => {
+    const cx = Math.floor(point.x / distance);
+    const cy = Math.floor(point.y / distance);
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        for (const other of cells.get(`${cx + dx},${cy + dy}`) ?? []) {
+          const near =
+            Math.hypot(point.x - points[other].x, point.y - points[other].y) <
+            distance;
+          if (near) parent[root(index)] = root(other);
+        }
+      }
+    }
+    const key = `${cx},${cy}`;
+    const cell = cells.get(key);
+    if (cell) {
+      cell.push(index);
+    } else {
+      cells.set(key, [index]);
+    }
+  });
+  const groups = new Map<number, number[]>();
+  points.forEach((_, index) => {
+    const key = root(index);
+    const group = groups.get(key);
+    if (group) {
+      group.push(index);
+    } else {
+      groups.set(key, [index]);
+    }
+  });
+  return [...groups.values()];
+}
+
+function ringCapacity(ring: number): number {
+  return Math.floor(Math.PI / Math.asin(1 / (2 * ring)) + 1e-9);
+}
+
+function packedRings(count: number): number {
+  let left = count - 1;
+  let ring = 0;
+  while (left > 0) {
+    ring += 1;
+    left -= ringCapacity(ring);
+  }
+  return ring;
+}
+
+function onCircle(radius: number, angle: number): Offset {
+  return { x: radius * Math.cos(angle), y: radius * Math.sin(angle) };
+}
+
+export function spreadOffsets(count: number, gap: number, start = 0): Offset[] {
+  if (count <= 1) return count === 1 ? [{ x: 0, y: 0 }] : [];
+  const singleRing = 1 / (2 * Math.sin(Math.PI / count));
+  if (singleRing <= packedRings(count) + 1e-9) {
+    return Array.from({ length: count }, (_, index) =>
+      onCircle(gap * singleRing, start + (2 * Math.PI * index) / count),
+    );
+  }
+  const offsets: Offset[] = [{ x: 0, y: 0 }];
+  for (let ring = 1; offsets.length < count; ring++) {
+    const members = Math.min(count - offsets.length, ringCapacity(ring));
+    for (let index = 0; index < members; index++) {
+      offsets.push(
+        onCircle(ring * gap, start + (2 * Math.PI * index) / members),
+      );
+    }
+  }
+  return offsets;
+}
+
+export function sphericalCentre(coords: readonly Coordinates[]): Coordinates {
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  for (const [lng, lat] of coords) {
+    const lngR = (lng * Math.PI) / 180;
+    const latR = (lat * Math.PI) / 180;
+    x += Math.cos(latR) * Math.cos(lngR);
+    y += Math.cos(latR) * Math.sin(lngR);
+    z += Math.sin(latR);
+  }
+  const lng = (Math.atan2(y, x) * 180) / Math.PI;
+  const lat = (Math.atan2(z, Math.hypot(x, y)) * 180) / Math.PI;
+  return [lng, lat];
+}

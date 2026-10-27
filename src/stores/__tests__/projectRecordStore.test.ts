@@ -87,3 +87,30 @@ describe("useProjectRecordStore.submitAssessment — a costura da INT-04", () =>
     expect(useProjectRecordStore.getState().outcome).toBeNull();
   });
 });
+
+describe("useProjectRecordStore.save — a criação que já tinha chegado, no dublê (OBT-625)", () => {
+  it("criar duas vezes o mesmo id cai na ficha que a primeira criou", async () => {
+    const project = {
+      ...createEmptyProject("prs-landed"),
+      languageName: "Kadiwéu",
+      bridgeLanguage: "Português",
+      team: "JOCUM",
+      objective: ["NT" as const],
+    };
+    const attempt = {
+      values: project,
+      typed: { languageName: "Kadiwéu" },
+      isNew: true,
+      readsHealth: true,
+      writesHealth: true,
+    };
+
+    expect((await useProjectRecordStore.getState().save(attempt)).kind).toBe("saved");
+    const again = await useProjectRecordStore.getState().save(attempt);
+
+    expect(again.kind).toBe("landed");
+    if (again.kind !== "landed") return;
+    expect(again.id).toBe("prs-landed");
+    expect(again.pending).toEqual([]);
+  });
+});

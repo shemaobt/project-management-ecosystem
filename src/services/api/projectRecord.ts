@@ -47,6 +47,14 @@ const SHEMA = "/shema";
  */
 const LOCAL_DAY_HEADER = "X-Shema-Local-Date";
 
+/**
+ * The version a create files a record at — `create_project` inserts it at 1 and the route
+ * quotes it like every ETag. A create whose answer was lost knows its record only by this: the
+ * first save after the 409 quotes it, so a record somebody saved since is the server's own
+ * conflict, with who and what, rather than an overwrite (OBT-625).
+ */
+export const FILED_VERSION = '"1"';
+
 /** Dates the record keeps as `""` and the wire keeps as `null`. */
 const DATE_FIELDS: ReadonlySet<RecordField> = new Set<RecordField>([
   "startDate",

@@ -168,5 +168,11 @@ export type {
 export type { ResourceRequestsAPI } from "./resourceRequests";
 export type { Translate } from "./errors";
 export type { ProjectBrowseQuery, ProjectBrowseResult } from "../../types/projectBrowse";
-export { mapRecord, readConflict, readFieldErrors, toWire } from "./projectRecord";
+export {
+  FILED_VERSION,
+  mapRecord,
+  readConflict,
+  readFieldErrors,
+  toWire,
+} from "./projectRecord";
 export type { RecordSaveResult } from "./projectRecord";
