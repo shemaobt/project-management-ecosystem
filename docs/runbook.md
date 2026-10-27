@@ -115,7 +115,7 @@ Quem tem as contas do staging executa estes roteiros. Para cada passo, abra o De
 | Resource Circle | Abrir Oração, gerar um Pulso, cancelar, gerar de novo e salvar | `/prayer/requests` só traz pedidos `rede`; nenhum `health_*` na ficha (hoje vem, [OBT-553](https://linear.app/shema-obt/issue/OBT-553)) |
 | Líder de base (pelo celular, sem conta) | Abrir o link do intake, preencher, fechar a aba no meio, voltar, enviar | `GET /intake/{token}` só traz o nome da língua; depois de enviar, o link não abre de novo |
 | Admin | Conceder e revogar um papel em Acesso; importar um arquivo | a prévia aparece antes de aplicar; quem não é coordenação vê a frase de que a importação é da coordenação |
-| Qualquer papel | Sair e entrar com outra conta no mesmo navegador | em DevTools → Application → Local Storage, nenhuma chave `shema-projects-v1`, `shema-form-submissions-v1` ou `shema-regions-v1` com dados do usuário anterior |
+| Qualquer papel | Sair e entrar com outra conta no mesmo navegador | em DevTools → Application → Local Storage, nenhuma chave `shema-projects-v1`, `shema-form-submissions-v1` ou `shema-regions-v1` com dados do usuário anterior; depois de Sair o endereço é `/`, sem a busca nem os filtros, e Projetos abre sem eles para a outra conta |
 
 ### 6.2 Rede ruim
 
