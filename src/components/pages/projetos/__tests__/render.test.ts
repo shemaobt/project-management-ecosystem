@@ -185,3 +185,21 @@ describe("as duas metáforas mostram a mesma janela do conjunto", () => {
     expect(markup).toContain(`${PAGE_SIZE}/${sorted.length}`);
   });
 });
+
+describe("a grade do Diário com nome longo (OBT-630)", () => {
+  const SESSENTA = "Purépecha de Capacuaro da Meseta Tarasca, Michoacán, Méxicos";
+
+  it("o item da grade começa a trilha do cartão em zero: um nome de 60 caracteres não vira a largura mínima do cartão", () => {
+    const markup = renderToStaticMarkup(
+      createElement(JournalView, {
+        projects: [makeProject({ id: "nome-longo", languageName: SESSENTA })],
+        onOpen: noop,
+      }),
+    );
+    const item = markup.match(/<li class="([^"]*)"/u)?.[1].split(/\s+/u) ?? [];
+
+    expect(SESSENTA).toHaveLength(60);
+    expect(item).toEqual(expect.arrayContaining(["grid", "grid-cols-1"]));
+    expect(markup).toContain(`>${SESSENTA}<`);
+  });
+});
