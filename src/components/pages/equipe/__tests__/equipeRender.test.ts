@@ -280,7 +280,10 @@ describe("a Equipe só é editável para a coordenação e a plataforma, na regi
   });
 
   it("a página pergunta o papel e o escopo da sessão, não só o escopo", () => {
-    const page = readFileSync(join(process.cwd(), "src/components/pages/equipe/index.tsx"), "utf8");
+    const page = readFileSync(join(process.cwd(), "src/components/pages/equipe/index.tsx"), "utf8")
+      .replace(/\s+/gu, " ")
+      .replace(/\( /gu, "(")
+      .replace(/,? \)/gu, ")");
     expect(page).toContain("canWriteRegionTeam(user.roles, user.writeRegionScope, region)");
     expect(page).not.toContain("writesProjectIn");
   });

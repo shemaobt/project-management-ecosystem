@@ -263,10 +263,14 @@ describe("o Link do líder é de quem o POST /intake-links admite (OBT-620)", ()
   });
 
   it("o cabeçalho pergunta o papel, e o diálogo com a lista de links só monta para quem gera o link", () => {
-    const header = readFileSync(join(process.cwd(), "src/components/layout/AppHeader.tsx"), "utf8");
+    const header = readFileSync(join(process.cwd(), "src/components/layout/AppHeader.tsx"), "utf8")
+      .replace(/\s+/gu, " ")
+      .replace(/\( /gu, "(")
+      .replace(/,? \)/gu, ")");
     expect(header).toContain("canMintLeaderLinks(user.roles, user.writeRegionScope)");
-    expect(header.match(/<LeaderLinkDialog\b/gu)).toHaveLength(1);
-    expect(header).toMatch(/\{mintsLinks \? \(\s*<LeaderLinkDialog\b/u);
+    const mounts = header.split("<LeaderLinkDialog");
+    expect(mounts).toHaveLength(2);
+    expect(mounts[0].slice(-40)).toMatch(/mintsLinks (\?|&&)/u);
   });
 });
 
