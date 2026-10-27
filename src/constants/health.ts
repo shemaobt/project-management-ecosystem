@@ -68,10 +68,6 @@ export const HEALTH_DIMENSION_KEYS: readonly HealthDimensionKey[] =
  */
 export const CURRENT_QUESTION_SET_VERSION = 1;
 
-/**
- * The wizard's words for when the pastoral intervention happens — the record's Saúde tab says
- * the same ones beside who will do it (OBT-628).
- */
 export const PASTORAL_WHEN_LABEL_KEYS: Record<PastoralWhen, string> = {
   now: "hw_pastoral_now",
   "30d": "hw_pastoral_30d",

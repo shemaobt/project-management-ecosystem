@@ -351,9 +351,13 @@ describe("a intervenção pastoral se vê sem abrir nada", () => {
       join(process.cwd(), "src/components/pages/ficha/tabs/saude/SaudeForm.tsx"),
       "utf8",
     ).replace(/\s+/gu, "");
-    expect(form).toContain('draft.set("needsPastoralIntervention",answer);');
-    expect(form).toContain(
-      'draft.set("pastoralInterventionWhen",pastoralWhenFor(draft.saved,answer),);',
+    const answer = /draft\.set\("needsPastoralIntervention",(\w+)\)/u.exec(form)?.[1];
+    expect(answer).toBeDefined();
+    expect(form).toMatch(
+      new RegExp(
+        `draft\\.set\\("pastoralInterventionWhen",pastoralWhenFor\\(draft\\.saved,${answer}\\),?\\)`,
+        "u",
+      ),
     );
   });
 
