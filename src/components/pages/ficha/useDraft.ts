@@ -14,9 +14,8 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { canReadHealth, canWriteHealth, newRecordOutsideWrites } from "../../../utils/access";
 import type { RegionKey } from "../../../types/region";
 import {
-  mayWrite,
-  mayWriteNeedDescription,
   recordAccess,
+  writableDraft,
   type RecordAccess,
 } from "../../../utils/recordAccess";
 
@@ -57,58 +56,6 @@ export interface DraftHandle {
 }
 
 const NO_ERRORS: RecordFieldError[] = [];
-const EMPTY_DRAFT: ProjectDraft = {};
-
-function withSavedDescriptions(
-  draft: ProjectDraft,
-  saved: Project | undefined,
-): ProjectDraft {
-  const needs = draft.needsItems;
-  if (!needs || !saved) return draft;
-  const held = new Map(saved.needsItems.map((need) => [need.id, need]));
-  const kept = needs.map((need) => {
-    const stored = need.id ? held.get(need.id) : undefined;
-    return stored ? { ...need, description: stored.description } : need;
-  });
-  return { ...draft, needsItems: kept };
-}
-
-/** The saved stories' places back on the rows that name them — `""` for a withheld reader. */
-function withSavedPlaces(
-  draft: ProjectDraft,
-  saved: Project | undefined,
-): ProjectDraft {
-  const stories = draft.storyProgress;
-  if (!stories || !saved) return draft;
-  const held = new Map<string, string[]>();
-  for (const row of saved.storyProgress ?? []) {
-    held.set(row.name, [...(held.get(row.name) ?? []), row.recordLocation ?? ""]);
-  }
-  const kept = stories.map((row) => {
-    const places = held.get(row.name);
-    return places?.length ? { ...row, recordLocation: places.shift() } : row;
-  });
-  return { ...draft, storyProgress: kept };
-}
-
-export function writableDraft(
-  draft: ProjectDraft | undefined,
-  place: RecordAccess,
-  saved?: Project,
-): ProjectDraft {
-  if (!draft) return EMPTY_DRAFT;
-  const kept = Object.entries(draft).filter(
-    ([field]) => field !== "readAs" && mayWrite(place, field as RecordField),
-  );
-  const writable =
-    kept.length === Object.keys(draft).length
-      ? draft
-      : (Object.fromEntries(kept) as ProjectDraft);
-  return mayWriteNeedDescription(place, true)
-    ? writable
-    : withSavedPlaces(withSavedDescriptions(writable, saved), saved);
-}
-
 export function useDraft(recordId: string): DraftHandle {
   const draft = useRecordStore((state) => state.drafts[recordId]);
   const updateDraft = useRecordStore((state) => state.updateDraft);
