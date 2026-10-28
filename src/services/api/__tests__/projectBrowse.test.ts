@@ -65,6 +65,7 @@ const WIRE_ASHANINKA = {
   startDate: null,
   deadline: null,
   lastUpdated: "2024-11-29",
+  completedDate: null,
   inEten: false,
   needsNotes: "",
   notes: "",
@@ -197,6 +198,27 @@ describe("o card que a BE-05 devolve, mapeado para o Project local", () => {
       offset: 0,
     });
     expect(result.items[0].healthEmotional).toBe("");
+  });
+
+  it("o completedDate do card chega ao Project; nulo ou ausente fica ausente (OBT-622)", async () => {
+    const completedDate = async (value: unknown) => {
+      script = () => ({
+        status: 200,
+        data: { ...WIRE_PAGE, items: [{ ...WIRE_ASHANINKA, completedDate: value }] },
+      });
+      const result = await projectBrowseAPI.browse({
+        filters: EMPTY_FILTERS,
+        search: "",
+        sort: DEFAULT_SORT,
+        limit: null,
+        offset: 0,
+      });
+      return result.items[0].completedDate;
+    };
+
+    expect(await completedDate("2026-07-31")).toBe("2026-07-31");
+    expect(await completedDate(null)).toBeUndefined();
+    expect(await completedDate(undefined)).toBeUndefined();
   });
 
   it("as necessidades chegam com a categoria e a urgência, sem descrição — o card não a envia", async () => {

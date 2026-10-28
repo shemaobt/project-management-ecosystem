@@ -70,6 +70,7 @@ interface WireProjectCard {
   startDate: string | null;
   deadline: string | null;
   lastUpdated: string | null;
+  completedDate?: string | null;
   inEten: boolean;
   needsNotes: string;
   notes: string;
@@ -170,6 +171,7 @@ function mapCard(wire: WireProjectCard): Project {
     // own already-inferred reading, which is what makes `getProjectStatus` converge to
     // the same answer client-side whether or not this project ever had one saved.
     status: derived?.status ?? "desconhecido",
+    completedDate: wire.completedDate ?? undefined,
     sensitiveCountry: wire.locationWithheld,
     languageNameWithheld: wire.languageNameWithheld === true,
     readAs: readReadAs(wire.readAs),
