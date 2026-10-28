@@ -281,12 +281,10 @@ describe("o aviso de uma gravação que terminou longe do cartão", () => {
     const away = replay([...grantingA, ...searched(3, B)]);
 
     expect(awayNotice(away, { type: "written", ticket: 2, account: A_WITH_INTERCESSOR })).toEqual({
-      ticket: 2,
       target: A,
       failure: null,
     });
     expect(awayNotice(away, { type: "refused", ticket: 2, failure: REFUSED })).toEqual({
-      ticket: 2,
       target: A,
       failure: REFUSED,
     });
@@ -304,7 +302,6 @@ describe("o aviso de uma gravação que terminou longe do cartão", () => {
     store.dispatch({ type: "left" });
 
     expect(store.dispatch({ type: "written", ticket: 2, account: A_WITH_INTERCESSOR })).toEqual({
-      ticket: 2,
       target: A,
       failure: null,
     });

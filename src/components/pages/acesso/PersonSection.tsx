@@ -70,13 +70,11 @@ export type { Lookup };
 
 const nameOf = (account: AccountGrants) => account.displayName ?? account.email;
 
-function announceAway({ ticket, target, failure }: AwayNotice, t: TFunction) {
-  const id = `acesso-write-${ticket}`;
+function announceAway({ target, failure }: AwayNotice, t: TFunction) {
   if (failure === null) {
-    toast(t("acesso_change_saved", { person: nameOf(target) }), { id });
+    toast(t("acesso_change_saved", { person: nameOf(target) }));
   } else {
     toast(t("acesso_change_not_saved", { person: nameOf(target) }), {
-      id,
       description: <RefusalText failure={failure} />,
     });
   }

@@ -39,7 +39,6 @@ export type PersonEvent =
   | { type: "left" };
 
 export interface AwayNotice {
-  ticket: number;
   target: AccountGrants;
   failure: ApiFailure | null;
 }
@@ -176,7 +175,6 @@ export function awayNotice(state: PersonState, event: PersonEvent): AwayNotice |
   const write = writeOf(state, event.ticket);
   if (!write || onScreen(state, write.target.userId)) return null;
   return {
-    ticket: write.ticket,
     target: write.target,
     failure: event.type === "refused" ? event.failure : null,
   };
