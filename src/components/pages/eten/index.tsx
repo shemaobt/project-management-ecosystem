@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { etenAPI, failureMessage, toApiFailure } from "../../../services/api";
+import {
+  etenAPI,
+  failureMessage,
+  pulseLanguage,
+  toApiFailure,
+  type PulseLanguage,
+} from "../../../services/api";
 import type { EtenYearReport } from "../../../types/eten";
 import type { ApiFailure } from "../../../types/session";
 import { EmptyState } from "../../common/EmptyState";
@@ -111,19 +117,23 @@ export function EtenView({
 
 interface Answer {
   year: number;
+  language: PulseLanguage;
   attempt: number;
   report: EtenYearReport | null;
   failure: ApiFailure | null;
 }
 
 /**
- * One request per year chosen and per retry. An answer is shown only for the year and the
- * attempt it was asked for, so a slow reply for the year left behind never lands under the
- * label of the year on screen — a figure that goes to a funder under the wrong year is the
- * failure this screen exists to prevent. The failure is kept raw and worded at render.
+ * One request per year chosen, per language and per retry. An answer is shown only for the year,
+ * the language and the attempt it was asked for, so a slow reply for the year left behind never
+ * lands under the label of the year on screen — a figure that goes to a funder under the wrong year
+ * is the failure this screen exists to prevent. The language is asked because the server orders a
+ * withheld name the way the screen prints it (OBT-657), and the toggle is the header's, so a switch
+ * asks again. The failure is kept raw and worded at render.
  */
 export function EtenPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const language = pulseLanguage(i18n.language);
   const [now] = useState(() => new Date());
   const [year, setYear] = useState(() => defaultReportYear(now));
   const [attempt, setAttempt] = useState(0);
@@ -132,22 +142,27 @@ export function EtenPage() {
   useEffect(() => {
     let cancelled = false;
     etenAPI
-      .report(year)
+      .report(year, language)
       .then((report) => {
-        if (!cancelled) setAnswer({ year, attempt, report, failure: null });
+        if (!cancelled) setAnswer({ year, language, attempt, report, failure: null });
       })
       .catch((raw: unknown) => {
         if (!cancelled) {
-          setAnswer({ year, attempt, report: null, failure: toApiFailure(raw) });
+          setAnswer({ year, language, attempt, report: null, failure: toApiFailure(raw) });
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [year, attempt]);
+  }, [year, language, attempt]);
 
   const current =
-    answer && answer.year === year && answer.attempt === attempt ? answer : null;
+    answer &&
+    answer.year === year &&
+    answer.language === language &&
+    answer.attempt === attempt
+      ? answer
+      : null;
 
   return (
     <EtenView

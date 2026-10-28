@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import type { SortKey } from "../../../constants/sorting";
-import { projectBrowseAPI, toApiFailure } from "../../../services/api";
+import {
+  projectBrowseAPI,
+  toApiFailure,
+  type PulseLanguage,
+} from "../../../services/api";
 import type { ProjectFilters } from "../../../stores/filtersStore";
 import type { ProjectBrowseResult } from "../../../types/projectBrowse";
 import type { ApiFailure } from "../../../types/session";
@@ -14,6 +18,11 @@ export interface ProjectBrowseParams {
   /** `null` asks for the whole scoped collection, unpaged. */
   limit: number | null;
   offset: number;
+  /**
+   * The language the screen prints in, which the server orders a withheld name by (OBT-657) — a
+   * read whose order is shown passes it, and a switch of language asks again.
+   */
+  language?: PulseLanguage;
 }
 
 export interface ProjectBrowseState {
@@ -62,8 +71,8 @@ export function useProjectBrowse(params: ProjectBrowseParams): ProjectBrowseStat
   }, [params.search]);
 
   const [attempt, setAttempt] = useState(0);
-  const { filters, sort, limit, offset } = params;
-  const key = JSON.stringify([filters, debouncedSearch, sort, limit, offset, attempt]);
+  const { filters, sort, limit, offset, language } = params;
+  const key = JSON.stringify([filters, debouncedSearch, sort, limit, offset, language, attempt]);
 
   const [fetched, setFetched] = useState<Fetched>({
     key,
@@ -79,7 +88,7 @@ export function useProjectBrowse(params: ProjectBrowseParams): ProjectBrowseStat
   useEffect(() => {
     let active = true;
     projectBrowseAPI
-      .browse({ filters, search: debouncedSearch, sort, limit, offset })
+      .browse({ filters, search: debouncedSearch, sort, limit, offset }, language)
       .then((result) => {
         if (!active) return;
         setFetched((previous) =>
@@ -99,7 +108,7 @@ export function useProjectBrowse(params: ProjectBrowseParams): ProjectBrowseStat
     return () => {
       active = false;
     };
-  }, [key, filters, debouncedSearch, sort, limit, offset]);
+  }, [key, filters, debouncedSearch, sort, limit, offset, language]);
 
   return {
     data: fetched.data,

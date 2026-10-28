@@ -154,6 +154,23 @@ describe("a query que a Projetos manda", () => {
     const params = lastConfig?.params as URLSearchParams;
     expect(params.get("offset")).toBe("30");
   });
+
+  it("diz a língua em que a tela imprime no cabeçalho, nunca na URL (OBT-657)", async () => {
+    const query = {
+      filters: EMPTY_FILTERS,
+      search: "",
+      sort: "name" as const,
+      limit: 30,
+      offset: 0,
+    };
+    await projectBrowseAPI.browse(query, "en");
+    expect(lastConfig?.headers.get("X-Shema-Language")).toBe("en");
+    const params = lastConfig?.params as URLSearchParams;
+    expect([...params.keys()].some((key) => key.toLowerCase().includes("lang"))).toBe(false);
+
+    await projectBrowseAPI.browse(query);
+    expect(lastConfig?.headers.has("X-Shema-Language")).toBe(false);
+  });
 });
 
 describe("o card que a BE-05 devolve, mapeado para o Project local", () => {

@@ -31,6 +31,7 @@ import type {
 } from "../types/project";
 import type { LoadedRecord } from "../types/projectRecord";
 import type { RecordSaveResult } from "../services/api/projectRecord";
+import type { PulseLanguage } from "../services/api/endpoints";
 import type { GeoOutline, Region, RegionKey, RegionTeam, RoleChange } from "../types/region";
 import type { SaveOutcome } from "../types/team";
 import type {
@@ -134,9 +135,15 @@ export const healthAssessmentsAPI = {
   },
 };
 
-/** The Projetos screen's own capability — see `types/projectBrowse.ts`. */
-export const projectBrowseAPI = {
-  async browse(query: ProjectBrowseQuery): Promise<ProjectBrowseResult> {
+/**
+ * The Projetos screen's own capability — see `types/projectBrowse.ts`. Typed with the language the
+ * console prints in, which the server orders a withheld name by (OBT-657); this double keeps its own
+ * comparator and does not read it.
+ */
+export const projectBrowseAPI: {
+  browse(query: ProjectBrowseQuery, language?: PulseLanguage): Promise<ProjectBrowseResult>;
+} = {
+  async browse(query) {
     return browseProjects(query);
   },
 };
@@ -218,11 +225,19 @@ export const intercessorsAPI = {
   },
 };
 
-export const etenAPI = {
-  async report(year: number): Promise<EtenYearReport> {
+/**
+ * `GET /eten/report` as the double answers it. Typed with the language the console prints in, which
+ * orders a withheld name on the server (OBT-657); the double withholds no name, so it orders nothing
+ * here and is not read.
+ */
+export const etenAPI: {
+  report(year: number, language: PulseLanguage): Promise<EtenYearReport>;
+  credits(): Promise<EtenCreditEntry[]>;
+} = {
+  async report(year) {
     return buildEtenReport(loadProjects(), year, loadEtenCredits());
   },
-  async credits(): Promise<EtenCreditEntry[]> {
+  async credits() {
     return loadEtenCredits();
   },
 };

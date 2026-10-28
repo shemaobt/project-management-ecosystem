@@ -19,6 +19,7 @@ import { encodeView } from "../../utils/filterSerialisation";
 import { GATED_FACETS } from "../../utils/gatedFacets";
 import { emptyCounts, type FacetCounts, type FacetGroup } from "../../utils/search";
 import { http } from "./client";
+import { LANGUAGE_HEADER, type PulseLanguage } from "./endpoints";
 import { readReadAs } from "./projectRecord";
 
 const SHEMA = "/shema";
@@ -236,9 +237,17 @@ function mapPage(wire: WireProjectPage): ProjectBrowseResult {
 }
 
 export const projectBrowseAPI = {
-  async browse(query: ProjectBrowseQuery): Promise<ProjectBrowseResult> {
+  /**
+   * `language` orders a withheld name the way this console prints it (OBT-657), so a caller that
+   * shows the order passes it; one that reads only the counts or the whole collection need not.
+   */
+  async browse(
+    query: ProjectBrowseQuery,
+    language?: PulseLanguage,
+  ): Promise<ProjectBrowseResult> {
     const { data } = await http.get<WireProjectPage>(`${SHEMA}/projects`, {
       params: buildParams(query),
+      headers: language ? { [LANGUAGE_HEADER]: language } : undefined,
     });
     return mapPage(data);
   },

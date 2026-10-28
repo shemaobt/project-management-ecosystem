@@ -5,7 +5,7 @@ import type { CardMetaphor } from "../../../constants/metaphors";
 import { DEFAULT_TAB } from "../../../constants/recordTabs";
 import { DEFAULT_SORT, sortKeysFor } from "../../../constants/sorting";
 import { useAuth } from "../../../contexts/AuthContext";
-import { failureMessage } from "../../../services/api";
+import { failureMessage, pulseLanguage } from "../../../services/api";
 import { EMPTY_FILTERS, useFiltersStore } from "../../../stores/filtersStore";
 import { usePrefsStore } from "../../../stores/prefsStore";
 import type { Project } from "../../../types/project";
@@ -63,7 +63,7 @@ function ResultsView({
 }
 
 export function ProjetosPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const filters = useFiltersStore((state) => state.filters);
@@ -121,7 +121,14 @@ export function ProjetosPage() {
   // client-side below it, per §5.1); only Diário's grid is server-paged.
   const limit = metaphor === "atlas" ? null : requestedCount;
 
-  const live = useProjectBrowse({ filters, search, sort, limit, offset: 0 });
+  const live = useProjectBrowse({
+    filters,
+    search,
+    sort,
+    limit,
+    offset: 0,
+    language: pulseLanguage(i18n.language),
+  });
   // The sidebar's option universe, saved-view availability and "Time por região" cards
   // read the whole scoped collection, unfiltered — `EMPTY_FILTERS` is a stable module
   // constant, so this fetch only ever runs once per mount.
