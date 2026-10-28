@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/brand/icon-telha.svg" />
     <title>Ecossistema Shemá</title>
+    <!-- O tema guardado entra antes da primeira pintura: o bundle é módulo (adiado) e o CSS não espera por ele. Espelha o ThemeContext. -->
+    <script>
+      (function () {
+        var tema = null;
+        try {
+          tema = localStorage.getItem("shema-theme-v1");
+        } catch (e) {}
+        if (tema === "dark" || (tema === "system" && matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
