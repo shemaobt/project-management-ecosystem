@@ -137,6 +137,21 @@ function isEmptyAnswer(value: unknown): boolean {
 
 const PERIOD_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
+/**
+ * Counted as the server's `len()` counts, in code points: `.length` counts an emoji twice, and
+ * a report the server would take must not be refused here.
+ */
+export function answerLength(text: string): number {
+  return [...text].length;
+}
+
+/** An empty answer is never too long — the server skips it before any limit (`_is_empty`). */
+export function tooLongKey(field: IntakeField, value: unknown): "intake_err_too_long" | null {
+  if (field.type !== "text" && field.type !== "longText") return null;
+  if (field.maxLength === null || isEmptyAnswer(value)) return null;
+  return answerLength(String(value)) > field.maxLength ? "intake_err_too_long" : null;
+}
+
 /** One i18n key per field that fails — never the field's fault text, which is English. */
 export function validateIntakeAnswers(
   fields: readonly IntakeField[],
@@ -152,13 +167,8 @@ export function validateIntakeAnswers(
     if (field.type === "period" && !PERIOD_PATTERN.test(String(value))) {
       errors[field.key] = "intake_err_period";
     }
-    if (
-      (field.type === "text" || field.type === "longText") &&
-      field.maxLength !== null &&
-      String(value).length > field.maxLength
-    ) {
-      errors[field.key] = "intake_err_too_long";
-    }
+    const tooLong = tooLongKey(field, value);
+    if (tooLong) errors[field.key] = tooLong;
     if (field.type === "choice" && !field.options.includes(String(value))) {
       errors[field.key] = "intake_err_choice";
     }

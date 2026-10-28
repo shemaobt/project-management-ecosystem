@@ -8,7 +8,8 @@ import type { IntakeField } from "../../../types/forms";
 import type { BookProgressItem } from "../../../types/project";
 import { BookTable } from "../ficha/tabs/progresso/BookTable";
 import { PrayerConsent } from "../ficha/tabs/saude/PrayerConsent";
-import type { IntakeImageUpload } from "../../../utils/intake";
+import { cn } from "../../../utils/cn";
+import { answerLength, tooLongKey, type IntakeImageUpload } from "../../../utils/intake";
 import { CheckboxField, Input, Label, Radio, RadioGroup, Textarea } from "../../ui";
 import { IntakeImageField } from "./IntakeImageField";
 
@@ -43,7 +44,11 @@ export function IntakeFieldInput({
 }: IntakeFieldInputProps) {
   const { t } = useTranslation();
   const fieldId = useId();
-  const invalid = Boolean(errorKey);
+  const errorId = `${fieldId}-erro`;
+  const tooLong = tooLongKey(field, value);
+  const shownError = errorKey ?? tooLong;
+  const invalid = Boolean(shownError);
+  const describedBy = shownError ? errorId : undefined;
   const prayerVisibilityField = isPrayerVisibilityField(field);
 
   const hasOwnControlId =
@@ -64,7 +69,9 @@ export function IntakeFieldInput({
         />
         <p className="mt-1.5 pl-7.5 text-tag text-fg-muted">{t("intake_authorization_hint")}</p>
         {errorKey ? (
-          <p className="mt-1.5 text-tag font-semibold text-telha">{t(errorKey)}</p>
+          <p role="alert" className="mt-1.5 text-tag font-semibold text-telha">
+            {t(errorKey)}
+          </p>
         ) : null}
       </fieldset>
     );
@@ -86,9 +93,9 @@ export function IntakeFieldInput({
         <Input
           id={fieldId}
           type="text"
-          maxLength={field.maxLength ?? undefined}
           value={asString(value)}
           invalid={invalid}
+          aria-describedby={describedBy}
           onChange={(event) => onChange(event.target.value)}
         />
       ) : null}
@@ -98,14 +105,19 @@ export function IntakeFieldInput({
           <Textarea
             id={fieldId}
             rows={4}
-            maxLength={field.maxLength ?? undefined}
             value={asString(value)}
             invalid={invalid}
+            aria-describedby={describedBy}
             onChange={(event) => onChange(event.target.value)}
           />
           {field.maxLength ? (
-            <p className="text-right text-tag text-fg-subtle">
-              {asString(value).length}/{field.maxLength}
+            <p
+              className={cn(
+                "text-right text-tag",
+                tooLong ? "font-semibold text-telha" : "text-fg-subtle",
+              )}
+            >
+              {answerLength(asString(value))}/{field.maxLength}
             </p>
           ) : null}
         </>
@@ -117,6 +129,7 @@ export function IntakeFieldInput({
           type="month"
           value={asString(value)}
           invalid={invalid}
+          aria-describedby={describedBy}
           onChange={(event) => onChange(event.target.value)}
         />
       ) : null}
@@ -162,8 +175,10 @@ export function IntakeFieldInput({
         </RadioGroup>
       ) : null}
 
-      {errorKey ? (
-        <p className="text-tag font-semibold text-telha">{t(errorKey)}</p>
+      {shownError ? (
+        <p id={errorId} role="alert" className="text-tag font-semibold text-telha">
+          {t(shownError)}
+        </p>
       ) : null}
     </div>
   );

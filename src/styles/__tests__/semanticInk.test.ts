@@ -1,14 +1,13 @@
-import { spawn } from "node:child_process";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
-import { createServer as createNetServer } from "node:net";
-import { homedir, tmpdir } from "node:os";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ESLint } from "eslint";
 import { compile } from "tailwindcss";
-import { createServer as createViteServer, type ViteDevServer } from "vite";
+import type { ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { BRAND_INK, NOT_SHIPPED_STYLING } from "../../../eslint.config.js";
 import { TOAST_CLASSNAMES } from "../../components/ui/Toaster";
+import { CHROME, launchChrome, serveProbe } from "../../__tests__/headlessChrome";
 
 const eslint = new ESLint();
 
@@ -201,22 +200,6 @@ const FE03_CLASSNAMES: ClassNames = {
   loading: "bg-inverse",
 };
 
-function findChrome(): string | undefined {
-  if (process.env.SHEMA_CHROME) return process.env.SHEMA_CHROME;
-  const cache = join(homedir(), ".cache", "ms-playwright");
-  if (!existsSync(cache)) return undefined;
-  return readdirSync(cache)
-    .filter((entry) => entry.startsWith("chromium_headless_shell-"))
-    .sort()
-    .reverse()
-    .map((entry) =>
-      join(cache, entry, "chrome-headless-shell-linux64", "chrome-headless-shell"),
-    )
-    .find((path) => existsSync(path));
-}
-
-const CHROME = findChrome();
-
 function rgb(token: string): string {
   const hex = resolve(token);
   const [r, g, b] = [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
@@ -298,21 +281,6 @@ window.probe = {
 };
 `;
 
-async function freePort(): Promise<number> {
-  return new Promise((done, fail) => {
-    const probe = createNetServer();
-    probe.once("error", fail);
-    probe.listen(0, "127.0.0.1", () => {
-      const address = probe.address();
-      if (address === null || typeof address === "string") {
-        fail(new Error(`porta inesperada: ${address}`));
-        return;
-      }
-      probe.close(() => done(address.port));
-    });
-  });
-}
-
 async function compileToastCss(): Promise<string> {
   const tailwind = readFileSync(
     join(process.cwd(), "node_modules", "tailwindcss", "index.css"),
@@ -331,151 +299,6 @@ async function compileToastCss(): Promise<string> {
   return compiler.build([...new Set(candidates)]);
 }
 
-async function serveProbe(scratch: string): Promise<ViteDevServer> {
-  const port = await freePort();
-  const server = await createViteServer({
-    configFile: false,
-    logLevel: "silent",
-    root: process.cwd(),
-    publicDir: false,
-    cacheDir: join(scratch, "vite"),
-    esbuild: { jsx: "automatic" },
-    server: { port, strictPort: true, host: "127.0.0.1", hmr: false, ws: false },
-    optimizeDeps: {
-      include: ["react", "react/jsx-dev-runtime", "react-dom", "react-dom/client", "sonner"],
-      noDiscovery: true,
-    },
-    plugins: [
-      {
-        name: "toast-probe",
-        resolveId: (id) => (id === "virtual:toast-probe" ? "\0toast-probe" : null),
-        load: (id) => (id === "\0toast-probe" ? PROBE_MODULE : null),
-        configureServer(dev) {
-          dev.middlewares.use((request, response, next) => {
-            if (request.url !== "/") return next();
-            response.setHeader("content-type", "text/html");
-            response.end(
-              '<!doctype html><html><head></head><body><script type="module" src="/@id/virtual:toast-probe"></script></body></html>',
-            );
-          });
-        },
-      },
-    ],
-  });
-  await server.listen();
-  return server;
-}
-
-interface CdpMessage {
-  id?: number;
-  method?: string;
-  params?: { exceptionDetails?: { exception?: { description?: string }; text: string } };
-  result?: unknown;
-  error?: { message: string };
-}
-
-interface EvaluateResult {
-  result: { value: unknown };
-  exceptionDetails?: { exception?: { description?: string }; text: string };
-}
-
-async function launchChrome(binary: string, scratch: string) {
-  const chrome = spawn(
-    binary,
-    [
-      "--headless",
-      "--no-sandbox",
-      "--remote-debugging-port=0",
-      `--user-data-dir=${join(scratch, "chrome")}`,
-      "about:blank",
-    ],
-    { stdio: ["ignore", "ignore", "pipe"] },
-  );
-  const endpoint = await new Promise<string>((done, fail) => {
-    let log = "";
-    chrome.stderr.on("data", (chunk: Buffer) => {
-      log += chunk.toString();
-      const listening = log.match(/DevTools listening on (ws:\/\/\S+)/u);
-      if (listening) done(listening[1]);
-    });
-    chrome.once("exit", (code) => fail(new Error(`chrome saiu com ${code}: ${log}`)));
-  });
-  const targets = (await (
-    await fetch(`http://127.0.0.1:${new URL(endpoint).port}/json/list`)
-  ).json()) as { type: string; webSocketDebuggerUrl: string }[];
-  const socket = new WebSocket(targets.find((target) => target.type === "page")!.webSocketDebuggerUrl);
-  await new Promise((done, fail) => {
-    socket.addEventListener("open", done, { once: true });
-    socket.addEventListener("error", fail, { once: true });
-  });
-
-  let next = 0;
-  const waiting = new Map<number, (message: CdpMessage) => void>();
-  const listeners = new Set<(message: CdpMessage) => void>();
-  const pageErrors: string[] = [];
-  socket.addEventListener("message", (event) => {
-    const message = JSON.parse(String(event.data)) as CdpMessage;
-    if (message.id === undefined) {
-      listeners.forEach((listener) => listener(message));
-      return;
-    }
-    waiting.get(message.id)?.(message);
-    waiting.delete(message.id);
-  });
-  listeners.add((message) => {
-    const details = message.params?.exceptionDetails;
-    if (message.method === "Runtime.exceptionThrown" && details) {
-      pageErrors.push(details.exception?.description ?? details.text);
-    }
-  });
-
-  const send = (method: string, params: object = {}) =>
-    new Promise<unknown>((done, fail) => {
-      const id = ++next;
-      waiting.set(id, (message) =>
-        message.error ? fail(new Error(`${method}: ${message.error.message}`)) : done(message.result),
-      );
-      socket.send(JSON.stringify({ id, method, params }));
-    });
-
-  const event = (method: string) =>
-    new Promise<void>((done) => {
-      const listener = (message: CdpMessage) => {
-        if (message.method !== method) return;
-        listeners.delete(listener);
-        done();
-      };
-      listeners.add(listener);
-    });
-
-  await send("Page.enable");
-  await send("Runtime.enable");
-
-  return {
-    async open(url: string) {
-      const loaded = event("Page.loadEventFired");
-      await send("Page.navigate", { url });
-      await loaded;
-    },
-    async evaluate<T>(expression: string): Promise<T> {
-      const reply = (await send("Runtime.evaluate", {
-        expression,
-        awaitPromise: true,
-        returnByValue: true,
-      })) as EvaluateResult;
-      if (reply.exceptionDetails) {
-        const { exception, text } = reply.exceptionDetails;
-        throw new Error([exception?.description ?? text, ...pageErrors].join("\n"));
-      }
-      return reply.result.value as T;
-    },
-    close() {
-      socket.close();
-      chrome.kill();
-    },
-  };
-}
-
 describe.skipIf(!CHROME)("the toast, raised in a browser (headless Chrome)", () => {
   let scratch = "";
   let server: ViteDevServer | undefined;
@@ -484,7 +307,14 @@ describe.skipIf(!CHROME)("the toast, raised in a browser (headless Chrome)", () 
 
   beforeAll(async () => {
     scratch = mkdtempSync(join(tmpdir(), "toast-fill-"));
-    const [toastCss, dev] = await Promise.all([compileToastCss(), serveProbe(scratch)]);
+    const [toastCss, dev] = await Promise.all([
+      compileToastCss(),
+      serveProbe({
+        scratch,
+        module: PROBE_MODULE,
+        include: ["react", "react/jsx-dev-runtime", "react-dom", "react-dom/client", "sonner"],
+      }),
+    ]);
     server = dev;
     browser = await launchChrome(CHROME!, scratch);
     const origin = server.resolvedUrls!.local[0];
