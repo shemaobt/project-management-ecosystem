@@ -74,7 +74,7 @@ function announceAway({ target, failure }: AwayNotice, t: TFunction) {
   if (failure === null) {
     toast(t("acesso_change_saved", { person: nameOf(target) }));
   } else {
-    toast(t("acesso_change_not_saved", { person: nameOf(target) }), {
+    toast.error(t("acesso_change_not_saved", { person: nameOf(target) }), {
       description: <RefusalText failure={failure} />,
     });
   }

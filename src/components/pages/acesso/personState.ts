@@ -76,15 +76,6 @@ function withoutWrite(state: PersonState, ticket: number): readonly Write[] {
   return state.writes.filter((write) => write.ticket !== ticket);
 }
 
-/**
- * What the Pessoa panel shows and what is on its way (OBT-653). Every search carries a ticket
- * and only the latest one's answer reaches the card; every grant or revocation carries its
- * person, so its answer updates the card, its refusal lands on the row and the region picker
- * closes only while that same account is on screen — an answer for somebody else never lands
- * on the card of whoever was searched since. A write that answers while a search is on its
- * way is kept: if that search brings the same person, the card shows the write's account,
- * since the search may have read the person before the write was committed.
- */
 export function personReducer(state: PersonState, event: PersonEvent): PersonState {
   switch (event.type) {
     case "search":
@@ -165,11 +156,6 @@ export function personReducer(state: PersonState, event: PersonEvent): PersonSta
   }
 }
 
-/**
- * The notice a settled write owes when its person is not on the card — the search moved on,
- * or the page is gone. Decided against the state the answer lands on, so it is said exactly
- * when the card is not the one told.
- */
 export function awayNotice(state: PersonState, event: PersonEvent): AwayNotice | null {
   if (event.type !== "written" && event.type !== "refused") return null;
   const write = writeOf(state, event.ticket);
