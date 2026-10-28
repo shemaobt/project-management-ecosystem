@@ -192,6 +192,8 @@ interface WireRecord {
   publicLanguageName?: string | null;
   /** OBT-560, additive: `languageName` is not the language's own. */
   languageNameWithheld?: boolean;
+  /** OBT-616, additive: the listed sensitive countries the place names — a reader of the truth's. */
+  listedCountries?: unknown;
   /** OBT-528, additive: who this record was built for. */
   readAs?: string;
   statusComments: string;
@@ -242,6 +244,12 @@ export function readReadAs(value: unknown): ReadAs | undefined {
   return value === "coordination" || value === "trusted" || value === "other"
     ? value
     : undefined;
+}
+
+export function readListedCountries(value: unknown): readonly string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const names = value.filter((entry): entry is string => typeof entry === "string");
+  return names.length === value.length ? names : undefined;
 }
 
 function authorization(
@@ -466,6 +474,7 @@ export function mapRecord(wire: WireRecord): Project {
     sensitiveCountry: wire.sensitiveCountry || wire.locationWithheld === true,
     publicLanguageName: maybe(wire.publicLanguageName ?? null),
     languageNameWithheld: wire.languageNameWithheld === true,
+    listedCountries: readListedCountries(wire.listedCountries),
     readAs: readReadAs(wire.readAs),
     statusComments: wire.statusComments,
     statusGoal: wire.statusGoal,

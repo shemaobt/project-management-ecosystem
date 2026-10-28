@@ -174,3 +174,8 @@ export interface DiscardedProject {
   requestProjectId: string | null;
   detail: string;
 }
+
+export interface SensitiveCountry {
+  name: string;
+  spellings: readonly string[];
+}

@@ -171,6 +171,22 @@ describe("a leitura do registro", () => {
     expect(project.sensitiveCountry).toBe(true);
   });
 
+  it("listedCountries que não é lista de textos é resposta nenhuma — a ficha não diz porquê", async () => {
+    const listed = async (value: unknown) => {
+      script = () => ({
+        status: 200,
+        data: { ...WIRE, listedCountries: value },
+        headers: { etag: '"1"' },
+      });
+      return (await projectRecordAPI.read("ashaninka")).project.listedCountries;
+    };
+    expect(await listed(["Irã", "Índia"])).toEqual(["Irã", "Índia"]);
+    expect(await listed([])).toEqual([]);
+    expect(await listed(undefined)).toBeUndefined();
+    expect(await listed("Irã")).toBeUndefined();
+    expect(await listed(["Irã", 7])).toBeUndefined();
+  });
+
   it("completedDate, a 74ª chave, chega ao Project; ausente ou nulo fica ausente", async () => {
     const completedDate = async (value: unknown) => {
       script = () => ({

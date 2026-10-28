@@ -375,6 +375,8 @@ export interface Project {
    * region key when none is registered (OBT-560). `getLanguageNameDisplay` reads it.
    */
   languageNameWithheld?: boolean;
+  /** Server-derived and never written back; `[]` to a reader who does not read the truth. */
+  listedCountries?: readonly string[];
   statusComments: string;
   statusGoal: string;
   orgRole: string;
