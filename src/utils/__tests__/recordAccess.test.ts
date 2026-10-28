@@ -8,6 +8,7 @@ import type { NeedItem } from "../../types/project";
 import { canReadHealth } from "../access";
 import {
   FULL_ACCESS,
+  mayRaisePrayerRequest,
   mayWrite,
   mayWriteNeedDescription,
   recordAccess,
@@ -129,6 +130,12 @@ describe("mayWrite e o pedido de oração de um registro recolhido (OBT-655)", (
 
   it("a autorização segue de quem acompanha, mesmo no recolhido: num sensível o mural só leva o que a coordenação liberou", () => {
     expect(mayWrite(recordAccess(withheldOther, false, true, true), "prayerVisibility")).toBe(true);
+  });
+
+  it("o assistente de avaliação só leva um pedido novo a quem o lê", () => {
+    expect(mayRaisePrayerRequest(withheldOther)).toBe(false);
+    expect(mayRaisePrayerRequest(withheldCoordination)).toBe(true);
+    expect(mayRaisePrayerRequest(openOther)).toBe(true);
   });
 
   it("o pedido digitado no rascunho de outra pessoa não vai no salvar de quem o lê em branco", () => {

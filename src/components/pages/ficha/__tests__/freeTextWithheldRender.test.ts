@@ -230,6 +230,12 @@ describe("o pedido de oração de um registro recolhido (OBT-655)", () => {
     expect(markup).toContain(NOTE.slice(0, 40));
   });
 
+  it("na leitura, a resposta da equipe sobre compartilhar segue à vista, como na edição", () => {
+    const markup = tab("ver", place(true, "other"));
+    expect(markup).toContain(i18n.t("d_prayer"));
+    expect(markup).toContain(i18n.t("prayer_vis_coordination"));
+  });
+
   it("a coordenação edita e lê o pedido do mesmo registro", () => {
     const coordination = place(true, "coordination");
     expect(disabled(tab("editar", coordination), "saude-prayer")).toBe(false);

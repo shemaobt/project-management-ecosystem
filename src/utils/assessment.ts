@@ -55,6 +55,14 @@ export function emptyDraft(
   };
 }
 
+/**
+ * The draft a reader files: without a prayer request the record hands them blank (OBT-655). A
+ * draft resumed from before can still hold one, and the server refuses the whole reading over it.
+ */
+export function fileableDraft(draft: AssessmentDraft, raisesRequest: boolean): AssessmentDraft {
+  return raisesRequest || draft.prayerRequest === "" ? draft : { ...draft, prayerRequest: "" };
+}
+
 export function assessedCount(draft: AssessmentDraft): number {
   return HEALTH_DIMENSIONS.filter(
     (dimension) => draft.ratings[dimension.key] !== "",

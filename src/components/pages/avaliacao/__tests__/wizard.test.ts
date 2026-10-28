@@ -271,6 +271,24 @@ describe("o pedido de oração passa pelo consentimento da FE-25, sem segundo ca
     expect(step("")).not.toContain(i18n.t("prayer_vis_label"));
     expect(step("")).toContain(i18n.t("hw_prayer_optional"));
   });
+
+  it("num sensível lido em branco, o campo é só leitura e vazio, e a nota diz por quê (OBT-655)", () => {
+    const markup = renderToStaticMarkup(
+      createElement(PrayerRequestStep, {
+        request: "Orem pela viagem do mentor",
+        visibility: "rede" as const,
+        onRequest: () => {},
+        onVisibility: () => {},
+        locked: true,
+      }),
+    );
+    const field = markup.match(/<textarea[^>]*>[^<]*<\/textarea>/)?.[0] ?? "";
+
+    expect(field).toMatch(/\sdisabled=""/);
+    expect(markup).not.toContain("Orem pela viagem do mentor");
+    expect(markup).not.toContain(i18n.t("prayer_vis_label"));
+    expect(markup).toContain(i18n.t("f_free_text_coordination_only").slice(0, 40));
+  });
 });
 
 describe("as notas se leem sem depender de cor", () => {
