@@ -284,7 +284,7 @@ describe("uma avaliação sem pedido de oração não apaga o que o projeto já 
     expect(saved.prayerVisibility).toBe("coordenacao");
   });
 
-  it("a resposta pastoral é sempre gravada, com ou sem pedido", () => {
+  it("a resposta pastoral de uma leitura que vira a atual é gravada, com ou sem pedido", () => {
     const saved = applyAssessment(
       withRequest,
       draft({ pastoral: "sim", pastoralWhen: "30d", pastoralWho: "Daniel" }),
@@ -294,6 +294,106 @@ describe("uma avaliação sem pedido de oração não apaga o que o projeto já 
     expect(saved.needsPastoralIntervention).toBe("sim");
     expect(saved.pastoralInterventionWhen).toBe("30d");
     expect(saved.pastoralInterventionName).toBe("Daniel");
+  });
+});
+
+describe("a resposta pastoral só chega à ficha com a leitura que vira a atual (OBT-644, como o servidor na OBT-623)", () => {
+  const heard = (over: Partial<Project> = {}): Project => ({
+    ...createEmptyProject("kadiweu"),
+    healthHistory: [
+      {
+        date: "2026-10-26",
+        assessor: "Levi",
+        emotional: "atencao",
+        relational: "",
+        spiritual: "",
+        physical: "",
+        notes: "",
+      },
+    ],
+    healthEmotional: "atencao",
+    healthAssessmentDate: "2026-10-26",
+    healthAssessor: "Levi",
+    needsPastoralIntervention: "sim",
+    pastoralInterventionName: "Daniel — visita de campo em junho",
+    pastoralInterventionWhen: "30d",
+    ...over,
+  });
+
+  const reading = (date: string, over: Partial<AssessmentDraft> = {}) =>
+    draft({
+      date,
+      assessor: "Ana",
+      ratings: { emotional: "critica", relational: "", spiritual: "", physical: "" },
+      ...over,
+    });
+
+  it("uma retroativa deixa a resposta pastoral da leitura atual onde estava", () => {
+    const saved = applyAssessment(heard(), reading("2026-08-15"), label);
+
+    expect(saved.needsPastoralIntervention).toBe("sim");
+    expect(saved.pastoralInterventionName).toBe("Daniel — visita de campo em junho");
+    expect(saved.pastoralInterventionWhen).toBe("30d");
+    expect(saved.healthHistory?.map((entry) => entry.date)).toEqual([
+      "2026-08-15",
+      "2026-10-26",
+    ]);
+  });
+
+  it("a primeira leitura, anterior aos campos rasos que o projeto já trazia, também não troca a resposta", () => {
+    const saved = applyAssessment(
+      {
+        ...createEmptyProject("kadiweu"),
+        healthEmotional: "atencao",
+        healthAssessmentDate: "2026-05-14",
+        healthAssessor: "Levi",
+        needsPastoralIntervention: "sim",
+        pastoralInterventionName: "Pr. João",
+        pastoralInterventionWhen: "30d",
+      },
+      reading("2026-01-20"),
+      label,
+    );
+
+    expect(saved.healthHistory?.map((entry) => entry.date)).toEqual([
+      "2026-01-20",
+      "2026-05-14",
+    ]);
+    expect(saved.needsPastoralIntervention).toBe("sim");
+    expect(saved.pastoralInterventionName).toBe("Pr. João");
+    expect(saved.pastoralInterventionWhen).toBe("30d");
+  });
+
+  it("no mesmo dia da leitura atual, a nova vira a atual e leva a sua resposta", () => {
+    const saved = applyAssessment(
+      heard({
+        needsPastoralIntervention: "nao",
+        pastoralInterventionName: "",
+        pastoralInterventionWhen: "now",
+      }),
+      reading("2026-10-26", { pastoral: "sim", pastoralWho: "Daniel", pastoralWhen: "30d" }),
+      label,
+    );
+
+    expect(saved.healthEmotional).toBe("critica");
+    expect(saved.needsPastoralIntervention).toBe("sim");
+    expect(saved.pastoralInterventionName).toBe("Daniel");
+    expect(saved.pastoralInterventionWhen).toBe("30d");
+  });
+
+  it("o pedido de oração escrito numa retroativa continua sendo gravado", () => {
+    const saved = applyAssessment(
+      heard({ prayerRequests: "Orem pela chuva.", prayerVisibility: "rede" }),
+      reading("2026-08-15", {
+        prayerRequest: "Orem pela família.",
+        prayerVisibility: "coordenacao",
+      }),
+      label,
+    );
+
+    expect(saved.prayerRequests).toBe("Orem pela família.");
+    expect(saved.prayerVisibility).toBe("coordenacao");
+    expect(saved.needsPastoralIntervention).toBe("sim");
   });
 });
 
