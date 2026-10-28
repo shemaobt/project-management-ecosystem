@@ -12,8 +12,15 @@ import {
   STALE_LABEL_KEYS,
   STATUS_LABEL_KEYS,
 } from "../../../../../constants/status";
-import type { ProgressRange } from "../../../../../stores/filtersStore";
-import { PROGRESS_RANGES, YES_NO_VALUES } from "../../../../../stores/filtersStore";
+import type {
+  ProgressRange,
+  ProjectFilters,
+} from "../../../../../stores/filtersStore";
+import {
+  EMPTY_FILTERS,
+  PROGRESS_RANGES,
+  YES_NO_VALUES,
+} from "../../../../../stores/filtersStore";
 import type { HealthLevel } from "../../../../../types/project";
 import type { GatedFacet } from "../../../../../utils/gatedFacets";
 import type { FacetCounts, FacetGroup } from "../../../../../utils/search";
@@ -63,6 +70,41 @@ export function shownSections(
   return sections.filter(
     (section) => !hidden.some((group) => group === section.id),
   );
+}
+
+export interface OpenSections {
+  advanced: boolean;
+  sections: ReadonlySet<FilterSectionId>;
+  fittedTo: ProjectFilters;
+}
+
+const RESTING: OpenSections = {
+  advanced: false,
+  sections: new Set(PRIMARY_SECTIONS.map((section) => section.id)),
+  fittedTo: EMPTY_FILTERS,
+};
+
+export function fitOpenSections(
+  open: OpenSections,
+  filters: ProjectFilters,
+  hidden: readonly GatedFacet[],
+): OpenSections {
+  const arrived = shownSections(ADVANCED_SECTIONS, hidden)
+    .map((section) => section.id)
+    .filter((id) => filters[id] !== null && filters[id] !== open.fittedTo[id]);
+  if (arrived.length === 0) return { ...open, fittedTo: filters };
+  return {
+    advanced: true,
+    sections: new Set([...open.sections, ...arrived]),
+    fittedTo: filters,
+  };
+}
+
+export function openSectionsFor(
+  filters: ProjectFilters,
+  hidden: readonly GatedFacet[],
+): OpenSections {
+  return fitOpenSections(RESTING, filters, hidden);
 }
 
 export interface FilterOptionSpec<V extends string = string> {

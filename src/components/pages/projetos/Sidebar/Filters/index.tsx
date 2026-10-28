@@ -1,16 +1,19 @@
 import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { ProjectFilters } from "../../../../../stores/filtersStore";
 import { useFiltersStore } from "../../../../../stores/filtersStore";
 import { cn } from "../../../../../utils/cn";
 import type { GatedFacet } from "../../../../../utils/gatedFacets";
 import type { FacetCounts } from "../../../../../utils/search";
 import { FilterSection } from "./FilterSection";
-import type { FilterSectionConfig } from "./sections";
+import type { FilterSectionConfig, FilterSectionId } from "./sections";
 import {
   ADVANCED_SECTIONS,
   PRIMARY_SECTIONS,
   buildFilterOptions,
+  fitOpenSections,
+  openSectionsFor,
   resolveSectionOptions,
   shownSections,
 } from "./sections";
@@ -21,29 +24,41 @@ export interface DetailedFiltersProps {
   hidden: readonly GatedFacet[];
 }
 
-export function DetailedFilters({
+export interface DetailedFiltersViewProps extends DetailedFiltersProps {
+  filters: ProjectFilters;
+  onSelect: (section: FilterSectionId, value: string | null) => void;
+}
+
+export function DetailedFilters(props: DetailedFiltersProps) {
+  const filters = useFiltersStore((state) => state.filters);
+  const setFilter = useFiltersStore((state) => state.setFilter);
+  return <DetailedFiltersView {...props} filters={filters} onSelect={setFilter} />;
+}
+
+export function DetailedFiltersView({
   baseline,
   counts,
   hidden,
-}: DetailedFiltersProps) {
+  filters,
+  onSelect,
+}: DetailedFiltersViewProps) {
   const { t } = useTranslation();
-  const filters = useFiltersStore((state) => state.filters);
-  const setFilter = useFiltersStore((state) => state.setFilter);
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(
-    () => new Set(PRIMARY_SECTIONS.map((section) => section.id)),
-  );
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [open, setOpen] = useState(() => openSectionsFor(filters, hidden));
+  if (open.fittedTo !== filters) {
+    setOpen(fitOpenSections(open, filters, hidden));
+  }
+  const showAdvanced = open.advanced;
   const options = useMemo(() => buildFilterOptions(baseline), [baseline]);
 
-  const toggleSection = (id: string) => {
-    setExpanded((previous) => {
-      const next = new Set(previous);
-      if (next.has(id)) {
-        next.delete(id);
+  const toggleSection = (id: FilterSectionId) => {
+    setOpen((previous) => {
+      const sections = new Set(previous.sections);
+      if (sections.has(id)) {
+        sections.delete(id);
       } else {
-        next.add(id);
+        sections.add(id);
       }
-      return next;
+      return { ...previous, sections };
     });
   };
 
@@ -52,7 +67,7 @@ export function DetailedFilters({
       key={section.id}
       id={section.id}
       title={t(section.titleKey)}
-      open={expanded.has(section.id)}
+      open={open.sections.has(section.id)}
       onToggle={() => toggleSection(section.id)}
       allCount={counts.groupAll[section.id]}
       options={resolveSectionOptions(
@@ -65,7 +80,7 @@ export function DetailedFilters({
         label: option.labelKey ? t(option.labelKey) : option.value,
       }))}
       activeValue={filters[section.id]}
-      onSelect={(value) => setFilter(section.id, value)}
+      onSelect={(value) => onSelect(section.id, value)}
     />
   );
 
@@ -84,7 +99,9 @@ export function DetailedFilters({
         type="button"
         aria-expanded={showAdvanced}
         aria-controls="sb-advanced-filters"
-        onClick={() => setShowAdvanced((previous) => !previous)}
+        onClick={() =>
+          setOpen((previous) => ({ ...previous, advanced: !previous.advanced }))
+        }
         className={cn(
           "mt-3 mb-1 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-pill border border-dashed border-line-strong px-3.5 py-2.5",
           "text-micro font-semibold tracking-button text-fg",
