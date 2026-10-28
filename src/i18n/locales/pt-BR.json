@@ -1310,6 +1310,8 @@
   "acesso_grant": "Conceder",
   "acesso_revoke": "Revogar",
   "acesso_saving": "Gravando…",
+  "acesso_change_saved": "A alteração no acesso de {{person}} foi gravada.",
+  "acesso_change_not_saved": "A alteração no acesso de {{person}} não foi gravada.",
   "acesso_admin_both_apps": "Um papel só para os dois apps: conceder ou revogar aqui grava no console e no formulário.",
   "acesso_regions_legend": "Regiões de {{role}}",
   "acesso_regions_count_one": "{{count}} região marcada",

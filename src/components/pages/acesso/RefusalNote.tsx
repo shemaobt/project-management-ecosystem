@@ -9,10 +9,21 @@ export interface RefusalNoteProps {
   className?: string;
 }
 
-export function RefusalNote({ failure, className }: RefusalNoteProps) {
+export function RefusalText({ failure }: { failure: ApiFailure }) {
   const { t } = useTranslation();
   const refusal = readRefusal(failure, t);
 
+  return refusal.from === "server" ? (
+    <span>
+      {t("acesso_server_refused")}{" "}
+      <span lang="en">{refusal.sentence}</span>
+    </span>
+  ) : (
+    <span>{refusal.sentence}</span>
+  );
+}
+
+export function RefusalNote({ failure, className }: RefusalNoteProps) {
   return (
     <p
       role="alert"
@@ -27,14 +38,7 @@ export function RefusalNote({ failure, className }: RefusalNoteProps) {
         aria-hidden
         className="mt-px shrink-0"
       />
-      {refusal.from === "server" ? (
-        <span>
-          {t("acesso_server_refused")}{" "}
-          <span lang="en">{refusal.sentence}</span>
-        </span>
-      ) : (
-        <span>{refusal.sentence}</span>
-      )}
+      <RefusalText failure={failure} />
     </p>
   );
 }

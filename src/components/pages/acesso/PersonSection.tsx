@@ -1,11 +1,12 @@
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, useSyncExternalStore, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { ADMIN_ROLE, APP_LABEL_KEYS, SHEMA_APP } from "../../../constants/access";
 import { SESSION_ROLE_LABEL_KEYS } from "../../../contexts/AuthContext";
 import { toApiFailure, type AccessAPI } from "../../../services/api";
 import type { AccessAppKey, AccountGrants } from "../../../types/access";
 import type { RegionKey } from "../../../types/region";
-import type { ApiFailure, SessionRole } from "../../../types/session";
+import type { SessionRole } from "../../../types/session";
 import {
   isRegionalRole,
   revokesLastRegional,
@@ -14,25 +15,22 @@ import {
 import { ConfirmDialog } from "../../common/ConfirmDialog";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
-import { Button, Input, Label } from "../../ui";
+import { Button, Input, Label, toast } from "../../ui";
 import { MembershipSection } from "./MembershipSection";
 import { Panel } from "./Panel";
+import { PersonPanel } from "./PersonPanel";
 import {
-  PersonPanel,
-  type RegionEditing,
-  type RoleRefusal,
-} from "./PersonPanel";
-import { RefusalNote } from "./RefusalNote";
+  cardOf,
+  createPersonStore,
+  writingRow,
+  type AwayNotice,
+  type Lookup,
+} from "./personState";
+import { RefusalNote, RefusalText } from "./RefusalNote";
 import { roleRow } from "./rows";
 
-type Lookup =
-  | { kind: "idle" }
-  | { kind: "searching"; email: string }
-  | { kind: "found"; account: AccountGrants }
-  | { kind: "none"; email: string }
-  | { kind: "failed"; email: string; failure: ApiFailure };
-
 interface Confirming {
+  target: AccountGrants;
   app: AccessAppKey;
   role: SessionRole;
   verb: "grant" | "revoke";
@@ -70,6 +68,20 @@ export function PersonLookupState({ lookup, onInvite }: PersonLookupProps) {
 
 export type { Lookup };
 
+const nameOf = (account: AccountGrants) => account.displayName ?? account.email;
+
+function announceAway({ ticket, target, failure }: AwayNotice, t: TFunction) {
+  const id = `acesso-write-${ticket}`;
+  if (failure === null) {
+    toast(t("acesso_change_saved", { person: nameOf(target) }), { id });
+  } else {
+    toast(t("acesso_change_not_saved", { person: nameOf(target) }), {
+      id,
+      description: <RefusalText failure={failure} />,
+    });
+  }
+}
+
 export interface PersonSectionProps {
   api: AccessAPI;
   onChanged: () => void;
@@ -80,32 +92,42 @@ export function PersonSection({ api, onChanged, onInvite }: PersonSectionProps) 
   const { t } = useTranslation();
   const fieldId = useId();
   const [email, setEmail] = useState("");
-  const [lookup, setLookup] = useState<Lookup>({ kind: "idle" });
-  const [acting, setActing] = useState<string | null>(null);
-  const [refusal, setRefusal] = useState<RoleRefusal | null>(null);
-  const [editing, setEditing] = useState<RegionEditing | null>(null);
+  const [store] = useState(createPersonStore);
+  const state = useSyncExternalStore(store.subscribe, store.get, store.get);
   const [confirming, setConfirming] = useState<Confirming | null>(null);
 
-  const account = lookup.kind === "found" ? lookup.account : null;
+  useEffect(() => {
+    store.dispatch({ type: "entered" });
+    return () => {
+      store.dispatch({ type: "left" });
+    };
+  }, [store]);
+
+  const { lookup } = state;
+  const card = cardOf(state);
+  const account = card?.account ?? null;
 
   const search = (event: FormEvent) => {
     event.preventDefault();
     const wanted = email.trim();
     if (!wanted) return;
-    setLookup({ kind: "searching", email: wanted });
-    setRefusal(null);
-    setEditing(null);
-    api
-      .person(wanted)
-      .then((found) => setLookup({ kind: "found", account: found }))
-      .catch((raw: unknown) => {
+    const ticket = store.ticket();
+    store.dispatch({ type: "search", ticket, email: wanted });
+    api.person(wanted).then(
+      (found) =>
+        store.dispatch({ type: "answered", ticket, lookup: { kind: "found", account: found } }),
+      (raw: unknown) => {
         const failure = toApiFailure(raw);
-        setLookup(
-          failure.kind === "notFound"
-            ? { kind: "none", email: wanted }
-            : { kind: "failed", email: wanted, failure },
-        );
-      });
+        store.dispatch({
+          type: "answered",
+          ticket,
+          lookup:
+            failure.kind === "notFound"
+              ? { kind: "none", email: wanted }
+              : { kind: "failed", email: wanted, failure },
+        });
+      },
+    );
   };
 
   const act = (
@@ -115,22 +137,24 @@ export function PersonSection({ api, onChanged, onInvite }: PersonSectionProps) 
     verb: "grant" | "revoke",
     regions: RegionKey[] = [],
   ) => {
-    const row = roleRow(app, role);
-    setActing(row);
-    setRefusal(null);
+    const ticket = store.ticket();
     setConfirming(null);
+    store.dispatch({ type: "write", ticket, target, row: roleRow(app, role) });
     const call =
       verb === "grant"
         ? api.grant({ userId: target.userId, appKey: app, roleKey: role, regionKeys: regions })
         : api.revoke({ userId: target.userId, appKey: app, roleKey: role });
-    call
-      .then((next) => {
-        setLookup({ kind: "found", account: next });
-        setEditing(null);
+    call.then(
+      (next) => {
+        const away = store.dispatch({ type: "written", ticket, account: next });
+        if (away) announceAway(away, t);
         onChanged();
-      })
-      .catch((raw: unknown) => setRefusal({ row, failure: toApiFailure(raw) }))
-      .finally(() => setActing(null));
+      },
+      (raw: unknown) => {
+        const away = store.dispatch({ type: "refused", ticket, failure: toApiFailure(raw) });
+        if (away) announceAway(away, t);
+      },
+    );
   };
 
   const currentRegions = (target: AccountGrants): RegionKey[] =>
@@ -139,10 +163,13 @@ export function PersonSection({ api, onChanged, onInvite }: PersonSectionProps) 
   const grant = (app: AccessAppKey, role: SessionRole) => {
     if (!account) return;
     if (isRegionalRole(role)) {
-      setRefusal(null);
-      setEditing({ role, regions: currentRegions(account) });
+      store.dispatch({
+        type: "openRegions",
+        editing: { role, regions: currentRegions(account) },
+        clearsRefusal: true,
+      });
     } else if (role === ADMIN_ROLE) {
-      setConfirming({ app, role, verb: "grant" });
+      setConfirming({ target: account, app, role, verb: "grant" });
     } else {
       act(account, app, role, "grant");
     }
@@ -151,11 +178,15 @@ export function PersonSection({ api, onChanged, onInvite }: PersonSectionProps) 
   const editRegions = () => {
     const role = account ? rolesHeld(account, SHEMA_APP).find(isRegionalRole) : undefined;
     if (account && role && isRegionalRole(role)) {
-      setEditing({ role, regions: currentRegions(account) });
+      store.dispatch({
+        type: "openRegions",
+        editing: { role, regions: currentRegions(account) },
+        clearsRefusal: false,
+      });
     }
   };
 
-  const person = account ? (account.displayName ?? account.email) : "";
+  const person = confirming ? nameOf(confirming.target) : "";
   const confirmRole = confirming ? t(SESSION_ROLE_LABEL_KEYS[confirming.role]) : "";
 
   return (
@@ -177,24 +208,20 @@ export function PersonSection({ api, onChanged, onInvite }: PersonSectionProps) 
         </Button>
       </form>
 
-      {account ? (
+      {card ? (
         <PersonPanel
-          account={account}
-          acting={acting}
-          refusal={refusal}
-          editing={editing}
+          {...card}
           onGrant={grant}
-          onRevoke={(app, role) => setConfirming({ app, role, verb: "revoke" })}
+          onRevoke={(app, role) => setConfirming({ target: card.account, app, role, verb: "revoke" })}
           onEditRegions={editRegions}
-          onRegionsChange={(regions) =>
-            setEditing((current) => (current ? { ...current, regions } : current))
-          }
+          onRegionsChange={(regions) => store.dispatch({ type: "pickRegions", regions })}
           onSubmitRegions={() =>
-            editing && act(account, SHEMA_APP, editing.role, "grant", editing.regions)
+            card.editing &&
+            act(card.account, SHEMA_APP, card.editing.role, "grant", card.editing.regions)
           }
-          onCancelRegions={() => setEditing(null)}
+          onCancelRegions={() => store.dispatch({ type: "closeRegions" })}
         >
-          <MembershipSection key={account.userId} person={account} />
+          <MembershipSection key={card.account.userId} person={card.account} />
         </PersonPanel>
       ) : (
         <PersonLookupState lookup={lookup} onInvite={onInvite} />
@@ -213,12 +240,13 @@ export function PersonSection({ api, onChanged, onInvite }: PersonSectionProps) 
           { role: confirmRole },
         )}
         confirmLabel={t(confirming?.verb === "revoke" ? "acesso_revoke" : "acesso_grant")}
-        busy={acting !== null}
+        busy={confirming !== null && writingRow(state, confirming.target.userId) !== null}
         onConfirm={() =>
-          account && confirming && act(account, confirming.app, confirming.role, confirming.verb)
+          confirming &&
+          act(confirming.target, confirming.app, confirming.role, confirming.verb)
         }
       >
-        {account && confirming ? (
+        {confirming ? (
           <div className="flex flex-col gap-2 text-small leading-body text-fg">
             {confirming.verb === "revoke" ? (
               <p>
@@ -233,7 +261,7 @@ export function PersonSection({ api, onChanged, onInvite }: PersonSectionProps) 
             )}
             {confirming.role === ADMIN_ROLE ? <p>{t("acesso_admin_both_apps")}</p> : null}
             {confirming.verb === "revoke" &&
-            revokesLastRegional(account, confirming.app, confirming.role) ? (
+            revokesLastRegional(confirming.target, confirming.app, confirming.role) ? (
               <p className="font-semibold">{t("acesso_confirm_last_regional")}</p>
             ) : null}
           </div>
