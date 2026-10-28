@@ -80,6 +80,10 @@ export function withhold(project: Project): Project {
     statusComments: "",
     scopeDetails: "",
     needsItems: project.needsItems.map((need) => ({ ...need, description: "" })),
+    // The prayer request and its recording (OBT-655, `PRAYER_REQUEST_FIELDS`): the team's own
+    // sentence, whatever it authorized — the wall carries the coordination's release instead.
+    prayerRequests: "",
+    prayerRequestsAudio: "",
     coords: REGION_CENTROIDS[region],
     // The server's rule for the name (OBT-560): the public one, or the region key.
     languageName: project.publicLanguageName?.trim() || region,

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { FREE_TEXT_FIELDS, PASTORAL_WRITES } from "../../constants/recordFields";
+import {
+  FREE_TEXT_FIELDS,
+  PASTORAL_WRITES,
+  PRAYER_REQUEST_FIELDS,
+} from "../../constants/recordFields";
 import type { NeedItem } from "../../types/project";
 import { canReadHealth } from "../access";
 import {
@@ -101,6 +105,40 @@ describe("mayWrite e o texto livre de um registro recolhido (OBT-556)", () => {
 
   it("as etapas seguem livres: o servidor ainda não as recolhe", () => {
     expect(mayWrite(recordAccess(withheldOther, false, true, true), "phases")).toBe(true);
+  });
+});
+
+const PRAYER_REQUEST = ["prayerRequests", "prayerRequestsAudio"] as const;
+
+describe("mayWrite e o pedido de oração de um registro recolhido (OBT-655)", () => {
+  it("o conjunto é o PRAYER_REQUEST_FIELDS do servidor", () => {
+    expect([...PRAYER_REQUEST_FIELDS].sort()).toEqual([...PRAYER_REQUEST].sort());
+  });
+
+  it.each(PRAYER_REQUEST)("%s não é de quem lê o registro recolhido como other", (field) => {
+    expect(mayWrite(recordAccess(withheldOther, false, true, true), field)).toBe(false);
+  });
+
+  it.each(PRAYER_REQUEST)("%s é da coordenação no registro recolhido", (field) => {
+    expect(mayWrite(recordAccess(withheldCoordination, false, true, true), field)).toBe(true);
+  });
+
+  it.each(PRAYER_REQUEST)("%s segue livre no registro aberto, lido como other", (field) => {
+    expect(mayWrite(recordAccess(openOther, false, true, true), field)).toBe(true);
+  });
+
+  it("a autorização segue de quem acompanha, mesmo no recolhido: num sensível o mural só leva o que a coordenação liberou", () => {
+    expect(mayWrite(recordAccess(withheldOther, false, true, true), "prayerVisibility")).toBe(true);
+  });
+
+  it("o pedido digitado no rascunho de outra pessoa não vai no salvar de quem o lê em branco", () => {
+    const saved = makeProject({ sensitiveCountry: true, readAs: "other" });
+    const kept = writableDraft(
+      { prayerRequests: "orem pelo vale", prayerVisibility: "rede", status: "em-andamento" },
+      recordAccess(saved, false, true, true),
+      saved,
+    );
+    expect(Object.keys(kept).sort()).toEqual(["prayerVisibility", "status"]);
   });
 });
 

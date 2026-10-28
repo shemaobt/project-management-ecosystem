@@ -32,7 +32,7 @@ export function SaudeView({ draft }: SaudeViewProps) {
   const locale = t("locale");
   const values = draft.values;
   const visibility = getPrayerVisibility(values);
-  const notesWithheld = !readsFreeText(draft.place);
+  const freeTextWithheld = !readsFreeText(draft.place);
   const storedWhen = values.pastoralInterventionWhen ?? "";
   const when = isPastoralWhen(storedWhen)
     ? t(PASTORAL_WHEN_LABEL_KEYS[storedWhen])
@@ -102,7 +102,7 @@ export function SaudeView({ draft }: SaudeViewProps) {
         </p>
       )}
 
-      {notesWithheld ? (
+      {freeTextWithheld ? (
         <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
       ) : (
         values.healthNotes && (
@@ -112,7 +112,7 @@ export function SaudeView({ draft }: SaudeViewProps) {
         )
       )}
 
-      {values.prayerRequests && (
+      {!freeTextWithheld && values.prayerRequests && (
         <section className="rounded-[12px] border border-line bg-muted px-4 py-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-[0.14em] uppercase text-fg-muted">

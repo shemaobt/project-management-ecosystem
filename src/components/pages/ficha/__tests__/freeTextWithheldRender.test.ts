@@ -199,3 +199,55 @@ describe("as notas sobre a saúde de um registro recolhido (OBT-556)", () => {
     }
   });
 });
+
+describe("o pedido de oração de um registro recolhido (OBT-655)", () => {
+  const REQUEST = "Orem pela proteção da equipe no Vale Sintético";
+  const tab = (mode: "ver" | "editar", access: ReturnType<typeof place>) =>
+    renderToStaticMarkup(
+      createElement(SaudeTab, {
+        mode,
+        draft: handle(access, { prayerRequests: REQUEST, prayerVisibility: "coordenacao" }),
+      }),
+    );
+  const radios = (markup: string) => markup.match(/<button[^>]*role="radio"[^>]*>/g) ?? [];
+
+  it("na edição, o campo do pedido é só leitura, vazio, e a nota diz por quê", () => {
+    const markup = tab("editar", place(true, "other"));
+    expect(disabled(markup, "saude-prayer")).toBe(true);
+    expect(markup).not.toContain(REQUEST);
+    expect(markup.split(NOTE.slice(0, 40))).toHaveLength(2);
+  });
+
+  it("a escolha de compartilhar segue de quem acompanha: o servidor não a recusa", () => {
+    const options = radios(tab("editar", place(true, "other")));
+    expect(options.length).toBeGreaterThan(0);
+    expect(options.some((radio) => /\sdisabled=""/.test(radio))).toBe(false);
+  });
+
+  it("na leitura, o pedido não aparece mesmo que o rascunho o traga, e o branco é dito como recolhido", () => {
+    const markup = tab("ver", place(true, "other"));
+    expect(markup).not.toContain(REQUEST);
+    expect(markup).toContain(NOTE.slice(0, 40));
+  });
+
+  it("a coordenação edita e lê o pedido do mesmo registro", () => {
+    const coordination = place(true, "coordination");
+    expect(disabled(tab("editar", coordination), "saude-prayer")).toBe(false);
+    expect(tab("editar", coordination)).toContain(REQUEST);
+    expect(tab("ver", coordination)).toContain(REQUEST);
+  });
+
+  it("num registro aberto, lido como other, o OBT Lab edita e lê o pedido", () => {
+    const open = place(false, "other");
+    expect(disabled(tab("editar", open), "saude-prayer")).toBe(false);
+    expect(tab("ver", open)).toContain(REQUEST);
+  });
+
+  it("a frase de recolhido e o painel da marca nomeiam os pedidos de oração, nas duas línguas", () => {
+    for (const lng of ["pt-BR", "en"]) {
+      const prayer = i18n.t("f_prayer", { lng }).toLowerCase();
+      expect(i18n.t("f_free_text_coordination_only", { lng }).toLowerCase()).toContain(prayer);
+      expect(i18n.t("f_sensitive_on_pending", { lng }).toLowerCase()).toContain(prayer);
+    }
+  });
+});

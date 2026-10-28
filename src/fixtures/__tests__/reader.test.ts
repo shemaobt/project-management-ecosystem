@@ -71,6 +71,22 @@ describe("a redução do dublê é a do LeavingShape", () => {
     });
   });
 
+  it("o pedido de oração e a gravação dele saem em branco, autorizado ou não (OBT-655)", () => {
+    for (const prayerVisibility of ["coordenacao", "rede"] as const) {
+      const reduced = withhold({
+        ...sensitive,
+        prayerRequests: "Orem pela equipe no Vale Sintético",
+        prayerRequestsAudio: "pedido.webm",
+        prayerVisibility,
+      });
+      expect(reduced).toMatchObject({
+        prayerRequests: "",
+        prayerRequestsAudio: "",
+        prayerVisibility,
+      });
+    }
+  });
+
   it("carimba o leitor, e só reduz o sensível lido como other", () => {
     const other = persona(["obtLab"], ["africa"]);
     expect(asReadBy(sensitive, other)).toMatchObject({ readAs: "other", team: "" });

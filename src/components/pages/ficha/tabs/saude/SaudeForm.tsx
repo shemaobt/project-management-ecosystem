@@ -22,6 +22,7 @@ export function SaudeForm({ draft }: SaudeFormProps) {
   const values = draft.values;
   const pastoral = values.needsPastoralIntervention === "sim";
   const notesLocked = !mayWrite(draft.place, "healthNotes");
+  const prayerLocked = !mayWrite(draft.place, "prayerRequests");
 
   return (
     <div className="flex flex-col gap-5">
@@ -107,7 +108,8 @@ export function SaudeForm({ draft }: SaudeFormProps) {
             <Textarea
               {...control}
               rows={3}
-              value={values.prayerRequests ?? ""}
+              value={prayerLocked ? "" : (values.prayerRequests ?? "")}
+              disabled={prayerLocked}
               onChange={(event) =>
                 draft.set("prayerRequests", event.target.value)
               }
@@ -116,7 +118,7 @@ export function SaudeForm({ draft }: SaudeFormProps) {
         </Field>
       </FieldGrid>
 
-      {notesLocked && (
+      {(notesLocked || prayerLocked) && (
         <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
       )}
 
