@@ -87,6 +87,10 @@ export function getRegionLabelKey(region: RegionKey): string {
  * anybody but coordination the server sends the public name coordination registered — or,
  * while none is, the region key in its place, the convention `location` already follows.
  * A key is not a name, so that case reads as words: *Projeto sensível — África*.
+ *
+ * The server orders the ETEN report and the Projetos list by what this prints (OBT-657), so what it
+ * prints for each region in each language is emitted (`npm run emit:sensitive-names`) and vendored
+ * by shema-api byte for byte; `sensitiveProjectNames.test.ts` fails the day the two disagree.
  */
 export function getLanguageNameDisplay(
   project: Pick<Project, "languageName" | "languageNameWithheld">,
