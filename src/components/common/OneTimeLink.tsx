@@ -31,7 +31,7 @@ export function OneTimeLink({ url, heading, note, footer }: OneTimeLinkProps) {
       </p>
       <p className="text-small leading-body text-fg">{note}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <code className="min-w-0 flex-1 truncate rounded-sm bg-elevated px-2.5 py-1.5 text-tag text-fg-strong">
+        <code className="min-w-0 flex-1 basis-60 rounded-sm bg-elevated px-2.5 py-1.5 text-tag wrap-anywhere text-fg-strong">
           {url}
         </code>
         <Button type="button" size="sm" variant="secondary" onClick={copyLink}>
