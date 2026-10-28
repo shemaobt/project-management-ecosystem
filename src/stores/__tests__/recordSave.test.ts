@@ -45,6 +45,7 @@ const { useProjectRecordStore, changedFields, withheldFields, tabOfFirstError } 
 const { useRecordStore } = await import("../recordStore");
 const { useProjectsStore } = await import("../projectsStore");
 const { emptyDraft } = await import("../../utils/assessment");
+const { pastoralWhenFor } = await import("../../utils/health");
 
 interface Reply {
   status: number;
@@ -775,5 +776,40 @@ describe("uma escrita que o servidor aceitou deixa a lista desatualizada (OBT-59
     ).toBe("invalid");
 
     expect(listOutdated()).toBe(false);
+  });
+});
+
+describe("um sim marcado na ficha não herda o agora do Não do wizard (OBT-628)", () => {
+  const tick = (typed: Record<string, unknown>, answer: "sim" | "nao") => ({
+    ...typed,
+    needsPastoralIntervention: answer,
+    pastoralInterventionWhen: pastoralWhenFor(store().record?.project, answer),
+  });
+
+  async function openAfterWizardNo() {
+    queue = [ok({ needsPastoralIntervention: "nao", pastoralInterventionWhen: "now" })];
+    store().forget();
+    await store().open("p1");
+  }
+
+  it("o sim novo leva o quando vazio no mesmo PATCH", async () => {
+    await openAfterWizardNo();
+    queue = [ok({ needsPastoralIntervention: "sim", pastoralInterventionWhen: "" }, '"8"')];
+    const outcome = await store().save(saving(tick({}, "sim")));
+
+    expect(outcome.kind).toBe("saved");
+    const patch = sent.find((config) => config.method === "patch");
+    expect(JSON.parse(String(patch?.data))).toEqual({
+      needsPastoralIntervention: "sim",
+      pastoralInterventionWhen: "",
+    });
+  });
+
+  it("marcar e desmarcar não vira save", async () => {
+    await openAfterWizardNo();
+    const outcome = await store().save(saving(tick(tick({}, "sim"), "nao")));
+
+    expect(outcome.kind).toBe("unchanged");
+    expect(sent.filter((config) => config.method === "patch")).toHaveLength(0);
   });
 });
