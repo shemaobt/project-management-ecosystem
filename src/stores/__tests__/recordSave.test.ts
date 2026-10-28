@@ -2,6 +2,7 @@ import axios, { type InternalAxiosRequestConfig } from "axios";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Project } from "../../types/project";
 
 /**
  * The test environment pins `VITE_DATA_SOURCE=fixtures` (vite.config.ts), which is what
@@ -195,6 +196,11 @@ const creating = (values: never, typed: Record<string, unknown> = {}) => ({
 });
 
 const store = () => useProjectRecordStore.getState();
+
+const patchBody = () => {
+  const patch = sent.find((config) => config.method === "patch");
+  return JSON.parse(String(patch?.data)) as Record<string, unknown>;
+};
 const drafts = () => useRecordStore.getState().drafts;
 
 async function openAt(version = '"7"') {
@@ -650,11 +656,6 @@ describe("a recusa do servidor cai na aba certa", () => {
 });
 
 describe("o salvamento nunca envia campo que o leitor não pode gravar (OBT-532, OBT-553, OBT-556)", () => {
-  const patchBody = () => {
-    const patch = sent.find((config) => config.method === "patch");
-    return JSON.parse(String(patch?.data)) as Record<string, unknown>;
-  };
-
   it("lido como other num registro retido, local, base e contatos ficam de fora", async () => {
     queue = [ok({ readAs: "other", sensitiveCountry: true, team: "", ywamBase: "" })];
     store().forget();
@@ -816,6 +817,106 @@ describe("uma escrita que o servidor aceitou deixa a lista desatualizada (OBT-59
     ).toBe("invalid");
 
     expect(listOutdated()).toBe(false);
+  });
+});
+
+describe("editar só o texto do pedido não decide a autorização (OBT-597)", () => {
+  const TEXT_A = "Orem pela colheita do vale";
+  const TEXT_B = "Orem pela colheita do vale e pela chuva";
+
+  async function rewording(typed: Partial<Project>) {
+    queue = [
+      ok({ readAs: "coordination", prayerRequests: TEXT_A, prayerVisibility: "rede" }),
+    ];
+    store().forget();
+    await store().open("p1");
+    const project = store().record?.project;
+    if (!project) throw new Error("the record did not open");
+    queue = [ok({ readAs: "coordination", prayerVisibility: "rede", ...typed }, '"8"')];
+    return store().save({
+      values: { ...project, ...typed },
+      typed,
+      isNew: false,
+      readsHealth: true,
+      writesHealth: true,
+    });
+  }
+
+  it("trocar só o texto de um pedido em rede manda só o texto — nem null, nem palpite", async () => {
+    const outcome = await rewording({ prayerRequests: TEXT_B });
+
+    expect(outcome.kind).toBe("saved");
+    expect(patchBody()).toEqual({ prayerRequests: TEXT_B });
+  });
+
+  it("desmarcar a rede junto com o texto manda os dois", async () => {
+    await rewording({ prayerRequests: TEXT_B, prayerVisibility: "coordenacao" });
+
+    expect(patchBody()).toEqual({
+      prayerRequests: TEXT_B,
+      prayerVisibility: "coordenacao",
+    });
+  });
+
+  it("reescrever só a descrição de uma necessidade compartilhada manda a necessidade inteira, com o prayerShared", async () => {
+    const wireNeed = (id: string, description: string, prayerShared: boolean) => ({
+      id,
+      category: "financial",
+      urgency: "high",
+      status: "open",
+      description,
+      estimatedValue: null,
+      estimatedAmount: null,
+      estimatedCurrency: null,
+      deadline: null,
+      prayerShared,
+      prayerAnswered: false,
+      fulfilledBy: null,
+      fulfilledDate: null,
+      droppedDate: null,
+      submittedBy: null,
+      submittedAt: null,
+      acknowledgedAt: null,
+      acknowledgedBy: null,
+    });
+    queue = [
+      ok({
+        readAs: "coordination",
+        needsItems: [wireNeed("n1", TEXT_A, true), wireNeed("n2", "Um gerador", false)],
+      }),
+    ];
+    store().forget();
+    await store().open("p1");
+    const project = store().record?.project;
+    if (!project) throw new Error("the record did not open");
+    const typed = {
+      needsItems: project.needsItems.map((need) =>
+        need.id === "n1" ? { ...need, description: TEXT_B } : need,
+      ),
+    };
+    queue = [
+      ok(
+        {
+          readAs: "coordination",
+          needsItems: [wireNeed("n1", TEXT_B, true), wireNeed("n2", "Um gerador", false)],
+        },
+        '"8"',
+      ),
+    ];
+    await store().save({
+      values: { ...project, ...typed },
+      typed,
+      isNew: false,
+      readsHealth: true,
+      writesHealth: true,
+    });
+
+    const body = patchBody();
+    expect(Object.keys(body)).toEqual(["needsItems"]);
+    expect(body.needsItems).toEqual([
+      expect.objectContaining({ id: "n1", description: TEXT_B, prayerShared: true }),
+      expect.objectContaining({ id: "n2", description: "Um gerador", prayerShared: false }),
+    ]);
   });
 });
 
