@@ -74,6 +74,16 @@ const api = {
 };
 
 let show = () => undefined;
+const heard = [];
+const counted = new WeakSet();
+setInterval(() => {
+  for (const node of document.querySelectorAll("[data-sonner-toast]")) {
+    const text = node.innerText.trim();
+    if (counted.has(node) || !text) continue;
+    counted.add(node);
+    heard.push(text);
+  }
+}, 10);
 
 function Screen() {
   const [shown, setShown] = useState(true);
@@ -160,8 +170,9 @@ window.probe = {
     await this.until(() => !document.querySelector('input[type="email"]'), "a seção sair");
   },
   async toasts(count) {
-    await this.until(() => document.querySelectorAll("[data-sonner-toast]").length >= count, count + " aviso(s)").catch(() => undefined);
-    return [...document.querySelectorAll("[data-sonner-toast]")].map((node) => node.innerText.trim());
+    await this.until(() => heard.length >= count, count + " aviso(s)").catch(() => undefined);
+    await pause(100);
+    return [...heard];
   },
   read() {
     const card = panel();
