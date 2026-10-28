@@ -11,10 +11,11 @@ import type { Project } from "../../../types/project";
 import type { Region, RegionKey, RoleChange } from "../../../types/region";
 import type { RoleKey } from "../../../types/role";
 import type { SaveOutcome, TeamSaveResult } from "../../../types/team";
-import { writesProjectIn } from "../../../utils/access";
+import { canWriteRegionTeam } from "../../../utils/access";
 import { getRegion } from "../../../utils/region";
 import { draftsFor, unassignedCount } from "../../../utils/team";
 import { EmptyState } from "../../common/EmptyState";
+import { CoordinationOnlyNote } from "../ficha/CoordinationOnlyNote";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button } from "../../ui";
 import { Leadership } from "./Leadership";
@@ -30,8 +31,9 @@ export interface EquipeViewProps {
   changes?: readonly RoleChange[];
   onSave: (drafts: ReturnType<typeof draftsFor>) => Promise<TeamSaveResult>;
   /**
-   * Whether the reader writes this region's seats (OBT-593) — `writesProjectIn` over the
-   * session's `writeRegionScope`. Absent, every visible region is editable, as before.
+   * Whether the reader writes this region's seats — `canWriteRegionTeam` (OBT-593, OBT-620):
+   * `PUT /regions/{key}/team` is the coordinator's and takes the write scope. Absent, every
+   * visible region is editable, as before.
    */
   writes?: (region: RegionKey) => boolean;
 }
@@ -92,6 +94,7 @@ export function EquipeView({
 
   const pending = unassignedCount(drafts);
   const writesAny = visible.some((region) => writes(region.key));
+  const readsSome = visible.some((region) => !writes(region.key));
 
   return (
     <section className="mx-auto w-full max-w-(--container-max) px-(--container-pad) pt-8 pb-20">
@@ -121,10 +124,15 @@ export function EquipeView({
             <h2 className="mb-1 text-h4 leading-tight font-black tracking-tight text-fg-strong">
               {t("equipe_regions_title")}
             </h2>
+            {readsSome ? (
+              <div className="mb-3.5">
+                <CoordinationOnlyNote textKey="equipe_seats_coordination_only" />
+              </div>
+            ) : null}
             {pending > 0 ? (
               <p className="mb-3.5 text-small leading-normal text-fg-muted">
-                {t("equipe_unassigned_count", { count: pending })}{" "}
-                {t("equipe_fill_hint")}
+                {t("equipe_unassigned_count", { count: pending })}
+                {writesAny ? ` ${t("equipe_fill_hint")}` : null}
               </p>
             ) : null}
 
@@ -227,7 +235,7 @@ export function EquipePage() {
       projects={projectsRead ? projects : null}
       changes={changes}
       onSave={(drafts) => saveTeams(drafts, changedBy)}
-      writes={(region) => writesProjectIn(user.writeRegionScope, region)}
+      writes={(region) => canWriteRegionTeam(user.roles, user.writeRegionScope, region)}
     />
   );
 }

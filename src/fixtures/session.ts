@@ -1,4 +1,5 @@
 import type { MockRole, SessionPersona } from "../contexts/session";
+import { REGIONS } from "../constants/regions";
 import type { RoleKey } from "../types/role";
 
 /** The head role is always one of the org chart's three — the Admin persona opens by `coordinator` (OBT-572). */
@@ -12,9 +13,11 @@ export interface MockPersona extends SessionPersona {
  * card and the record for (OBT-532). `MockAuthProvider` renders them.
  *
  * Nobody is global by role since OBT-572: the Admin is the one reader who coordinates
- * everywhere (`_scope.readership`), and this persona also holds `coordinator` with no
- * region, which is what puts her in the health audience — the shape an Admin takes once
- * she grants herself the seat the migration took away. The list is in the server's
+ * everywhere (`_scope.readership`), and this persona also holds `coordinator` in the seven
+ * regions, which is what puts her in the health audience and lets her write everywhere —
+ * the shape an Admin takes once she grants herself the seat the migration took away. The
+ * server answers that pair a list of seven, never `null`: `null` is the installation
+ * admin's alone, and a region-less `admin` + `coordinator` gets `[]` (OBT-620). The list is in the server's
  * precedence (`coordinator` before `admin`) and `role` is its head, as `readSession`
  * would demand of the same pair on the wire; the persona's key stays `admin`.
  */
@@ -24,7 +27,7 @@ export const MOCK_SESSION_PERSONAS: Record<MockRole, MockPersona> = {
     role: "coordinator",
     roles: ["coordinator", "admin"],
     regionScope: null,
-    writeRegionScope: null,
+    writeRegionScope: REGIONS.map((region) => region.key),
   },
   coordinator: {
     id: "mock-coordinator",

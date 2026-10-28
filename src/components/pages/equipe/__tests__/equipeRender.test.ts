@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,7 +28,9 @@ const { SaveSummary } = await import("../SaveSummary");
 const { TEAM_BODIES } = await import("../../../../constants/team");
 const { ROLES } = await import("../../../../constants/roles");
 const { createEmptyProject } = await import("../../../../fixtures/blank");
-import type { Region, RoleChange } from "../../../../types/region";
+import type { Region, RegionKey, RoleChange } from "../../../../types/region";
+import type { SessionRole } from "../../../../types/session";
+import { canWriteRegionTeam } from "../../../../utils/access";
 
 const region = (
   key: Region["key"],
@@ -230,5 +234,73 @@ describe("a Equipe só deixa editar as regiões onde a conta escreve (OBT-593)",
   it("plataforma e campo ausente: tudo editável, como hoje", () => {
     expect(disabledInputs(view(two(), [], undefined, scopeOf(null)))).toBe(0);
     expect(disabledInputs(view(two()))).toBe(0);
+  });
+});
+
+describe("a Equipe só é editável para a coordenação e a plataforma, na região em que escrevem (OBT-620)", () => {
+  const two = () => [
+    region("south-america", "continent_south_america"),
+    region("africa", "continent_africa"),
+  ];
+  const disabledInputs = (markup: string) => (markup.match(/<input[^>]*disabled=""/g) ?? []).length;
+  const inputs = (markup: string) => (markup.match(/<input/g) ?? []).length;
+  const as = (roles: SessionRole[], scope: RegionKey[] | null | undefined) =>
+    view(two(), [], undefined, (key) => canWriteRegionTeam(roles, scope, key));
+
+  it("a coordenação edita só a região em que escreve, com a barra de salvar e a instrução de digitar", () => {
+    const markup = as(["coordinator"], ["south-america"]);
+    expect(disabledInputs(markup)).toBe(inputs(markup) / 2);
+    expect(markup).toContain(i18n.t("equipe_save"));
+    expect(markup).toContain(i18n.t("equipe_fill_hint"));
+  });
+
+  it("a plataforma edita todas as regiões", () => {
+    const markup = as(["admin"], null);
+    expect(disabledInputs(markup)).toBe(0);
+    expect(markup).toContain(i18n.t("equipe_save"));
+  });
+
+  it("OBT Lab, Resource Circle, Admin sozinho e coordenação sem região só leem: sem barra de salvar nem instrução de digitar", () => {
+    const readers: [string, SessionRole[], RegionKey[] | undefined][] = [
+      ["OBT Lab", ["obtLab"], ["africa"]],
+      ["OBT Lab, campo ausente", ["obtLab"], undefined],
+      ["Resource Circle", ["resourceCircle"], []],
+      ["Resource Circle, campo ausente", ["resourceCircle"], undefined],
+      ["Admin sozinho", ["admin"], []],
+      ["Admin sozinho, campo ausente", ["admin"], undefined],
+      ["coordenação sem região", ["coordinator"], []],
+    ];
+    for (const [name, roles, scope] of readers) {
+      const markup = as(roles, scope);
+      expect(disabledInputs(markup), name).toBe(inputs(markup));
+      expect(markup, name).not.toContain(i18n.t("equipe_save"));
+      expect(markup, name).not.toContain(i18n.t("equipe_fill_hint"));
+      expect(markup, name).toContain(i18n.t("equipe_unassigned_count", { count: 6 }));
+    }
+  });
+
+  it("onde a conta só lê, a tela diz de quem são os assentos; quem edita tudo não recebe o aviso", () => {
+    const reason = i18n.t("equipe_seats_coordination_only", {
+      regional: i18n.t("role_coordinator"),
+    });
+    for (const [roles, scope] of [
+      [["obtLab"], ["africa"]],
+      [["resourceCircle"], undefined],
+      [["admin"], []],
+      [["coordinator"], ["south-america"]],
+    ] as [SessionRole[], RegionKey[] | undefined][]) {
+      expect(as(roles, scope), roles.join("+")).toContain(reason);
+    }
+    expect(as(["admin"], null)).not.toContain(reason);
+    expect(view(two())).not.toContain(reason);
+  });
+
+  it("a página pergunta o papel e o escopo da sessão, não só o escopo", () => {
+    const page = readFileSync(join(process.cwd(), "src/components/pages/equipe/index.tsx"), "utf8")
+      .replace(/\s+/gu, " ")
+      .replace(/\( /gu, "(")
+      .replace(/,? \)/gu, ")");
+    expect(page).toContain("canWriteRegionTeam(user.roles, user.writeRegionScope, region)");
+    expect(page).not.toContain("writesProjectIn");
   });
 });

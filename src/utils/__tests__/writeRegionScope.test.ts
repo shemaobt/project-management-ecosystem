@@ -128,18 +128,18 @@ describe("Novo projeto e /ficha/novo, por papel (OBT-593)", () => {
 describe("Importar, link do líder e retirada de autorização, por papel e região (OBT-593)", () => {
   it("o Admin sozinho não importa nem gera link; com coordenação regional, faz os dois", () => {
     expect(canImportProjects(ADMIN_ALONE.roles, ADMIN_ALONE.writes)).toBe(false);
-    expect(canMintLeaderLinks(ADMIN_ALONE.writes)).toBe(false);
+    expect(canMintLeaderLinks(ADMIN_ALONE.roles, ADMIN_ALONE.writes)).toBe(false);
     expect(canImportProjects(ADMIN_ASIA.roles, ADMIN_ASIA.writes)).toBe(true);
-    expect(canMintLeaderLinks(ADMIN_ASIA.writes)).toBe(true);
+    expect(canMintLeaderLinks(ADMIN_ASIA.roles, ADMIN_ASIA.writes)).toBe(true);
   });
 
   it("a coordenação e a plataforma importam e geram link; o Resource Circle não", () => {
     for (const who of [COORD_SA, PLATFORM]) {
       expect(canImportProjects(who.roles, who.writes), who.name).toBe(true);
-      expect(canMintLeaderLinks(who.writes), who.name).toBe(true);
+      expect(canMintLeaderLinks(who.roles, who.writes), who.name).toBe(true);
     }
     expect(canImportProjects(CIRCLE.roles, CIRCLE.writes)).toBe(false);
-    expect(canMintLeaderLinks(CIRCLE.writes)).toBe(false);
+    expect(canMintLeaderLinks(CIRCLE.roles, CIRCLE.writes)).toBe(false);
   });
 
   it("a retirada só aparece para a coordenação, e só onde ela escreve", () => {
@@ -154,7 +154,7 @@ describe("Importar, link do líder e retirada de autorização, por papel e regi
   it("sem o campo, as três seguem a regra de hoje", () => {
     expect(canImportProjects(["admin"], undefined)).toBe(true);
     expect(canImportProjects(["resourceCircle"], undefined)).toBe(false);
-    expect(canMintLeaderLinks(undefined)).toBe(true);
+    expect(canMintLeaderLinks(["coordinator"], undefined)).toBe(true);
     expect(canWithdrawMediaAuthorization(["coordinator"], undefined, "africa")).toBe(true);
     expect(canWithdrawMediaAuthorization(["coordinator"], undefined, "asia")).toBe(true);
   });
@@ -216,7 +216,7 @@ describe("Avaliação de Saúde por papel e região (OBT-593)", () => {
   });
 });
 
-describe("Ritmo e Equipe escrevem só a região da linha (OBT-593)", () => {
+describe("o Ritmo escreve só a região da linha (OBT-593; a Equipe tem a regra do CoordinatorUser, OBT-620)", () => {
   const writes = (who: Who, region: RegionKey) => writesProjectIn(who.writes, region);
 
   it("a mesma regra da ficha, por região da linha", () => {
