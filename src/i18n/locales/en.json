@@ -41,6 +41,7 @@
   "sb_needs_section": "Needs",
   "sb_media": "Media",
   "sb_active_filters": "Active filters",
+  "sb_active_remove": "Remove filter {{filter}}",
   "sb_clear_all": "Clear all",
   "sb_results_count": "Showing",
   "sb_results_of": "of",
