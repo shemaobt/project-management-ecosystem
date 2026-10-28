@@ -385,3 +385,56 @@ describe("o histórico aparece junto do estado atual", () => {
     expect(markup).not.toContain("undefined");
   });
 });
+
+describe("o que a aba diz do histórico e de quem grava as leituras (OBT-648)", () => {
+  it("a conversa atual está na lista sob o título, e o título não a chama de anterior — PT e EN", async () => {
+    const values: Values = {
+      ...ASSESSED,
+      healthHistory: [
+        {
+          date: "2025-11-02",
+          assessor: "Mentor antigo",
+          emotional: "boa",
+          relational: "boa",
+          spiritual: "boa",
+          physical: "boa",
+          notes: "",
+        },
+        {
+          date: "2026-05-14",
+          assessor: "Coordenação regional",
+          emotional: "atencao",
+          relational: "boa",
+          spiritual: "boa",
+          physical: "",
+          notes: "",
+        },
+      ],
+    };
+
+    for (const mode of ["ver", "editar"] as const) {
+      const markup = tab(mode, values);
+      const title = markup.indexOf(i18n.t("d_health_history"));
+      expect(title, mode).toBeGreaterThan(-1);
+      expect(markup.indexOf("Coordenação regional", title), mode).toBeGreaterThan(title);
+    }
+
+    const { default: pt } = await import("../../../../i18n/locales/pt-BR.json");
+    const { default: en } = await import("../../../../i18n/locales/en.json");
+    expect(pt.d_health_history).not.toMatch(/anterior|antig|passad/iu);
+    expect(en.d_health_history).not.toMatch(/earlier|previous|past|former/iu);
+  });
+
+  it("o aviso do modo editar manda as leituras à Avaliação de Saúde, em Formulários, pelos nomes da tela — notas sobre a saúde incluídas — PT e EN", async () => {
+    expect(tab("editar", ASSESSED)).toContain(i18n.t("record_pending_health"));
+
+    const { default: pt } = await import("../../../../i18n/locales/pt-BR.json");
+    const { default: en } = await import("../../../../i18n/locales/en.json");
+    for (const catalogue of [pt, en]) {
+      const note = catalogue.record_pending_health;
+      expect(note).toContain(catalogue.forms_health_title);
+      expect(note).toContain(catalogue.nav_formularios);
+      expect(note.toLowerCase()).toContain(catalogue.f_health_notes.toLowerCase());
+    }
+  });
+});
