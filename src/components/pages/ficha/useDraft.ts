@@ -19,7 +19,7 @@ import {
   type RecordAccess,
 } from "../../../utils/recordAccess";
 
-function outsideWritesOf(
+export function outsideWritesOf(
   isNew: boolean,
   writeRegionScope: readonly RegionKey[] | null | undefined,
   location: string,
@@ -39,7 +39,8 @@ export interface DraftHandle {
   missing: RequiredField[];
   /**
    * A new record whose place falls outside where the account writes (OBT-593): the region the
-   * place falls in and the regions it may file in. `null` (or absent) when the save can go.
+   * place falls in and the regions it may file in. `null` (or absent) when the place is inside —
+   * or names nothing yet, which `missing` says instead (OBT-654).
    */
   outsideWrites?: { region: RegionKey; writes: readonly RegionKey[] } | null;
   /** What this reader may see and write of the place — from the server's `readAs` (OBT-532). */

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { VITALITY_SCALE } from "../../../../../constants/project";
+import type { RequiredField } from "../../../../../stores/recordStore";
 import type { Coordinates } from "../../../../../types/project";
 import {
   hasPlottableCoords,
@@ -58,8 +59,8 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
     }
   }
 
-  const requiredError = (field: "languageName" | "bridgeLanguage") =>
-    touched[field] && !values[field]?.trim() ? t("f_required") : undefined;
+  const requiredError = (field: RequiredField) =>
+    touched[field] && draft.missing.includes(field) ? t("f_required") : undefined;
 
   const touch = (field: string) =>
     setTouched((current) => ({ ...current, [field]: true }));
@@ -75,6 +76,9 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
     ? t(place.regionLabelKey)
     : (values.location ?? "");
   const shownCoords: [string, string] = withheld ? ["", ""] : typed;
+  const locationError = draft.outsideWrites
+    ? outsideWritesText(t, draft.outsideWrites)
+    : requiredError("location");
 
   const setCoordinate = (index: 0 | 1, raw: string) => {
     const next: [string, string] = [typed[0], typed[1]];
@@ -189,7 +193,8 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
           id="ficha-location"
           label={t("f_location")}
           full
-          error={draft.outsideWrites ? outsideWritesText(t, draft.outsideWrites) : undefined}
+          required={draft.place.placeRequired}
+          error={locationError}
         >
           {(control) => (
             <Input
@@ -197,6 +202,8 @@ export function IdentidadeForm({ draft }: IdentidadeFormProps) {
               value={shownLocation}
               disabled={locked}
               placeholder={t("placeholder_location")}
+              aria-invalid={Boolean(locationError)}
+              onBlur={() => touch("location")}
               onChange={(event) => draft.set("location", event.target.value)}
             />
           )}

@@ -1,7 +1,10 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import type { RegionKey } from "../../../../types/region";
 import type { RecordAccess } from "../../../../utils/recordAccess";
+import type { DraftHandle } from "../useDraft";
 
 function createMemoryStorage() {
   const data = new Map<string, string>();
@@ -23,7 +26,10 @@ vi.stubGlobal("window", { localStorage: storage });
 
 const { default: i18n } = await import("../../../../i18n");
 const { RecordFooter } = await import("../RecordFooter");
-const { FULL_ACCESS } = await import("../../../../utils/recordAccess");
+const { FULL_ACCESS, recordAccess } = await import("../../../../utils/recordAccess");
+const { makeEmptyProject, missingRequired } = await import("../../../../stores/recordStore");
+const { outsideWritesOf } = await import("../useDraft");
+const { IdentidadeTab } = await import("../tabs/Identidade");
 
 const noop = () => undefined;
 
@@ -95,5 +101,110 @@ describe("a ficha nova com o local fora de onde a conta escreve (OBT-593)", () =
     const html = editing(null);
     expect(html).not.toContain(i18n.t("continent_africa"));
     expect(saveButton(html)).not.toContain('aria-disabled="');
+  });
+});
+
+describe("a ficha nova com o local em branco (OBT-654)", () => {
+  const filled = {
+    ...makeEmptyProject(),
+    languageName: "Língua QA",
+    bridgeLanguage: "Português",
+    team: "YWAM QA",
+    objective: ["NT"],
+  };
+
+  /** The handle as `useDraft` builds it for `/ficha/novo`, off the same functions. */
+  const newRecord = (writes: readonly RegionKey[] | null, location: string): DraftHandle => {
+    const place = recordAccess(undefined, true, true, true, writes);
+    const values = { ...filled, location, readAs: "coordination" as const };
+    return {
+      values,
+      typed: { location },
+      isNew: true,
+      hasChanges: true,
+      missing: missingRequired(values, place),
+      outsideWrites: outsideWritesOf(true, writes, location),
+      place,
+      errors: [],
+      errorsFor: () => [],
+      set: noop,
+      update: noop,
+      discard: noop,
+    };
+  };
+
+  const footerOf = (draft: DraftHandle) =>
+    renderToStaticMarkup(
+      createElement(RecordFooter, {
+        mode: "editar",
+        draft,
+        saving: false,
+        onEdit: noop,
+        onSave: noop,
+        onDiscard: noop,
+        onClose: noop,
+      }),
+    );
+
+  const formOf = (draft: DraftHandle) =>
+    renderToStaticMarkup(
+      createElement(MemoryRouter, null, createElement(IdentidadeTab, { mode: "editar", draft })),
+    );
+
+  const locationInput = (html: string) =>
+    html.match(/<input[^>]*id="ficha-location"[^>]*>/u)?.[0] ?? "";
+
+  const outsideSentence = (region: string) =>
+    i18n.t("record_region_outside_writes", {
+      region: i18n.t(region),
+      regions: i18n.t("continent_africa"),
+    });
+
+  it("local em branco de quem escreve só na África: o rodapé diz que falta a Localização, sem 'fica em', e o Salvar aponta para isso", () => {
+    for (const blank of ["", " , "]) {
+      const html = footerOf(newRecord(["africa"], blank));
+      expect(html).toMatch(
+        new RegExp(
+          `id="ficha-falta-preencher"[^>]*>${escapeRe(
+            i18n.t("record_missing_required", { fields: i18n.t("f_location") }),
+          )}<`,
+          "u",
+        ),
+      );
+      expect(html).not.toContain(outsideSentence("continent_other"));
+      expect(html).not.toContain(i18n.t("continent_other"));
+      const save = saveButton(html);
+      expect(save).toContain('aria-disabled="true"');
+      expect(save).toContain('aria-describedby="ficha-falta-preencher"');
+    }
+  });
+
+  it("o campo Localização da ficha nova se diz obrigatório, e não diz que fica em América Central", () => {
+    const html = formOf(newRecord(["africa"], ""));
+    expect(locationInput(html)).toContain('aria-required="true"');
+    expect(locationInput(html)).not.toContain('aria-invalid="true"');
+    expect(html).not.toContain(i18n.t("continent_other"));
+  });
+
+  it("com local preenchido fora, a frase da OBT-593 volta; dentro, nada trava", () => {
+    const india = newRecord(["africa"], "India");
+    expect(india.missing).toEqual([]);
+    expect(footerOf(india)).toContain(outsideSentence("continent_asia"));
+    expect(formOf(india)).toContain(outsideSentence("continent_asia"));
+    expect(locationInput(formOf(india))).toContain('aria-invalid="true"');
+
+    const inside = footerOf(newRecord(["africa"], "Mozambique, Tete"));
+    expect(inside).not.toContain('id="ficha-falta-preencher"');
+    expect(saveButton(inside)).not.toContain('aria-disabled="');
+  });
+
+  it("quem escreve em `other` ou em todas as regiões salva sem local", () => {
+    for (const writes of [["other"] as const, null]) {
+      const draft = newRecord(writes, "");
+      const html = footerOf(draft);
+      expect(html).not.toContain('id="ficha-falta-preencher"');
+      expect(saveButton(html)).not.toContain('aria-disabled="');
+      expect(locationInput(formOf(draft))).not.toContain("aria-required");
+    }
   });
 });
