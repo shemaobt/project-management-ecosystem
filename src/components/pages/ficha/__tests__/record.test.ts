@@ -172,9 +172,21 @@ describe("o rascunho não some", () => {
   });
 });
 
-describe("os quatro obrigatórios são cobrados num lugar só", () => {
+describe("os obrigatórios são cobrados num lugar só", () => {
   it("uma ficha vazia acusa exatamente os quatro", () => {
-    expect(missingRequired(makeEmptyProject(), FULL_ACCESS)).toEqual([...REQUIRED_FIELDS]);
+    expect(missingRequired(makeEmptyProject(), FULL_ACCESS)).toEqual([
+      "languageName",
+      "bridgeLanguage",
+      "team",
+      "objective",
+    ]);
+  });
+
+  it("na ficha nova de quem não escreve em `other`, o local é o quinto, depois da língua ponte (OBT-654)", () => {
+    expect(
+      missingRequired(makeEmptyProject(), { ...FULL_ACCESS, placeRequired: true }),
+    ).toEqual([...REQUIRED_FIELDS]);
+    expect(REQUIRED_FIELDS.indexOf("location")).toBe(REQUIRED_FIELDS.indexOf("bridgeLanguage") + 1);
   });
 
   it("objetivo conta como vazio quando a lista está vazia", () => {
@@ -197,6 +209,7 @@ describe("os quatro obrigatórios são cobrados num lugar só", () => {
   it("cada obrigatório aponta a aba onde ele mora", () => {
     expect(REQUIRED_FIELD_TAB.languageName).toBe("identidade");
     expect(REQUIRED_FIELD_TAB.bridgeLanguage).toBe("identidade");
+    expect(REQUIRED_FIELD_TAB.location).toBe("identidade");
     expect(REQUIRED_FIELD_TAB.team).toBe("equipe");
     expect(REQUIRED_FIELD_TAB.objective).toBe("objetivo");
   });
