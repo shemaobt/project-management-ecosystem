@@ -2,6 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import type { ProjectDraft } from "../../../../stores/recordStore";
 import type { RegionKey } from "../../../../types/region";
 import type { RecordAccess } from "../../../../utils/recordAccess";
 import type { DraftHandle } from "../useDraft";
@@ -105,7 +106,7 @@ describe("a ficha nova com o local fora de onde a conta escreve (OBT-593)", () =
 });
 
 describe("a ficha nova com o local em branco (OBT-654)", () => {
-  const filled = {
+  const filled: ProjectDraft = {
     ...makeEmptyProject(),
     languageName: "Língua QA",
     bridgeLanguage: "Português",

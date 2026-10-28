@@ -15,7 +15,7 @@ import {
   writesProjectIn,
 } from "../access";
 import { regionOf, regionOfPlace } from "../region";
-import { makeEmptyProject, missingRequired } from "../../stores/recordStore";
+import { makeEmptyProject, missingRequired, type ProjectDraft } from "../../stores/recordStore";
 import { assessmentRedirect } from "../../components/pages/avaliacao/writerGate";
 import { mayWrite, recordAccess } from "../recordAccess";
 import { makeProject } from "./factory";
@@ -260,7 +260,7 @@ describe("a ficha nova sem local: falta o local, não uma região (OBT-654)", ()
     writes: ["south-america", "asia"],
   };
   const OLD_SERVER: Who = { name: "servidor sem o campo", roles: ["coordinator"], writes: undefined };
-  const filled = {
+  const filled: ProjectDraft = {
     ...makeEmptyProject(),
     languageName: "Língua QA",
     bridgeLanguage: "Português",
