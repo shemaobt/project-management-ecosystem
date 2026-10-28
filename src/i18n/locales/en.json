@@ -1086,6 +1086,7 @@
   "atlas_open_project": "Open project →",
   "atlas_sensitive_marker": "Sensitive country · approximate position",
   "atlas_approx_position": "Approximate position",
+  "atlas_group_hint": "{{total}} projects at this spot — click to see each one",
   "atlas_illustration_list_one": "Illustrative map. The list below has the same project.",
   "atlas_illustration_list_other": "Illustrative map. The list below has the same {{count}} projects.",
   "atlas_illustration_list_paged": "Illustrative map. The list below has the same {{count}} projects, {{page}} at a time; “{{more}}” loads the rest.",
