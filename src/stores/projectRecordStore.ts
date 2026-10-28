@@ -108,14 +108,14 @@ function report(
 
 function refusal(
   result: Exclude<RecordSaveResult, { ok: true }>,
-  draft: Partial<Project>,
+  typed: Partial<Project>,
 ): SaveOutcome {
   switch (result.reason) {
     case "conflict":
       return {
         kind: "conflict",
         conflict: result.conflict,
-        overlap: overlappingFields(result.conflict, draft),
+        overlap: overlappingFields(result.conflict, typed),
       };
     case "invalid":
       return { kind: "invalid", errors: result.errors };
@@ -240,7 +240,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
         set({ saving: false, outcome });
         return outcome;
       }
-      const outcome = refusal(result, draft);
+      const outcome = refusal(result, typed);
       set({ saving: false, outcome });
       return outcome;
     }
@@ -288,7 +288,7 @@ export const useProjectRecordStore = create<RecordStoreState>()((set, get) => ({
       return outcome;
     }
 
-    const outcome = refusal(result, draft);
+    const outcome = refusal(result, typed);
     if (result.reason === "conflict") {
       // Take the other person's record underneath the draft, so the next attempt quotes
       // a version that exists and the reader can see what moved. The draft is untouched.
