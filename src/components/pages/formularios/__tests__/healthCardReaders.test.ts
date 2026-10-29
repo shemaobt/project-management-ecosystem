@@ -46,7 +46,6 @@ const project = (over: Partial<Project> = {}): Project => ({
   ...over,
 });
 
-/** The project as a health reader is handed it: assessed inside this quarter. */
 const assessed = () =>
   project({
     healthEmotional: "boa",
