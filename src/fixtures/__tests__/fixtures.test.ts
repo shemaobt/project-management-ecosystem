@@ -238,7 +238,7 @@ describe("eten fixture", () => {
   it("reports only the projects on the ETEN list", async () => {
     const projects = await projectsAPI.list();
     const listed = projects.filter((project) => project.inETEN);
-    const report = await etenAPI.report(2025);
+    const report = await etenAPI.report(2025, "pt-BR");
 
     expect(report.year).toBe(2025);
     expect(report.listedProjects).toBe(listed.length);
@@ -247,7 +247,7 @@ describe("eten fixture", () => {
 
   it("starts with no credit informed", async () => {
     expect(await etenAPI.credits()).toEqual([]);
-    const report = await etenAPI.report(2025);
+    const report = await etenAPI.report(2025, "pt-BR");
     expect(report.totalCredits).toBe(0);
     for (const snapshot of report.snapshots) {
       expect(snapshot.credits).toBeNull();
@@ -366,7 +366,7 @@ describe("fixture module contract", () => {
       meetingsAPI.log(),
       prayerAPI.list(),
       intercessorsAPI.list(),
-      etenAPI.report(2025),
+      etenAPI.report(2025, "pt-BR"),
       geoAPI.outlines(),
     ];
     for (const call of calls) {

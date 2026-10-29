@@ -437,9 +437,11 @@ export const intercessorsAPI = {
 };
 
 export const etenAPI = {
-  async report(year: number): Promise<EtenYearReport> {
+  /** In `language`'s order: a withheld name sits where this console prints it (OBT-657). */
+  async report(year: number, language: PulseLanguage): Promise<EtenYearReport> {
     const { data } = await http.get<EtenYearReport>(`${SHEMA}/eten/report`, {
       params: { year },
+      headers: { [LANGUAGE_HEADER]: language },
     });
     return data;
   },
@@ -830,6 +832,17 @@ export type PulseLanguage = "pt-BR" | "en";
 export function pulseLanguage(language: string): PulseLanguage {
   return language.startsWith("en") ? "en" : "pt-BR";
 }
+
+/**
+ * The header the console states the language it prints in (OBT-657). The server orders a withheld
+ * name the way this console prints it — *Projeto sensível — África* among the P's, *Sensitive
+ * project — Africa* among the S's — on the ETEN report and the Projetos list. A header and not a
+ * parameter, on both reads alike: the list's parameters are the screen's own address
+ * (`encodeView`), which the server holds to exactly those keys, so a `lang` there would be refused
+ * with 422 by a server that does not know it — a header it ignores. `?lang=` stays where it picks
+ * the language a file is written in (the Pulse, the export).
+ */
+export const LANGUAGE_HEADER = "X-Shema-Language";
 
 /**
  * The Prayer Pulse, generated on the server (INT-06 · OBT-411, BE-09). **The server writes the

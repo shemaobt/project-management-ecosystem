@@ -38,6 +38,7 @@ function blanksLast(
 
 function comparatorFor(
   key: ProjectBrowseQuery["sort"],
+  locale: string | undefined,
 ): (a: Project, b: Project) => number {
   switch (key) {
     case "deadline":
@@ -48,12 +49,12 @@ function comparatorFor(
     case "name":
       return blanksLast(
         (project) => project.languageName,
-        (a, b) => a.localeCompare(b),
+        (a, b) => a.localeCompare(b, locale),
       );
     case "team":
       return blanksLast(
         (project) => project.team,
-        (a, b) => a.localeCompare(b),
+        (a, b) => a.localeCompare(b, locale),
       );
     case "progress":
       return (a, b) => getProgress(b) - getProgress(a);
@@ -115,9 +116,14 @@ function countsAsRead(
  * — **before** the filter, the counts and the sort, because the server's search and facets
  * read the card the reader was given. `derived` is computed first, off the truth, so the
  * region a reduced card names is the true one.
+ *
+ * `language` is the one the console prints in. The double compares names in it, as
+ * `sorting.ts` does with the screen's locale; it does not hold the server's order of a withheld
+ * name by its printed words (OBT-657) — that one is the server's alone.
  */
 export async function browseProjects(
   asked: ProjectBrowseQuery,
+  language?: string,
 ): Promise<ProjectBrowseResult> {
   const persona = mockPersona();
   const hidden = hiddenFacets(persona);
@@ -130,7 +136,7 @@ export async function browseProjects(
     ),
   );
   const result = filterProjects(cards, query.filters, query.search);
-  const sorted = [...result.projects].sort(comparatorFor(query.sort));
+  const sorted = [...result.projects].sort(comparatorFor(query.sort, language));
 
   const start = query.offset;
   const stop = query.limit === null ? undefined : start + query.limit;

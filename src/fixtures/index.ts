@@ -31,6 +31,7 @@ import type {
 } from "../types/project";
 import type { LoadedRecord } from "../types/projectRecord";
 import type { RecordSaveResult } from "../services/api/projectRecord";
+import type { PulseLanguage } from "../services/api/endpoints";
 import type { GeoOutline, Region, RegionKey, RegionTeam, RoleChange } from "../types/region";
 import type { SaveOutcome } from "../types/team";
 import type {
@@ -136,8 +137,11 @@ export const healthAssessmentsAPI = {
 
 /** The Projetos screen's own capability — see `types/projectBrowse.ts`. */
 export const projectBrowseAPI = {
-  async browse(query: ProjectBrowseQuery): Promise<ProjectBrowseResult> {
-    return browseProjects(query);
+  async browse(
+    query: ProjectBrowseQuery,
+    language?: PulseLanguage,
+  ): Promise<ProjectBrowseResult> {
+    return browseProjects(query, language);
   },
 };
 
@@ -219,8 +223,8 @@ export const intercessorsAPI = {
 };
 
 export const etenAPI = {
-  async report(year: number): Promise<EtenYearReport> {
-    return buildEtenReport(loadProjects(), year, loadEtenCredits());
+  async report(year: number, language: PulseLanguage): Promise<EtenYearReport> {
+    return buildEtenReport(loadProjects(), year, loadEtenCredits(), new Date(), language);
   },
   async credits(): Promise<EtenCreditEntry[]> {
     return loadEtenCredits();

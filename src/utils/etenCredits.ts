@@ -252,13 +252,16 @@ export function accountFor(
 /**
  * The report the fixture double answers for `GET /eten/report` — the same order, totals and
  * provenance fields the server fills. Nothing recorded it, so `reportId` and `recordedAt` are
- * `null`, and the screen says so rather than inventing a record.
+ * `null`, and the screen says so rather than inventing a record. Names compare in `locale`, the
+ * language the console prints in; the double withholds no name, so the server's order of a
+ * withheld one by its printed words (OBT-657) never arises here.
  */
 export function buildEtenReport(
   projects: readonly Project[],
   year: number,
   ledger: readonly EtenCreditEntry[] = [],
   now: Date = new Date(),
+  locale?: string,
 ): EtenYearReport {
   const listed = projects.filter((project) => project.inETEN);
 
@@ -274,7 +277,7 @@ export function buildEtenReport(
       (a, b) =>
         (b.credits ?? -1) - (a.credits ?? -1) ||
         b.advanced - a.advanced ||
-        a.languageName.localeCompare(b.languageName) ||
+        a.languageName.localeCompare(b.languageName, locale) ||
         a.projectId.localeCompare(b.projectId),
     );
 

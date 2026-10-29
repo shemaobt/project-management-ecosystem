@@ -12,6 +12,7 @@
     "fixtures:import": "node scripts/import-fixture-data.mjs",
     "fixtures:parity": "node scripts/generate-parity.mjs",
     "emit:regions": "node scripts/emit-regions.mjs",
+    "emit:sensitive-names": "node scripts/emit-sensitive-names.mjs",
     "test:watch": "vitest",
     "preview": "vite preview"
   },
