@@ -97,7 +97,6 @@ export interface LinkListView {
   revoking: readonly string[];
 }
 
-/** What the dialog draws under the project its selector names — nothing of another one. */
 export function viewFor(state: LinkListState, projectId: string): LinkListView {
   return state.projectId === projectId
     ? { list: state.list, minted: state.minted, revoking: state.revoking }

@@ -40,7 +40,6 @@ export interface LeaderLinkDialogBodyProps {
   /** Why the links could not be read — said, with a retry, never drawn as an empty list. */
   linksFailure?: ApiFailure | null;
   onRetryLinks?: () => void;
-  /** The links whose revocation is on its way: the row says so and its button waits. */
   revoking?: readonly string[];
   minted: IntakeLinkCreated | null;
   minting: boolean;
