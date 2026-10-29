@@ -5,11 +5,6 @@ import type { ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { CHROME, launchChrome, serveProbe } from "../../../../__tests__/headlessChrome";
 
-/**
- * The Projetos screen reads the list through its own browses, so the header's *Recarregar*
- * reaches the saved views only if those browses ask again (OBT-663). Proven on the real page,
- * in a real browser: effects are what re-ask, and this suite has no other way to run them.
- */
 const PT = JSON.parse(
   readFileSync(join(process.cwd(), "src/i18n/locales/pt-BR.json"), "utf8"),
 ) as Record<string, string>;
