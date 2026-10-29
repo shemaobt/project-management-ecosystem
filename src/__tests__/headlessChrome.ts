@@ -1,8 +1,9 @@
 import { spawn } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { createServer as createNetServer } from "node:net";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { compile } from "tailwindcss";
 import { createServer as createViteServer, type Connect, type ViteDevServer } from "vite";
 
 function findChrome(): string | undefined {
@@ -20,6 +21,35 @@ function findChrome(): string | undefined {
 }
 
 export const CHROME = findChrome();
+
+export const APP_DEPENDENCIES: readonly string[] = [
+  ...Object.keys(
+    (
+      JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8")) as {
+        dependencies: Record<string, string>;
+      }
+    ).dependencies,
+  ),
+  "react/jsx-runtime",
+  "react/jsx-dev-runtime",
+  "react-dom/client",
+  "zustand/middleware",
+];
+
+export async function compileAppCss(candidates: Iterable<string>): Promise<string> {
+  const tailwind = readFileSync(
+    join(process.cwd(), "node_modules", "tailwindcss", "index.css"),
+    "utf8",
+  );
+  const compiler = await compile(readFileSync(join(process.cwd(), "src/index.css"), "utf8"), {
+    base: process.cwd(),
+    loadStylesheet: async (id, base) => {
+      if (id !== "tailwindcss") throw new Error(`stylesheet inesperado: ${id}`);
+      return { path: id, base, content: tailwind };
+    },
+  });
+  return compiler.build([...new Set(candidates)]);
+}
 
 async function freePort(): Promise<number> {
   return new Promise((done, fail) => {

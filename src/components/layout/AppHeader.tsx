@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { KeyRound, Moon, Send } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import "../../i18n";
 import { DEFAULT_TAB } from "../../constants/recordTabs";
 import { useAuth } from "../../contexts/AuthContext";
+import { HEADER_HEIGHT_VAR, usePublishedHeight } from "../../hooks/usePublishedHeight";
 import { useTheme } from "../../contexts/ThemeContext";
 import { accessAPI, resourceRequestsAPI } from "../../services/api";
 import { NEW_RECORD } from "../../stores/recordStore";
@@ -61,6 +62,8 @@ export function AppHeader() {
   const { signOut, user, apps } = useAuth();
   const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
   const [reloading, setReloading] = useState(false);
+  const bar = useRef<HTMLElement>(null);
+  usePublishedHeight(bar, HEADER_HEIGHT_VAR);
   const formOnly = isFormOnly(user.roles);
   const imports = canImportProjects(user.roles, user.writeRegionScope);
   const mintsLinks = canMintLeaderLinks(user.roles, user.writeRegionScope);
@@ -81,8 +84,10 @@ export function AppHeader() {
 
   return (
     <header
+      ref={bar}
       className={cn(
-        "sticky top-0 z-50 flex flex-wrap items-center justify-between",
+        "top-0 z-50 flex flex-wrap items-center justify-between",
+        "sm:[@media(height>500px)]:sticky lg:sticky",
         "gap-x-6 gap-y-2.5 border-b border-preto/20 bg-inverse text-on-dark",
         "px-4.5 py-3.5 sm:px-8 sm:py-[18px]",
       )}

@@ -2,12 +2,11 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ESLint } from "eslint";
-import { compile } from "tailwindcss";
 import type { ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { BRAND_INK, NOT_SHIPPED_STYLING } from "../../../eslint.config.js";
 import { TOAST_CLASSNAMES } from "../../components/ui/Toaster";
-import { CHROME, launchChrome, serveProbe } from "../../__tests__/headlessChrome";
+import { CHROME, compileAppCss, launchChrome, serveProbe } from "../../__tests__/headlessChrome";
 
 const eslint = new ESLint();
 
@@ -281,22 +280,10 @@ window.probe = {
 };
 `;
 
-async function compileToastCss(): Promise<string> {
-  const tailwind = readFileSync(
-    join(process.cwd(), "node_modules", "tailwindcss", "index.css"),
-    "utf8",
-  );
-  const compiler = await compile(css, {
-    base: process.cwd(),
-    loadStylesheet: async (id, base) => {
-      if (id !== "tailwindcss") throw new Error(`stylesheet inesperado: ${id}`);
-      return { path: id, base, content: tailwind };
-    },
-  });
-  const candidates = [TOAST_CLASSNAMES, FE03_CLASSNAMES].flatMap((slots) =>
+function toastCandidates(): string[] {
+  return [TOAST_CLASSNAMES, FE03_CLASSNAMES].flatMap((slots) =>
     Object.values(slots).flatMap((classes) => classes.split(/\s+/u)),
   );
-  return compiler.build([...new Set(candidates)]);
 }
 
 describe.skipIf(!CHROME)("the toast, raised in a browser (headless Chrome)", () => {
@@ -308,7 +295,7 @@ describe.skipIf(!CHROME)("the toast, raised in a browser (headless Chrome)", () 
   beforeAll(async () => {
     scratch = mkdtempSync(join(tmpdir(), "toast-fill-"));
     const [toastCss, dev] = await Promise.all([
-      compileToastCss(),
+      compileAppCss(toastCandidates()),
       serveProbe({
         scratch,
         module: PROBE_MODULE,
