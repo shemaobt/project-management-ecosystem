@@ -340,6 +340,12 @@ is what is wrong in those records, not the count.
 else may be saved empty, and the seed proves it: 27 of the 55 export columns are empty on all 127
 records.
 
+**One more, in the console only** ([OBT-654](https://linear.app/shema-obt/issue/OBT-654),
+28/oct/2026): a new record's `location` is required of an account that does not write `other`,
+because a place that names nothing falls there and `POST /projects` refuses it (OBT-593). That is
+the console reflecting the write scope, not a field the server validates — the server requirement
+below is unchanged.
+
 **Server requirement:** validate those four and nothing more. A schema that marks `location`,
 `deadline` or `speakerCount` NOT NULL makes 127 existing records unsaveable, and makes the record
 uneditable for the field teams whose data is exactly this thin.

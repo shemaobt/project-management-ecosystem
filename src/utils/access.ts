@@ -12,7 +12,7 @@ import type { Project } from "../types/project";
 import type { RoleKey } from "../types/role";
 import type { RegionKey } from "../types/region";
 import type { SessionRole } from "../types/session";
-import { regionOf, regionOfPlace } from "./region";
+import { namesNoPlace, regionOf, regionOfPlace } from "./region";
 
 export function canAdministerAccess({
   roles,
@@ -239,14 +239,29 @@ export function canWriteHealthIn(
 }
 
 /**
+ * Whether a new record must name its place before it is filed (OBT-654). A place that names
+ * nothing falls in `other` (`regionOfPlace`), which `POST /projects` refuses to an account that
+ * does not write there (OBT-593) — so for that account the place is a field still to fill, which
+ * `missingRequired` says, and not a region it is outside of. An account that writes `other`,
+ * every region (`null`) or a server from before the field (absent) files a record with no place.
+ */
+export function newRecordNeedsPlace(
+  writeRegionScope: readonly RegionKey[] | null | undefined,
+): boolean {
+  return !writesProjectIn(writeRegionScope, regionOfPlace(""));
+}
+
+/**
  * The region a new record's place falls in when the account does not write there, else `null`
  * (OBT-593). `POST /projects` derives the region from `location` the way `regionOfPlace` reads
  * it (OBT-591) and refuses outside the write scope, so the form says it before the save does.
+ * A place that names nothing is not outside anywhere: it is missing (`newRecordNeedsPlace`).
  */
 export function newRecordOutsideWrites(
   writeRegionScope: readonly RegionKey[] | null | undefined,
   location: string,
 ): RegionKey | null {
+  if (namesNoPlace(location)) return null;
   const region = regionOfPlace(location);
   return writesProjectIn(writeRegionScope, region) ? null : region;
 }

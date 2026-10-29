@@ -8,12 +8,14 @@ import {
   canMintLeaderLinks,
   canWithdrawMediaAuthorization,
   canWriteHealthIn,
+  newRecordNeedsPlace,
   newRecordOutsideWrites,
   leaderLinkProjects,
   writesAnyProject,
   writesProjectIn,
 } from "../access";
-import { regionOf } from "../region";
+import { regionOf, regionOfPlace } from "../region";
+import { makeEmptyProject, missingRequired, type ProjectDraft } from "../../stores/recordStore";
 import { assessmentRedirect } from "../../components/pages/avaliacao/writerGate";
 import { mayWrite, recordAccess } from "../recordAccess";
 import { makeProject } from "./factory";
@@ -231,10 +233,9 @@ describe("o Ritmo escreve só a região da linha (OBT-593; a Equipe tem a regra 
 });
 
 describe("a ficha nova só aceita um local onde a conta escreve (OBT-593)", () => {
-  it("admin + coordenação da Ásia: Índia passa, Moçambique não, local vazio não", () => {
+  it("admin + coordenação da Ásia: Índia passa, Moçambique não", () => {
     expect(newRecordOutsideWrites(ADMIN_ASIA.writes, "India, Delhi")).toBeNull();
     expect(newRecordOutsideWrites(ADMIN_ASIA.writes, "Mozambique, Maputo")).toBe("africa");
-    expect(newRecordOutsideWrites(ADMIN_ASIA.writes, "")).toBe("other");
   });
 
   it("coordenação e OBT Lab na própria região; plataforma e campo ausente em qualquer lugar", () => {
@@ -243,6 +244,80 @@ describe("a ficha nova só aceita um local onde a conta escreve (OBT-593)", () =
     expect(newRecordOutsideWrites(OBT_LAB.writes, "Mozambique")).toBeNull();
     expect(newRecordOutsideWrites(PLATFORM.writes, "Mozambique")).toBeNull();
     expect(newRecordOutsideWrites(undefined, "Mozambique")).toBeNull();
+  });
+});
+
+/**
+ * OBT-654 — um local em branco cai em `other`, e o POST recusa a quem não escreve lá: para essa
+ * conta o que falta é o local, não uma região onde ele "fica" (PME-FIC-011).
+ */
+describe("a ficha nova sem local: falta o local, não uma região (OBT-654)", () => {
+  const COORD_AF: Who = { name: "coordenação da África", roles: ["coordinator"], writes: ["africa"] };
+  const COORD_OTHER: Who = { name: "coordenação de other", roles: ["coordinator"], writes: ["other"] };
+  const COORD_2REG: Who = {
+    name: "coordenação de duas regiões",
+    roles: ["coordinator"],
+    writes: ["south-america", "asia"],
+  };
+  const OLD_SERVER: Who = { name: "servidor sem o campo", roles: ["coordinator"], writes: undefined };
+  const filled: ProjectDraft = {
+    ...makeEmptyProject(),
+    languageName: "Língua QA",
+    bridgeLanguage: "Português",
+    team: "YWAM QA",
+    objective: ["NT"],
+  };
+  const missingFor = (writes: Scope, location: string) =>
+    missingRequired({ ...filled, location }, recordAccess(undefined, true, true, true, writes));
+
+  it("quem não escreve em `other` precisa nomear o local da ficha nova", () => {
+    for (const who of [COORD_AF, COORD_SA, ADMIN_ASIA, COORD_2REG, OBT_LAB]) {
+      expect(newRecordNeedsPlace(who.writes), who.name).toBe(true);
+      expect(missingFor(who.writes, ""), who.name).toEqual(["location"]);
+    }
+  });
+
+  it("local em branco não fica em região nenhuma — espaços e vírgulas também são branco", () => {
+    for (const blank of ["", "   ", " , ", ",,"]) {
+      expect(newRecordOutsideWrites(COORD_AF.writes, blank), blank).toBeNull();
+      expect(missingFor(COORD_AF.writes, blank), blank).toEqual(["location"]);
+    }
+  });
+
+  it("com um local que nomeia algo nada falta; fora das regiões é a frase da OBT-593 que diz", () => {
+    expect(missingFor(COORD_AF.writes, "Mozambique, Tete")).toEqual([]);
+    expect(newRecordOutsideWrites(COORD_AF.writes, "Mozambique, Tete")).toBeNull();
+    expect(missingFor(COORD_AF.writes, "India")).toEqual([]);
+    expect(newRecordOutsideWrites(COORD_AF.writes, "India")).toBe("asia");
+  });
+
+  it("quem escreve em `other`, em todas as regiões ou num servidor sem o campo salva sem local", () => {
+    const writers: Scope[] = [["other"], ["africa", "other"], PLATFORM.writes, OLD_SERVER.writes];
+    for (const writes of writers) {
+      expect(newRecordNeedsPlace(writes)).toBe(false);
+      expect(missingFor(writes, "")).toEqual([]);
+      expect(newRecordOutsideWrites(writes, "")).toBeNull();
+    }
+  });
+
+  it("a ficha salva não passa a pedir local", () => {
+    const place = recordAccess(MOZAMBIQUE(), false, true, true, COORD_AF.writes);
+    expect(place.placeRequired).toBe(false);
+    expect(missingRequired({ ...filled, location: "" }, place)).toEqual([]);
+  });
+
+  it("a tela trava exatamente quando o POST recusaria pela região, e diz uma coisa só", () => {
+    const accounts = [COORD_AF, COORD_OTHER, COORD_2REG, ADMIN_ASIA, OBT_LAB, PLATFORM, OLD_SERVER];
+    const places = ["", "  ", " , ", "Mozambique, Tete", "India", "Peru", "Tete"];
+    for (const who of accounts) {
+      for (const location of places) {
+        const missing = missingFor(who.writes, location).includes("location");
+        const outside = newRecordOutsideWrites(who.writes, location) !== null;
+        const refused = !writesProjectIn(who.writes, regionOfPlace(location));
+        expect(missing && outside, `${who.name} · "${location}"`).toBe(false);
+        expect(missing || outside, `${who.name} · "${location}"`).toBe(refused);
+      }
+    }
   });
 });
 

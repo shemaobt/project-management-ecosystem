@@ -5,6 +5,7 @@ import { createDeferredJsonStorage } from "./draftStorage";
 import type { RecordTabId } from "../constants/recordTabs";
 import type { Project } from "../types/project";
 import { mayWrite, type RecordAccess } from "../utils/recordAccess";
+import { namesNoPlace } from "../utils/region";
 
 export const NEW_RECORD = "novo";
 
@@ -17,6 +18,7 @@ export type ProjectDraft = Partial<Project>;
 export const REQUIRED_FIELDS = [
   "languageName",
   "bridgeLanguage",
+  "location",
   "team",
   "objective",
 ] as const;
@@ -26,6 +28,7 @@ export type RequiredField = (typeof REQUIRED_FIELDS)[number];
 export const REQUIRED_LABEL_KEYS: Record<RequiredField, string> = {
   languageName: "f_lang_name",
   bridgeLanguage: "f_bridge",
+  location: "f_location",
   team: "d_facilitators",
   objective: "sec_objective",
 };
@@ -33,17 +36,26 @@ export const REQUIRED_LABEL_KEYS: Record<RequiredField, string> = {
 export const REQUIRED_FIELD_TAB: Record<RequiredField, RecordTabId> = {
   languageName: "identidade",
   bridgeLanguage: "identidade",
+  location: "identidade",
   team: "equipe",
   objective: "objetivo",
 };
 
-/** A field this reader may not write is never missing for them — the base of a withheld record read as `other`. */
+/**
+ * A field this reader may not write is never missing for them — the base of a withheld record
+ * read as `other`. The place is missing only where `placeRequired` asks for it (OBT-654) and
+ * only while it names nothing: the same reading after which `newRecordOutsideWrites` stays
+ * silent, so a blank place is said here and never as a region it falls in.
+ */
 export function missingRequired(
   draft: ProjectDraft,
   access: RecordAccess,
 ): RequiredField[] {
   return REQUIRED_FIELDS.filter((field) => {
     if (!mayWrite(access, field)) return false;
+    if (field === "location") {
+      return access.placeRequired && namesNoPlace(draft.location ?? "");
+    }
     const value = draft[field];
     if (Array.isArray(value)) return value.length === 0;
     return typeof value !== "string" || value.trim() === "";

@@ -1310,6 +1310,8 @@
   "acesso_grant": "Grant",
   "acesso_revoke": "Revoke",
   "acesso_saving": "Saving…",
+  "acesso_change_saved": "The access change for {{person}} was saved.",
+  "acesso_change_not_saved": "The access change for {{person}} was not saved.",
   "acesso_admin_both_apps": "One role for both apps: granting or revoking it here writes it in the console and in the form.",
   "acesso_regions_legend": "Regions for {{role}}",
   "acesso_regions_count_one": "{{count}} region selected",

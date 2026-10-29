@@ -5,7 +5,7 @@ import {
 } from "../constants/recordFields";
 import type { Project } from "../types/project";
 import type { RegionKey } from "../types/region";
-import { writesProjectIn } from "./access";
+import { newRecordNeedsPlace, writesProjectIn } from "./access";
 import type { RecordField } from "../types/projectRecord";
 import { getLocationDisplay, regionOf } from "./region";
 
@@ -26,6 +26,10 @@ import { getLocationDisplay, regionOf } from "./region";
  * A `trusted` payload (OBT-571) reads the truth of a sensitive place like coordination and
  * writes **nothing** — Daniel, 7/oct/2026: the Resource Circle loses the `PATCH` it had, the
  * description of a need included. `readOnly` is that bit, and `mayWrite` answers it first.
+ *
+ * `placeRequired`: a new record must name its place before it is filed — the account does not
+ * write where a blank place falls (OBT-654, `newRecordNeedsPlace`). It lives here because
+ * `missingRequired` reads this record per reader; a saved record is never asked for a place.
  */
 export interface RecordAccess {
   withheld: boolean;
@@ -34,6 +38,7 @@ export interface RecordAccess {
   readsHealth: boolean;
   writesHealth: boolean;
   readOnly: boolean;
+  placeRequired: boolean;
 }
 
 /**
@@ -47,6 +52,7 @@ export const FULL_ACCESS: RecordAccess = {
   readsHealth: true,
   writesHealth: true,
   readOnly: false,
+  placeRequired: false,
 };
 
 const NO_ACCESS: RecordAccess = {
@@ -56,6 +62,7 @@ const NO_ACCESS: RecordAccess = {
   readsHealth: false,
   writesHealth: false,
   readOnly: true,
+  placeRequired: false,
 };
 
 /**
@@ -69,7 +76,14 @@ export function recordAccess(
   writesHealth: boolean,
   writeRegionScope?: readonly RegionKey[] | null,
 ): RecordAccess {
-  if (isNew) return { ...FULL_ACCESS, readsHealth, writesHealth };
+  if (isNew) {
+    return {
+      ...FULL_ACCESS,
+      readsHealth,
+      writesHealth,
+      placeRequired: newRecordNeedsPlace(writeRegionScope),
+    };
+  }
   if (!saved) return NO_ACCESS;
   const coordination = saved.readAs === "coordination";
   // A record outside where the account writes is read-only even when it reads as the
@@ -83,6 +97,7 @@ export function recordAccess(
     readsHealth,
     writesHealth: writesHealth && !readOnly,
     readOnly,
+    placeRequired: false,
   };
 }
 
