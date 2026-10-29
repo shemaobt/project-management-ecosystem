@@ -40,6 +40,22 @@ function lastReportDate(
     : null;
 }
 
+/**
+ * Whether this reader is told a form's reporting state (OBT-660). The Health Assessment's is
+ * read off the team's health — the four dimensions and `healthAssessmentDate` — which the
+ * server hands empty to a reader outside the health readers (shema-api `health_as_read`), as
+ * on a project nobody assessed: for that reader an empty field is not *never*, it is not theirs
+ * to read, so the card says whose the health is instead. The Pulse's is read off the archive.
+ */
+export function readsReporting(kind: FormKind, readsHealth: boolean): boolean {
+  switch (kind) {
+    case "pulso":
+      return true;
+    case "health":
+      return readsHealth;
+  }
+}
+
 export function reportingFor(
   form: FormDefinition,
   project: Project,

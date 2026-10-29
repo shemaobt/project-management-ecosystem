@@ -20,7 +20,7 @@ import { DimensionStep } from "./DimensionStep";
 import { PrayerRequestStep } from "./PrayerRequestStep";
 import { SubmitOutcomeNote, type SubmitOutcome } from "./SubmitOutcomeNote";
 import { assessmentRedirect } from "./writerGate";
-import { regionOf } from "../../../utils/region";
+import { getLanguageNameDisplay, regionOf } from "../../../utils/region";
 
 const LAST_STEP = HEALTH_DIMENSIONS.length;
 
@@ -97,7 +97,7 @@ export function AvaliacaoView({
           {t("hw_eyebrow")}
         </p>
         <h1 className="mb-3 text-h2 leading-tight font-black tracking-tight text-balance text-fg-strong">
-          {t("hw_title", { language: project.languageName })}
+          {t("hw_title", { language: getLanguageNameDisplay(project, t) })}
         </h1>
         <p className="max-w-[72ch] text-lead leading-normal text-pretty text-fg-muted">
           {t("hw_howto")}
@@ -252,7 +252,9 @@ export function AvaliacaoPage() {
         if (outcome.kind === "saved") {
           discardDraft(projectId);
           toast.success(
-            t("hw_saved", { language: outcome.project.languageName }),
+            t("hw_saved", {
+              language: getLanguageNameDisplay(outcome.project, t),
+            }),
           );
           void navigate("/formularios");
           return;
