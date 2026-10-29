@@ -75,7 +75,6 @@ export function readsSavedPrefs(roles: readonly SessionRole[]): boolean {
   return holdsShemaGrant(roles);
 }
 
-/** No Shemá grant is a fact about the account, not a failure: a note, with nothing to retry (OBT-635). */
 /**
  * The sentence under the preferences (OBT-665, PME-ORA-070). The prototype's *ficam salvas
  * neste navegador* (`notifications.jsx:177`) is true of the fixture double, which keeps them
@@ -90,6 +89,7 @@ export function prefsFootKey(
   return home === "browser" ? "notif_foot" : null;
 }
 
+/** No Shemá grant is a fact about the account, not a failure: a note, with nothing to retry (OBT-635). */
 export function prefsNotice(
   feed: Pick<NotificationsFeed, "prefsForbidden" | "prefsFailure" | "retryPrefs">,
   t: Translate,
