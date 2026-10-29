@@ -3,19 +3,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { CHROME, launchChrome, serveProbe } from "../../../../__tests__/headlessChrome";
+import { APP_DEPENDENCIES, CHROME, launchChrome, serveProbe } from "../../../../__tests__/headlessChrome";
 
 const PT = JSON.parse(
   readFileSync(join(process.cwd(), "src/i18n/locales/pt-BR.json"), "utf8"),
 ) as Record<string, string>;
 
-const DEPENDENCIES = Object.keys(
-  (
-    JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8")) as {
-      dependencies: Record<string, string>;
-    }
-  ).dependencies,
-);
 
 const A_EMAIL = "pessoa-a@exemplo.org";
 const B_EMAIL = "pessoa-b@exemplo.org";
@@ -218,13 +211,7 @@ describe.skipIf(!CHROME)("conceder para A, buscar B, a resposta de A chegar — 
     server = await serveProbe({
       scratch,
       module: PROBE_MODULE,
-      include: [
-        ...DEPENDENCIES,
-        "react/jsx-runtime",
-        "react/jsx-dev-runtime",
-        "react-dom/client",
-        "zustand/middleware",
-      ],
+      include: APP_DEPENDENCIES,
       define: { "import.meta.env.VITE_DATA_SOURCE": JSON.stringify("fixtures") },
     });
     browser = await launchChrome(CHROME!, scratch);
