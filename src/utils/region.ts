@@ -60,6 +60,15 @@ export function regionOfPlace(location: string): RegionKey {
 }
 
 /**
+ * A place that names nothing — empty, or only spaces and commas — so `getCountry` reads no item
+ * and `regionOfPlace` falls back to `other` (OBT-654). Such a place is not *in* `other`: it is
+ * blank, and the record says it is missing rather than where it falls.
+ */
+export function namesNoPlace(location: string): boolean {
+  return getCountry({ location }) === "";
+}
+
+/**
  * A reduced payload (OBT-528) carries the region **key** where the location was, so the
  * key reads as its own region instead of an unknown country falling back to `other`.
  */
