@@ -138,7 +138,25 @@ describe("as telas que mostram a lista a leem pelo gancho que relê depois de um
     "src/components/pages/ritmo/relatorio/RelatorioPage.tsx",
   ])("%s", (file) => {
     const source = readFileSync(join(process.cwd(), file), "utf8");
-    expect(source).toContain("useProjectListRead();");
+    expect(source).toMatch(/useProjectListRead\((\{ everyVisit: true \})?\);/u);
     expect(source).not.toMatch(/useProjectsStore\(\(state\) => state\.hydrate\)/u);
+  });
+});
+
+describe("o Início relê a lista a cada visita; Ritmo, Formulários e o relatório a leem uma vez (OBT-663)", () => {
+  const read = (file: string) => readFileSync(join(process.cwd(), file), "utf8");
+
+  it("o Início, cujos números são os primeiros lidos", () => {
+    expect(read("src/components/pages/inicio/index.tsx")).toContain(
+      "useProjectListRead({ everyVisit: true });",
+    );
+  });
+
+  it.each([
+    "src/components/pages/ritmo/RitmoPage.tsx",
+    "src/components/pages/formularios/index.tsx",
+    "src/components/pages/ritmo/relatorio/RelatorioPage.tsx",
+  ])("%s", (file) => {
+    expect(read(file)).toContain("useProjectListRead();");
   });
 });

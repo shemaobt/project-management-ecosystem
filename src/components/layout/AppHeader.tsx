@@ -61,6 +61,7 @@ export function AppHeader() {
   const reload = useProjectsStore((state) => state.reload);
   const { signOut, user, apps } = useAuth();
   const [dialog, setDialog] = useState<HeaderDialogKey | null>(null);
+  const [reloading, setReloading] = useState(false);
   const bar = useRef<HTMLElement>(null);
   usePublishedHeight(bar, HEADER_HEIGHT_VAR);
   const formOnly = isFormOnly(user.roles);
@@ -74,8 +75,10 @@ export function AppHeader() {
   };
 
   const handleReload = async () => {
-    await reload();
-    toast(t("reload_done"));
+    setReloading(true);
+    const read = await reload();
+    setReloading(false);
+    if (read) toast(t("reload_done"));
     setDialog(null);
   };
 
@@ -196,6 +199,7 @@ export function AppHeader() {
         title={t("btn_reload")}
         description={t("btn_reload_title")}
         confirmLabel={t("btn_reload")}
+        busy={reloading}
         onConfirm={() => void handleReload()}
       >
         <p className="text-small leading-body text-fg">{t("confirm_reload")}</p>

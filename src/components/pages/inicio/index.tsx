@@ -122,7 +122,7 @@ function InicioListPage() {
   const reload = useProjectsStore((state) => state.reload);
   const navigate = useNavigate();
 
-  useProjectListRead();
+  useProjectListRead({ everyVisit: true });
 
   const openRecord = (project: Project) => {
     navigate(`/ficha/${project.id}/${DEFAULT_TAB}`);

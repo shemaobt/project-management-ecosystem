@@ -37,6 +37,7 @@ const { GUIDING_QUESTIONS } = await import(
 );
 const { HEALTH_DIMENSIONS } = await import("../../../../constants/health");
 import type { AssessmentDraft } from "../../../../types/assessment";
+import type { Project } from "../../../../types/project";
 
 const NOW = new Date(2026, 4, 14);
 
@@ -57,19 +58,26 @@ function controlFor(markup: string, label: string): string {
   return markup.slice(markup.lastIndexOf("<button", end), end + 1);
 }
 
-const view = (over: Partial<AssessmentDraft> = {}) =>
+const renderView = (
+  subject: Project,
+  over: Partial<AssessmentDraft> = {},
+) =>
   renderToStaticMarkup(
     createElement(
       MemoryRouter,
       null,
       createElement(AvaliacaoView, {
-        project,
+        project: subject,
         draft: draft(over),
         onStep: () => {},
         onFinish: () => {},
       }),
     ),
   );
+
+const view = (over: Partial<AssessmentDraft> = {}) => renderView(project, over);
+
+const FLOW = new URL("..", import.meta.url).pathname;
 
 beforeEach(async () => {
   await i18n.changeLanguage("pt");
@@ -108,7 +116,6 @@ describe("pular é resposta, e a tela diz o que isso grava", () => {
 });
 
 describe("nenhum arquivo em lugar nenhum do fluxo", () => {
-  const FLOW = new URL("..", import.meta.url).pathname;
   const FILE_API =
     /createObjectURL|URL\.revokeObjectURL|new Blob\(|\.download\b|download=|utils\/export/u;
 
@@ -360,4 +367,71 @@ describe("a leitura geral do resumo é prévia — quem conta é o servidor", ()
   it("a nota geral diz que fica só no rascunho — a BE-07 não tem onde guardá-la", () => {
     expect(completion({})).toContain(i18n.t("hw_overallnote_local_only"));
   });
+});
+
+describe("o assistente chama o projeto sensível como a ficha o chama, nunca pela chave da região (OBT-659)", () => {
+  // What the server hands the OBT Lab for a sensitive project with no public name: the region
+  // key where the name was, and the bit that says it is not the language's own (OBT-560).
+  const withheld = (region: string, over: Partial<Project> = {}): Project => ({
+    ...createEmptyProject("sigiloso"),
+    languageName: region,
+    languageNameWithheld: true,
+    location: region,
+    sensitiveCountry: true,
+    readAs: "other",
+    ...over,
+  });
+  const heading = (markup: string) =>
+    markup.match(/<h1[^>]*>([^<]*)<\/h1>/)?.[1] ?? "";
+  const titled = (language: string) => i18n.t("hw_title", { language });
+  const phrase = (regionKey: string) =>
+    i18n.t("sensitive_project_named", { region: i18n.t(regionKey) });
+
+  it("sem nome público, o título diz “Projeto sensível — África”, e “africa” não aparece na tela", () => {
+    const markup = renderView(withheld("africa"));
+
+    expect(heading(markup)).toBe(titled(phrase("continent_africa")));
+    expect(heading(markup)).toBe("Como está a equipe Projeto sensível — África?");
+    expect(markup).not.toContain("africa");
+  });
+
+  it("na região other, o título diz “Projeto sensível — América Central”, o nome que o PME dá a ela", () => {
+    const markup = renderView(withheld("other"));
+
+    expect(heading(markup)).toBe(titled(phrase("continent_other")));
+    expect(heading(markup)).toContain("América Central");
+    expect(markup).not.toMatch(/\bother\b/);
+  });
+
+  it("um nome público registrado chega pronto e é o nome do título", () => {
+    const markup = renderView(withheld("africa", { languageName: "Sa'di" }));
+
+    expect(heading(markup)).toContain("Sa&#x27;di");
+    expect(markup).not.toContain(phrase("continent_africa"));
+  });
+
+  it("sem o bit, o nome é o nome — uma língua aberta não vira frase", () => {
+    expect(heading(view())).toBe(titled("Kadiwéu"));
+  });
+});
+
+describe("o assistente só imprime nome pelo dono do nome impresso (OBT-659)", () => {
+  // The saved toast fires inside the page's submit handler, which a static render never runs.
+  // What holds it is this sweep: no file of the wizard reads the raw field, so every name it
+  // prints goes through `getLanguageNameDisplay`, whose own test keeps the key from showing.
+  const corpus = readdirSync(FLOW, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && /\.tsx?$/u.test(entry.name))
+    .map((entry) => entry.name);
+
+  it("o corpus é o assistente inteiro, com a página que dispara o toast", () => {
+    expect(corpus).toContain("index.tsx");
+    expect(corpus).toContain("writerGate.ts");
+    expect(corpus.some((name) => name.includes("test"))).toBe(false);
+  });
+
+  for (const name of corpus) {
+    it(`${name} não lê languageName cru — título e toast passam por getLanguageNameDisplay`, () => {
+      expect(readFileSync(join(FLOW, name), "utf8")).not.toMatch(/\blanguageName\b/u);
+    });
+  }
 });
