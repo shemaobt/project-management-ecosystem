@@ -81,12 +81,14 @@ export interface ChipsProps {
 }
 
 /**
- * **One chip per row in the 260px sidebar, two below it** (OBT-665, PME-PRJ-098). The
- * prototype puts two per row at every width (`app.css:3382`), and inside its own 260px column
- * (`app.css:214`) that leaves a label some 46px between the icon and the count, so *Pedem
- * atenção*, *Em oração*, *Celebrar* and *Recentes* end in an ellipsis at 1366 and at 1920 alike
- * — a ported quirk that hides the very word the chip filters by. From `lg`, where the sidebar
- * is that column, each chip takes the row; below it the sidebar spans the page and two fit.
+ * **The label wraps instead of being cut, in the 260px sidebar** (OBT-665, PME-PRJ-098). The
+ * prototype puts two chips per row (`app.css:3382`) inside its own 260px column (`app.css:214`),
+ * which leaves a label some 46px between the icon and the count, so *Pedem atenção*, *Em
+ * oração*, *Celebrar* and *Recentes* ended in an ellipsis at 1366 and 1920 alike. One chip per
+ * row showed them whole and pushed the sidebar's sticky block from 188 to 278px, hiding *Filtros
+ * ativos* as the list scrolled (PME-PRJ-015). So from `lg`, where the sidebar is that column, the
+ * 2×2 stays and the label breaks onto a second line at a tight leading, with the padding trimmed
+ * so the block is no taller than before (`__tests__/chipsWidth.test.ts` measures both).
  */
 export function Chips({ counts }: ChipsProps) {
   const { t } = useTranslation();
@@ -108,7 +110,7 @@ export function Chips({ counts }: ChipsProps) {
             title={t(preset.subKey)}
             onClick={() => togglePreset(preset.id)}
             className={cn(
-              "group flex min-w-0 flex-[1_1_calc(50%-3px)] items-center lg:flex-[1_1_100%] gap-[7px] rounded-[12px] border border-line bg-elevated px-[11px] py-[9px]",
+              "group flex min-w-0 flex-[1_1_calc(50%-3px)] items-center gap-[7px] rounded-[12px] border border-line bg-elevated px-[11px] py-[9px] lg:py-[7px]",
               "text-left text-micro font-semibold tracking-[0.01em] text-fg",
               "transition-all duration-fast ease-out",
               active && "border-telha bg-brand text-on-brand shadow-accent",
@@ -120,7 +122,9 @@ export function Chips({ counts }: ChipsProps) {
             <span className="flex shrink-0 items-center justify-center">
               {preset.icon}
             </span>
-            <span className="flex-1 truncate">{t(preset.titleKey)}</span>
+            <span className="flex-1 truncate lg:overflow-visible lg:leading-none lg:whitespace-normal">
+              {t(preset.titleKey)}
+            </span>
             <span
               className={cn(
                 "shrink-0 rounded-pill bg-muted px-[7px] py-px text-[10px] font-bold text-fg-subtle",
