@@ -1,4 +1,4 @@
-import axios, { type InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
@@ -85,9 +85,19 @@ const PAGE = {
 const calls: { path: string; params: string }[] = [];
 let pages: unknown[] = [];
 let held: Promise<void> | null = null;
+let refusing = false;
 const adapter = async (config: InternalAxiosRequestConfig) => {
   calls.push({ path: config.url ?? "", params: String(config.params ?? "") });
   if (held) await held;
+  if (refusing) {
+    throw new AxiosError("server down", "ERR_BAD_RESPONSE", config, null, {
+      data: { detail: "boom" },
+      status: 503,
+      statusText: "",
+      headers: {},
+      config,
+    });
+  }
   return {
     data: pages.shift() ?? PAGE,
     status: 200,
@@ -101,7 +111,7 @@ const { http } = await import("../../services/api/client");
 http.defaults.adapter = adapter;
 axios.defaults.adapter = adapter;
 
-const { useProjectsStore } = await import("../projectsStore");
+const { onListReread, useProjectsStore } = await import("../projectsStore");
 const { NOT_HYDRATED } = await import("../hydration");
 const { default: i18n } = await import("../../i18n");
 const { INDICATORS, indicatorCount, listFacets } = await import("../../utils/indicators");
@@ -198,6 +208,7 @@ async function freshSession() {
   calls.length = 0;
   pages = [];
   held = null;
+  refusing = false;
   useProjectsStore.setState({
     projects: [],
     locationsWithheld: null,
@@ -254,7 +265,7 @@ describe("a lista relê depois de uma escrita, e só então (OBT-590)", () => {
 
   beforeEach(freshSession);
 
-  it("voltar a uma tela sem escrita não pede a lista outra vez", async () => {
+  it("voltar a uma tela que lê a lista uma vez, sem escrita, não a pede outra vez", async () => {
     await store().hydrate();
     await store().hydrate();
 
@@ -308,6 +319,92 @@ describe("a lista relê depois de uma escrita, e só então (OBT-590)", () => {
     expect(calls).toHaveLength(2);
     expect(store().facets?.matched).toBe(2);
     expect(store().outdated).toBe(false);
+  });
+});
+
+describe("o Recarregar e a volta ao Início leem a lista de novo (OBT-663)", () => {
+  const TIKUNA = { ...CHICHEWA, id: "tikuna", languageName: "Tikuna" };
+  let told = 0;
+
+  beforeEach(async () => {
+    await freshSession();
+    told = 0;
+    return onListReread(() => {
+      told += 1;
+    });
+  });
+
+  it("o Recarregar lê a lista de novo e avisa as buscas da tela de Projetos", async () => {
+    pages = [servedPage([CHICHEWA], 1), servedPage([CHICHEWA, TIKUNA], 2)];
+    await store().hydrate();
+
+    const read = await store().reload();
+
+    expect(read).toBe(true);
+    expect(calls).toHaveLength(2);
+    expect(told).toBe(1);
+    expect(store().projects.map((project) => project.id)).toEqual(["chichewa", "tikuna"]);
+    expect(store().facets?.matched).toBe(2);
+  });
+
+  it("o Recarregar com uma leitura a caminho lê de novo depois do clique", async () => {
+    let release = () => {};
+    held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    pages = [servedPage([CHICHEWA], 1), servedPage([CHICHEWA, TIKUNA], 2)];
+
+    const mounting = store().hydrate();
+    const reloading = store().reload();
+    release();
+    await Promise.all([mounting, reloading]);
+
+    expect(calls).toHaveLength(2);
+    expect(store().facets?.matched).toBe(2);
+  });
+
+  it("o Recarregar que falha não diz que recarregou", async () => {
+    await store().hydrate();
+    refusing = true;
+
+    expect(await store().reload()).toBe(false);
+    expect(store().error?.kind).toBe("server");
+  });
+
+  it("voltar ao Início lê a lista de novo sem escrita nenhuma; hydrate não", async () => {
+    pages = [servedPage([CHICHEWA], 1), servedPage([CHICHEWA, TIKUNA], 2)];
+    await store().hydrate();
+    await store().hydrate();
+    expect(calls).toHaveLength(1);
+
+    await store().revisit();
+
+    expect(calls).toHaveLength(2);
+    expect(bandNumbers(band())["/projetos"]).toBe("2");
+  });
+
+  it("a volta e a hidratação não pedem de novo as buscas de Projetos; uma escrita nossa pede", async () => {
+    await store().hydrate();
+    await store().revisit();
+    expect(told).toBe(0);
+
+    store().invalidate();
+
+    expect(told).toBe(1);
+  });
+
+  it("uma volta com a leitura ainda a caminho não pede a lista duas vezes", async () => {
+    let release = () => {};
+    held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    const first = store().hydrate();
+    const again = store().revisit();
+    release();
+    await Promise.all([first, again]);
+
+    expect(calls).toHaveLength(1);
   });
 });
 
