@@ -1,5 +1,5 @@
 import { RotateCcw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { formsAPI, toApiFailure, failureMessage } from "../../../services/api";
 import { useProjectsStore } from "../../../stores/projectsStore";
@@ -30,12 +30,18 @@ import {
 } from "../../../constants/linkStatus";
 import { ProjectSelector } from "../formularios/ProjectSelector";
 import type { HeaderDialogProps } from "./ExportDialog";
+import { createLinkListStore, viewFor } from "./leaderLinkList";
 
 export interface LeaderLinkDialogBodyProps {
   projects: readonly Project[] | null;
   selectedProjectId: string;
   onSelectProject: (id: string) => void;
   links: readonly IntakeLink[] | null;
+  /** Why the links could not be read — said, with a retry, never drawn as an empty list. */
+  linksFailure?: ApiFailure | null;
+  onRetryLinks?: () => void;
+  /** The links whose revocation is on its way: the row says so and its button waits. */
+  revoking?: readonly string[];
   minted: IntakeLinkCreated | null;
   minting: boolean;
   onMint: () => void;
@@ -51,6 +57,9 @@ export function LeaderLinkDialogBody({
   selectedProjectId,
   onSelectProject,
   links,
+  linksFailure = null,
+  onRetryLinks,
+  revoking = [],
   minted,
   minting,
   onMint,
@@ -114,7 +123,9 @@ export function LeaderLinkDialogBody({
             <p className="text-micro font-bold tracking-button uppercase text-fg-muted">
               {t("intake_links_title")}
             </p>
-            {links === null ? (
+            {linksFailure && onRetryLinks ? (
+              <ProjectsUnread failure={linksFailure} onRetry={onRetryLinks} />
+            ) : links === null ? (
               <div className="flex justify-center py-4">
                 <LoadingSpinner size="sm" label={t("loading")} />
               </div>
@@ -142,10 +153,11 @@ export function LeaderLinkDialogBody({
                         type="button"
                         size="sm"
                         variant="ghost"
+                        disabled={revoking.includes(link.id)}
                         onClick={() => onRevoke(link.id)}
                       >
                         <RotateCcw size={14} strokeWidth={1.75} aria-hidden />
-                        {t("intake_revoke")}
+                        {revoking.includes(link.id) ? t("intake_revoking") : t("intake_revoke")}
                       </Button>
                     ) : null}
                   </li>
@@ -168,8 +180,8 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
   const reloadProjects = useProjectsStore((state) => state.reload);
 
   const [selectedProjectId, setSelectedProjectId] = useState("");
-  const [links, setLinks] = useState<readonly IntakeLink[] | null>(null);
-  const [minted, setMinted] = useState<IntakeLinkCreated | null>(null);
+  const [store] = useState(() => createLinkListStore(formsAPI));
+  const state = useSyncExternalStore(store.subscribe, store.get, store.get);
   const [minting, setMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -179,34 +191,23 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
   // The default selection is derived at render, never set from an effect — the first
   // project stands in until the coordinator explicitly picks one (an event handler).
   const effectiveProjectId = selectedProjectId || sorted[0]?.id || "";
+  const { list, minted, revoking } = viewFor(state, effectiveProjectId);
 
   useEffect(() => {
     if (open) void hydrate();
   }, [open, hydrate]);
 
   useEffect(() => {
-    if (!open || !effectiveProjectId) return;
-    let cancelled = false;
-    formsAPI
-      .listIntakeLinks(effectiveProjectId)
-      .then((result) => {
-        if (!cancelled) setLinks(result);
-      })
-      .catch((raw) => {
-        if (!cancelled) {
-          setError(failureMessage(toApiFailure(raw), t));
-          setLinks([]);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [open, effectiveProjectId, t]);
+    if (open && effectiveProjectId) store.show(effectiveProjectId);
+  }, [open, effectiveProjectId, store]);
+
+  const changeOpen = (next: boolean) => {
+    if (!next) store.hide();
+    onOpenChange(next);
+  };
 
   const selectProject = (id: string) => {
     setSelectedProjectId(id);
-    setLinks(null);
-    setMinted(null);
     setError(null);
   };
 
@@ -215,11 +216,7 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
     setMinting(true);
     setError(null);
     try {
-      const created = await formsAPI.mintIntakeLink({
-        projectId: effectiveProjectId,
-      });
-      setMinted(created);
-      setLinks((current) => [created, ...(current ?? [])]);
+      await store.mint(effectiveProjectId);
     } catch (raw) {
       setError(failureMessage(toApiFailure(raw), t));
     } finally {
@@ -229,19 +226,14 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
 
   const revoke = async (linkId: string) => {
     try {
-      const revoked = await formsAPI.revokeIntakeLink(linkId);
-      setLinks(
-        (current) =>
-          current?.map((link) => (link.id === linkId ? revoked : link)) ??
-          current,
-      );
+      await store.revoke(linkId);
     } catch (raw) {
       setError(failureMessage(toApiFailure(raw), t));
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={changeOpen}>
       <DialogContent size="narrow" closeLabel={t("btn_close")}>
         <DialogHeader>
           <div className="min-w-0">
@@ -254,7 +246,10 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
             projects={hydrated ? offered : null}
             selectedProjectId={effectiveProjectId}
             onSelectProject={selectProject}
-            links={links}
+            links={list.kind === "read" ? list.links : null}
+            linksFailure={list.kind === "failed" ? list.failure : null}
+            onRetryLinks={() => store.read(effectiveProjectId)}
+            revoking={revoking}
             minted={minted}
             minting={minting}
             onMint={mint}
@@ -265,7 +260,7 @@ export function LeaderLinkDialog({ open, onOpenChange }: HeaderDialogProps) {
           />
         </DialogBody>
         <DialogFooter>
-          <Button variant="secondary" size="sm" onClick={() => onOpenChange(false)}>
+          <Button variant="secondary" size="sm" onClick={() => changeOpen(false)}>
             {t("btn_close")}
           </Button>
         </DialogFooter>

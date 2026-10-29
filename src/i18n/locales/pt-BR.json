@@ -1152,6 +1152,7 @@
   "intake_links_title": "Links deste projeto",
   "intake_links_empty": "Nenhum link gerado ainda para este projeto.",
   "intake_revoke": "Revogar",
+  "intake_revoking": "Revogando…",
   "intake_status_pending": "Aguardando",
   "intake_status_used": "Já usado",
   "intake_status_expired": "Expirado",
