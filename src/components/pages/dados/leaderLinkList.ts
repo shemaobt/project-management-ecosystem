@@ -56,7 +56,12 @@ export function linkListReducer(state: LinkListState, event: LinkListEvent): Lin
       return state.minted ? { ...state, minted: null } : state;
     case "asked":
       return event.projectId === state.projectId
-        ? { ...state, asked: event.ticket, reading: true }
+        ? {
+            ...state,
+            asked: event.ticket,
+            reading: true,
+            list: state.list.kind === "failed" ? UNREAD : state.list,
+          }
         : {
             ...state,
             projectId: event.projectId,

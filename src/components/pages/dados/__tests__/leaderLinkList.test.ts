@@ -219,6 +219,20 @@ describe("a lista de links do líder só mostra a resposta mais nova do projeto 
     await minting;
     expect(reads).toHaveLength(3);
   });
+  it("Tentar de novo sobre uma falha volta a carregando, sem botão para pedir outro GET", async () => {
+    const { api, reads } = fakeAPI();
+    const store = createLinkListStore(api);
+    store.show("beta");
+    reads[0].answer.reject(FAILURE);
+    await settle();
+    expect(store.get().list.kind).toBe("failed");
+
+    store.read("beta");
+    expect(store.get().list).toEqual({ kind: "unread" });
+    reads[1].answer.resolve([PENDING]);
+    await settle();
+    expect(linksOf(store)).toEqual([PENDING]);
+  });
 });
 
 describe("o endereço gerado aparece uma vez só (PME-FRM-041)", () => {
