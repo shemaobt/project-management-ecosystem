@@ -7,6 +7,7 @@ import {
   REPORTING_LABEL_KEYS,
 } from "../../../constants/forms";
 import { MEETING_CADENCE_LABEL_KEYS } from "../../../constants/meetings";
+import { ROLE_DEFINITIONS } from "../../../constants/roles";
 import { REPORTING_TONES, surfaceOutlined } from "../../../styles";
 import type { FormDefinition, ProjectReporting } from "../../../types/forms";
 import { cn } from "../../../utils/cn";
@@ -19,7 +20,12 @@ const MECHANISM_ICONS = {
 
 export interface FormCardProps {
   form: FormDefinition;
-  reporting: ProjectReporting;
+  /**
+   * `null` when the reader is not handed what the state is read off (`readsReporting`,
+   * OBT-660) — today only the Health Assessment's, so the card names who reads the health in
+   * place of the state, the last report and the period's close.
+   */
+  reporting: ProjectReporting | null;
   action?: ReactNode;
 }
 
@@ -67,24 +73,36 @@ export function FormCard({ form, reporting, action }: FormCardProps) {
         </div>
       </div>
 
-      <div className="mt-auto flex flex-wrap items-baseline gap-x-2.5 gap-y-1 pt-4">
-        <span
-          className={cn(
-            "text-small font-semibold",
-            REPORTING_TONES[reporting.state],
-          )}
-        >
-          {t(REPORTING_LABEL_KEYS[reporting.state])}
-        </span>
-        <span className="text-tag text-fg-subtle">
-          {reporting.lastDate
-            ? t("forms_last_report", { date: formatDate(reporting.lastDate) })
-            : t("forms_never_reported")}
-        </span>
-      </div>
-      <p className="mt-1 text-tag text-fg-subtle">
-        {t("forms_period_ends", { date: formatDate(reporting.periodEnd) })}
-      </p>
+      {reporting ? (
+        <>
+          <div className="mt-auto flex flex-wrap items-baseline gap-x-2.5 gap-y-1 pt-4">
+            <span
+              className={cn(
+                "text-small font-semibold",
+                REPORTING_TONES[reporting.state],
+              )}
+            >
+              {t(REPORTING_LABEL_KEYS[reporting.state])}
+            </span>
+            <span className="text-tag text-fg-subtle">
+              {reporting.lastDate
+                ? t("forms_last_report", { date: formatDate(reporting.lastDate) })
+                : t("forms_never_reported")}
+            </span>
+          </div>
+          <p className="mt-1 text-tag text-fg-subtle">
+            {t("forms_period_ends", { date: formatDate(reporting.periodEnd) })}
+          </p>
+        </>
+      ) : (
+        <p className="mt-auto pt-4 text-small leading-normal text-fg-muted">
+          {t("forms_health_readers_only", {
+            coordinator: t(ROLE_DEFINITIONS.coordinator.labelKey),
+            obtLab: t(ROLE_DEFINITIONS.obtLab.labelKey),
+            resourceCircle: t(ROLE_DEFINITIONS.resourceCircle.labelKey),
+          })}
+        </p>
+      )}
       {action ? <div className="mt-4">{action}</div> : null}
     </section>
   );

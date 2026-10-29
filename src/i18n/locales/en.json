@@ -435,6 +435,7 @@
   "forms_last_report": "Last on {{date}}",
   "forms_never_reported": "No record",
   "forms_period_ends": "The period closes on {{date}}.",
+  "forms_health_readers_only": "The team's health is read by the region's {{coordinator}}, the {{obtLab}} and the {{resourceCircle}} — that is why the assessment's status does not appear for your role.",
   "forms_readiness": "{{reported}} of {{total}} projects reported in the {{form}} cycle closing on {{date}}.",
   "forms_pending_title": "Who has not reported the {{form}} yet",
   "forms_pending_none": "Every project has already reported in the current {{form}} cycle.",

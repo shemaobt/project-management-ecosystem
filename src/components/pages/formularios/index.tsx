@@ -11,8 +11,14 @@ import type { ReceivedSubmission, ReceivedSubmissionDetail } from "../../../type
 import type { ApiFailure } from "../../../types/session";
 import type { Project } from "../../../types/project";
 import type { RegionKey } from "../../../types/region";
-import { canWriteHealth, writesProjectIn } from "../../../utils/access";
-import { formOf, formReadiness, reportingFor, selectableProjects } from "../../../utils/forms";
+import { canReadHealth, canWriteHealth, writesProjectIn } from "../../../utils/access";
+import {
+  formOf,
+  formReadiness,
+  readsReporting,
+  reportingFor,
+  selectableProjects,
+} from "../../../utils/forms";
 import { toLocalIsoDate } from "../../../utils/format";
 import { getLanguageNameDisplay, regionOf } from "../../../utils/region";
 import { EmptyState } from "../../common/EmptyState";
@@ -46,6 +52,12 @@ export interface FormulariosViewProps {
    */
   writesHealth?: boolean;
   /**
+   * Whether this reader reads a team's health (`canReadHealth`, OBT-660). The server hands a
+   * reader outside it every health field empty, so the Health card would read *never assessed*
+   * where the truth is *not yours to read*; without the bit it says whose the health is.
+   */
+  readsHealth?: boolean;
+  /**
    * Where the reader writes a project (`writeRegionScope`, OBT-593): the filing takes the write
    * scope, so a project outside it draws no button either. Absent is today's behaviour.
    */
@@ -60,6 +72,7 @@ export function FormulariosView({
   onRetry,
   readSubmission,
   writesHealth = true,
+  readsHealth = true,
   writeRegionScope,
 }: FormulariosViewProps) {
   const { t } = useTranslation();
@@ -92,9 +105,11 @@ export function FormulariosView({
     const at = new Date(`${todayIso}T00:00:00`);
     return FIELD_FORMS.map((form) => ({
       form,
-      state: reportingFor(form, project, archive, at),
+      state: readsReporting(form.kind, readsHealth)
+        ? reportingFor(form, project, archive, at)
+        : null,
     }));
-  }, [project, archive, todayIso]);
+  }, [project, archive, todayIso, readsHealth]);
 
   const pulseState =
     reporting?.find(({ form }) => form.kind === pulse.kind)?.state ?? null;
@@ -210,6 +225,7 @@ export function FormulariosPage() {
       onRetry={() => void reloadProjects()}
       readSubmission={(id) => formsAPI.readSubmission(id)}
       writesHealth={canWriteHealth(user.roles)}
+      readsHealth={canReadHealth(user.roles)}
       writeRegionScope={user.writeRegionScope}
     />
   );
