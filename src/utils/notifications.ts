@@ -124,7 +124,10 @@ export function buildNotifications(
       entries.push({
         kind: "stale",
         id: `stale:${project.id}`,
-        urgent: true,
+        // Rings the bell and is not urgent, as on the server (`_URGENT_KINDS` is health and
+        // need): *Só os urgentes* keeps critical health and an urgent need, and the double
+        // follows what the label says (OBT-665, PME-ORA-072).
+        urgent: false,
         audience: NOTIFICATION_AUDIENCES.stale,
         date: staleSince(lastUpdate),
         daysSilent,

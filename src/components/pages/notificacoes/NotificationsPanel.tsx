@@ -27,7 +27,7 @@ import {
   ScopeSection,
   WhenSection,
 } from "./PrefsSections";
-import { prefsNotice, type NotificationsFeed } from "./useNotifications";
+import { prefsFootKey, prefsNotice, type NotificationsFeed } from "./useNotifications";
 
 function SectionLabel({
   number,
@@ -134,6 +134,7 @@ export function NotificationsPanel({
   const [saving, setSaving] = useState(false);
   const [refusal, setRefusal] = useState<ApiFailure | null>(null);
   const saved = feed.prefs;
+  const footKey = prefsFootKey(feed.prefsHome);
   const handlers = useMemo(
     () => prefsHandlers((change) => setDraft((before) => change(before ?? saved))),
     [saved],
@@ -194,7 +195,7 @@ export function NotificationsPanel({
             role={refusal === null ? undefined : "alert"}
             className="flex-1 text-micro leading-[1.3] text-fg-muted"
           >
-            {refusal === null ? t("notif_foot") : failureMessage(refusal, t)}
+            {refusal !== null ? failureMessage(refusal, t) : footKey !== null && t(footKey)}
           </span>
           <Button
             size="sm"

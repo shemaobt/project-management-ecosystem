@@ -43,6 +43,11 @@ export interface NotificationsFeed {
   projects: readonly Project[];
   /** Asks for that list when the panel opens; nothing leaves for an account with `prefsForbidden`. */
   readProjects: () => void;
+  /**
+   * Where a saved choice lives: the account on the server, this browser in fixture mode, or
+   * nowhere for an account the server keeps no preferences for (`prefsForbidden`).
+   */
+  prefsHome: "account" | "browser" | null;
 }
 
 /**
@@ -71,6 +76,20 @@ export function readsSavedPrefs(roles: readonly SessionRole[]): boolean {
 }
 
 /** No Shemá grant is a fact about the account, not a failure: a note, with nothing to retry (OBT-635). */
+/**
+ * The sentence under the preferences (OBT-665, PME-ORA-070). The prototype's *ficam salvas
+ * neste navegador* (`notifications.jsx:177`) is true of the fixture double, which keeps them
+ * in this browser, and false against the server, which keeps them on the account for every
+ * browser (BE-15) — so the footer says where they are, and nothing for an account whose
+ * choice is kept nowhere, which the note above the panel already explains.
+ */
+export function prefsFootKey(
+  home: NotificationsFeed["prefsHome"],
+): "notif_foot" | "notif_foot_account" | null {
+  if (home === "account") return "notif_foot_account";
+  return home === "browser" ? "notif_foot" : null;
+}
+
 export function prefsNotice(
   feed: Pick<NotificationsFeed, "prefsForbidden" | "prefsFailure" | "retryPrefs">,
   t: Translate,
@@ -169,6 +188,7 @@ function useDerivedFeed(): NotificationsFeed {
     savePrefs,
     projects,
     readProjects: ask,
+    prefsHome: "browser",
   };
 }
 
@@ -312,6 +332,7 @@ function useServedFeed(api: NotificationsAPI): NotificationsFeed {
     savePrefs,
     projects,
     readProjects,
+    prefsHome: mayReadPrefs ? "account" : null,
   };
 }
 

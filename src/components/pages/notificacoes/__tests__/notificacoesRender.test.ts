@@ -35,7 +35,7 @@ const { routedNotifications, visibleNotifications } = await import(
   "../../../../utils/notifications"
 );
 const { NotificationsPanelBody } = await import("../NotificationsPanel");
-const { prefsNotice } = await import("../useNotifications");
+const { prefsFootKey, prefsNotice } = await import("../useNotifications");
 
 const NOW = new Date("2026-08-15T12:00:00");
 
@@ -327,6 +327,13 @@ describe("o painel contra o servidor (INT-11)", () => {
     expect(markup).toContain('role="alert"');
     expect(markup).toContain(i18n.t("notif_prefs_unread"));
     expect(markup).toContain(i18n.t("net_retry"));
+  });
+
+  it("o rodapé diz onde a escolha fica: na conta contra o servidor, no navegador só na dupla, e nada para quem não a guarda (OBT-665, PME-ORA-070)", () => {
+    expect(i18n.t(prefsFootKey("account") ?? "")).not.toContain("neste navegador");
+    expect(i18n.t(prefsFootKey("account") ?? "")).toContain("conta");
+    expect(prefsFootKey("browser")).toBe("notif_foot");
+    expect(prefsFootKey(null)).toBeNull();
   });
 
   it("a conta sem papel no Shemá lê por que Salvar fica fechado numa nota, sem o alerta de acesso e sem um tentar de novo (OBT-604, OBT-635)", () => {
