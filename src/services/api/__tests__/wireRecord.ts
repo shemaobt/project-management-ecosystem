@@ -1,8 +1,3 @@
-/**
- * A record exactly as `GET /api/shema/projects/{id}` serves it, `null`s included — the read's
- * own test and the import's (OBT-665: a file holding this shape is what the API accepts) take
- * the same one, so the two cannot drift apart.
- */
 export const WIRE = {
   id: "ashaninka",
   languageName: "Asháninka",

@@ -89,6 +89,15 @@ export function hasActiveFilters(filters: ProjectFilters): boolean {
   return activeFilterKeys(filters).length > 0;
 }
 
+/**
+ * Whether anything narrows the list — a filter or the search. The sidebar's *Limpar tudo* and
+ * the empty list's (OBT-665) ask the same question, so they cannot disagree on when there is
+ * something to clear.
+ */
+export function narrowsList(filters: ProjectFilters, search: string): boolean {
+  return hasActiveFilters(filters) || search.trim() !== "";
+}
+
 interface FiltersState {
   filters: ProjectFilters;
   search: string;

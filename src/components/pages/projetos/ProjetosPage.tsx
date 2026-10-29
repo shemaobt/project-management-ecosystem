@@ -8,7 +8,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { failureMessage, pulseLanguage } from "../../../services/api";
 import {
   EMPTY_FILTERS,
-  hasActiveFilters,
+  narrowsList,
   useFiltersStore,
 } from "../../../stores/filtersStore";
 import { usePrefsStore } from "../../../stores/prefsStore";
@@ -237,7 +237,7 @@ export function ProjetosPage() {
         )}
         {matched === 0 ? (
           <EmptyResults
-            narrowed={hasActiveFilters(filters) || search.trim() !== ""}
+            narrowed={narrowsList(filters, search)}
             search={search}
             onClear={clearAll}
           />

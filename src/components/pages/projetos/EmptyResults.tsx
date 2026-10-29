@@ -3,7 +3,7 @@ import { EmptyState } from "../../common/EmptyState";
 import { Button } from "../../ui";
 
 export interface EmptyResultsProps {
-  /** Whether a filter or the search is narrowing the list — the sidebar's `ClearAll` guard. */
+  /** `narrowsList` — the sidebar's *Limpar tudo* asks the same. */
   narrowed: boolean;
   search: string;
   onClear: () => void;
@@ -14,7 +14,7 @@ export interface EmptyResultsProps {
  * has no button (`app.jsx:1108-1111`); the port added *Limpar tudo* to it, and drew it even when
  * nothing was narrowing the list — an account whose regions hold no project read *Ajuste os
  * filtros* and a clear that cleared nothing. So the action, and the advice to adjust, come only
- * with a filter or a search, as the sidebar's own *Limpar tudo* does; without one, the sentence
+ * with a filter or a search (`narrowsList`, which the sidebar's own *Limpar tudo* reads too); without one, the sentence
  * says the regions the account follows have no project.
  */
 export function EmptyResults({ narrowed, search, onClear }: EmptyResultsProps) {

@@ -1,8 +1,5 @@
 import { useTranslation } from "react-i18next";
-import {
-  hasActiveFilters,
-  useFiltersStore,
-} from "../../../../stores/filtersStore";
+import { narrowsList, useFiltersStore } from "../../../../stores/filtersStore";
 
 export function ClearAll() {
   const { t } = useTranslation();
@@ -10,7 +7,7 @@ export function ClearAll() {
   const search = useFiltersStore((state) => state.search);
   const clearAll = useFiltersStore((state) => state.clearAll);
 
-  if (!hasActiveFilters(filters) && search.trim() === "") return null;
+  if (!narrowsList(filters, search)) return null;
 
   return (
     <button

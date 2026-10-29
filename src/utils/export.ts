@@ -175,7 +175,6 @@ function isImportableRecord(entry: unknown): entry is ImportedRecord {
   );
 }
 
-/** A record's `null`s, and its list items', read as absent — the import's own blank defaults. */
 function withoutNulls(record: ImportedRecord): ImportedRecord {
   const kept = Object.entries(record)
     .filter(([, value]) => value !== null)

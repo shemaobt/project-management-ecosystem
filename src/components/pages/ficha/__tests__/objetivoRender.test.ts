@@ -95,7 +95,6 @@ describe("a recusa do prazo é dita no campo (OBT-601)", () => {
 
 const textOf = (html: string) => html.replace(/<[^>]*>/g, "").trim();
 
-/** Each control's accessible name: its `aria-label`, or the text of the `<label for>` naming it. */
 function controlNames(markup: string): string[] {
   const labelled = [...markup.matchAll(/<label[^>]*for="([^"]+)"[^>]*>(.*?)<\/label>/g)];
   const byId = new Map(labelled.map(([, id, html]) => [id, textOf(html)]));
