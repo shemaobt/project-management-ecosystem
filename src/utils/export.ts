@@ -65,10 +65,42 @@ const isListOf =
     Array.isArray(value) && value.every(accepts);
 
 const recordWithStrings =
-  (fields: readonly string[]) =>
+  (fields: readonly string[], nullable: readonly string[] = []) =>
   (item: unknown): boolean =>
     isPlainRecord(item) &&
-    fields.every((field) => item[field] === undefined || isString(item[field]));
+    fields.every(
+      (field) =>
+        item[field] === undefined ||
+        (item[field] === null && nullable.includes(field)) ||
+        isString(item[field]),
+    );
+
+/**
+ * **The checked fields the record's own read answers as `null`** (OBT-665, PME-PRJ-067) —
+ * `WireRecord` in `services/api/projectRecord.ts`, shema-api's `ShemaProjectRecord`. A file
+ * holding a project exactly as `GET /api/shema/projects/{id}` serves it was refused here as
+ * *not a valid record*, while the API's import (`ShemaProjectCreate`, every field `| None`)
+ * takes the same file. So `null` passes where the read itself writes it, and only there: a
+ * `null` the read never serves — `location`, `languageCode`, `coords` — is still refused
+ * here, before the server would answer it with a 422 or a 500. Before the local apply the
+ * nulls are dropped, so the project keeps its blank defaults (`withoutNulls`).
+ */
+const NULLABLE_ON_THE_WIRE: ReadonlySet<keyof Project> = new Set<keyof Project>([
+  "startDate",
+  "deadline",
+  "lastUpdated",
+  "status",
+  "healthEmotional",
+  "healthRelational",
+  "healthSpiritual",
+  "healthPhysical",
+  "healthAssessmentDate",
+  "prayerVisibility",
+  "prayerRequestsAudio",
+  "otherProgress",
+  "mediaPhotos",
+  "mediaVideos",
+]);
 
 const IMPORT_FIELD_CHECKS: ReadonlyArray<
   readonly [keyof Project, (value: unknown) => boolean]
@@ -107,11 +139,14 @@ const IMPORT_FIELD_CHECKS: ReadonlyArray<
   [
     "materials",
     isListOf(
-      recordWithStrings(["kind", "scope", "link", "fileName", "dataUrl", "format"]),
+      recordWithStrings(
+        ["kind", "scope", "link", "fileName", "dataUrl", "format"],
+        ["link", "fileName", "format"],
+      ),
     ),
   ],
   ["phases", isListOf(recordWithStrings(["label", "scope", "date"]))],
-  ["mediaVideos", isListOf(recordWithStrings(["url", "caption"]))],
+  ["mediaVideos", isListOf(recordWithStrings(["url", "caption"], ["caption"]))],
   ["mediaPhotos", isListOf(recordWithStrings(["caption"]))],
   ["totalUnits", isFiniteNumber],
   ["translatedUnits", isFiniteNumber],
@@ -133,8 +168,28 @@ function isImportableRecord(entry: unknown): entry is ImportedRecord {
     return false;
   }
   return IMPORT_FIELD_CHECKS.every(
-    ([field, accepts]) => record[field] === undefined || accepts(record[field]),
+    ([field, accepts]) =>
+      record[field] === undefined ||
+      (record[field] === null && NULLABLE_ON_THE_WIRE.has(field)) ||
+      accepts(record[field]),
   );
+}
+
+/** A record's `null`s, and its list items', read as absent — the import's own blank defaults. */
+function withoutNulls(record: ImportedRecord): ImportedRecord {
+  const kept = Object.entries(record)
+    .filter(([, value]) => value !== null)
+    .map(([key, value]) => [
+      key,
+      Array.isArray(value)
+        ? value.map((item: unknown) =>
+            isPlainRecord(item)
+              ? Object.fromEntries(Object.entries(item).filter(([, inner]) => inner !== null))
+              : item,
+          )
+        : value,
+    ]);
+  return Object.fromEntries(kept) as ImportedRecord;
 }
 
 function looksLikeExportFile(parsed: unknown): boolean {
@@ -169,7 +224,7 @@ export function parseProjectsImport(raw: string): ImportParseResult {
       return { ok: false, error: { key: "import_duplicate_id", id: entry.id } };
     }
     seen.add(entry.id);
-    projects.push({ ...createEmptyProject(entry.id), ...entry });
+    projects.push({ ...createEmptyProject(entry.id), ...withoutNulls(entry) });
   }
   return { ok: true, projects };
 }
