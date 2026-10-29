@@ -1,71 +1,32 @@
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import type { ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import {
-  APP_DEPENDENCIES,
-  CHROME,
-  compileAppCss,
-  launchChrome,
-  serveProbe,
-} from "../../../__tests__/headlessChrome";
+import { CHROME, openShell, type ShellPage } from "../../../__tests__/shellProbe";
 
 const FIXED_CEILING_PX = 120;
 
-const PROBE_MODULE = `
-import { createElement as h } from "react";
-import { createRoot } from "react-dom/client";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
-import "/src/i18n/index.ts";
-import { AuthProvider } from "/src/contexts/AuthContext.tsx";
-import { ThemeProvider } from "/src/contexts/ThemeContext.tsx";
-import { AppShell } from "/src/components/layout/AppShell.tsx";
-
-const frame = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
-
-window.probe = {
-  async mount(css) {
-    document.head.append(Object.assign(document.createElement("style"), { textContent: css }));
-    const page = h("div", { style: { height: "3000px" } });
-    createRoot(document.body.appendChild(document.createElement("div"))).render(
-      h(ThemeProvider, null,
-        h(AuthProvider, null,
-          h(MemoryRouter, null,
-            h(Routes, null, h(Route, { element: h(AppShell) }, h(Route, { index: true, element: page })))))),
-    );
-    const deadline = Date.now() + 30000;
-    while (document.querySelectorAll("header button").length < 5) {
-      if (Date.now() > deadline) throw new Error("o cabeçalho não montou");
-      await frame();
-    }
-  },
-  async measure() {
-    const header = document.querySelector("header");
-    window.scrollTo(0, 0);
-    await frame();
-    const resting = header.getBoundingClientRect().height;
-    window.scrollTo(0, 1500);
-    await frame();
-    const box = header.getBoundingClientRect();
-    const root = document.documentElement;
-    return {
-      height: Math.round(resting),
-      scrolled: Math.round(window.scrollY),
-      top: Math.round(box.top),
-      covered: Math.round(Math.max(0, Math.min(box.bottom, innerHeight) - Math.max(box.top, 0))),
-      scrollWidth: root.scrollWidth,
-      clientWidth: root.clientWidth,
-      outside: [...header.querySelectorAll("button, a")]
-        .filter((control) => {
-          const rect = control.getBoundingClientRect();
-          return rect.left < 0 || rect.right > root.clientWidth;
-        })
-        .map((control) => control.textContent.trim()),
-    };
-  },
-};
-`;
+const MEASURE = `(async () => {
+  const header = document.querySelector("header");
+  window.scrollTo(0, 0);
+  await window.frame();
+  const resting = header.getBoundingClientRect().height;
+  window.scrollTo(0, 1500);
+  await window.frame();
+  const box = header.getBoundingClientRect();
+  const root = document.documentElement;
+  return {
+    height: Math.round(resting),
+    scrolled: Math.round(window.scrollY),
+    top: Math.round(box.top),
+    covered: Math.round(Math.max(0, Math.min(box.bottom, innerHeight) - Math.max(box.top, 0))),
+    scrollWidth: root.scrollWidth,
+    clientWidth: root.clientWidth,
+    outside: [...header.querySelectorAll("button, a")]
+      .filter((control) => {
+        const rect = control.getBoundingClientRect();
+        return rect.left < 0 || rect.right > root.clientWidth;
+      })
+      .map((control) => control.textContent.trim()),
+  };
+})()`;
 
 interface Reading {
   height: number;
@@ -91,17 +52,8 @@ const VIEWPORTS = [
 
 type Viewport = (typeof VIEWPORTS)[number][0];
 
-function sourceCandidates(): string[] {
-  const src = join(process.cwd(), "src");
-  return readdirSync(src, { recursive: true, encoding: "utf8" })
-    .filter((path) => /\.tsx?$/u.test(path) && !path.includes("__tests__"))
-    .flatMap((path) => readFileSync(join(src, path), "utf8").split(/[\s"'`]+/u));
-}
-
 describe.skipIf(!CHROME)("o cabeçalho só fica preso ao topo onde cabe (OBT-664), num navegador de verdade", () => {
-  let scratch = "";
-  let server: ViteDevServer | undefined;
-  let browser: Awaited<ReturnType<typeof launchChrome>> | undefined;
+  let shell: ShellPage | undefined;
   const seen = new Map<Viewport, Reading>();
   const at = (name: Viewport): Reading => {
     const reading = seen.get(name);
@@ -110,35 +62,15 @@ describe.skipIf(!CHROME)("o cabeçalho só fica preso ao topo onde cabe (OBT-664
   };
 
   beforeAll(async () => {
-    scratch = mkdtempSync(join(tmpdir(), "header-scroll-"));
-    const [css, dev] = await Promise.all([
-      compileAppCss(sourceCandidates()),
-      serveProbe({
-        scratch,
-        module: PROBE_MODULE,
-        include: APP_DEPENDENCIES,
-        define: { "import.meta.env.VITE_DATA_SOURCE": JSON.stringify("fixtures") },
-      }),
-    ]);
-    server = dev;
-    browser = await launchChrome(CHROME!, scratch);
-    await browser.open(server.resolvedUrls!.local[0]);
-    await browser.evaluate(`window.probe.mount(${JSON.stringify(css)})`);
+    shell = await openShell("/", "header button");
     for (const [name, width, height] of VIEWPORTS) {
-      await browser.send("Emulation.setDeviceMetricsOverride", {
-        width,
-        height,
-        deviceScaleFactor: 1,
-        mobile: false,
-      });
-      seen.set(name, await browser.evaluate<Reading>("window.probe.measure()"));
+      await shell.resize(width, height);
+      seen.set(name, await shell.evaluate<Reading>(MEASURE));
     }
   }, 240_000);
 
   afterAll(async () => {
-    browser?.close();
-    await server?.close();
-    if (scratch) rmSync(scratch, { recursive: true, force: true });
+    await shell?.close();
   });
 
   it("a 360px, depois de rolar, nada do cabeçalho fica no topo — a parte fixa mede 0, dentro dos 120px do PME-PRJ-517", () => {
