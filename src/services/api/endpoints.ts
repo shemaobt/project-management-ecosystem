@@ -837,8 +837,10 @@ export function pulseLanguage(language: string): PulseLanguage {
  * The header the console states the language it prints in (OBT-657). The server orders a withheld
  * name the way this console prints it — *Projeto sensível — África* among the P's, *Sensitive
  * project — Africa* among the S's — on the ETEN report and the Projetos list. A header and not a
- * parameter: it filters nothing, never enters the screen's address or a saved view, and a server
- * that does not read it ignores it.
+ * parameter, on both reads alike: the list's parameters are the screen's own address
+ * (`encodeView`), which the server holds to exactly those keys, so a `lang` there would be refused
+ * with 422 by a server that does not know it — a header it ignores. `?lang=` stays where it picks
+ * the language a file is written in (the Pulse, the export).
  */
 export const LANGUAGE_HEADER = "X-Shema-Language";
 
