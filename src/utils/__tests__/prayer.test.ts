@@ -248,6 +248,9 @@ describe("todo caminho de leitura passa pelo dono da visibilidade", () => {
     "src/constants/recordFields.ts",
     "src/fixtures/blank.ts",
     "src/fixtures/projectBrowse.ts",
+    // OBT-655: the doubles' copy of the server's reader rule empties the request on a withheld
+    // record read as `other` — it writes `""` over the fields and reads none of their content.
+    "src/fixtures/reader.ts",
     "src/fixtures/seeds.ts",
     // INT-04: the wizard's wire boundary — `POST .../health-assessments` carries the
     // prayer fields only when one was actually written (§9.4), the same rule the record

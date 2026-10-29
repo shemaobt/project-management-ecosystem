@@ -9,7 +9,9 @@ import { useProjectRecordStore } from "../../../stores/projectRecordStore";
 import type { AssessmentDraft } from "../../../types/assessment";
 import type { Project } from "../../../types/project";
 import type { ApiFailure } from "../../../types/session";
+import { fileableDraft } from "../../../utils/assessment";
 import { formatDate } from "../../../utils/format";
+import { mayRaisePrayerRequest } from "../../../utils/recordAccess";
 import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button, toast } from "../../ui";
@@ -84,6 +86,7 @@ export function AvaliacaoView({
 
   const patch = (next: Partial<AssessmentDraft>) =>
     onStep({ ...draft, ...next });
+  const raisesRequest = mayRaisePrayerRequest(project);
 
   const dimension = HEALTH_DIMENSIONS[step];
 
@@ -135,6 +138,7 @@ export function AvaliacaoView({
               visibility={draft.prayerVisibility}
               onRequest={(prayerRequest) => patch({ prayerRequest })}
               onVisibility={(prayerVisibility) => patch({ prayerVisibility })}
+              locked={!raisesRequest}
             />
           </>
         )}
@@ -160,7 +164,10 @@ export function AvaliacaoView({
                 {step === LAST_STEP - 1 ? t("hw_review") : t("hw_next")}
               </Button>
             ) : (
-              <Button onClick={() => onFinish(draft)} disabled={submitting}>
+              <Button
+                onClick={() => onFinish(fileableDraft(draft, raisesRequest))}
+                disabled={submitting}
+              >
                 {submitting ? t("record_saving") : t("hw_save")}
               </Button>
             )}

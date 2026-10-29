@@ -10,6 +10,7 @@ import {
   assessedCount,
   compileNotes,
   emptyDraft,
+  fileableDraft,
   overallOf,
   pastoralSuggestion,
   toAssessment,
@@ -479,5 +480,18 @@ describe("toAssessment carrega sua própria leitura geral, e só o duplo carimba
     });
     expect(entry.author).toBe("Ana");
     expect(entry.questionSetVersion).toBe(1);
+  });
+});
+
+describe("o rascunho que se registra (OBT-655)", () => {
+  it("sem o pedido de oração quando o registro o entrega em branco a quem registra", () => {
+    const resumed = draft({ prayerRequest: "Orem pela viagem do mentor" });
+    expect(fileableDraft(resumed, false).prayerRequest).toBe("");
+    expect(fileableDraft(resumed, false).ratings).toEqual(resumed.ratings);
+  });
+
+  it("com o pedido, intacto, para quem o lê", () => {
+    const resumed = draft({ prayerRequest: "Orem pela viagem do mentor" });
+    expect(fileableDraft(resumed, true)).toBe(resumed);
   });
 });

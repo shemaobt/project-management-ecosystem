@@ -4,6 +4,7 @@ import { surfaceOutlined } from "../../../styles";
 import type { PrayerVisibility } from "../../../types/project";
 import { cn } from "../../../utils/cn";
 import { Label, Textarea } from "../../ui";
+import { CoordinationOnlyNote } from "../ficha/CoordinationOnlyNote";
 import { PrayerConsent } from "../ficha/tabs/saude/PrayerConsent";
 
 export interface PrayerRequestStepProps {
@@ -11,6 +12,7 @@ export interface PrayerRequestStepProps {
   visibility: PrayerVisibility;
   onRequest: (request: string) => void;
   onVisibility: (visibility: PrayerVisibility) => void;
+  locked?: boolean;
 }
 
 export function PrayerRequestStep({
@@ -18,6 +20,7 @@ export function PrayerRequestStep({
   visibility,
   onRequest,
   onVisibility,
+  locked = false,
 }: PrayerRequestStepProps) {
   const { t } = useTranslation();
   const fieldId = useId();
@@ -33,16 +36,21 @@ export function PrayerRequestStep({
         <Textarea
           id={fieldId}
           rows={4}
-          value={request}
-          placeholder={t("hw_prayer_placeholder")}
+          value={locked ? "" : request}
+          disabled={locked}
+          placeholder={locked ? undefined : t("hw_prayer_placeholder")}
           onChange={(event) => onRequest(event.target.value)}
         />
-        <p className="text-micro leading-normal text-fg-subtle">
-          {t("hw_prayer_optional")}
-        </p>
+        {locked ? (
+          <CoordinationOnlyNote textKey="f_free_text_coordination_only" />
+        ) : (
+          <p className="text-micro leading-normal text-fg-subtle">
+            {t("hw_prayer_optional")}
+          </p>
+        )}
       </div>
 
-      {request.trim() === "" ? null : (
+      {locked || request.trim() === "" ? null : (
         <div className="mt-4">
           <PrayerConsent value={visibility} onChange={onVisibility} />
         </div>

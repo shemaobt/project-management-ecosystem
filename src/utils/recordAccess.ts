@@ -122,6 +122,17 @@ export function mayWrite(access: RecordAccess, field: RecordField): boolean {
 }
 
 /**
+ * Whether a health reading may carry a prayer request onto `saved` — `mayWrite`'s answer for
+ * the request's own field, at the wizard's door (OBT-655). On a withheld record a reader who does not
+ * read the truth is handed the request as `""`, and the server refuses a reading that carries
+ * one over it, since the request keeps no history. Who files a reading at all is the wizard's
+ * own gate (`assessmentRedirect`); the health bits do not decide this field.
+ */
+export function mayRaisePrayerRequest(saved: Project): boolean {
+  return mayWrite(recordAccess(saved, false, true, true), "prayerRequests");
+}
+
+/**
  * Whether a **saved** need's description may be typed over — `needsItems.description` on
  * the server (OBT-556). The console sends the whole list on every save, so a description
  * a withheld reader received as `""` and hands back as `""` reads as "not changed" and

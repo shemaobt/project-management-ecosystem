@@ -204,11 +204,25 @@ export const FREE_TEXT_FIELDS: readonly RecordField[] = [
 ];
 
 /**
+ * The prayer request the record keeps, typed and recorded — `PRAYER_REQUEST_FIELDS` in
+ * shema-api's `shema_privacy.py` (OBT-655, 28/out/2026, the issue's recommendation, for Karina
+ * to validate). It names a place as readily as the notes do, so on a withheld record it goes
+ * with them: `""` to whoever does not read the truth — the OBT Lab, which reads a request nobody
+ * authorized on every other record — and refused on write. The visibility beside it is not here:
+ * on a withheld record what `rede` puts on the wall is only ever a text the coordination released
+ * for those words (OBT-575).
+ */
+export const PRAYER_REQUEST_FIELDS: readonly RecordField[] = [
+  "prayerRequests",
+  "prayerRequestsAudio",
+];
+
+/**
  * What only coordination writes on a record whose place is **withheld** — the base, the
- * three contacts, the free text (OBT-556) and, since OBT-560, the language's name, which
- * the others read as the public one (`WITHHELD_WRITES`). *Não dá para editar o que não se vê.*
- * The description of a saved need is the one nested member of the same rule — see
- * `mayWriteNeedDescription` in `utils/recordAccess.ts`.
+ * three contacts, the free text (OBT-556), since OBT-560 the language's name, which the
+ * others read as the public one, and since OBT-655 the prayer request (`WITHHELD_WRITES`).
+ * *Não dá para editar o que não se vê.* The description of a saved need is the one nested
+ * member of the same rule — see `mayWriteNeedDescription` in `utils/recordAccess.ts`.
  */
 export const WITHHELD_WRITES: ReadonlySet<RecordField> = new Set<RecordField>([
   "languageName",
@@ -218,6 +232,7 @@ export const WITHHELD_WRITES: ReadonlySet<RecordField> = new Set<RecordField>([
   "teamLeaderContact",
   "mentorContact",
   ...FREE_TEXT_FIELDS,
+  ...PRAYER_REQUEST_FIELDS,
 ]);
 
 /**
