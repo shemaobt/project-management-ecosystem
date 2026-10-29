@@ -80,6 +80,14 @@ export interface ChipsProps {
   counts: Record<PresetId, number>;
 }
 
+/**
+ * **One chip per row in the 260px sidebar, two below it** (OBT-665, PME-PRJ-098). The
+ * prototype puts two per row at every width (`app.css:3382`), and inside its own 260px column
+ * (`app.css:214`) that leaves a label some 46px between the icon and the count, so *Pedem
+ * atenção*, *Em oração*, *Celebrar* and *Recentes* end in an ellipsis at 1366 and at 1920 alike
+ * — a ported quirk that hides the very word the chip filters by. From `lg`, where the sidebar
+ * is that column, each chip takes the row; below it the sidebar spans the page and two fit.
+ */
 export function Chips({ counts }: ChipsProps) {
   const { t } = useTranslation();
   const filters = useFiltersStore((state) => state.filters);
@@ -100,7 +108,7 @@ export function Chips({ counts }: ChipsProps) {
             title={t(preset.subKey)}
             onClick={() => togglePreset(preset.id)}
             className={cn(
-              "group flex min-w-0 flex-[1_1_calc(50%-3px)] items-center gap-[7px] rounded-[12px] border border-line bg-elevated px-[11px] py-[9px]",
+              "group flex min-w-0 flex-[1_1_calc(50%-3px)] items-center lg:flex-[1_1_100%] gap-[7px] rounded-[12px] border border-line bg-elevated px-[11px] py-[9px]",
               "text-left text-micro font-semibold tracking-[0.01em] text-fg",
               "transition-all duration-fast ease-out",
               active && "border-telha bg-brand text-on-brand shadow-accent",
