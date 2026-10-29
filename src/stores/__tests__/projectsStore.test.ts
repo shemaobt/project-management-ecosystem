@@ -108,3 +108,16 @@ describe("invalidate sem servidor", () => {
     ).toEqual(["so-um"]);
   });
 });
+
+describe("a volta ao Início sem servidor (OBT-663)", () => {
+  it("não relê: ninguém mais escreve a semente, e a importação local fica", async () => {
+    await useProjectsStore.getState().hydrate();
+    useProjectsStore.getState().importProjects([imported("so-um", "Kadiwéu")]);
+
+    await useProjectsStore.getState().revisit();
+
+    expect(
+      useProjectsStore.getState().projects.map((project) => project.id),
+    ).toEqual(["so-um"]);
+  });
+});
