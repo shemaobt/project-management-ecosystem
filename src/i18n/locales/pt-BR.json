@@ -435,6 +435,7 @@
   "forms_last_report": "Último em {{date}}",
   "forms_never_reported": "Sem registro",
   "forms_period_ends": "O período fecha em {{date}}.",
+  "forms_health_readers_only": "A saúde da equipe é lida pelo {{coordinator}} da região, pelo {{obtLab}} e pelo {{resourceCircle}} — por isso a situação da avaliação não aparece para o seu papel.",
   "forms_readiness": "{{reported}} de {{total}} projetos reportaram no ciclo do {{form}} que fecha em {{date}}.",
   "forms_pending_title": "Quem ainda não reportou o {{form}}",
   "forms_pending_none": "Todos os projetos já reportaram no ciclo atual do {{form}}.",
