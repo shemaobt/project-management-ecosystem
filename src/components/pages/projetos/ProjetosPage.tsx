@@ -131,7 +131,8 @@ export function ProjetosPage() {
   });
   // The sidebar's option universe, saved-view availability and "Time por região" cards
   // read the whole scoped collection, unfiltered — `EMPTY_FILTERS` is a stable module
-  // constant, so this fetch only ever runs once per mount.
+  // constant, so this fetch runs once per mount, and again only when the list is read
+  // again (the Recarregar, a write of ours — OBT-663).
   const baseline = useProjectBrowse({
     filters: EMPTY_FILTERS,
     search: "",

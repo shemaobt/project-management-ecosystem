@@ -46,7 +46,19 @@ interface ProjectsState extends HydrationStatus {
    */
   outdated: boolean;
   hydrate: () => Promise<void>;
-  reload: () => Promise<void>;
+  /**
+   * For a screen read again each time it opens — the Início (OBT-663). Against the server
+   * somebody else may have written since the list was read, and only reading it again shows
+   * that; a read already on its way will do. Without a server nobody else writes the fixture
+   * seed, and reading it again would drop a local import, so it reads only as `hydrate` does.
+   */
+  revisit: () => Promise<void>;
+  /**
+   * The header's *Recarregar*, and every "try again": read the list again now, and tell each
+   * read of it on screen through its own requests — the Projetos browses — to ask again
+   * (`onListReread`). Resolves to whether the list was read; a failure was already said.
+   */
+  reload: () => Promise<boolean>;
   invalidate: () => void;
   saveProject: (project: Project) => void;
   importProjects: (projects: Project[]) => void;
@@ -92,6 +104,25 @@ export async function loadProjectList(): Promise<ProjectList> {
 /** Whether the list is the server's — what tells a screen whose withheld count to trust. */
 export const PROJECT_LIST_SERVED = SERVED;
 
+const rereads = new Set<() => void>();
+
+/**
+ * Somebody asked for the server's list again — the *Recarregar*, or a write of ours (OBT-663).
+ * The Projetos screen reads the list through its own browses, which no read of this store
+ * reaches, so they listen here and ask again; otherwise a base that vanished stays among the
+ * options and a saved view on it opens on nothing, silently, until a new sign-in.
+ */
+export function onListReread(listener: () => void): () => void {
+  rereads.add(listener);
+  return () => {
+    rereads.delete(listener);
+  };
+}
+
+function announceReread(): void {
+  rereads.forEach((listener) => listener());
+}
+
 export const useProjectsStore = create<ProjectsState>()(
   persist<ProjectsState, [], [], PersistedProjects>(
     (set, get) => {
@@ -112,13 +143,19 @@ export const useProjectsStore = create<ProjectsState>()(
         outdated: false,
         ...NOT_HYDRATED,
         hydrate: () => hydrateOnce(slot, get, set, load, get().outdated),
-        reload: () => hydrateOnce(slot, get, set, load, true),
+        revisit: () => hydrateOnce(slot, get, set, load, SERVED || get().outdated),
+        reload: async () => {
+          announceReread();
+          await hydrateOnce(slot, get, set, load, true);
+          return get().error === null;
+        },
         // Without a server the list is the fixture seed, which no record write reaches
         // (the record double keeps its own overlay), so there is nothing to read again.
         invalidate: () => {
           if (!SERVED) return;
           writes += 1;
           set({ outdated: true, facets: null });
+          announceReread();
         },
         importProjects: (projects) =>
           set({ projects, ...NOT_HYDRATED, hydrated: true }),

@@ -5,6 +5,7 @@ import {
   toApiFailure,
   type PulseLanguage,
 } from "../../../services/api";
+import { onListReread } from "../../../stores/projectsStore";
 import type { ProjectFilters } from "../../../stores/filtersStore";
 import type { ProjectBrowseResult } from "../../../types/projectBrowse";
 import type { ApiFailure } from "../../../types/session";
@@ -53,6 +54,10 @@ interface Fetched {
  *   stale page stays on screen while the new one loads rather than blanking — a slow
  *   reply for a filter set the reader already changed away from must never overwrite
  *   what they are looking at now.
+ * - **The list read again reaches it.** The header's *Recarregar*, or a write of ours with the
+ *   screen open, asks every mounted browse again (`onListReread`, OBT-663): the screen reads
+ *   the list through these, which no read of `projectsStore` reaches, and a saved view is only
+ *   judged right against the counts read after the click.
  *
  * The "a new request started" reset is a conditional `setState` *during render* — the
  * same pattern `ProjetosPage`'s own paging window already uses — rather than a
@@ -71,6 +76,7 @@ export function useProjectBrowse(params: ProjectBrowseParams): ProjectBrowseStat
   }, [params.search]);
 
   const [attempt, setAttempt] = useState(0);
+  useEffect(() => onListReread(() => setAttempt((count) => count + 1)), []);
   const { filters, sort, limit, offset, language } = params;
   const key = JSON.stringify([filters, debouncedSearch, sort, limit, offset, language, attempt]);
 
