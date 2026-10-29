@@ -29,6 +29,11 @@ export interface ImageUploadProps {
   onRejected: () => void;
   placeholder: string;
   removeLabel: string;
+  /**
+   * What the slot shows while it holds no file of its own — a photo the server keeps, drawn the
+   * way the view draws it (OBT-665, PME-FRM-085). Picking a file still replaces it.
+   */
+  preview?: ReactNode;
 }
 
 export function ImageUpload({
@@ -38,6 +43,7 @@ export function ImageUpload({
   onRejected,
   placeholder,
   removeLabel,
+  preview,
 }: ImageUploadProps) {
   const [dragOver, setDragOver] = useState(false);
 
@@ -92,7 +98,7 @@ export function ImageUpload({
             className="h-full w-full object-cover"
           />
         ) : (
-          <PhotoSlotHint>{placeholder}</PhotoSlotHint>
+          (preview ?? <PhotoSlotHint>{placeholder}</PhotoSlotHint>)
         )}
         <input
           id={id}

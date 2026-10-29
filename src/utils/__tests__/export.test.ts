@@ -194,7 +194,7 @@ describe("um arquivo no formato do GET do projeto é aceito, como a API o aceita
     expect(project.status).toBe(createEmptyProject(project.id).status);
     expect(project.mediaPhotos).toEqual([]);
     expect(project.materials[0]).not.toHaveProperty("link");
-    expect(project.mediaVideos[0]).not.toHaveProperty("caption");
+    expect(project.mediaVideos?.[0]).not.toHaveProperty("caption");
   });
 
   it("um null onde o GET nunca o serve continua recusado", () => {

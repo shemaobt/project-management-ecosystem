@@ -15,10 +15,14 @@ import {
   withPhotoImage,
   withVideoUrl,
 } from "../../../../../utils/media";
-import { ImageUpload } from "../../../../common/ImageUpload";
+import { ImageUpload, PhotoSlotHint } from "../../../../common/ImageUpload";
 import { RemoveRowButton } from "../../../../common/RemoveRowButton";
 import { Button, Input, toast } from "../../../../ui";
-import { heldByServer } from "../../../../../utils/mediaLink";
+import {
+  asksForPhotoBytes,
+  asServerHoldsIt,
+  heldByServer,
+} from "../../../../../utils/mediaLink";
 import { mayWriteCaption } from "../../../../../utils/recordAccess";
 import { CoordinationOnlyNote } from "../../CoordinationOnlyNote";
 import type { DraftHandle } from "../../useDraft";
@@ -28,6 +32,7 @@ import {
   MediaHeading,
   SensitiveMediaNote,
 } from "./controls";
+import { MediaPhotoImage } from "./MediaPhotoImage";
 
 export interface MidiaFormProps {
   draft: DraftHandle;
@@ -79,6 +84,21 @@ export function MidiaForm({ draft }: MidiaFormProps) {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {photos.map((photo, index) => {
           const held = heldByServer(photo, draft.saved);
+          // The server's photo is drawn here as the view draws it (OBT-665, PME-FRM-085): an
+          // empty slot over a photo the record holds read as *no photo* in edit mode.
+          const shown = held ? asServerHoldsIt(photo, draft.saved) : photo;
+          const hint = <PhotoSlotHint>{t("f_media_drop_hint")}</PhotoSlotHint>;
+          const projectId = values.id;
+          const itemId = shown.id;
+          const preview =
+            held && projectId && itemId && asksForPhotoBytes(values, shown) ? (
+              <MediaPhotoImage
+                projectId={projectId}
+                itemId={itemId}
+                alt={photo.caption.trim() || `${t("f_media_photo_label")} ${index + 1}`}
+                fallback={hint}
+              />
+            ) : undefined;
           return (
           <div key={index} className="flex flex-col gap-1.5">
             <ImageUpload
@@ -90,6 +110,7 @@ export function MidiaForm({ draft }: MidiaFormProps) {
               onRejected={() => toast.error(t("media_invalid_type"))}
               placeholder={t("f_media_drop_hint")}
               removeLabel={`${t("row_remove")} · ${t("f_media_photo_label")} ${index + 1}`}
+              preview={preview}
             />
             <Input
               aria-label={`${t("f_media_caption")} · ${t("f_media_photo_label")} ${index + 1}`}
