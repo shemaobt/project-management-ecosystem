@@ -347,6 +347,22 @@ describe("o Recarregar e a volta ao Início leem a lista de novo (OBT-663)", () 
     expect(store().facets?.matched).toBe(2);
   });
 
+  it("o Recarregar com uma leitura a caminho lê de novo depois do clique", async () => {
+    let release = () => {};
+    held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    pages = [servedPage([CHICHEWA], 1), servedPage([CHICHEWA, TIKUNA], 2)];
+
+    const mounting = store().hydrate();
+    const reloading = store().reload();
+    release();
+    await Promise.all([mounting, reloading]);
+
+    expect(calls).toHaveLength(2);
+    expect(store().facets?.matched).toBe(2);
+  });
+
   it("o Recarregar que falha não diz que recarregou", async () => {
     await store().hydrate();
     refusing = true;

@@ -54,9 +54,10 @@ interface ProjectsState extends HydrationStatus {
    */
   revisit: () => Promise<void>;
   /**
-   * The header's *Recarregar*, and every "try again": read the list again now, and tell each
-   * read of it on screen through its own requests — the Projetos browses — to ask again
-   * (`onListReread`). Resolves to whether the list was read; a failure was already said.
+   * The header's *Recarregar*, and every "try again": read the list again now — a read already
+   * on its way began before the click and is read once more — and tell each read of it on
+   * screen through its own requests — the Projetos browses — to ask again (`onListReread`).
+   * Resolves to whether the list was read; a failure was already said.
    */
   reload: () => Promise<boolean>;
   invalidate: () => void;
@@ -127,12 +128,12 @@ export const useProjectsStore = create<ProjectsState>()(
   persist<ProjectsState, [], [], PersistedProjects>(
     (set, get) => {
       const slot = createHydrationSlot();
-      let writes = 0;
+      let asked = 0;
       const load = async (): Promise<void> => {
-        const seen = writes;
+        const seen = asked;
         const list = await loadProjectList();
-        // Read before the last write: that is not the list any more, so read it again.
-        if (seen !== writes) return load();
+        // Read before the last write, or before the Recarregar: not the list any more.
+        if (seen !== asked) return load();
         set({ ...list, outdated: false });
       };
 
@@ -145,6 +146,7 @@ export const useProjectsStore = create<ProjectsState>()(
         hydrate: () => hydrateOnce(slot, get, set, load, get().outdated),
         revisit: () => hydrateOnce(slot, get, set, load, SERVED || get().outdated),
         reload: async () => {
+          asked += 1;
           announceReread();
           await hydrateOnce(slot, get, set, load, true);
           return get().error === null;
@@ -153,7 +155,7 @@ export const useProjectsStore = create<ProjectsState>()(
         // (the record double keeps its own overlay), so there is nothing to read again.
         invalidate: () => {
           if (!SERVED) return;
-          writes += 1;
+          asked += 1;
           set({ outdated: true, facets: null });
           announceReread();
         },
