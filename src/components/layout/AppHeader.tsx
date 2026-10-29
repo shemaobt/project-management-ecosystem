@@ -79,7 +79,8 @@ export function AppHeader() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 flex flex-wrap items-center justify-between",
+        "top-0 z-50 flex flex-wrap items-center justify-between",
+        "sm:[@media(height>500px)]:sticky lg:sticky",
         "gap-x-6 gap-y-2.5 border-b border-preto/20 bg-inverse text-on-dark",
         "px-4.5 py-3.5 sm:px-8 sm:py-[18px]",
       )}
