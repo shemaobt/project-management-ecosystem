@@ -140,6 +140,7 @@
   "empty_title": "Nenhum projeto por aqui.",
   "empty_sub": "Ajuste os filtros ou registre o primeiro projeto.",
   "empty_search_sub": "Nada encontrado para “{{term}}”. Ajuste a busca ou limpe os filtros.",
+  "empty_scope_sub": "As regiões que você acompanha ainda não têm nenhum projeto.",
   "empty_soon": "Chega nas próximas entregas.",
   "sec_id": "Identidade",
   "sec_team": "Equipe",

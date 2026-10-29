@@ -140,6 +140,7 @@
   "empty_title": "Nothing here yet.",
   "empty_sub": "Adjust filters or register the first project.",
   "empty_search_sub": "Nothing found for “{{term}}”. Adjust the search or clear the filters.",
+  "empty_scope_sub": "The regions you follow have no project yet.",
   "empty_soon": "Arrives in upcoming deliveries.",
   "sec_id": "Identity",
   "sec_team": "Team",

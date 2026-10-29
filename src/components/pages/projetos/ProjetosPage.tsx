@@ -6,7 +6,11 @@ import { DEFAULT_TAB } from "../../../constants/recordTabs";
 import { DEFAULT_SORT, sortKeysFor } from "../../../constants/sorting";
 import { useAuth } from "../../../contexts/AuthContext";
 import { failureMessage, pulseLanguage } from "../../../services/api";
-import { EMPTY_FILTERS, useFiltersStore } from "../../../stores/filtersStore";
+import {
+  EMPTY_FILTERS,
+  hasActiveFilters,
+  useFiltersStore,
+} from "../../../stores/filtersStore";
 import { usePrefsStore } from "../../../stores/prefsStore";
 import type { Project } from "../../../types/project";
 import { canReadHealth } from "../../../utils/access";
@@ -21,6 +25,7 @@ import { EmptyState } from "../../common/EmptyState";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button } from "../../ui";
 import { AtlasView } from "./Atlas";
+import { EmptyResults } from "./EmptyResults";
 import { JournalView } from "./Journal";
 import { LoadMore } from "./LoadMore";
 import { Sidebar } from "./Sidebar";
@@ -231,18 +236,10 @@ export function ProjetosPage() {
           </p>
         )}
         {matched === 0 ? (
-          <EmptyState
-            title={t("empty_title")}
-            message={
-              search.trim()
-                ? t("empty_search_sub", { term: search.trim() })
-                : t("empty_sub")
-            }
-            action={
-              <Button variant="secondary" size="sm" onClick={clearAll}>
-                {t("sb_clear_all")}
-              </Button>
-            }
+          <EmptyResults
+            narrowed={hasActiveFilters(filters) || search.trim() !== ""}
+            search={search}
+            onClear={clearAll}
           />
         ) : (
           <>
