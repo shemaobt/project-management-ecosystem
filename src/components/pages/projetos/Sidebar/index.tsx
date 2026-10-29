@@ -26,7 +26,7 @@ export function Sidebar({ baseline, shown, total, counts, hidden }: SidebarProps
   return (
     <aside
       aria-label={t("projetos_filters_label")}
-      className="self-start lg:sticky lg:top-[78px] lg:max-h-[calc(100vh-90px)] lg:overflow-y-auto lg:pr-1.5"
+      className="self-start lg:sticky lg:top-[calc(var(--header-height,75px)+3px)] lg:max-h-[calc(100vh-var(--header-height,75px)-15px)] lg:overflow-y-auto lg:pr-1.5"
     >
       <div className="top-0 z-5 mb-1 bg-linear-to-b from-canvas from-80% to-transparent pb-3.5 lg:sticky">
         <SearchBox />

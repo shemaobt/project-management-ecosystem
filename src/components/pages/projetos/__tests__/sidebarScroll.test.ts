@@ -24,6 +24,36 @@ const MEASURE = `(async () => {
   };
 })()`;
 
+const UNDER_HEADER = `(async () => {
+  const aside = document.querySelector("aside");
+  const block = aside.firstElementChild;
+  aside.scrollTop = 0;
+  window.scrollTo(0, 1500);
+  await window.frame();
+  aside.scrollTop = (aside.scrollHeight - aside.clientHeight) / 2;
+  await window.frame();
+  const header = document.querySelector("header").getBoundingClientRect();
+  const box = block.getBoundingClientRect();
+  const side = aside.getBoundingClientRect();
+  return {
+    scrolled: Math.round(window.scrollY),
+    headerBottom: Math.round(header.bottom),
+    blockTop: Math.round(box.top),
+    blockBottom: Math.round(box.bottom),
+    asideBottom: Math.round(side.bottom),
+    viewport: innerHeight,
+  };
+})()`;
+
+interface UnderHeader {
+  scrolled: number;
+  headerBottom: number;
+  blockTop: number;
+  blockBottom: number;
+  asideBottom: number;
+  viewport: number;
+}
+
 interface Reading {
   height: number;
   ownScroll: boolean;
@@ -41,6 +71,13 @@ const VIEWPORTS = [
 
 type Viewport = (typeof VIEWPORTS)[number][0];
 
+const DESKTOPS = [
+  ["laptop", 1366, 900],
+  ["fullHd", 1920, 1080],
+] as const;
+
+type Desktop = (typeof DESKTOPS)[number][0];
+
 describe.skipIf(!CHROME)("a busca e a contagem da barra de Projetos só ficam presas na coluna lateral (OBT-664), num navegador de verdade", () => {
   let shell: ShellPage | undefined;
   const seen = new Map<Viewport, Reading>();
@@ -50,11 +87,22 @@ describe.skipIf(!CHROME)("a busca e a contagem da barra de Projetos só ficam pr
     return reading;
   };
 
+  const under = new Map<Desktop, UnderHeader>();
+  const below = (name: Desktop): UnderHeader => {
+    const reading = under.get(name);
+    if (!reading) throw new Error(`nada medido em ${name}`);
+    return reading;
+  };
+
   beforeAll(async () => {
     shell = await openShell("/projetos", "aside input");
     for (const [name, width, height] of VIEWPORTS) {
       await shell.resize(width, height);
       seen.set(name, await shell.evaluate<Reading>(MEASURE));
+    }
+    for (const [name, width, height] of DESKTOPS) {
+      await shell.resize(width, height);
+      under.set(name, await shell.evaluate<UnderHeader>(UNDER_HEADER));
     }
   }, 240_000);
 
@@ -86,5 +134,17 @@ describe.skipIf(!CHROME)("a busca e a contagem da barra de Projetos só ficam pr
     expect(moved).toBeGreaterThan(0);
     expect(stuck).toBe(true);
     expect(covered).toBe(height);
+  });
+
+  it("com a página rolada, a busca da barra fica inteira logo abaixo do cabeçalho de duas linhas (1366×900) e de uma (1920×1080)", () => {
+    expect(below("laptop").headerBottom).toBeGreaterThan(below("fullHd").headerBottom);
+    for (const name of ["laptop", "fullHd"] as const) {
+      const { scrolled, headerBottom, blockTop, blockBottom, asideBottom, viewport } = below(name);
+      expect(scrolled, name).toBe(1500);
+      expect(blockTop, name).toBeGreaterThanOrEqual(headerBottom);
+      expect(blockTop - headerBottom, name).toBeLessThanOrEqual(4);
+      expect(blockBottom, name).toBeLessThanOrEqual(viewport);
+      expect(asideBottom, name).toBeLessThanOrEqual(viewport);
+    }
   });
 });
