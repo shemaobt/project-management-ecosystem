@@ -235,7 +235,8 @@ export function IntercessoresView({
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder={t("search_placeholder")}
+                placeholder={t("int_search_placeholder")}
+                aria-label={t("int_search_label")}
                 className="w-56 rounded-pill py-2 pr-9 pl-9 text-[13px]"
               />
               {query !== "" ? (

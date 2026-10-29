@@ -20,6 +20,8 @@ vi.stubGlobal("window", { localStorage: storage });
 
 
 const { parseProjectsImport } = await import("../export");
+const { WIRE } = await import("../../services/api/__tests__/wireRecord");
+const { createEmptyProject } = await import("../../fixtures/blank");
 
 describe("a importação valida tudo antes de aplicar qualquer coisa", () => {
   const valid = () => [
@@ -154,5 +156,51 @@ describe("a importação valida tudo antes de aplicar qualquer coisa", () => {
       ok: false,
       error: { key: "import_duplicate_id", id: "a" },
     });
+  });
+});
+
+describe("um arquivo no formato do GET do projeto é aceito, como a API o aceita (OBT-665, PME-PRJ-100)", () => {
+  const asServed = {
+    ...WIRE,
+    bridgeLanguage: "Português",
+    startDate: null,
+    lastUpdated: null,
+    readAs: "coordination",
+    locationWithheld: false,
+    languageNameWithheld: false,
+    listedCountries: [],
+    publicLanguageName: null,
+    completedDate: null,
+    materials: [
+      { kind: "audio", scope: "Mateus", link: null, fileName: null, format: null, dataUrl: "" },
+    ],
+    mediaVideos: [{ url: "https://video.example/1", caption: null }],
+  };
+
+  it("as chaves que o GET devolve null passam, e a prévia lista o projeto com a mudança", () => {
+    const result = parseProjectsImport(JSON.stringify([asServed]));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.projects[0].bridgeLanguage).toBe("Português");
+  });
+
+  it("aplicado aqui, nenhum null entra: o projeto fica com os padrões em branco", () => {
+    const result = parseProjectsImport(JSON.stringify([asServed]));
+    if (!result.ok) throw new Error("recusado");
+    const [project] = result.projects;
+
+    expect(Object.values(project)).not.toContain(null);
+    expect(project.status).toBe(createEmptyProject(project.id).status);
+    expect(project.mediaPhotos).toEqual([]);
+    expect(project.materials[0]).not.toHaveProperty("link");
+    expect(project.mediaVideos?.[0]).not.toHaveProperty("caption");
+  });
+
+  it("um null onde o GET nunca o serve continua recusado", () => {
+    for (const field of ["location", "languageCode", "coords", "languageName"]) {
+      const result = parseProjectsImport(JSON.stringify([{ ...asServed, [field]: null }]));
+      expect(result, field).toEqual({ ok: false, error: { key: "import_bad_record", index: 1 } });
+    }
   });
 });

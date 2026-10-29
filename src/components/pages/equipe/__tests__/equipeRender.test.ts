@@ -76,6 +76,15 @@ describe("cada região mostra seus três papéis em campos editáveis", () => {
     }
   });
 
+  it("nenhuma responsabilidade de papel fala a língua do Estrategista aposentado, em PT nem em EN (OBT-665, PME-ACE-088)", async () => {
+    for (const language of ["pt", "en"]) {
+      await i18n.changeLanguage(language);
+      for (const role of ROLES) {
+        expect(i18n.t(role.descriptionKey), `${language} ${role.key}`).not.toMatch(/estrat[eé]g|strateg/i);
+      }
+    }
+  });
+
   it("cada papel tem um campo de texto, não um rótulo estático", () => {
     const markup = view([region("africa", "continent_africa")]);
     const inputs = markup.match(/<input/gu) ?? [];

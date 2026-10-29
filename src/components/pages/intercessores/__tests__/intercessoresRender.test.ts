@@ -471,3 +471,15 @@ describe("a leitura da rede que falha (OBT-617)", () => {
     expect(html).not.toContain(i18n.t("net_retry"));
   });
 });
+
+describe("a busca da rede (OBT-665, PME-ORA-071)", () => {
+  it("o campo diz que procura por nome e país, no exemplo e no nome acessível, e não fala de Projetos", () => {
+    const markup = view([ANA]);
+
+    expect(markup).toContain(`placeholder="${i18n.t("int_search_placeholder")}"`);
+    expect(markup).toContain(`aria-label="${i18n.t("int_search_label")}"`);
+    expect(markup).not.toContain(i18n.t("search_placeholder"));
+    expect(i18n.t("int_search_label")).toMatch(/nome/);
+    expect(i18n.t("int_search_label")).toMatch(/país/);
+  });
+});

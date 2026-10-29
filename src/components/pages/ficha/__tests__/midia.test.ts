@@ -491,6 +491,39 @@ describe("MidiaForm — a foto do servidor mostra a decisão só leitura (OBT-58
     expect(html).toContain(i18n.t("media_auth_yes"));
   });
 
+  it("a foto autorizada do servidor aparece no editar como na leitura, e segue trocável (OBT-665, PME-FRM-085)", () => {
+    const html = formOver(serverPhoto);
+    expect(html.split('data-photo-link=""').length - 1).toBe(1);
+    expect(html).toContain('id="midia-foto-0"');
+  });
+
+  it("a foto do servidor não autorizada não pede os bytes no editar, como na leitura", () => {
+    const refused = { ...serverPhoto, authorization: { granted: false, by: "Fresia", at: "2026-10-01" } };
+    const draft = handle({ mediaPhotos: [refused as never] });
+    const saved = { ...draft.values, id: "p1", mediaPhotos: [refused] };
+    const html = render(
+      createElement(
+        AuthProvider,
+        null,
+        createElement(MidiaTab, {
+          mode: "editar",
+          draft: { ...draft, values: { ...draft.values, id: "p1" }, saved },
+        }),
+      ),
+    );
+    expect(html).not.toContain("data-photo-link");
+  });
+
+  it("o aviso do editar fala só do que se anexa aqui e diz que as fotos do Pulso já são do servidor", async () => {
+    for (const language of ["pt", "en"]) {
+      await i18n.changeLanguage(language);
+      const note = i18n.t("record_pending_media");
+      expect(note, language).toContain(i18n.t("forms_pulse_title"));
+      expect(note, language).not.toMatch(/não têm caminho|have no storage path/);
+    }
+    await i18n.changeLanguage("pt");
+  });
+
   it("sem registro salvo, nada é do servidor: a caixa fica, mesmo com id", () => {
     const draft = handle({ mediaPhotos: [serverPhoto as never] });
     const html = render(

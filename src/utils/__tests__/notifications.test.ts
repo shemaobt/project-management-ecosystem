@@ -237,6 +237,29 @@ describe("buildNotifications", () => {
     expect(entries[0].kind === "stale" && entries[0].daysSilent).toBe(226);
   });
 
+  it("sem notícias toca o sino e não é urgente: só os urgentes deixa saúde crítica e pedido urgente, como o servidor e a legenda (OBT-665, PME-ORA-072)", () => {
+    const silent = makeProject({
+      id: "silent",
+      location: "Brazil",
+      progressHistory: [
+        { date: "2026-01-01", translatedUnits: 1, communityCheckedUnits: 0, approvedUnits: 0 },
+      ],
+    });
+    const critical = makeProject({
+      id: "critical",
+      location: "Brazil",
+      healthEmotional: "critica",
+      healthAssessmentDate: "2026-08-10",
+    });
+
+    const entries = buildNotifications([silent, critical], NOW);
+    const kept = applyNotificationPrefs(entries, prefs({ when: "urgent" }), null);
+
+    expect(kinds(entries)).toContain("stale");
+    expect(entries.find((entry) => entry.kind === "stale")?.urgent).toBe(false);
+    expect(kinds(kept)).toEqual(["health"]);
+  });
+
   it("quem atualizou há pouco não entra no silêncio", () => {
     const fresh = makeProject({
       id: "fresh",

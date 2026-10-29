@@ -26,7 +26,7 @@ export function PhasesEditor({ phases, onChange }: PhasesEditorProps) {
         <div key={index} className="flex items-center gap-2">
           <Input
             className="w-14 flex-none"
-            aria-label={t("f_phase_n")}
+            aria-label={t("f_phase_name_n", { n: index + 1 })}
             placeholder={phaseTitle(phase, index, t("f_phase_n"))}
             value={phase.label}
             onChange={(event) =>
@@ -35,7 +35,7 @@ export function PhasesEditor({ phases, onChange }: PhasesEditorProps) {
           />
           <Input
             className="flex-1"
-            aria-label={t("f_phase_scope")}
+            aria-label={t("f_phase_scope_n", { n: index + 1 })}
             placeholder={t("f_phase_scope")}
             value={phase.scope}
             onChange={(event) =>
@@ -48,7 +48,7 @@ export function PhasesEditor({ phases, onChange }: PhasesEditorProps) {
             // there is something is how the form starts lying about what it holds.
             type={!phase.date || isCalendarDay(phase.date) ? "date" : "text"}
             className="w-[150px] flex-none"
-            aria-label={t("f_deadline")}
+            aria-label={t("f_phase_deadline_n", { n: index + 1 })}
             value={phase.date}
             onChange={(event) =>
               onChange(patchPhase(phases, index, { date: event.target.value }))
@@ -56,7 +56,7 @@ export function PhasesEditor({ phases, onChange }: PhasesEditorProps) {
           />
           <button
             type="button"
-            aria-label={t("f_phase_remove")}
+            aria-label={t("f_phase_remove", { n: index + 1 })}
             className={cn(
               circleControl,
               transitionColors,
