@@ -5,6 +5,7 @@ import {
   membersAPI,
   toApiFailure,
 } from "../../../services/api";
+import { useProjectListRead } from "../../../hooks/useProjectListRead";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { AccountGrants } from "../../../types/access";
 import type { Project, ProjectMember } from "../../../types/project";
@@ -124,7 +125,7 @@ export function MembershipSection({ person }: MembershipSectionProps) {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const loadFailure = useProjectsStore((state) => state.error);
-  const hydrate = useProjectsStore((state) => state.hydrate);
+  const revisit = useProjectsStore((state) => state.revisit);
   const reload = useProjectsStore((state) => state.reload);
 
   const [projectId, setProjectId] = useState("");
@@ -133,9 +134,7 @@ export function MembershipSection({ person }: MembershipSectionProps) {
   const [refusal, setRefusal] = useState<ApiFailure | null>(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
-  useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+  useProjectListRead({ everyVisit: true });
 
   const name = person.displayName ?? person.email;
 
@@ -180,7 +179,13 @@ export function MembershipSection({ person }: MembershipSectionProps) {
       ) : sorted.length === 0 ? (
         <p className="text-small text-fg-muted">{t("acesso_members_no_projects")}</p>
       ) : (
-        <ProjectSelector projects={sorted} value={projectId} onChange={pick} />
+        <ProjectSelector
+          projects={sorted}
+          value={projectId}
+          onChange={pick}
+          // The card can stay open while a project is created in another tab (OBT-680).
+          onOpen={() => void revisit()}
+        />
       )}
       {projectId ? (
         <ProjectRoster

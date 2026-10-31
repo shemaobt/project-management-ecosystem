@@ -15,12 +15,18 @@ export interface ProjectSelectorProps {
   projects: readonly Project[];
   value: string;
   onChange: (projectId: string) => void;
+  /**
+   * The list was opened. A screen whose options can change under it — a project created in
+   * another tab, or by somebody else — reads them again here (OBT-680).
+   */
+  onOpen?: () => void;
 }
 
 export function ProjectSelector({
   projects,
   value,
   onChange,
+  onOpen,
 }: ProjectSelectorProps) {
   const { t } = useTranslation();
   const fieldId = useId();
@@ -28,7 +34,13 @@ export function ProjectSelector({
   return (
     <div className="flex min-w-56 flex-col gap-1.5">
       <Label htmlFor={fieldId}>{t("forms_pick_project")}</Label>
-      <Select value={value} onValueChange={onChange}>
+      <Select
+        value={value}
+        onValueChange={onChange}
+        onOpenChange={(open) => {
+          if (open) onOpen?.();
+        }}
+      >
         <SelectTrigger id={fieldId}>
           <SelectValue placeholder={t("forms_pick_project")} />
         </SelectTrigger>
