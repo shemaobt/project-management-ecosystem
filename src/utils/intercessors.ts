@@ -127,7 +127,6 @@ export function makeIntercessorUpdate(
   };
 }
 
-/** Listing somebody already in the network: the contact they were asked through, and the basis. */
 export interface DirectoryGrantDraft {
   contact: string;
   basis: string;
