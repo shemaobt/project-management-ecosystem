@@ -15,7 +15,15 @@ import {
   recordAccess,
 } from "../utils/recordAccess";
 import { loadProject, loadProjects } from "./projects";
-import { asReadBy, mediaLinkFor, readsHealth, writesHealth } from "./reader";
+import {
+  asReadBy,
+  DOWNLOAD_URL_EXPIRY_MINUTES,
+  mediaLinkFor,
+  NO_FILE,
+  NOT_SHARED,
+  readsHealth,
+  writesHealth,
+} from "./reader";
 import { mockPersona } from "./session";
 
 /**
@@ -280,17 +288,6 @@ export function submitAssessment(
 }
 
 // --- the photo's bytes and its withdrawal (OBT-581 / OBT-582) --------------------------
-
-const DOWNLOAD_URL_EXPIRY_MINUTES = 15;
-
-const NOT_SHARED: ApiFailure = {
-  kind: "forbidden",
-  status: 403,
-  code: null,
-  detail: "This file is not shared with your audience.",
-};
-
-const NO_FILE: ApiFailure = { kind: "notFound", status: 404, code: null, detail: "File not found" };
 
 /** A local photo becomes a media row the way the server mints one: an id of its own. */
 function withPhotoIds(project: Project): Project {

@@ -2,6 +2,7 @@ import { REGION_CENTROIDS } from "../constants/geo";
 import type { SessionPersona } from "../contexts/session";
 import type { Project, ReadAs } from "../types/project";
 import type { RegionKey } from "../types/region";
+import type { ApiFailure } from "../types/session";
 import { canReadHealth, canWriteHealth } from "../utils/access";
 import { getRegion } from "../utils/region";
 
@@ -127,6 +128,28 @@ function withoutPhotoBytes(project: Project): Project {
   };
 }
 
+export const DOWNLOAD_URL_EXPIRY_MINUTES = 15;
+
+/** The one refusal sentence of every 403 on a file, so nothing tells which gate closed. */
+export const NOT_SHARED: ApiFailure = {
+  kind: "forbidden",
+  status: 403,
+  code: null,
+  detail: "This file is not shared with your audience.",
+};
+
+export const NO_FILE: ApiFailure = { kind: "notFound", status: 404, code: null, detail: "File not found" };
+
+/**
+ * `reader_may_read_media` (OBT-583): on a withheld project the bytes are the coordination's
+ * only — not the OBT Lab's, not the Resource Circle's; on a cleared one every reader reads them.
+ * One predicate for the item's link and the pending Pulse's (OBT-674), as on the server.
+ */
+export function mayReadMediaBytes(project: Project, persona: SessionPersona): boolean {
+  if (!project.sensitiveCountry) return true;
+  return readerOf(persona, project.derived?.region ?? getRegion(project)) === "coordination";
+}
+
 /**
  * `media_download_url`'s gates for the double (OBT-581): the photo must exist and hold bytes
  * (404), be authorized (403), and — on a withheld project — the reader must be its
@@ -140,7 +163,6 @@ export function mediaLinkFor(
   const photo = (project.mediaPhotos ?? []).find((entry) => entry.id === itemId);
   if (!photo || !photo.image) return { ok: false, status: 404 };
   if (photo.authorization?.granted !== true) return { ok: false, status: 403 };
-  const reader = readerOf(persona, project.derived?.region ?? getRegion(project));
-  if (project.sensitiveCountry && reader !== "coordination") return { ok: false, status: 403 };
+  if (!mayReadMediaBytes(project, persona)) return { ok: false, status: 403 };
   return { ok: true, url: photo.image.src };
 }

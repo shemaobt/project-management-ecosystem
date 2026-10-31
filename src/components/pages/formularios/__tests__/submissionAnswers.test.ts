@@ -57,6 +57,12 @@ const detail = (over: Partial<ReceivedSubmissionDetail> = {}): ReceivedSubmissio
 const render = (value: ReceivedSubmissionDetail) =>
   renderToStaticMarkup(createElement(SubmissionAnswers, { detail: value }));
 
+const LINK = 'data-photo-link=""';
+const pendingImageLink = async () => ({ url: "data:image/png;base64,AAAA", expiresInMinutes: 15 });
+const renderLinked = (value: ReceivedSubmissionDetail) =>
+  renderToStaticMarkup(createElement(SubmissionAnswers, { detail: value, pendingImageLink }));
+const attached = { image: "intake-image-7", imageDescription: "A equipe no vale", imageAuthorized: true };
+
 describe("a caixa de entrada abre um Pulso e mostra a imagem pela palavra (OBT-580)", () => {
   it("imagem anexada, a descrição e a autorização marcada", () => {
     const markup = render(
@@ -95,6 +101,47 @@ describe("as linhas de progresso concordam com o número", () => {
     expect(two).toContain("2 linhas de progresso");
     await i18n.changeLanguage("en");
     expect(render(detail({ answers: { bookProgress: [{ book: "Mark" }] } }))).toContain("1 progress row<");
+    await i18n.changeLanguage("pt");
+  });
+});
+
+describe("a foto do Pulso pendente é pedida só quando o servidor diz que a rota serve (OBT-674)", () => {
+  it("autorizada e servida: o pedido do link é montado sob a palavra, e a URL ainda não existe", () => {
+    const markup = renderLinked(detail({ answers: attached, pendingImage: true }));
+    expect(markup).toContain(LINK);
+    expect(markup).toContain(i18n.t("forms_submission_image_attached"));
+    expect(markup).not.toContain("<img");
+    expect(markup).not.toContain("data:image");
+  });
+
+  it("não autorizada (ou um leitor que a rota recusa): pendingImage falso, nenhum pedido montado", () => {
+    const markup = renderLinked(
+      detail({ answers: { ...attached, imageAuthorized: false }, pendingImage: false }),
+    );
+    expect(markup).not.toContain(LINK);
+    expect(markup).toContain(i18n.t("forms_submission_image_attached"));
+  });
+
+  it("um servidor de antes da OBT-585, sem o campo, também não monta o pedido", () => {
+    expect(renderLinked(detail({ answers: attached }))).not.toContain(LINK);
+  });
+
+  it("retido: a frase, e nenhum pedido — mesmo que o bit viesse", () => {
+    const markup = renderLinked(detail({ answersWithheld: true, answers: {}, pendingImage: true }));
+    expect(markup).toContain(i18n.t("forms_submission_withheld"));
+    expect(markup).not.toContain(LINK);
+  });
+
+  it("sem imagem anexada não há o que pedir", () => {
+    const markup = renderLinked(detail({ answers: { voice: "Seguimos bem." }, pendingImage: true }));
+    expect(markup).toContain(i18n.t("forms_submission_image_none"));
+    expect(markup).not.toContain(LINK);
+  });
+
+  it("a frase não promete mais que a tela não mostra a foto, nas duas línguas", async () => {
+    expect(i18n.t("forms_submission_image_attached")).not.toMatch(/não a mostra/u);
+    await i18n.changeLanguage("en");
+    expect(i18n.t("forms_submission_image_attached")).not.toMatch(/does not show/u);
     await i18n.changeLanguage("pt");
   });
 });

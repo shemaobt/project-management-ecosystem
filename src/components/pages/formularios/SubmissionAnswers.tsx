@@ -1,8 +1,15 @@
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { photoSlotSurface } from "../../../styles";
 import type { IntakeField, ReceivedSubmissionDetail } from "../../../types/forms";
+import type { MediaLink } from "../../../types/project";
+import { cn } from "../../../utils/cn";
+import { PhotoByLink } from "../../common/PhotoByLink";
 
 export interface SubmissionAnswersProps {
   detail: ReceivedSubmissionDetail;
+  /** Mints the pending Pulse's image link (OBT-674); without it the image is said by the word only. */
+  pendingImageLink?: (submissionId: string) => Promise<MediaLink>;
 }
 
 function isRecordList(value: unknown): value is readonly Record<string, unknown>[] {
@@ -10,19 +17,39 @@ function isRecordList(value: unknown): value is readonly Record<string, unknown>
 }
 
 /**
- * One Pulse's answers, by the form it answered (OBT-580). The image never shows here: the
- * server serves no bytes yet, so the inbox says whether one was attached, reads its
- * description and the leader's answer to the box, and nothing more. A withheld reader is
- * given no answers at all, and the one sentence says so instead of an empty list.
+ * One Pulse's answers, by the form it answered (OBT-580). The image is said by the word —
+ * attached or not, its description and the leader's answer to the box — and, where the server
+ * says its link would answer this reader (`pendingImage`, OBT-585), shown under the word across
+ * both columns, so the narrow answer column does not shrink it (OBT-674): through `PhotoByLink`,
+ * asked for when it is shown, the URL in that component and nowhere else, a refusal leaving the
+ * slot empty with no reason. Whom the route serves is the route's; without the bit nothing is
+ * asked. A withheld reader is given no answers at all, and the one sentence says so instead of
+ * an empty list.
  */
-export function SubmissionAnswers({ detail }: SubmissionAnswersProps) {
+export function SubmissionAnswers({ detail, pendingImageLink }: SubmissionAnswersProps) {
   const { t } = useTranslation();
 
   if (detail.answersWithheld) {
     return <p className="text-small text-fg-muted">{t("forms_submission_withheld")}</p>;
   }
 
-  const render = (field: IntakeField): string => {
+  const photo = (field: IntakeField): ReactNode => {
+    const value = detail.answers[field.key];
+    if (field.type !== "image" || typeof value !== "string" || !value) return null;
+    if (detail.pendingImage !== true || !pendingImageLink) return null;
+    return (
+      <dd className="max-w-sm sm:col-span-2">
+        <PhotoByLink
+          photoKey={detail.id}
+          ask={() => pendingImageLink(detail.id)}
+          alt={t("forms_submission_image_alt")}
+          fallback={<div className={cn("aspect-[4/3] w-full rounded-[8px]", photoSlotSurface)} />}
+        />
+      </dd>
+    );
+  };
+
+  const render = (field: IntakeField): ReactNode => {
     const value = detail.answers[field.key];
     switch (field.type) {
       case "image":
@@ -48,6 +75,7 @@ export function SubmissionAnswers({ detail }: SubmissionAnswersProps) {
             {t(field.labelKey)}
           </dt>
           <dd className="text-small whitespace-pre-wrap text-fg">{render(field)}</dd>
+          {photo(field)}
         </div>
       ))}
     </dl>

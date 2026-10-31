@@ -118,6 +118,13 @@ export interface ReceivedSubmissionDetail extends ReceivedSubmission {
   fields: readonly IntakeField[];
   answers: IntakeAnswers;
   answersWithheld: boolean;
+  /**
+   * `true` when `GET …/forms/submissions/{id}/image/link` would answer this reader a URL
+   * (OBT-585): the Pulse is pending, names its upload, the leader ticked the box and this reader
+   * may read the bytes. A bit, never the URL. Absent from a server before OBT-585, which serves
+   * no pending image — read as `false`.
+   */
+  pendingImage?: boolean;
 }
 
 export interface IntakeSubmissionPayload {
