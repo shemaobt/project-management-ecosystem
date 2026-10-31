@@ -54,4 +54,8 @@ export const ACCOUNT: AccountGrants = {
     { regionKey: "africa", grantedBy: "u-1", grantedAt: "2026-09-27T10:00:00Z" },
   ],
   regionScope: ["africa"],
+  projects: [
+    { id: "p-makua", languageName: "Makua", languageNameWithheld: false },
+    { id: "p-sadi", languageName: "Sa'di of High Egypt", languageNameWithheld: false },
+  ],
 };

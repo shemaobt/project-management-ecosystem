@@ -30,6 +30,7 @@ const {
   cardOf,
   createPersonStore,
   personReducer,
+  settleMembership,
 } = await import("../personState");
 type PersonState = import("../personState").PersonState;
 type PersonEvent = import("../personState").PersonEvent;
@@ -46,6 +47,7 @@ const A: AccountGrants = {
   apps: [],
   regions: [],
   regionScope: [],
+  projects: [],
 };
 
 const B: AccountGrants = {
@@ -56,6 +58,7 @@ const B: AccountGrants = {
   apps: [{ appKey: "shema", roles: ["obtLab"] }],
   regions: [{ regionKey: "europe", grantedBy: null, grantedAt: "2026-10-28T10:00:00Z" }],
   regionScope: ["europe"],
+  projects: [],
 };
 
 const A_WITH_INTERCESSOR: AccountGrants = {
@@ -327,5 +330,127 @@ describe("o aviso de uma gravação que terminou longe do cartão", () => {
     store.dispatch({ type: "search", ticket: store.ticket(), email: A.email });
     expect(heard).toHaveBeenCalledTimes(1);
     expect(store.ticket()).not.toBe(store.get().asked);
+  });
+});
+
+describe("pôr ou tirar membro é um ato do cartão (OBT-679)", () => {
+  const MEMBER_ROW = "member:p-makua";
+  const MAKUA = { id: "p-makua", languageName: "Makua", languageNameWithheld: false };
+  const A_ON_MAKUA: AccountGrants = { ...A, projects: [MAKUA] };
+
+  const deferred = <T>() => {
+    let resolve: (value: T) => void = noop;
+    let reject: (reason: unknown) => void = noop;
+    const promise = new Promise<T>((done, fail) => {
+      resolve = done;
+      reject = fail;
+    });
+    return { promise, resolve, reject };
+  };
+
+  const onCard = (account: AccountGrants) => {
+    const store = createPersonStore();
+    for (const event of searched(store.ticket(), account)) store.dispatch(event);
+    return store;
+  };
+
+  it("enquanto vai, o cartão está ocupado com a linha do projeto — nenhum papel se cruza com ele", async () => {
+    const store = onCard(A_ON_MAKUA);
+    const removal = deferred<void>();
+    const reread = vi.fn(async () => A);
+
+    const settling = settleMembership(store, reread, A_ON_MAKUA, MEMBER_ROW, () => removal.promise);
+    expect(cardOf(store.get())?.acting).toBe(MEMBER_ROW);
+    expect(reread).not.toHaveBeenCalled();
+
+    removal.resolve();
+    await expect(settling).resolves.toEqual({ changed: true, away: null });
+    expect(reread).toHaveBeenCalledWith(A.email);
+    expect(cardOf(store.get())).toMatchObject({ account: A, acting: null, refusal: null });
+  });
+
+  it("a recusa fica na linha do projeto, o cartão não muda e ninguém relê", async () => {
+    const store = onCard(A_ON_MAKUA);
+    const reread = vi.fn(async () => A);
+
+    const outcome = await settleMembership(store, reread, A_ON_MAKUA, MEMBER_ROW, () =>
+      Promise.reject(REFUSED),
+    );
+
+    expect(outcome).toEqual({ changed: false, away: null });
+    expect(reread).not.toHaveBeenCalled();
+    expect(cardOf(store.get())).toMatchObject({
+      account: A_ON_MAKUA,
+      acting: null,
+      refusal: { row: MEMBER_ROW, failure: REFUSED },
+    });
+  });
+
+  it("releitura que falha depois de gravar diz na linha e conta como gravado", async () => {
+    const store = onCard(A_ON_MAKUA);
+    const offline: ApiFailure = { kind: "offline", status: null, detail: null, code: null };
+
+    const outcome = await settleMembership(
+      store,
+      () => Promise.reject(offline),
+      A_ON_MAKUA,
+      MEMBER_ROW,
+      async () => undefined,
+    );
+
+    expect(outcome.changed).toBe(true);
+    expect(cardOf(store.get())?.refusal).toEqual({ row: MEMBER_ROW, failure: offline });
+  });
+
+  it("a resposta de um ato de membro não fecha o seletor de regiões aberto — membro não mexe em região", async () => {
+    const store = onCard(A_ON_MAKUA);
+    const editing = { role: "coordinator" as const, regions: ["africa" as const] };
+    store.dispatch({ type: "openRegions", editing, clearsRefusal: true });
+
+    await settleMembership(store, async () => A, A_ON_MAKUA, MEMBER_ROW, async () => undefined);
+
+    expect(cardOf(store.get())).toMatchObject({ account: A, editing });
+  });
+
+  it("gravado e a releitura falhou com outra pessoa no cartão: o aviso diz que gravou, não que falhou", async () => {
+    const store = onCard(A_ON_MAKUA);
+    const answer = deferred<AccountGrants>();
+    const offline: ApiFailure = { kind: "offline", status: null, detail: null, code: null };
+
+    const settling = settleMembership(
+      store,
+      () => answer.promise,
+      A_ON_MAKUA,
+      MEMBER_ROW,
+      async () => undefined,
+    );
+    for (const event of searched(store.ticket(), B)) store.dispatch(event);
+    answer.reject(offline);
+
+    await expect(settling).resolves.toEqual({
+      changed: true,
+      away: { target: A_ON_MAKUA, failure: null },
+    });
+  });
+
+  it("com outra pessoa no cartão quando a releitura chega, B fica e a mudança de A é avisada uma vez", async () => {
+    const store = onCard(A_ON_MAKUA);
+    const answer = deferred<AccountGrants>();
+
+    const settling = settleMembership(
+      store,
+      () => answer.promise,
+      A_ON_MAKUA,
+      MEMBER_ROW,
+      async () => undefined,
+    );
+    for (const event of searched(store.ticket(), B)) store.dispatch(event);
+    answer.resolve(A);
+
+    await expect(settling).resolves.toEqual({
+      changed: true,
+      away: { target: A_ON_MAKUA, failure: null },
+    });
+    expect(cardOf(store.get())?.account).toBe(B);
   });
 });
