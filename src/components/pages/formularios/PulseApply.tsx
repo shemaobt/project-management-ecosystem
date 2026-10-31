@@ -12,7 +12,6 @@ import { afterAttempt, buttonFor, type ApplyAction, type ApplyStep } from "./pul
 
 export interface PulseApplyAccess {
   allows: (submission: ReceivedSubmission) => boolean;
-  /** The record's version now — its `ETag` — read when the Pulse is opened. */
   readVersion: (projectId: string) => Promise<string>;
   submit: (submissionId: string, version: string) => Promise<SubmissionApplyResult>;
   applying: readonly string[];

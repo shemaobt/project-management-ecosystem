@@ -73,9 +73,7 @@ export interface FormulariosViewProps {
    * scope, so a project outside it draws no button either. Absent is today's behaviour.
    */
   writeRegionScope?: readonly RegionKey[] | null;
-  /** The session's roles — with the write scope, whether the inbox offers to apply a Pulse (OBT-652). */
   roles?: readonly SessionRole[];
-  /** The record's version now, read when a Pulse is opened; with `applySubmission`, the inbox applies. */
   readRecordVersion?: (projectId: string) => Promise<string>;
   applySubmission?: (submissionId: string, version: string) => Promise<SubmissionApplyResult>;
   applying?: readonly string[];

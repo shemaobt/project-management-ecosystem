@@ -209,6 +209,25 @@ export async function readSubmission(submissionId: string): Promise<ReceivedSubm
   };
 }
 
+const COUNTS = ["chapters", "translated", "communityChecked", "mentorApproved"] as const;
+
+function isBookRow(value: unknown): value is BookProgressItem {
+  if (typeof value !== "object" || value === null) return false;
+  const row = value as Record<string, unknown>;
+  return (
+    typeof row.id === "string" &&
+    typeof row.name === "string" &&
+    COUNTS.every((key) => typeof row[key] === "number" && Number.isFinite(row[key]))
+  );
+}
+
+/** The Pulse's book rows: `null` when it sent none, `"refused"` when the record would not take them. */
+function bookRows(answers: IntakeAnswers | undefined): BookProgressItem[] | null | "refused" {
+  const rows = answers?.bookProgress;
+  if (rows === undefined || rows === null) return null;
+  return Array.isArray(rows) && rows.every(isBookRow) ? rows : "refused";
+}
+
 /**
  * Mirrors `apply_submission` (OBT-652) for the mock persona: the coordinator of the project's
  * region applies, anybody else is the route's refusal; a Pulse already applied is the idempotent
@@ -241,10 +260,20 @@ export async function applySubmission(
   if (!writesProjectIn(persona.writeRegionScope, region)) return notFound;
   if (row.appliedAt !== null) return { ok: true, submission: asReadInTheInbox(row) };
 
-  const answers = receivedAnswers.get(submissionId) ?? {};
-  const rows = Array.isArray(answers.bookProgress)
-    ? (answers.bookProgress as BookProgressItem[])
-    : null;
+  const rows = bookRows(receivedAnswers.get(submissionId));
+  if (rows === "refused") {
+    return {
+      ok: false,
+      reason: "failed",
+      failure: {
+        ...failure(
+          "invalid",
+          `pulso v${PULSE_DEFINITION_VERSION}: the submission does not match the record, so none of it was applied — bookProgress`,
+        ),
+        status: 400,
+      },
+    };
+  }
   const written = applyPulseProgress(row.projectId, rows, version, {
     fromField: row.submittedBy || undefined,
     formType: "pulso",

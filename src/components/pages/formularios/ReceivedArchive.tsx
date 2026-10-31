@@ -17,7 +17,6 @@ export interface ReceivedArchiveProps {
   submissions: readonly ReceivedSubmission[];
   /** Opens one submission's answers (OBT-580); without it the rows are the listing alone. */
   readSubmission?: (submissionId: string) => Promise<ReceivedSubmissionDetail>;
-  /** Applies an opened Pulse to the record (OBT-652); without it the inbox only reads. */
   apply?: PulseApplyAccess;
 }
 

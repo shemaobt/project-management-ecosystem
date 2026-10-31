@@ -93,6 +93,22 @@ describe("o dublê aplica um Pulso como o apply_submission do servidor (OBT-652)
     expect(waiting.appliedAt).toBeNull();
   });
 
+  it("uma tabela fora do formato do registro é recusada inteira: nada é gravado e o Pulso segue esperando", async () => {
+    const project = inRegion("south-america");
+    const row = await pulse(project.id, "Fresia E", [
+      { id: "rut", name: "Rute", chapters: 4, translated: "três" } as unknown as BookProgressItem,
+    ]);
+
+    as("coordinator");
+    const opened = await projectRecordAPI.read(project.id);
+    const result = await formsAPI.applySubmission(row.id, opened.version);
+
+    expect(result).toMatchObject({ ok: false, reason: "failed", failure: { kind: "invalid" } });
+    expect((await projectRecordAPI.read(project.id)).version).toBe(opened.version);
+    const waiting = (await formsAPI.received()).find((entry) => entry.id === row.id)!;
+    expect(waiting.appliedAt).toBeNull();
+  });
+
   it("o OBT Lab é recusado pelo papel, e a coordenação de outra região não acha o projeto", async () => {
     const africa = inRegion("africa");
     const row = await pulse(africa.id, "Fresia D");
