@@ -19,11 +19,12 @@ function isRecordList(value: unknown): value is readonly Record<string, unknown>
 /**
  * One Pulse's answers, by the form it answered (OBT-580). The image is said by the word —
  * attached or not, its description and the leader's answer to the box — and, where the server
- * says its link would answer this reader (`pendingImage`, OBT-585), shown under the word
- * (OBT-674) through `PhotoByLink`: asked for when it is shown, the URL in that component and
- * nowhere else, a refusal leaving the slot empty with no reason. Whom the route serves is the
- * route's; without the bit nothing is asked. A withheld reader is given no answers at all, and
- * the one sentence says so instead of an empty list.
+ * says its link would answer this reader (`pendingImage`, OBT-585), shown under the word across
+ * both columns, so the narrow answer column does not shrink it (OBT-674): through `PhotoByLink`,
+ * asked for when it is shown, the URL in that component and nowhere else, a refusal leaving the
+ * slot empty with no reason. Whom the route serves is the route's; without the bit nothing is
+ * asked. A withheld reader is given no answers at all, and the one sentence says so instead of
+ * an empty list.
  */
 export function SubmissionAnswers({ detail, pendingImageLink }: SubmissionAnswersProps) {
   const { t } = useTranslation();
@@ -32,22 +33,19 @@ export function SubmissionAnswers({ detail, pendingImageLink }: SubmissionAnswer
     return <p className="text-small text-fg-muted">{t("forms_submission_withheld")}</p>;
   }
 
-  const image = (value: unknown): ReactNode => {
-    if (typeof value !== "string" || !value) return t("forms_submission_image_none");
+  const photo = (field: IntakeField): ReactNode => {
+    const value = detail.answers[field.key];
+    if (field.type !== "image" || typeof value !== "string" || !value) return null;
+    if (detail.pendingImage !== true || !pendingImageLink) return null;
     return (
-      <>
-        {t("forms_submission_image_attached")}
-        {detail.pendingImage === true && pendingImageLink ? (
-          <div className="mt-2 max-w-sm">
-            <PhotoByLink
-              photoKey={detail.id}
-              ask={() => pendingImageLink(detail.id)}
-              alt={t("forms_submission_image_alt")}
-              fallback={<div className={cn("aspect-[4/3] w-full rounded-[8px]", photoSlotSurface)} />}
-            />
-          </div>
-        ) : null}
-      </>
+      <div className="max-w-sm sm:col-span-2">
+        <PhotoByLink
+          photoKey={detail.id}
+          ask={() => pendingImageLink(detail.id)}
+          alt={t("forms_submission_image_alt")}
+          fallback={<div className={cn("aspect-[4/3] w-full rounded-[8px]", photoSlotSurface)} />}
+        />
+      </div>
     );
   };
 
@@ -55,7 +53,9 @@ export function SubmissionAnswers({ detail, pendingImageLink }: SubmissionAnswer
     const value = detail.answers[field.key];
     switch (field.type) {
       case "image":
-        return image(value);
+        return typeof value === "string" && value
+          ? t("forms_submission_image_attached")
+          : t("forms_submission_image_none");
       case "checkbox":
         return value === true ? t("forms_answer_yes") : t("forms_answer_no");
       case "progressRows":
@@ -75,6 +75,7 @@ export function SubmissionAnswers({ detail, pendingImageLink }: SubmissionAnswer
             {t(field.labelKey)}
           </dt>
           <dd className="text-small whitespace-pre-wrap text-fg">{render(field)}</dd>
+          {photo(field)}
         </div>
       ))}
     </dl>
