@@ -47,6 +47,7 @@ import type {
   IntakeSubmissionPayload,
   ReceivedSubmission,
   ReceivedSubmissionDetail,
+  SubmissionApplyResult,
 } from "../../types/forms";
 import type {
   MeetingId,
@@ -81,6 +82,7 @@ import { failure, toApiFailure, UNKNOWN_VOCABULARY } from "./errors";
 import { forgetTokens, refreshToken, setTokens } from "./tokens";
 import { toLocalIsoDate } from "../../utils/format";
 import { headerSafeFileName } from "../../utils/intake";
+import { etagOf, readConflict } from "./projectRecord";
 
 const SHEMA = "/shema";
 
@@ -458,6 +460,40 @@ export const formsAPI = {
       `${SHEMA}/forms/submissions`,
     );
     return data;
+  },
+
+  /**
+   * Apply one Pulse from the inbox to the record (OBT-652), quoting the record's version the
+   * coordinator read when the Pulse was opened. A stale version is the ficha's own 409, read by the
+   * ficha's own reader — `readConflict` — so the inbox says who moved what with the same words, and
+   * the refusal's `ETag` is the version a second attempt quotes. Never throws: every answer is a
+   * result, as `projectRecordAPI.patch`'s is.
+   */
+  async applySubmission(
+    submissionId: string,
+    version: string,
+  ): Promise<SubmissionApplyResult> {
+    try {
+      const response = await http.post<unknown>(
+        `${SHEMA}/forms/submissions/${encodeURIComponent(submissionId)}/import`,
+        undefined,
+        {
+          headers: { "If-Match": version, [LOCAL_DAY_HEADER]: toLocalIsoDate() },
+          validateStatus: (status) => status < 400 || status === 409,
+        },
+      );
+      if (response.status === 409) {
+        return {
+          ok: false,
+          reason: "conflict",
+          conflict: readConflict(response.data),
+          version: etagOf(response.headers),
+        };
+      }
+      return { ok: true, submission: response.data as ReceivedSubmission };
+    } catch (thrown) {
+      return { ok: false, reason: "failed", failure: toApiFailure(thrown) };
+    }
   },
 
   /** One submission opened — the answers beside the form they answered (OBT-580). */

@@ -12,9 +12,13 @@ import type {
   IntakeSubmissionPayload,
   ReceivedSubmission,
   ReceivedSubmissionDetail,
+  SubmissionApplyResult,
 } from "../types/forms";
+import type { BookProgressItem } from "../types/project";
 import { answerLength } from "../utils/intake";
+import { writesProjectIn } from "../utils/access";
 import { getRegion } from "../utils/region";
+import { applyPulseProgress } from "./projectRecord";
 import { loadProject } from "./projects";
 import { asReadBy, readerOf } from "./reader";
 import { mockPersona } from "./session";
@@ -203,6 +207,60 @@ export async function readSubmission(submissionId: string): Promise<ReceivedSubm
     answers: withheld ? {} : structuredClone(receivedAnswers.get(submissionId) ?? {}),
     answersWithheld: withheld,
   };
+}
+
+/**
+ * Mirrors `apply_submission` (OBT-652) for the mock persona: the coordinator of the project's
+ * region applies, anybody else is the route's refusal; a Pulse already applied is the idempotent
+ * no-op, whatever version it quotes; otherwise the record double meets the version and writes the
+ * book rows, stamped as the Pulse's. **Not mirrored**, on purpose: the prayer request and its
+ * consent, the photo the import mints, and the detail's reduction once applied — those are the
+ * server's privacy rules, and a second copy of them here is a second place for them to be wrong.
+ */
+export async function applySubmission(
+  submissionId: string,
+  version: string,
+): Promise<SubmissionApplyResult> {
+  const persona = mockPersona();
+  if (!persona.roles.includes("coordinator")) {
+    return {
+      ok: false,
+      reason: "failed",
+      failure: { ...failure("forbidden", "Role 'coordinator' is required for this action."), status: 403 },
+    };
+  }
+  const row = received.find((entry) => entry.id === submissionId);
+  const project = row ? loadProject(row.projectId) : null;
+  const notFound: SubmissionApplyResult = {
+    ok: false,
+    reason: "failed",
+    failure: { ...failure("notFound", "Project not found"), status: 404 },
+  };
+  if (!row || !project) return notFound;
+  const region = project.derived?.region ?? getRegion(project);
+  if (!writesProjectIn(persona.writeRegionScope, region)) return notFound;
+  if (row.appliedAt !== null) return { ok: true, submission: asReadInTheInbox(row) };
+
+  const answers = receivedAnswers.get(submissionId) ?? {};
+  const rows = Array.isArray(answers.bookProgress)
+    ? (answers.bookProgress as BookProgressItem[])
+    : null;
+  const written = applyPulseProgress(row.projectId, rows, version, {
+    fromField: row.submittedBy || undefined,
+    formType: "pulso",
+  });
+  if (!written.ok) {
+    return written.reason === "conflict"
+      ? {
+          ok: false,
+          reason: "conflict",
+          conflict: written.conflict,
+          version: `"${written.conflict.currentVersion}"`,
+        }
+      : notFound;
+  }
+  row.appliedAt = toLocalIsoDate();
+  return { ok: true, submission: asReadInTheInbox(row) };
 }
 
 const DEFAULT_LINK_DAYS = 45;
