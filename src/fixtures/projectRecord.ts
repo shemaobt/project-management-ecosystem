@@ -7,7 +7,7 @@ import type { RecordSaveResult } from "../services/api/projectRecord";
 import type { ApiFailure } from "../types/session";
 import { applyAssessment } from "../utils/assessment";
 import { toLocalIsoDate } from "../utils/format";
-import { applyProgressUpdate } from "../utils/progress";
+import { applyProgressUpdate, type ProgressEntrySource } from "../utils/progress";
 import { computeDerived } from "../utils/projectDerived";
 import {
   mayWrite,
@@ -218,6 +218,47 @@ export function patchRecord(
   if ("team" in patch) merged.ywamBase = merged.team;
 
   const applied = applyProgressUpdate(kept.project, merged, toLocalIsoDate());
+  return { ok: true, record: store(applied, kept.version + 1) };
+}
+
+/**
+ * A Pulse's progress written to the record — the double behind `apply_submission`'s
+ * `save_project` call (OBT-652): the version guard of a typed save, the absolute book rows the
+ * leader sent, and the history entry stamped with where it came from. `null` rows change nothing
+ * but still meet the guard, as on the server, where the version is checked before anything moves.
+ */
+export function applyPulseProgress(
+  id: string,
+  bookProgress: Project["bookProgress"] | null,
+  version: string,
+  source: ProgressEntrySource,
+): RecordSaveResult {
+  const kept = held(id);
+  if (!kept) {
+    return {
+      ok: false,
+      reason: "invalid",
+      errors: [{ field: null, index: null, message: `${id}: no such record` }],
+    };
+  }
+  if (kept.version !== versionOf(version)) {
+    return {
+      ok: false,
+      reason: "conflict",
+      conflict: {
+        expectedVersion: versionOf(version),
+        currentVersion: kept.version,
+        changedFields: [],
+        unknownFields: [],
+        changedBy: "",
+        changedAt: null,
+        detail: null,
+      },
+    };
+  }
+  if (bookProgress === null) return { ok: true, record: readRecord(id) };
+  const merged: Project = { ...clone(kept.project), bookProgress: structuredClone(bookProgress) };
+  const applied = applyProgressUpdate(kept.project, merged, toLocalIsoDate(), source);
   return { ok: true, record: store(applied, kept.version + 1) };
 }
 

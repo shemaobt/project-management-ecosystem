@@ -1,6 +1,7 @@
-import { tabOf } from "../../../constants/recordFields";
+import { FIELD_LABEL_KEYS, tabOf } from "../../../constants/recordFields";
 import { TAB_LABEL_KEYS, type RecordTabId } from "../../../constants/recordTabs";
-import type { RecordField } from "../../../types/projectRecord";
+import type { RecordConflict, RecordField } from "../../../types/projectRecord";
+import { formatDate } from "../../../utils/format";
 
 type Translate = (key: string, params?: Record<string, unknown>) => string;
 
@@ -48,4 +49,38 @@ export function unchangedSentence(
 ): string {
   const kept = savedSentence([], withheld, t);
   return kept ? `${t("record_nothing_written")} ${kept}` : t("record_no_changes");
+}
+
+export function fieldList(
+  fields: readonly RecordField[],
+  t: Translate,
+  extra: readonly string[] = [],
+): string {
+  const name = (field: RecordField) => {
+    const key = FIELD_LABEL_KEYS[field];
+    return key ? t(key) : field;
+  };
+  return [...fields.map(name), ...extra].join(" · ");
+}
+
+/**
+ * Who moved the record and what moved — the 409's own answer, said once for every screen that
+ * meets it: the ficha's save and the inbox's apply of a Pulse (OBT-652) read the same body with
+ * `readConflict` and say it with this sentence, so the two cannot drift into two accounts of one
+ * conflict.
+ */
+export function conflictSentence(conflict: RecordConflict, t: Translate): string {
+  const named = conflict.changedFields.length > 0 || conflict.unknownFields.length > 0;
+  const by = conflict.changedBy
+    ? t("record_conflict_by", {
+        name: conflict.changedBy,
+        date: conflict.changedAt ? formatDate(conflict.changedAt) : "—",
+      })
+    : t("record_conflict_by_unnamed");
+  const what = named
+    ? t("record_conflict_changed", {
+        fields: fieldList(conflict.changedFields, t, conflict.unknownFields),
+      })
+    : t("record_conflict_changed_unknown");
+  return `${by} ${what}`;
 }

@@ -4,14 +4,24 @@ import { Link } from "react-router-dom";
 import { FIELD_FORMS } from "../../../constants/forms";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useProjectListRead } from "../../../hooks/useProjectListRead";
-import { formsAPI } from "../../../services/api";
+import { formsAPI, projectRecordAPI } from "../../../services/api";
 import { useFormsStore } from "../../../stores/formsStore";
 import { useProjectsStore } from "../../../stores/projectsStore";
-import type { ReceivedSubmission, ReceivedSubmissionDetail } from "../../../types/forms";
+import type {
+  ReceivedSubmission,
+  ReceivedSubmissionDetail,
+  SubmissionApplyResult,
+} from "../../../types/forms";
 import type { ApiFailure } from "../../../types/session";
 import type { Project } from "../../../types/project";
 import type { RegionKey } from "../../../types/region";
-import { canReadHealth, canWriteHealth, writesProjectIn } from "../../../utils/access";
+import type { SessionRole } from "../../../types/session";
+import {
+  canApplySubmission,
+  canReadHealth,
+  canWriteHealth,
+  writesProjectIn,
+} from "../../../utils/access";
 import {
   formOf,
   formReadiness,
@@ -28,6 +38,7 @@ import { Button } from "../../ui";
 import { FormCard } from "./FormCard";
 import { PendingProjects } from "./PendingProjects";
 import { ProjectSelector } from "./ProjectSelector";
+import type { PulseApplyAccess } from "./PulseApply";
 import { ReceivedArchive } from "./ReceivedArchive";
 import { StepByStep } from "./StepByStep";
 
@@ -62,7 +73,13 @@ export interface FormulariosViewProps {
    * scope, so a project outside it draws no button either. Absent is today's behaviour.
    */
   writeRegionScope?: readonly RegionKey[] | null;
+  roles?: readonly SessionRole[];
+  readRecordVersion?: (projectId: string) => Promise<string>;
+  applySubmission?: (submissionId: string, version: string) => Promise<SubmissionApplyResult>;
+  applying?: readonly string[];
 }
+
+const NOTHING: readonly never[] = [];
 
 export function FormulariosView({
   projects,
@@ -74,6 +91,10 @@ export function FormulariosView({
   writesHealth = true,
   readsHealth = true,
   writeRegionScope,
+  roles = NOTHING,
+  readRecordVersion,
+  applySubmission,
+  applying = NOTHING,
 }: FormulariosViewProps) {
   const { t } = useTranslation();
   const [picked, setPicked] = useState("");
@@ -113,6 +134,18 @@ export function FormulariosView({
 
   const pulseState =
     reporting?.find(({ form }) => form.kind === pulse.kind)?.state ?? null;
+
+  const apply = useMemo((): PulseApplyAccess | undefined => {
+    if (!readRecordVersion || !applySubmission) return undefined;
+    const regions = new Map((projects ?? []).map((entry) => [entry.id, regionOf(entry)]));
+    return {
+      allows: (submission) =>
+        canApplySubmission(roles, writeRegionScope, regions.get(submission.projectId)),
+      readVersion: readRecordVersion,
+      submit: applySubmission,
+      applying,
+    };
+  }, [projects, roles, writeRegionScope, readRecordVersion, applySubmission, applying]);
 
   return (
     <section className="mx-auto w-full max-w-(--container-reading) px-(--container-pad) pt-8 pb-20">
@@ -181,7 +214,11 @@ export function FormulariosView({
 
               <PendingProjects form={pulse} readiness={readiness} />
 
-              <ReceivedArchive submissions={archive} readSubmission={readSubmission} />
+              <ReceivedArchive
+                submissions={archive}
+                readSubmission={readSubmission}
+                apply={apply}
+              />
             </>
           ) : (
             <p className="rounded-md border border-line bg-muted px-4 py-3 text-small leading-normal text-fg-muted">
@@ -200,6 +237,9 @@ export function FormulariosView({
   );
 }
 
+const readRecordVersion = (projectId: string) =>
+  projectRecordAPI.read(projectId).then((record) => record.version);
+
 export function FormulariosPage() {
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
@@ -209,6 +249,8 @@ export function FormulariosPage() {
   const formsRead = useFormsStore((state) => state.hydrated);
   const formsLoading = useFormsStore((state) => state.loading);
   const hydrateForms = useFormsStore((state) => state.hydrate);
+  const applySubmission = useFormsStore((state) => state.applySubmission);
+  const applying = useFormsStore((state) => state.applying);
   const { user } = useAuth();
 
   useProjectListRead();
@@ -227,6 +269,10 @@ export function FormulariosPage() {
       writesHealth={canWriteHealth(user.roles)}
       readsHealth={canReadHealth(user.roles)}
       writeRegionScope={user.writeRegionScope}
+      roles={user.roles}
+      readRecordVersion={readRecordVersion}
+      applySubmission={applySubmission}
+      applying={applying}
     />
   );
 }

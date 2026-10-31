@@ -105,6 +105,21 @@ export function leaderLinkProjects(
 }
 
 /**
+ * Who applies a received Pulse to the record from the inbox — whom
+ * `POST /forms/submissions/{id}/import` admits: `CoordinatorUser` and the write scope (OBT-652).
+ * The OBT Lab, the Resource Circle and the Admin read the inbox and apply nothing; an unknown
+ * region draws no button, the safe default. Reflection only — the route refuses the rest.
+ */
+export function canApplySubmission(
+  roles: readonly SessionRole[],
+  writeRegionScope?: readonly RegionKey[] | null,
+  region?: RegionKey,
+): boolean {
+  if (region === undefined) return false;
+  return admittedAsCoordinator(roles, writeRegionScope) && writesProjectIn(writeRegionScope, region);
+}
+
+/**
  * Who takes a photo's authorization back — `CoordinatorUser` on the server's withdraw route
  * (OBT-578): the coordinator, and the installation admin that guard also admits (OBT-620); the
  * Admin does not grant or refuse in the team's place — and, given the project's region, only where
