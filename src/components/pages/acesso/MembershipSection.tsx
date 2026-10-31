@@ -183,7 +183,6 @@ export function MembershipSection({ person }: MembershipSectionProps) {
           projects={sorted}
           value={projectId}
           onChange={pick}
-          // The card can stay open while a project is created in another tab (OBT-680).
           onOpen={() => void revisit()}
         />
       )}

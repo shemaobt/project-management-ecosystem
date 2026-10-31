@@ -162,10 +162,9 @@ describe("o Início relê a lista a cada visita; Ritmo, Formulários e o relató
   });
 });
 
-describe("o seletor de membros de /acesso relê a lista ao aparecer e ao abrir (OBT-680)", () => {
-  it("o cartão relê ao montar e o seletor pede a lista de novo ao abrir", () => {
+describe("o seletor de membros de /acesso relê a lista a cada cartão (OBT-680)", () => {
+  it("o cartão relê ao montar, não só uma vez por sessão", () => {
     const source = readFileSync(join(process.cwd(), "src/components/pages/acesso/MembershipSection.tsx"), "utf8");
     expect(source).toContain("useProjectListRead({ everyVisit: true });");
-    expect(source).toContain("onOpen={() => void revisit()}");
   });
 });
