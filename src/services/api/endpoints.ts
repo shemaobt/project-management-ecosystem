@@ -642,8 +642,7 @@ export function readAccount(payload: unknown): AccountGrants {
   };
 }
 
-// The invitations live under the Admin's prefix. The invitee's two doors moved here from the
-// form's prefix (OBT-683) with their contract — snake_case — so `invitation` is still the one
+// The invitee's two doors answer snake_case under this prefix too — `invitation` is the one
 // mapping they get.
 const INVITES = `${ACCESS}/invites`;
 
