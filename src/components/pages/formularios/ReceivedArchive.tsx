@@ -4,6 +4,7 @@ import { failureMessage, toApiFailure } from "../../../services/api";
 import { FORM_TAG_LABEL_KEYS } from "../../../constants/forms";
 import { surfaceOutlined } from "../../../styles";
 import type { ReceivedSubmission, ReceivedSubmissionDetail } from "../../../types/forms";
+import type { MediaLink } from "../../../types/project";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
 import { getLanguageNameDisplay } from "../../../utils/region";
@@ -15,6 +16,8 @@ export interface ReceivedArchiveProps {
   submissions: readonly ReceivedSubmission[];
   /** Opens one submission's answers (OBT-580); without it the rows are the listing alone. */
   readSubmission?: (submissionId: string) => Promise<ReceivedSubmissionDetail>;
+  /** Mints a pending Pulse's image link (OBT-674), asked only where the detail says the route serves it. */
+  pendingImageLink?: (submissionId: string) => Promise<MediaLink>;
 }
 
 type Opened =
@@ -22,7 +25,11 @@ type Opened =
   | { kind: "failed"; message: string }
   | { kind: "read"; detail: ReceivedSubmissionDetail };
 
-export function ReceivedArchive({ submissions, readSubmission }: ReceivedArchiveProps) {
+export function ReceivedArchive({
+  submissions,
+  readSubmission,
+  pendingImageLink,
+}: ReceivedArchiveProps) {
   const { t } = useTranslation();
   const [opened, setOpened] = useState<Record<string, Opened>>({});
 
@@ -87,7 +94,7 @@ export function ReceivedArchive({ submissions, readSubmission }: ReceivedArchive
                   </Button>
                 ) : null}
               </div>
-              <OpenedAnswers state={opened[submission.id]} />
+              <OpenedAnswers state={opened[submission.id]} pendingImageLink={pendingImageLink} />
             </li>
           ))}
         </ul>
@@ -96,7 +103,13 @@ export function ReceivedArchive({ submissions, readSubmission }: ReceivedArchive
   );
 }
 
-function OpenedAnswers({ state }: { state: Opened | undefined }) {
+function OpenedAnswers({
+  state,
+  pendingImageLink,
+}: {
+  state: Opened | undefined;
+  pendingImageLink: ReceivedArchiveProps["pendingImageLink"];
+}) {
   const { t } = useTranslation();
   if (!state) return null;
   if (state.kind === "loading") {
@@ -107,7 +120,7 @@ function OpenedAnswers({ state }: { state: Opened | undefined }) {
   }
   return (
     <div className="mt-3">
-      <SubmissionAnswers detail={state.detail} />
+      <SubmissionAnswers detail={state.detail} pendingImageLink={pendingImageLink} />
     </div>
   );
 }

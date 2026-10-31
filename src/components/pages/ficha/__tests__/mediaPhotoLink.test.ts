@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import { canWithdrawMediaAuthorization } from "../../../../utils/access";
 import {
@@ -13,7 +13,7 @@ import {
 
 const source = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
-describe("o link da foto é pedido na hora e re-pedido antes de expirar (OBT-582)", () => {
+describe("o link da foto é pedido na hora e re-pedido antes de expirar (OBT-582 · OBT-674)", () => {
   it("um minuto antes dos 15 do servidor, e nunca em menos de meio minuto", () => {
     expect(linkRefreshDelayMs(15)).toBe(14 * 60_000);
     expect(linkRefreshDelayMs(1)).toBe(30_000);
@@ -40,6 +40,7 @@ describe("o link da foto é pedido na hora e re-pedido antes de expirar (OBT-582
     "persist",
     "overlay.set",
     "store(",
+    "useFormsStore",
   ];
 
   it("a URL vive só no estado do PhotoByLink: nem store, nem storage, nem cache, nem log", () => {
@@ -55,6 +56,9 @@ describe("o link da foto é pedido na hora e re-pedido antes de expirar (OBT-582
       "projectRecordAPI.mediaLink": block(source("src/services/api/projectRecord.ts"), "async mediaLink("),
       "fixture mediaLink": block(source("src/fixtures/projectRecord.ts"), "export function mediaLink("),
       "fixture mediaLinkFor": block(source("src/fixtures/reader.ts"), "export function mediaLinkFor("),
+      "formsAPI.pendingImageLink": block(source("src/services/api/endpoints.ts"), "async pendingImageLink("),
+      "fixture pendingImageLink": block(source("src/fixtures/forms.ts"), "export async function pendingImageLink("),
+      "fixture pendingImageFor": block(source("src/fixtures/forms.ts"), "function pendingImageFor("),
     };
     for (const [name, body] of Object.entries(pieces)) {
       expect(body.length, name).toBeGreaterThan(40);
@@ -81,6 +85,53 @@ describe("o link da foto é pedido na hora e re-pedido antes de expirar (OBT-582
     const types = source("src/types/project.ts");
     const photo = types.slice(types.indexOf("export interface MediaPhoto"));
     expect(photo.slice(0, photo.indexOf("}"))).not.toMatch(/\burl\b/u);
+  });
+
+  it("a caixa de entrada só passa o pedido adiante: nem lê a URL, nem a guarda (OBT-674)", () => {
+    for (const path of [
+      "src/components/pages/formularios/SubmissionAnswers.tsx",
+      "src/components/pages/formularios/ReceivedArchive.tsx",
+    ]) {
+      const inbox = source(path);
+      expect(inbox, path).not.toMatch(/\.url\b|useState<string/u);
+      for (const forbidden of FORBIDDEN) {
+        expect(inbox, `${path} · ${forbidden}`).not.toContain(forbidden);
+      }
+    }
+    expect(source("src/components/pages/formularios/SubmissionAnswers.tsx")).toContain(
+      "ask={() => pendingImageLink(detail.id)}",
+    );
+  });
+
+  it("em todo o src, o link pendente só é pedido pela API, pelo dublê e pelo PhotoByLink da caixa (OBT-674)", () => {
+    const shipped = (dir: string): string[] =>
+      readdirSync(dir).flatMap((entry) => {
+        const path = join(dir, entry);
+        if (statSync(path).isDirectory()) return entry === "__tests__" ? [] : shipped(path);
+        return /\.tsx?$/u.test(entry) ? [relative(process.cwd(), path)] : [];
+      });
+    const corpus = shipped(join(process.cwd(), "src"));
+    expect(corpus).toContain("src/components/pages/formularios/SubmissionAnswers.tsx");
+    expect(corpus.some((path) => path.includes("__tests__"))).toBe(false);
+    const callers = corpus.filter((path) => source(path).includes("pendingImageLink(")).sort();
+    expect(callers).toEqual([
+      "src/components/pages/formularios/SubmissionAnswers.tsx",
+      "src/components/pages/formularios/index.tsx",
+      "src/fixtures/forms.ts",
+      "src/fixtures/index.ts",
+      "src/services/api/endpoints.ts",
+    ]);
+    expect(source("src/components/pages/formularios/index.tsx")).toContain(
+      "pendingImageLink={(id) => formsAPI.pendingImageLink(id)}",
+    );
+  });
+
+  it("o detalhe da submissão nunca carrega a URL: pendingImage é um bit (OBT-674)", () => {
+    const types = source("src/types/forms.ts");
+    const detail = types.slice(types.indexOf("export interface ReceivedSubmissionDetail"));
+    const body = detail.slice(0, detail.indexOf("\n}"));
+    expect(body).toContain("pendingImage?: boolean;");
+    expect(body.replace(/\/\*\*[\s\S]*?\*\//gu, "")).not.toMatch(/\burl\b/u);
   });
 
   it("só o coordenador retira — como o CoordinatorUser da rota", () => {
