@@ -333,3 +333,28 @@ describe("dentro do país, as pessoas saem em ordem", () => {
     expect(groupByCountry([], "pt-BR")).toEqual([]);
   });
 });
+
+describe("o mesmo contato em duas grafias (OBT-681)", () => {
+  it("e-mail em qualquer caixa, telefone pelos dígitos — os valores do teste do servidor", async () => {
+    const { contactKey } = await import("../intercessors");
+    expect(contactKey(" Maria.Santos@Example.ORG ")).toBe("maria.santos@example.org");
+    expect(contactKey("+55 (11) 98765-4321")).toBe("5511987654321");
+    expect(contactKey("5511987654321")).toBe("5511987654321");
+    expect(contactKey("11 98765-4321")).not.toBe(contactKey("+55 11 98765-4321"));
+    expect(contactKey("ask at the church")).toBeNull();
+  });
+
+  it("o rascunho pede contato com canal e base, e manda os dois sem espaço sobrando", async () => {
+    const { makeDirectoryConsentByContact, missingDirectoryGrantFields } = await import(
+      "../intercessors"
+    );
+    expect(missingDirectoryGrantFields({ contact: "abc", basis: " " })).toEqual([
+      "contact",
+      "basis",
+    ]);
+    expect(makeDirectoryConsentByContact({ contact: "abc", basis: "sim" })).toBeNull();
+    expect(
+      makeDirectoryConsentByContact({ contact: " ana@exemplo.org ", basis: " sim " }),
+    ).toEqual({ contact: "ana@exemplo.org", basis: "sim" });
+  });
+});
