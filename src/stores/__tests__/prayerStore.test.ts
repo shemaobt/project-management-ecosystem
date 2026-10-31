@@ -254,6 +254,72 @@ describe("a revisão depois de um ano (OBT-531)", () => {
  * intercessores não vão para o `localStorage`: um celular emprestado é situação
  * normal no campo, e fechar a aba tem de levar a lista junto.
  */
+describe("pôr no diretório quem já está na rede (OBT-681)", () => {
+  beforeEach(reset);
+
+  const hidden = async (over: Partial<typeof JOAO> = {}) => {
+    expect(
+      await usePrayerStore.getState().addIntercessor({ ...JOAO, listInDirectory: false, ...over }),
+    ).toBe(true);
+  };
+  const list = (contact: string, basis = "aceitou por WhatsApp em 30/out") =>
+    usePrayerStore.getState().listWithheld({ contact, basis });
+
+  it("acha pelo contato em outra grafia e a pessoa entra com o diretório de hoje", async () => {
+    await hidden();
+    expect(usePrayerStore.getState().withheldCount).toBe(1);
+
+    const outcome = await list("351912345678");
+
+    expect(outcome.kind).toBe("listed");
+    expect(network().map((person) => person.name)).toEqual(["João Alves"]);
+    const directory = network()[0].consents.find((c) => c.context === "directory");
+    expect(directory?.basis).toBe("aceitou por WhatsApp em 30/out");
+    expect(directory?.recordedAt).toBe(new Date().toISOString().slice(0, 10));
+    expect(usePrayerStore.getState().withheldCount).toBe(0);
+  });
+
+  it("quem já está listado é respondido e mantém o consentimento que deu", async () => {
+    expect(await usePrayerStore.getState().addIntercessor(JOAO)).toBe(true);
+    const before = network()[0].consents;
+
+    const outcome = await list("+351 912 345 678", "outra base");
+
+    expect(outcome.kind).toBe("already");
+    expect(network()).toHaveLength(1);
+    expect(network()[0].consents).toEqual(before);
+    expect(usePrayerStore.getState().withheldCount).toBe(0);
+  });
+
+  it("contato que ninguém tem e contato de duas pessoas não mudam nada", async () => {
+    await hidden();
+    await hidden({ name: "Maria Alves" });
+
+    expect((await list("ninguem@exemplo.org")).kind).toBe("notFound");
+    expect((await list("+351912345678")).kind).toBe("ambiguous");
+    expect(network()).toEqual([]);
+    expect(usePrayerStore.getState().withheldCount).toBe(2);
+  });
+
+  it("sem a base não chama o servidor", async () => {
+    await hidden();
+
+    expect((await list("+351912345678", "  ")).kind).toBe("invalid");
+    expect(network()).toEqual([]);
+  });
+
+  it("o contato digitado não fica no estado nem no armazenamento da aba", async () => {
+    await hidden();
+    const typed = "+351-912-345-678";
+
+    await list(typed);
+
+    expect(JSON.stringify(usePrayerStore.getState())).not.toContain(typed);
+    expect(persisted()).not.toContain(typed);
+    expect(persisted()).not.toContain("912345678");
+  });
+});
+
 describe("onde a rede fica guardada", () => {
   beforeEach(async () => {
     reset();

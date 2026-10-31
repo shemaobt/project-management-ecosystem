@@ -1,5 +1,6 @@
 import type {
   ConsentContext,
+  DirectoryConsentByContact,
   IntercessorConsent,
   IntercessorCreate,
   IntercessorDirectory,
@@ -7,7 +8,7 @@ import type {
   IntercessorUpdatePayload,
 } from "../types/prayer";
 import { failure } from "../services/api/errors";
-import { contactChannel, hasConsent } from "../utils/intercessors";
+import { contactChannel, contactKey, hasConsent } from "../utils/intercessors";
 import { toLocalIsoDate } from "../utils/format";
 
 // In memory rather than a database: enough to exercise the screen for the
@@ -114,6 +115,30 @@ export async function grantConsent(
   };
   PEOPLE.set(id, updated);
   return { ...updated };
+}
+
+/**
+ * `directory` by contact — the fixture's answer to `admit_to_directory.py`: the one person the
+ * contact reaches (`contactKey`), listed now, or answered as already listed; nobody and two are
+ * the server's two refusals. Every fixture person holds `network`, so all of them are members.
+ */
+export async function grantDirectoryByContact(
+  payload: DirectoryConsentByContact,
+  now: Date = new Date(),
+): Promise<{ entry: IntercessorEntry; recorded: boolean }> {
+  const key = contactKey(payload.contact);
+  const found = [...CONTACTS].filter(([, contact]) => key !== null && contactKey(contact) === key);
+  if (found.length === 0) {
+    throw failure("notFound", "Nobody in the network is reached at this contact.");
+  }
+  if (found.length > 1) {
+    throw failure("conflict", "More than one person in the network is reached at this contact.");
+  }
+  const [[id]] = found;
+  const current = PEOPLE.get(id);
+  if (!current) throw failure("notFound", "Nobody in the network is reached at this contact.");
+  if (hasConsent(current, "directory")) return { entry: { ...current }, recorded: false };
+  return { entry: await grantConsent(id, "directory", payload.basis, now), recorded: true };
 }
 
 /** "Revisado" — the fixture's answer to `review_intercessor.py`: stamp today, clear the flag. */

@@ -2,6 +2,7 @@ import { isCountryCode, type CountryCode } from "../constants/countries";
 import type {
   ConsentContext,
   ContactChannel,
+  DirectoryConsentByContact,
   IntercessorCreate,
   IntercessorEntry,
   IntercessorUpdatePayload,
@@ -17,6 +18,18 @@ export function contactChannel(contact: string): ContactChannel | null {
   const value = contact.trim();
   if (EMAIL.test(value)) return "email";
   if (value.replace(NON_DIGITS, "").length >= MIN_PHONE_DIGITS) return "phone";
+  return null;
+}
+
+/**
+ * What two spellings of one contact share — shema-api's `contact_key`: an e-mail in any case,
+ * a phone by its digits, `null` for a string nobody is reached at. No country code is guessed.
+ */
+export function contactKey(contact: string): string | null {
+  const value = contact.trim();
+  const channel = contactChannel(value);
+  if (channel === "email") return value.toLowerCase();
+  if (channel === "phone") return value.replace(NON_DIGITS, "");
   return null;
 }
 
@@ -112,6 +125,32 @@ export function makeIntercessorUpdate(
     sensitiveCountry: draft.sensitiveCountry,
     ...(contact ? { contact } : {}),
   };
+}
+
+/** Listing somebody already in the network: the contact they were asked through, and the basis. */
+export interface DirectoryGrantDraft {
+  contact: string;
+  basis: string;
+}
+
+export const EMPTY_DIRECTORY_GRANT: DirectoryGrantDraft = { contact: "", basis: "" };
+
+export type DirectoryGrantField = "contact" | "basis";
+
+export function missingDirectoryGrantFields(
+  draft: DirectoryGrantDraft,
+): DirectoryGrantField[] {
+  const missing: DirectoryGrantField[] = [];
+  if (!contactChannel(draft.contact)) missing.push("contact");
+  if (!draft.basis.trim()) missing.push("basis");
+  return missing;
+}
+
+export function makeDirectoryConsentByContact(
+  draft: DirectoryGrantDraft,
+): DirectoryConsentByContact | null {
+  if (missingDirectoryGrantFields(draft).length > 0) return null;
+  return { contact: draft.contact.trim(), basis: draft.basis.trim() };
 }
 
 export function hasConsent(

@@ -27,11 +27,15 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { IntercessoresView } = await import("../IntercessoresPage");
 const { IntercessorForm } = await import("../IntercessorForm");
-const { EMPTY_CREATE_DRAFT } = await import("../../../../utils/intercessors");
+const { EMPTY_CREATE_DRAFT, EMPTY_DIRECTORY_GRANT } = await import(
+  "../../../../utils/intercessors"
+);
+const { ListWithheldDialogBody } = await import("../ListWithheldDialog");
 const { default: ptBR } = await import("../../../../i18n/locales/pt-BR.json");
 const { default: en } = await import("../../../../i18n/locales/en.json");
 
 const refuseAsync = async () => false;
+const findNobody = async () => ({ kind: "notFound" }) as const;
 
 const ANA: IntercessorEntry = {
   id: "i1",
@@ -89,6 +93,7 @@ const view = (
         onRemove: refuseAsync,
         onRevealContact: async () => null,
         onReview: refuseAsync,
+        onListWithheld: findNobody,
       }),
     ),
   );
@@ -395,6 +400,7 @@ describe("a rede recusada ao papel (OBT-598)", () => {
           onRemove: refuseAsync,
           onRevealContact: async () => null,
           onReview: refuseAsync,
+          onListWithheld: findNobody,
         }),
       ),
     );
@@ -446,6 +452,7 @@ describe("a leitura da rede que falha (OBT-617)", () => {
           onRemove: refuseAsync,
           onRevealContact: async () => null,
           onReview: refuseAsync,
+          onListWithheld: findNobody,
         }),
       ),
     );
@@ -481,5 +488,89 @@ describe("a busca da rede (OBT-665, PME-ORA-071)", () => {
     expect(markup).not.toContain(i18n.t("search_placeholder"));
     expect(i18n.t("int_search_label")).toMatch(/nome/);
     expect(i18n.t("int_search_label")).toMatch(/país/);
+  });
+});
+
+describe("pôr no diretório quem já está na rede (OBT-681)", () => {
+  const action = () => i18n.t("int_list_withheld");
+  const body = (
+    over: Partial<Parameters<typeof ListWithheldDialogBody>[0]> = {},
+  ) =>
+    renderToStaticMarkup(
+      createElement(ListWithheldDialogBody, {
+        draft: EMPTY_DIRECTORY_GRANT,
+        showing: [],
+        refusal: null,
+        sending: false,
+        onChange: () => undefined,
+        onSubmit: () => undefined,
+        onCancel: () => undefined,
+        ...over,
+      }),
+    );
+
+  it("quem cadastra encontra a ação no aviso de quem não aparece", () => {
+    const html = view([ANA], 2, 0, true);
+    expect(html).toContain(i18n.t("int_withheld_count", { count: 2 }));
+    expect(html).toContain(action());
+  });
+
+  it("o Resource Circle lê o aviso e não ganha a ação, que o servidor recusaria", () => {
+    const html = view([ANA], 2, 0, false, true);
+    expect(html).toContain(i18n.t("int_withheld_count", { count: 2 }));
+    expect(html).not.toContain(action());
+  });
+
+  it("sem ninguém fora da lista, não há quem achar e a ação some com o aviso", () => {
+    expect(view([ANA], 0, 0, true)).not.toContain(action());
+    expect(view(null, 2, 0, true)).not.toContain(action());
+  });
+
+  it("o diálogo pede o contato do cadastro e a base própria, e diz quando a pessoa aparece", () => {
+    const html = body();
+    expect(html).toContain(i18n.t("int_contact"));
+    expect(html).toContain(i18n.t("int_list_withheld_basis"));
+    expect(html).toContain(i18n.t("int_list_withheld_lead"));
+    expect(html).toContain('autoComplete="off"');
+    expect(html).toContain(i18n.t("int_list_withheld_submit"));
+  });
+
+  it("contato sem ninguém fala português, não a frase do servidor", () => {
+    const html = body({ refusal: { kind: "notFound" } });
+    expect(html).toContain(i18n.t("int_list_withheld_none"));
+    expect(html).not.toContain("Nobody in the network");
+  });
+
+  it("contato de duas pessoas diz que nada foi registrado", () => {
+    const html = body({ refusal: { kind: "ambiguous" } });
+    expect(html).toContain(i18n.t("int_list_withheld_ambiguous"));
+    expect(i18n.t("int_list_withheld_ambiguous")).toMatch(/Nada foi registrado/);
+  });
+
+  it("outra falha diz a frase da rede, e o envio em curso não deixa enviar de novo", () => {
+    const html = body({
+      sending: true,
+      refusal: {
+        kind: "failed",
+        failure: { kind: "offline", status: null, code: null, detail: null },
+      },
+    });
+    expect(html).toContain(i18n.t("net_offline"));
+    expect(html).toContain(i18n.t("int_list_withheld_saving"));
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>[^<]*Registrando/u);
+  });
+
+  it("os campos que faltam se dizem como no cadastro", () => {
+    const html = body({ showing: ["contact", "basis"] });
+    expect(html).toContain(i18n.t("int_needs_contact"));
+    expect(html).toContain(i18n.t("int_needs_consent_basis"));
+  });
+
+  it("em inglês, o aviso e o diálogo falam inglês", async () => {
+    await i18n.changeLanguage("en");
+    expect(view([ANA], 1, 0, true)).toContain("List someone already in the network");
+    expect(body({ refusal: { kind: "notFound" } })).toContain(
+      "Nobody in the network was registered with this contact",
+    );
   });
 });

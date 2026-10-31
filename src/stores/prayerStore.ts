@@ -2,9 +2,12 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { announceFailure, intercessorsAPI, toApiFailure } from "../services/api";
 import type { ConsentContext, IntercessorEntry } from "../types/prayer";
+import type { ApiFailure } from "../types/session";
 import {
+  makeDirectoryConsentByContact,
   makeIntercessorCreate,
   makeIntercessorUpdate,
+  type DirectoryGrantDraft,
   type IntercessorCreateDraft,
   type IntercessorEditDraft,
 } from "../utils/intercessors";
@@ -20,6 +23,19 @@ const INTERCESSORS_KEY = "shema-intercessors-v1";
 // 3: entries carry the one-year review (`reviewDue`, `reviewedAt`, `lastSentAt`) and the
 // directory the count of withheld people past their year — an older cache has neither.
 export const INTERCESSORS_VERSION = 3;
+
+/**
+ * What listing somebody already in the network by their contact came to (OBT-681). The two
+ * refusals are kept apart from `failed` because the dialog says them in the console's own
+ * words — the server's sentence is English and names nothing the coordinator can act on.
+ */
+export type DirectoryListing =
+  | { kind: "listed"; entry: IntercessorEntry }
+  | { kind: "already"; entry: IntercessorEntry }
+  | { kind: "notFound" }
+  | { kind: "ambiguous" }
+  | { kind: "invalid" }
+  | { kind: "failed"; failure: ApiFailure };
 
 interface PrayerState extends HydrationStatus {
   intercessors: IntercessorEntry[];
@@ -44,6 +60,12 @@ interface PrayerState extends HydrationStatus {
   revealContact: (id: string) => Promise<string | null>;
   /** "Revisado": the server stamps the review and answers the entry without the flag. */
   reviewIntercessor: (id: string) => Promise<boolean>;
+  /**
+   * `directory` for a member the list does not show, found by their contact (OBT-681). Not
+   * through `safely`: its toast would lose which refusal it was. The typed contact is sent and
+   * forgotten — nothing of it reaches the store's state or the tab's storage.
+   */
+  listWithheld: (draft: DirectoryGrantDraft) => Promise<DirectoryListing>;
 }
 
 type PersistedPrayer = Pick<
@@ -145,6 +167,36 @@ export const usePrayerStore = create<PrayerState>()(
           return true;
         },
         revealContact: (id) => safely(() => intercessorsAPI.contact(id)),
+        listWithheld: async (draft) => {
+          const payload = makeDirectoryConsentByContact(draft);
+          if (!payload) return { kind: "invalid" };
+
+          let answer: { entry: IntercessorEntry; recorded: boolean };
+          try {
+            answer = await intercessorsAPI.grantDirectoryByContact(payload);
+          } catch (error) {
+            const failure = toApiFailure(error);
+            if (failure.kind === "notFound") return { kind: "notFound" };
+            if (failure.kind === "conflict") return { kind: "ambiguous" };
+            return { kind: "failed", failure };
+          }
+
+          const { entry, recorded } = answer;
+          // Absent from the list means the count read with it still held them, whether this
+          // call listed them or another session did since.
+          set((state) =>
+            state.intercessors.some((person) => person.id === entry.id)
+              ? state
+              : {
+                  intercessors: [entry, ...state.intercessors],
+                  withheldCount: Math.max(0, state.withheldCount - 1),
+                  withheldReviewDueCount: entry.reviewDue
+                    ? Math.max(0, state.withheldReviewDueCount - 1)
+                    : state.withheldReviewDueCount,
+                },
+          );
+          return recorded ? { kind: "listed", entry } : { kind: "already", entry };
+        },
         reviewIntercessor: async (id) => {
           const reviewed = await safely(() => intercessorsAPI.review(id));
           if (!reviewed) return false;

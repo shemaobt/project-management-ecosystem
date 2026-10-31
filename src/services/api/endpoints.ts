@@ -55,6 +55,7 @@ import type {
 } from "../../types/meeting";
 import type {
   ConsentContext,
+  DirectoryConsentByContact,
   IntercessorCreate,
   IntercessorDirectory,
   IntercessorEntry,
@@ -413,6 +414,20 @@ export const intercessorsAPI = {
       { basis },
     );
     return data;
+  },
+
+  /**
+   * `directory` for a member the list does not show, found by their contact (OBT-681). 201 when
+   * this call recorded it, 200 when they were already listed and nothing was written.
+   */
+  async grantDirectoryByContact(
+    payload: DirectoryConsentByContact,
+  ): Promise<{ entry: IntercessorEntry; recorded: boolean }> {
+    const { data, status } = await http.post<IntercessorEntry>(
+      `${PEOPLE}/consents/directory`,
+      payload,
+    );
+    return { entry: data, recorded: status === 201 };
   },
 
   /** "Revisado" — the one-year review (OBT-531). The answer is the entry, flag cleared. */

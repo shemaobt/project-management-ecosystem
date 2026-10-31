@@ -16,6 +16,7 @@ import type {
 } from "../types/meeting";
 import type {
   ConsentContext,
+  DirectoryConsentByContact,
   IntercessorCreate,
   IntercessorDirectory,
   IntercessorEntry,
@@ -55,6 +56,7 @@ import { buildEtenReport } from "../utils/etenCredits";
 import {
   createIntercessor,
   grantConsent,
+  grantDirectoryByContact,
   leaveThroughExitLink,
   loadIntercessors,
   openExitLink,
@@ -210,6 +212,11 @@ export const intercessorsAPI = {
     basis: string,
   ): Promise<IntercessorEntry> {
     return grantConsent(id, context, basis);
+  },
+  async grantDirectoryByContact(
+    payload: DirectoryConsentByContact,
+  ): Promise<{ entry: IntercessorEntry; recorded: boolean }> {
+    return grantDirectoryByContact(payload);
   },
   async review(id: string): Promise<IntercessorEntry> {
     return reviewIntercessor(id);
