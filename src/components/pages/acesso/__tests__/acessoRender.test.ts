@@ -32,7 +32,9 @@ const { RegionPicker } = await import("../RegionPicker");
 const { InvitesList, SentInvitePanel } = await import("../InvitesSection");
 const { InviteForm } = await import("../InviteForm");
 const { HistoryList } = await import("../HistorySection");
-const { RosterView } = await import("../MembershipSection");
+const { MembershipSection, RosterView } = await import("../MembershipSection");
+const { MemberProjects } = await import("../MemberProjects");
+const { memberRow, rosterRow } = await import("../rows");
 const { ACCOUNT } = await import("./stubs");
 
 beforeEach(async () => {
@@ -347,6 +349,7 @@ describe("os membros do projeto", () => {
         members,
         error: null,
         busy: false,
+        locked: false,
         refusal: null,
         onAdd: noop,
         onRemove: noop,
@@ -365,6 +368,7 @@ describe("os membros do projeto", () => {
         members,
         error: null,
         busy: false,
+        locked: false,
         refusal: null,
         onAdd: noop,
         onRemove: noop,
@@ -382,6 +386,7 @@ describe("os membros do projeto", () => {
         members: null,
         error: null,
         busy: false,
+        locked: false,
         refusal: null,
         onAdd: noop,
         onRemove: noop,
@@ -389,5 +394,102 @@ describe("os membros do projeto", () => {
     );
     expect(out).not.toContain(i18n.t("acesso_member_add"));
     expect(out).not.toContain(i18n.t("acesso_member_remove"));
+  });
+
+  it("com outro ato do cartão a caminho, o botão do rol espera e só diz Gravando… quando é o dele", () => {
+    const view = (busy: boolean) =>
+      render(
+        createElement(RosterView, {
+          person: "Pessoa Exemplo",
+          personId: "u-9",
+          members,
+          error: null,
+          busy,
+          locked: true,
+          refusal: null,
+          onAdd: noop,
+          onRemove: noop,
+        }),
+      );
+    expect(view(false)).toMatch(/<button[^>]*disabled=""[^>]*>Tirar do projeto<\/button>/u);
+    expect(view(true)).toContain(i18n.t("acesso_saving"));
+  });
+});
+
+describe("os projetos da pessoa no cartão — OBT-679", () => {
+  const projects = ACCOUNT.projects;
+  const list = (over: Partial<Parameters<typeof MemberProjects>[0]> = {}) =>
+    render(
+      createElement(MemberProjects, {
+        person: "Pessoa Exemplo",
+        projects,
+        acting: null,
+        refusal: null,
+        onRemove: noop,
+        ...over,
+      }),
+    );
+  const removeButtons = (out: string) =>
+    out.match(/<button[^>]*>Tirar do projeto<\/button>/gu) ?? [];
+
+  it("lista cada projeto pelo nome que o servidor mandou, cada um com o seu Tirar do projeto", () => {
+    const out = list();
+    expect(out).toContain(i18n.t("acesso_member_of_title"));
+    expect(out).toContain("Makua");
+    expect(out).toContain(escaped("Sa'di of High Egypt"));
+    expect(removeButtons(out)).toHaveLength(projects.length);
+  });
+
+  it("um nome recolhido sem nome público é impresso em palavras, nunca a chave da região", () => {
+    const out = list({
+      projects: [{ id: "p-x", languageName: "africa", languageNameWithheld: true }],
+    });
+    expect(out).toContain(
+      i18n.t("sensitive_project_named", { region: i18n.t("continent_africa") }),
+    );
+    expect(out).not.toMatch(/>africa</u);
+  });
+
+  it("quem não está em equipe nenhuma ouve isso, e não uma lista vazia", () => {
+    const out = list({ projects: [] });
+    expect(out).toContain(i18n.t("acesso_member_of_none", { person: "Pessoa Exemplo" }));
+    expect(removeButtons(out)).toHaveLength(0);
+  });
+
+  it("com um ato do cartão a caminho, todas as linhas esperam e só a que pediu diz Gravando…", () => {
+    const out = list({ acting: memberRow("p-makua") });
+    expect(out.match(/disabled=""/gu)).toHaveLength(projects.length);
+    expect(out.match(new RegExp(i18n.t("acesso_saving"), "gu"))).toHaveLength(1);
+    const waitingForARole = list({ acting: "shema:coordinator" });
+    expect(waitingForARole.match(/disabled=""/gu)).toHaveLength(projects.length);
+    expect(waitingForARole).not.toContain(i18n.t("acesso_saving"));
+  });
+
+  it("a recusa fica na linha do projeto que pediu, e não na do rol de baixo", () => {
+    const failure = refused("notFound", 404, "This account is not a member of this project.");
+    const out = list({ refusal: { row: memberRow("p-sadi"), failure } });
+    expect(out.match(/role="alert"/gu)).toHaveLength(1);
+    expect(out.indexOf("This account is not a member")).toBeGreaterThan(
+      out.indexOf(escaped("Sa'di of High Egypt")),
+    );
+    expect(list({ refusal: { row: rosterRow("p-sadi"), failure } })).not.toContain(
+      'role="alert"',
+    );
+  });
+
+  it("a seção de membros lista os projetos e não diz mais que a busca não os lista", () => {
+    const out = render(
+      createElement(MembershipSection, {
+        person: ACCOUNT,
+        acting: null,
+        refusal: null,
+        onChange: async () => true,
+      }),
+    );
+    expect(out).toContain("Makua");
+    expect(removeButtons(out)).toHaveLength(projects.length);
+    expect(out).toContain(i18n.t("acesso_members_pick", { person: "Pessoa Exemplo" }));
+    expect(out).not.toMatch(/ainda não lista/u);
+    expect(i18n.exists("acesso_members_gap")).toBe(false);
   });
 });
