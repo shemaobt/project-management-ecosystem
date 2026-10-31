@@ -642,9 +642,10 @@ export function readAccount(payload: unknown): AccountGrants {
   };
 }
 
-// The invitee's routes are the form's generic ones until OBT-549 moves them, and they
-// answer snake_case — this is the one mapping they get, and the one place that changes.
-const INVITES = "/resource-requests/access/invites";
+// The invitations live under the Admin's prefix. The invitee's two doors moved here from the
+// form's prefix (OBT-683) with their contract — snake_case — so `invitation` is still the one
+// mapping they get.
+const INVITES = `${ACCESS}/invites`;
 
 interface WireInviteDescription {
   status: InviteStatus;
@@ -698,19 +699,19 @@ export const accessAPI = {
 
   /** The answer carries the link once; nothing else ever does. */
   async invite(payload: InvitePayload): Promise<SentInvite> {
-    const { data } = await http.post<SentInvite>(`${ACCESS}/invites`, payload);
+    const { data } = await http.post<SentInvite>(INVITES, payload);
     return data;
   },
 
   async revokeInvite(inviteId: string): Promise<OpenInvite> {
-    const { data } = await http.post<OpenInvite>(`${ACCESS}/invites/revoke`, {
+    const { data } = await http.post<OpenInvite>(`${INVITES}/revoke`, {
       inviteId,
     });
     return data;
   },
 
   async invites(): Promise<OpenInvite[]> {
-    const { data } = await http.get<OpenInvite[]>(`${ACCESS}/invites`);
+    const { data } = await http.get<OpenInvite[]>(INVITES);
     return data;
   },
 
