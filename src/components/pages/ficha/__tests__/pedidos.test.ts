@@ -231,7 +231,10 @@ describe("a ficha liga o painel à aba Recursos e à passagem", () => {
 
   it("lê os cartões do projeto e abre o formulário com o projeto no contexto", () => {
     const wired = read("src/components/pages/ficha/pedidos/ProjectRequests.tsx");
-    expect(wired).toContain(".projectRequests(projectId)");
+    const list = read("src/components/pages/ficha/pedidos/requestList.ts");
+    expect(list).toContain(".projectRequests(projectId)");
+    expect(wired).toContain("createRequestList(api,projectId)");
+    expect(wired).toContain("list.open();returnlist.rereadOnReturn(document);");
     expect(wired).toContain("useResourceForm(apps.resourceRequestForm)");
     expect(wired).toContain("open(projectContext(projectId))");
     expect(wired).toContain("setMembershipFailed(true)");
