@@ -154,7 +154,6 @@ const PULSE_FIELDS: readonly IntakeField[] = [
 interface StoredIntakeImage extends IntakeImageStored {
   token: string;
   submissionId: string | null;
-  /** The bytes, as the double's bucket keeps them — what its pending-image link serves (OBT-674). */
   dataUrl: string;
 }
 

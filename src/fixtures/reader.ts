@@ -128,7 +128,6 @@ function withoutPhotoBytes(project: Project): Project {
   };
 }
 
-/** How long a minted link lives — `DOWNLOAD_URL_EXPIRY_MINUTES`, for both links of the double. */
 export const DOWNLOAD_URL_EXPIRY_MINUTES = 15;
 
 /** The one refusal sentence of every 403 on a file, so nothing tells which gate closed. */

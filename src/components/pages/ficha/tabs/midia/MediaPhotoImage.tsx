@@ -12,8 +12,7 @@ export interface MediaPhotoImageProps {
 
 /**
  * A record's photo (OBT-582): the media item's link, asked through `PhotoByLink`, which owns
- * when it is asked, where the URL lives and what a refusal shows (OBT-674 moved it to `common/`
- * when the Forms inbox became its second reader).
+ * when it is asked, where the URL lives and what a refusal shows.
  */
 export function MediaPhotoImage({ projectId, itemId, alt, fallback }: MediaPhotoImageProps) {
   return (

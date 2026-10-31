@@ -38,14 +38,14 @@ export function SubmissionAnswers({ detail, pendingImageLink }: SubmissionAnswer
     if (field.type !== "image" || typeof value !== "string" || !value) return null;
     if (detail.pendingImage !== true || !pendingImageLink) return null;
     return (
-      <div className="max-w-sm sm:col-span-2">
+      <dd className="max-w-sm sm:col-span-2">
         <PhotoByLink
           photoKey={detail.id}
           ask={() => pendingImageLink(detail.id)}
           alt={t("forms_submission_image_alt")}
           fallback={<div className={cn("aspect-[4/3] w-full rounded-[8px]", photoSlotSurface)} />}
         />
-      </div>
+      </dd>
     );
   };
 
