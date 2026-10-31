@@ -10,15 +10,11 @@ import { Button } from "../../ui";
 import { conflictSentence } from "../ficha/saveReport";
 import { afterAttempt, buttonFor, type ApplyAction, type ApplyStep } from "./pulseApply";
 
-/** What the inbox needs to apply a Pulse — absent, it applies nothing and offers nothing. */
 export interface PulseApplyAccess {
-  /** Whether this reader applies this row: `canApplySubmission` over the project's region. */
   allows: (submission: ReceivedSubmission) => boolean;
   /** The record's version now — its `ETag` — read when the Pulse is opened. */
   readVersion: (projectId: string) => Promise<string>;
-  /** The store's operation: `POST …/forms/submissions/{id}/import` quoting `version`. */
   submit: (submissionId: string, version: string) => Promise<SubmissionApplyResult>;
-  /** Submissions with an apply on its way, so a Pulse closed and opened again offers no second click. */
   applying: readonly string[];
 }
 

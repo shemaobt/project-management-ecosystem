@@ -28,7 +28,6 @@ const rowsFor = (projectId: string): BookProgressItem[] => {
   ];
 };
 
-/** A Pulse sent through the project's leader link, found back in the inbox by who signed it. */
 async function pulse(projectId: string, by: string, rows?: BookProgressItem[]) {
   as("admin");
   const link = await formsAPI.mintIntakeLink({ projectId });

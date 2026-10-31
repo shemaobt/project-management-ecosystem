@@ -51,7 +51,6 @@ export function unchangedSentence(
   return kept ? `${t("record_nothing_written")} ${kept}` : t("record_no_changes");
 }
 
-/** Fields named as a sentence names them — by their label, a field nobody labelled by its key. */
 export function fieldList(
   fields: readonly RecordField[],
   t: Translate,

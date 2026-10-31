@@ -78,7 +78,6 @@ export interface FormulariosViewProps {
   /** The record's version now, read when a Pulse is opened; with `applySubmission`, the inbox applies. */
   readRecordVersion?: (projectId: string) => Promise<string>;
   applySubmission?: (submissionId: string, version: string) => Promise<SubmissionApplyResult>;
-  /** Submissions with an apply on its way (the store's). */
   applying?: readonly string[];
 }
 

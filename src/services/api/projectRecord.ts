@@ -656,7 +656,6 @@ function located(entries: readonly unknown[]): RecordFieldError[] {
   });
 }
 
-/** The response's `ETag`, verbatim — the version the next write quotes; `""` when there is none. */
 export function etagOf(headers: unknown): string {
   const value = asRecord(headers)?.etag;
   return typeof value === "string" ? value : "";
