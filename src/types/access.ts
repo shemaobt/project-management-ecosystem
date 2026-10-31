@@ -15,10 +15,6 @@ export interface AccessRegionGrant {
   grantedAt: string;
 }
 
-/**
- * A project the account is a live member of, as the server names it for the reader (OBT-679):
- * `getLanguageNameDisplay` prints it.
- */
 export interface AccountProject {
   id: string;
   languageName: string;

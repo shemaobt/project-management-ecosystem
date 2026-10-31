@@ -31,7 +31,7 @@ export type PersonEvent =
   | { type: "search"; ticket: number; email: string }
   | { type: "answered"; ticket: number; lookup: Lookup }
   | { type: "write"; ticket: number; target: AccountGrants; row: string }
-  | { type: "written"; ticket: number; account: AccountGrants }
+  | { type: "written"; ticket: number; account: AccountGrants; keepsEditing?: boolean }
   | { type: "refused"; ticket: number; failure: ApiFailure }
   | { type: "openRegions"; editing: RegionEditing; clearsRefusal: boolean }
   | { type: "pickRegions"; regions: RegionKey[] }
@@ -114,7 +114,12 @@ export function personReducer(state: PersonState, event: PersonEvent): PersonSta
       if (!write) return state;
       const writes = withoutWrite(state, event.ticket);
       if (onScreen(state, write.target.userId)) {
-        return { ...state, writes, lookup: { kind: "found", account: event.account }, editing: null };
+        return {
+          ...state,
+          writes,
+          lookup: { kind: "found", account: event.account },
+          editing: event.keepsEditing ? state.editing : null,
+        };
       }
       if (!state.left && state.lookup.kind === "searching") {
         return {
@@ -217,17 +222,14 @@ export function createPersonStore(initial: PersonState = NOBODY_SEARCHED): Perso
 }
 
 export interface MembershipOutcome {
-  /** Whether the membership itself was written — the roster below reads again when it was. */
   changed: boolean;
   away: AwayNotice | null;
 }
 
 /**
- * Putting the card's person on a team or taking them off is a write of the card, on its own row
- * (OBT-679): while it is on its way every control of the card waits, its refusal lands on that
- * row, and its answer is the person read again — the list of projects is the account's, so the
- * card redraws from one read, under the four rules a grant answers by. A read that fails after
- * the membership was written lands as that row's failure; the write is still counted.
+ * A write of the card, so it answers under the four rules a grant does and nothing crosses it
+ * (OBT-679). It touches no region, so the picker stays open; and once the membership is written a
+ * failed re-read never tells a card the Admin left that the change was not saved.
  */
 export async function settleMembership(
   store: PersonStore,
@@ -246,9 +248,10 @@ export async function settleMembership(
   }
   try {
     const account = await reread(target.email);
-    return { changed: true, away: store.dispatch({ type: "written", ticket, account }) };
+    const away = store.dispatch({ type: "written", ticket, account, keepsEditing: true });
+    return { changed: true, away };
   } catch (raw: unknown) {
     const away = store.dispatch({ type: "refused", ticket, failure: toApiFailure(raw) });
-    return { changed: true, away };
+    return { changed: true, away: away && { ...away, failure: null } };
   }
 }

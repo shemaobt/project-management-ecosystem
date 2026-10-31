@@ -402,6 +402,37 @@ describe("pôr ou tirar membro é um ato do cartão (OBT-679)", () => {
     expect(cardOf(store.get())?.refusal).toEqual({ row: MEMBER_ROW, failure: offline });
   });
 
+  it("a resposta de um ato de membro não fecha o seletor de regiões aberto — membro não mexe em região", async () => {
+    const store = onCard(A_ON_MAKUA);
+    const editing = { role: "coordinator" as const, regions: ["africa" as const] };
+    store.dispatch({ type: "openRegions", editing, clearsRefusal: true });
+
+    await settleMembership(store, async () => A, A_ON_MAKUA, MEMBER_ROW, async () => undefined);
+
+    expect(cardOf(store.get())).toMatchObject({ account: A, editing });
+  });
+
+  it("gravado e a releitura falhou com outra pessoa no cartão: o aviso diz que gravou, não que falhou", async () => {
+    const store = onCard(A_ON_MAKUA);
+    const answer = deferred<AccountGrants>();
+    const offline: ApiFailure = { kind: "offline", status: null, detail: null, code: null };
+
+    const settling = settleMembership(
+      store,
+      () => answer.promise,
+      A_ON_MAKUA,
+      MEMBER_ROW,
+      async () => undefined,
+    );
+    for (const event of searched(store.ticket(), B)) store.dispatch(event);
+    answer.reject(offline);
+
+    await expect(settling).resolves.toEqual({
+      changed: true,
+      away: { target: A_ON_MAKUA, failure: null },
+    });
+  });
+
   it("com outra pessoa no cartão quando a releitura chega, B fica e a mudança de A é avisada uma vez", async () => {
     const store = onCard(A_ON_MAKUA);
     const answer = deferred<AccountGrants>();

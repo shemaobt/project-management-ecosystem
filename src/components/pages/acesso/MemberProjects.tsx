@@ -9,18 +9,12 @@ import { memberRow } from "./rows";
 export interface MemberProjectsProps {
   person: string;
   projects: readonly AccountProject[];
-  /** The card's write on its way — every row waits for it, and only its own says *Gravando…*. */
   acting: string | null;
   refusal: RoleRefusal | null;
   onRemove: (project: AccountProject) => void;
 }
 
-/**
- * The projects the person on the card is a live member of (OBT-679), as the lookup answered them
- * — the name as the server built it for the Admin, printed by `getLanguageNameDisplay` — each with
- * *Tirar do projeto*. Pure, so the static render the suite has sees every state; the write is
- * `MembershipSection`'s, the owner of membership on this screen.
- */
+/** Pure, so the static render the suite has sees every state (OBT-679). */
 export function MemberProjects({
   person,
   projects,

@@ -124,10 +124,8 @@ function ProjectRoster({ projectId, ...view }: ProjectRosterProps) {
 
 export interface MembershipSectionProps {
   person: AccountGrants;
-  /** The card's write on its way, if any — role or membership, every control here waits. */
   acting: string | null;
   refusal: RoleRefusal | null;
-  /** Write a membership as a write of the card, on `row`; resolves to whether it was written. */
   onChange: (row: string, change: () => Promise<unknown>) => Promise<boolean>;
 }
 

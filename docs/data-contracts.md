@@ -1425,7 +1425,8 @@ roles}], regions: [{regionKey, grantedBy, grantedAt}], regionScope, projects: [{
 locationWithheld, languageNameWithheld}]}` — `regions` are the stored rows the Admin edits,
 `regionScope` what they reach (`null` = every region), `projects` the projects the person is a live
 member of, named for the Admin's reader (OBT-679; `[]` is a person on no team, and an answer without
-the field is refused). `SentInvite` is `OpenInvite`
+the field is refused). The console reads `id`, `languageName` and `languageNameWithheld` of each and
+leaves `locationWithheld`, which every leaving shape carries, unread. `SentInvite` is `OpenInvite`
 plus `inviteUrl` and `emailSent`, and it is, with §9.17's `ConfirmedProject`, the **only** shape that
 carries the link: the list never does. `GrantChange` is `{action, at, appKey, roleKey | null,
 regionKey | null, userId, userEmail, userName, actorId, actorEmail, actorName}`, exactly one of
