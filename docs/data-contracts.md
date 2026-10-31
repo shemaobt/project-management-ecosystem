@@ -1436,17 +1436,18 @@ one region and `regionKeys` is the account's whole scope; mesa and Gestor never 
 nobody grants, revokes or invites themselves; every refusal is `{detail, code}` with the status the
 table there gives, and the console shows `detail` verbatim.
 
-**The invitee's three routes are not in this module yet:**
+**The invitee's three routes** — the first two in this module since OBT-683, the third the platform's:
 
 ```
-GET  /api/resource-requests/access/invites/{token}          -> {status, email, app_name, role_key, role_label, account_exists, region_keys}   # anonymous
-POST /api/resource-requests/access/invites/{token}/accept   # signed in with the invited e-mail
+GET  /api/shema/access/invites/{token}          -> {status, email, app_name, role_key, role_label, account_exists, region_keys}   # anonymous
+POST /api/shema/access/invites/{token}/accept   # signed in with the invited e-mail, no role needed
 POST /api/auth/signup  {email, password, display_name}      -> {user, tokens}    # the platform's own
 ```
 
 They answer snake_case, and `accessAPI` maps them once (`describeInvite`, `join`) — the second
-named mapping after `/api/auth/*` (§9.13). OBT-549 moves the first two into `/api/shema`; then only
-that mapping changes. They are the other exceptions to §9.0's bearer rule: the lookup is anonymous
+named mapping after `/api/auth/*` (§9.13). OBT-683 moved the first two from the form's prefix
+(`/api/resource-requests/access/invites/…`) with the contract unchanged, so the mapping stayed and
+only its path moved; the form's routes answer until the server removes them. They are the other exceptions to §9.0's bearer rule: the lookup is anonymous
 and sign-up has no session to show. The console reads the invitation's `role_key` through its own
 catalogue and never renders `role_label` or `app_name`, per this document's "keys, never labels".
 
