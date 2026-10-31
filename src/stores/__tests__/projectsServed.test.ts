@@ -120,6 +120,7 @@ const { IndicatorBand } = await import("../../components/pages/inicio/IndicatorB
 const { InicioView } = await import("../../components/pages/inicio");
 const { RelatorioView } = await import("../../components/pages/ritmo/relatorio/RelatorioPage");
 const { buildAnnualReport } = await import("../../utils/annualReport");
+const { selectableProjects } = await import("../../utils/forms");
 
 describe("a lista inteira contra o servidor", () => {
   it("vem da busca do servidor, sem filtro e sem página", async () => {
@@ -405,6 +406,48 @@ describe("o Recarregar e a volta ao Início leem a lista de novo (OBT-663)", () 
     await Promise.all([first, again]);
 
     expect(calls).toHaveLength(1);
+  });
+});
+
+describe("o seletor de membros de /acesso relê a lista (OBT-680)", () => {
+  const BARI = { ...CHICHEWA, id: "bari", languageName: "Bari" };
+  const offered = () => selectableProjects(store().projects).map((project) => project.id);
+
+  beforeEach(freshSession);
+
+  it("um projeto criado depois da última leitura não vem pelo hydrate — o que o seletor usava — e vem pelo revisit, na ordem do seletor", async () => {
+    pages = [servedPage([CHICHEWA], 1), servedPage([CHICHEWA, BARI], 2)];
+    await store().hydrate();
+
+    await store().hydrate();
+    expect(offered()).toEqual(["chichewa"]);
+
+    await store().revisit();
+    expect(calls).toHaveLength(2);
+    expect(offered()).toEqual(["bari", "chichewa"]);
+  });
+
+  it("enquanto relê, e quando a releitura falha, o seletor fica com as opções que já tinha", async () => {
+    pages = [servedPage([CHICHEWA], 1), servedPage([CHICHEWA, BARI], 2)];
+    await store().hydrate();
+
+    let release = () => {};
+    held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const reading = store().revisit();
+    expect(store().hydrated).toBe(true);
+    expect(offered()).toEqual(["chichewa"]);
+    release();
+    await reading;
+    held = null;
+    expect(offered()).toEqual(["bari", "chichewa"]);
+
+    refusing = true;
+    await store().revisit();
+    expect(store().error?.kind).toBe("server");
+    expect(store().hydrated).toBe(true);
+    expect(offered()).toEqual(["bari", "chichewa"]);
   });
 });
 

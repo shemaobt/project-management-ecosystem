@@ -136,6 +136,7 @@ describe("as telas que mostram a lista a leem pelo gancho que relê depois de um
     "src/components/pages/ritmo/RitmoPage.tsx",
     "src/components/pages/formularios/index.tsx",
     "src/components/pages/ritmo/relatorio/RelatorioPage.tsx",
+    "src/components/pages/acesso/MembershipSection.tsx",
   ])("%s", (file) => {
     const source = readFileSync(join(process.cwd(), file), "utf8");
     expect(source).toMatch(/useProjectListRead\((\{ everyVisit: true \})?\);/u);
@@ -158,5 +159,12 @@ describe("o Início relê a lista a cada visita; Ritmo, Formulários e o relató
     "src/components/pages/ritmo/relatorio/RelatorioPage.tsx",
   ])("%s", (file) => {
     expect(read(file)).toContain("useProjectListRead();");
+  });
+});
+
+describe("o seletor de membros de /acesso relê a lista a cada cartão (OBT-680)", () => {
+  it("o cartão relê ao montar, não só uma vez por sessão", () => {
+    const source = readFileSync(join(process.cwd(), "src/components/pages/acesso/MembershipSection.tsx"), "utf8");
+    expect(source).toContain("useProjectListRead({ everyVisit: true });");
   });
 });
