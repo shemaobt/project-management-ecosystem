@@ -15,10 +15,6 @@ export interface ProjectSelectorProps {
   projects: readonly Project[];
   value: string;
   onChange: (projectId: string) => void;
-  /**
-   * The list was opened. A screen whose options can change under it — a project created in
-   * another tab, or by somebody else — reads them again here (OBT-680).
-   */
   onOpen?: () => void;
 }
 
