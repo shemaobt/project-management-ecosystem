@@ -14,9 +14,18 @@ import type {
   ReceivedSubmissionDetail,
 } from "../types/forms";
 import { answerLength } from "../utils/intake";
+import type { SessionPersona } from "../contexts/session";
+import type { MediaLink } from "../types/project";
 import { getRegion } from "../utils/region";
 import { loadProject } from "./projects";
-import { asReadBy, readerOf } from "./reader";
+import {
+  asReadBy,
+  DOWNLOAD_URL_EXPIRY_MINUTES,
+  mayReadMediaBytes,
+  NO_FILE,
+  NOT_SHARED,
+  readerOf,
+} from "./reader";
 import { mockPersona } from "./session";
 
 const received: ReceivedSubmission[] = [];
@@ -145,6 +154,17 @@ const PULSE_FIELDS: readonly IntakeField[] = [
 interface StoredIntakeImage extends IntakeImageStored {
   token: string;
   submissionId: string | null;
+  /** The bytes, as the double's bucket keeps them — what its pending-image link serves (OBT-674). */
+  dataUrl: string;
+}
+
+async function asDataUrl(image: Blob, type: string): Promise<string> {
+  const bytes = new Uint8Array(await image.arrayBuffer());
+  let binary = "";
+  for (let at = 0; at < bytes.length; at += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(at, at + 0x8000));
+  }
+  return `data:${type};base64,${btoa(binary)}`;
 }
 
 const images = new Map<string, StoredIntakeImage>();
@@ -183,6 +203,7 @@ export async function uploadIntakeImage(
     contentType: image.type,
     token,
     submissionId: null,
+    dataUrl: await asDataUrl(image, type),
   };
   images.set(stored.id, stored);
   return { id: stored.id, fileName: stored.fileName, contentType: stored.contentType };
@@ -202,7 +223,40 @@ export async function readSubmission(submissionId: string): Promise<ReceivedSubm
     fields: PULSE_FIELDS,
     answers: withheld ? {} : structuredClone(receivedAnswers.get(submissionId) ?? {}),
     answersWithheld: withheld,
+    pendingImage: pendingImageFor(row, mockPersona()).ok,
   };
+}
+
+/**
+ * `pending_image_gates` for the double (OBT-585), in the server's order: **the reader before
+ * the object** — on a withheld project only its coordination (403), whatever the Pulse holds —
+ * then an upload this still-pending Pulse names, bound to it and holding bytes (404), then the
+ * leader's box (403). The detail's flag and the link walk this one function, as the server's two
+ * surfaces walk one, so the flag cannot promise what the link refuses.
+ */
+function pendingImageFor(
+  row: ReceivedSubmission,
+  persona: SessionPersona,
+): { ok: true; url: string } | { ok: false; status: 403 | 404 } {
+  const project = loadProject(row.projectId);
+  if (!project) return { ok: false, status: 404 };
+  if (!mayReadMediaBytes(project, persona)) return { ok: false, status: 403 };
+  const answers = receivedAnswers.get(row.id) ?? {};
+  const imageId = answers.image;
+  const image =
+    row.appliedAt === null && typeof imageId === "string" ? images.get(imageId) : undefined;
+  if (!image || image.submissionId !== row.id || !image.dataUrl) return { ok: false, status: 404 };
+  if (answers.imageAuthorized !== true) return { ok: false, status: 403 };
+  return { ok: true, url: image.dataUrl };
+}
+
+/** Mirrors `pending_image_download_url`: a link per call, or a refusal naming no reason. */
+export async function pendingImageLink(submissionId: string): Promise<MediaLink> {
+  const row = received.find((entry) => entry.id === submissionId);
+  if (!row) throw failure("notFound", "Project not found");
+  const answer = pendingImageFor(row, mockPersona());
+  if (!answer.ok) throw answer.status === 404 ? NO_FILE : NOT_SHARED;
+  return { url: answer.url, expiresInMinutes: DOWNLOAD_URL_EXPIRY_MINUTES };
 }
 
 const DEFAULT_LINK_DAYS = 45;
