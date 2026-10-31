@@ -10,7 +10,6 @@ export interface RequestListState {
 
 export const UNREAD_REQUESTS: RequestListState = { cards: null, failure: null };
 
-/** What `document` says about the tab being shown — all the list needs of it. */
 export interface PageVisibility {
   readonly visibilityState: DocumentVisibilityState;
   addEventListener(type: "visibilitychange", listener: () => void): void;
@@ -25,7 +24,6 @@ export interface RequestList {
   /** The mount's read; a second run of the effect (strict mode) asks nothing more. */
   open: () => Promise<void>;
   read: () => Promise<void>;
-  /** Reads again each time the page turns visible; the returned function stops listening. */
   rereadOnReturn: (page: PageVisibility) => () => void;
 }
 
