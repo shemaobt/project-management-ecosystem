@@ -28,12 +28,10 @@ export interface RequestList {
 }
 
 /**
- * *Solicitar recurso* opens the form in another tab, so what was started, sent or decided there
- * reaches the panel only when the person comes back (OBT-682). One read is in the air at a time;
- * a return while one is on its way marks it, and its answer — which may predate what was done in
- * the other tab — is dropped for one more read: `projectsStore`'s `asked` (OBT-663). A failed
- * read again keeps the cards already shown, the next return being the retry, as the bell's poll
- * (INT-11); the failure is said only while nothing was read.
+ * *Solicitar recurso* opens the form in another tab, so what was done there reaches the panel
+ * only when the person comes back (OBT-682) — and the answer of a read begun before the return
+ * may predate it: `projectsStore`'s `asked` (OBT-663). A failed read again keeps the cards
+ * shown, the next return being the retry, as the bell's poll (INT-11).
  */
 export function createRequestList(api: RequestListAPI, projectId: string): RequestList {
   let state = UNREAD_REQUESTS;
