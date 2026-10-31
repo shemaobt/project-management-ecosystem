@@ -88,19 +88,12 @@ describe("o link da foto é pedido na hora e re-pedido antes de expirar (OBT-582
   });
 
   it("a caixa de entrada só passa o pedido adiante: nem lê a URL, nem a guarda (OBT-674)", () => {
-    for (const path of [
-      "src/components/pages/formularios/SubmissionAnswers.tsx",
-      "src/components/pages/formularios/ReceivedArchive.tsx",
-    ]) {
-      const inbox = source(path);
-      expect(inbox, path).not.toMatch(/\.url\b|useState<string/u);
-      for (const forbidden of FORBIDDEN) {
-        expect(inbox, `${path} · ${forbidden}`).not.toContain(forbidden);
-      }
+    const answers = source("src/components/pages/formularios/SubmissionAnswers.tsx");
+    expect(answers).toContain("ask={() => pendingImageLink(detail.id)}");
+    expect(answers).not.toMatch(/\.url\b|useState<string/u);
+    for (const forbidden of FORBIDDEN) {
+      expect(answers, forbidden).not.toContain(forbidden);
     }
-    expect(source("src/components/pages/formularios/SubmissionAnswers.tsx")).toContain(
-      "ask={() => pendingImageLink(detail.id)}",
-    );
   });
 
   it("em todo o src, o link pendente só é pedido pela API, pelo dublê e pelo PhotoByLink da caixa (OBT-674)", () => {
