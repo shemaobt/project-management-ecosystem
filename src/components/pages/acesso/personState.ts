@@ -1,3 +1,4 @@
+import { toApiFailure } from "../../../services/api/errors";
 import type { AccountGrants } from "../../../types/access";
 import type { RegionKey } from "../../../types/region";
 import type { ApiFailure } from "../../../types/session";
@@ -213,4 +214,41 @@ export function createPersonStore(initial: PersonState = NOBODY_SEARCHED): Perso
     },
     ticket: () => (tickets += 1),
   };
+}
+
+export interface MembershipOutcome {
+  /** Whether the membership itself was written — the roster below reads again when it was. */
+  changed: boolean;
+  away: AwayNotice | null;
+}
+
+/**
+ * Putting the card's person on a team or taking them off is a write of the card, on its own row
+ * (OBT-679): while it is on its way every control of the card waits, its refusal lands on that
+ * row, and its answer is the person read again — the list of projects is the account's, so the
+ * card redraws from one read, under the four rules a grant answers by. A read that fails after
+ * the membership was written lands as that row's failure; the write is still counted.
+ */
+export async function settleMembership(
+  store: PersonStore,
+  reread: (email: string) => Promise<AccountGrants>,
+  target: AccountGrants,
+  row: string,
+  change: () => Promise<unknown>,
+): Promise<MembershipOutcome> {
+  const ticket = store.ticket();
+  store.dispatch({ type: "write", ticket, target, row });
+  try {
+    await change();
+  } catch (raw: unknown) {
+    const away = store.dispatch({ type: "refused", ticket, failure: toApiFailure(raw) });
+    return { changed: false, away };
+  }
+  try {
+    const account = await reread(target.email);
+    return { changed: true, away: store.dispatch({ type: "written", ticket, account }) };
+  } catch (raw: unknown) {
+    const away = store.dispatch({ type: "refused", ticket, failure: toApiFailure(raw) });
+    return { changed: true, away };
+  }
 }

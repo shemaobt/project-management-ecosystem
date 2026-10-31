@@ -1421,8 +1421,11 @@ GET  /api/shema/access/changes            -> GrantChange[]             # roles a
 
 All seven are the Admin's (`admin` in the `shema` app): every other role is a `403`. The shapes are
 `src/types/access.ts`. `AccountGrants` is `{userId, email, displayName, isActive, apps: [{appKey,
-roles}], regions: [{regionKey, grantedBy, grantedAt}], regionScope}` — `regions` are the stored rows
-the Admin edits, `regionScope` what they reach (`null` = every region). `SentInvite` is `OpenInvite`
+roles}], regions: [{regionKey, grantedBy, grantedAt}], regionScope, projects: [{id, languageName,
+locationWithheld, languageNameWithheld}]}` — `regions` are the stored rows the Admin edits,
+`regionScope` what they reach (`null` = every region), `projects` the projects the person is a live
+member of, named for the Admin's reader (OBT-679; `[]` is a person on no team, and an answer without
+the field is refused). `SentInvite` is `OpenInvite`
 plus `inviteUrl` and `emailSent`, and it is, with §9.17's `ConfirmedProject`, the **only** shape that
 carries the link: the list never does. `GrantChange` is `{action, at, appKey, roleKey | null,
 regionKey | null, userId, userEmail, userName, actorId, actorEmail, actorName}`, exactly one of
@@ -1455,8 +1458,8 @@ catalogue and never renders `role_label` or `app_name`, per this document's "key
 console shows the UTC day, read by field (`utcDay`).
 
 **In the console:** `/acesso` for `admin` only, `/convite?token=` outside the session gate; the
-lookup does not list the person's memberships (the server does not answer it), so the screen reads
-rosters project by project through §9.14. `accessAPI` has **no fixture double**: it is `null` in
+lookup lists the person's live memberships, each taken off through §9.14's `DELETE` and the person
+read again; putting someone on a team still picks a project and reads its roster through §9.14. `accessAPI` has **no fixture double**: it is `null` in
 fixtures, and both routes are registered only when it exists.
 
 ### 9.16 O formulário dentro do PME — FE-53 ([OBT-544](https://linear.app/shema-obt/issue/OBT-544)) · BE-21 · BE-24 · BE-26, 30/sep/2026

@@ -6,17 +6,21 @@ import {
   toApiFailure,
 } from "../../../services/api";
 import { useProjectsStore } from "../../../stores/projectsStore";
-import type { AccountGrants } from "../../../types/access";
+import type { AccountGrants, AccountProject } from "../../../types/access";
 import type { Project, ProjectMember } from "../../../types/project";
 import type { ApiFailure } from "../../../types/session";
 import { formatDate } from "../../../utils/format";
 import { selectableProjects } from "../../../utils/forms";
+import { getLanguageNameDisplay } from "../../../utils/region";
 import { ConfirmDialog } from "../../common/ConfirmDialog";
 import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { Button } from "../../ui";
 import { MembersPanel } from "../ficha/tabs/equipe/ProjectMembers";
 import { ProjectSelector } from "../formularios/ProjectSelector";
+import { MemberProjects } from "./MemberProjects";
+import type { RoleRefusal } from "./PersonPanel";
 import { RefusalNote } from "./RefusalNote";
+import { memberRow, rosterRow } from "./rows";
 
 export interface RosterViewProps {
   person: string;
@@ -24,6 +28,7 @@ export interface RosterViewProps {
   members: readonly ProjectMember[] | null;
   error: string | null;
   busy: boolean;
+  locked: boolean;
   refusal: ApiFailure | null;
   onAdd: () => void;
   onRemove: () => void;
@@ -35,6 +40,7 @@ export function RosterView({
   members,
   error,
   busy,
+  locked,
   refusal,
   onAdd,
   onRemove,
@@ -57,7 +63,7 @@ export function RosterView({
           <Button
             size="sm"
             variant={member ? "ghost" : "secondary"}
-            disabled={busy}
+            disabled={locked}
             onClick={member ? onRemove : onAdd}
           >
             {busy
@@ -81,6 +87,7 @@ interface ProjectRosterProps {
   person: string;
   personId: string;
   busy: boolean;
+  locked: boolean;
   refusal: ApiFailure | null;
   onAdd: () => void;
   onRemove: () => void;
@@ -117,9 +124,19 @@ function ProjectRoster({ projectId, ...view }: ProjectRosterProps) {
 
 export interface MembershipSectionProps {
   person: AccountGrants;
+  /** The card's write on its way, if any — role or membership, every control here waits. */
+  acting: string | null;
+  refusal: RoleRefusal | null;
+  /** Write a membership as a write of the card, on `row`; resolves to whether it was written. */
+  onChange: (row: string, change: () => Promise<unknown>) => Promise<boolean>;
 }
 
-export function MembershipSection({ person }: MembershipSectionProps) {
+interface Removal {
+  projectId: string;
+  row: string;
+}
+
+export function MembershipSection({ person, acting, refusal, onChange }: MembershipSectionProps) {
   const { t } = useTranslation();
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
@@ -129,9 +146,7 @@ export function MembershipSection({ person }: MembershipSectionProps) {
 
   const [projectId, setProjectId] = useState("");
   const [version, setVersion] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const [refusal, setRefusal] = useState<ApiFailure | null>(null);
-  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState<Removal | null>(null);
 
   useEffect(() => {
     void hydrate();
@@ -139,20 +154,22 @@ export function MembershipSection({ person }: MembershipSectionProps) {
 
   const name = person.displayName ?? person.email;
 
-  const write = (change: () => Promise<unknown>) => {
-    setBusy(true);
-    setRefusal(null);
-    setConfirmRemove(false);
-    change()
-      .then(() => setVersion((current) => current + 1))
-      .catch((raw: unknown) => setRefusal(toApiFailure(raw)))
-      .finally(() => setBusy(false));
+  const write = (row: string, change: () => Promise<unknown>) => {
+    setConfirmRemove(null);
+    void onChange(row, change).then((changed) => {
+      if (changed) setVersion((current) => current + 1);
+    });
   };
 
-  const pick = (next: string) => {
-    setProjectId(next);
-    setRefusal(null);
-  };
+  const add = (projectId: string) =>
+    write(rosterRow(projectId), () => membersAPI.add(projectId, person.userId));
+
+  const remove = ({ projectId, row }: Removal) =>
+    write(row, () => membersAPI.remove(projectId, person.userId));
+
+  const removing: AccountProject | undefined = confirmRemove
+    ? person.projects.find((project) => project.id === confirmRemove.projectId)
+    : undefined;
 
   const sorted: Project[] = hydrated ? selectableProjects(projects) : [];
 
@@ -161,8 +178,17 @@ export function MembershipSection({ person }: MembershipSectionProps) {
       <h3 className="text-small font-bold text-fg-strong">
         {t("acesso_members_title")}
       </h3>
+      <MemberProjects
+        person={name}
+        projects={person.projects}
+        acting={acting}
+        refusal={refusal}
+        onRemove={(project) =>
+          setConfirmRemove({ projectId: project.id, row: memberRow(project.id) })
+        }
+      />
       <p className="max-w-[68ch] text-small leading-normal text-fg-muted">
-        {t("acesso_members_gap", { person: name })}
+        {t("acesso_members_pick", { person: name })}
       </p>
       {!hydrated ? (
         loadFailure ? (
@@ -180,7 +206,7 @@ export function MembershipSection({ person }: MembershipSectionProps) {
       ) : sorted.length === 0 ? (
         <p className="text-small text-fg-muted">{t("acesso_members_no_projects")}</p>
       ) : (
-        <ProjectSelector projects={sorted} value={projectId} onChange={pick} />
+        <ProjectSelector projects={sorted} value={projectId} onChange={setProjectId} />
       )}
       {projectId ? (
         <ProjectRoster
@@ -188,21 +214,31 @@ export function MembershipSection({ person }: MembershipSectionProps) {
           projectId={projectId}
           person={name}
           personId={person.userId}
-          busy={busy}
-          refusal={refusal}
-          onAdd={() => write(() => membersAPI.add(projectId, person.userId))}
-          onRemove={() => setConfirmRemove(true)}
+          busy={acting === rosterRow(projectId)}
+          locked={acting !== null}
+          refusal={refusal?.row === rosterRow(projectId) ? refusal.failure : null}
+          onAdd={() => add(projectId)}
+          onRemove={() => setConfirmRemove({ projectId, row: rosterRow(projectId) })}
         />
       ) : null}
 
       <ConfirmDialog
-        open={confirmRemove}
-        onOpenChange={setConfirmRemove}
+        open={confirmRemove !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmRemove(null);
+        }}
         tone="danger"
-        title={t("acesso_member_remove_title", { person: name })}
+        title={
+          removing
+            ? t("acesso_member_remove_from_title", {
+                person: name,
+                project: getLanguageNameDisplay(removing, t),
+              })
+            : t("acesso_member_remove_title", { person: name })
+        }
         confirmLabel={t("acesso_member_remove")}
-        busy={busy}
-        onConfirm={() => write(() => membersAPI.remove(projectId, person.userId))}
+        busy={acting !== null}
+        onConfirm={() => confirmRemove && remove(confirmRemove)}
       >
         <p className="text-small leading-body text-fg">
           {t("acesso_member_remove_warning")}

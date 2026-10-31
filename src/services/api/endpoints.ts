@@ -13,6 +13,7 @@ import type {
   AccessAppRoles,
   AccessRegionGrant,
   AccountGrants,
+  AccountProject,
   AwaitingProject,
   ConfirmedProject,
   DiscardedProject,
@@ -624,6 +625,16 @@ function readRegionGrant(value: unknown): AccessRegionGrant {
   };
 }
 
+function readAccountProject(value: unknown): AccountProject {
+  const fields = fieldsOf(value);
+  if (typeof fields.languageNameWithheld !== "boolean") refuseVocabulary();
+  return {
+    id: textOf(fields.id),
+    languageName: textOf(fields.languageName),
+    languageNameWithheld: fields.languageNameWithheld,
+  };
+}
+
 export function readAccount(payload: unknown): AccountGrants {
   const fields = fieldsOf(payload);
   const scope = fields.regionScope;
@@ -639,6 +650,7 @@ export function readAccount(payload: unknown): AccountGrants {
       scope === null || scope === undefined
         ? null
         : listOf(scope).map(knownRegion),
+    projects: listOf(fields.projects).map(readAccountProject),
   };
 }
 

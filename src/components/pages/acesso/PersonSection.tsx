@@ -22,6 +22,7 @@ import { PersonPanel } from "./PersonPanel";
 import {
   cardOf,
   createPersonStore,
+  settleMembership,
   writingRow,
   type AwayNotice,
   type Lookup,
@@ -155,6 +156,16 @@ export function PersonSection({ api, onChanged, onInvite }: PersonSectionProps) 
     );
   };
 
+  const changeMembership = (
+    target: AccountGrants,
+    row: string,
+    change: () => Promise<unknown>,
+  ): Promise<boolean> =>
+    settleMembership(store, api.person, target, row, change).then(({ changed, away }) => {
+      if (away) announceAway(away, t);
+      return changed;
+    });
+
   const currentRegions = (target: AccountGrants): RegionKey[] =>
     target.regions.map((region) => region.regionKey);
 
@@ -219,7 +230,13 @@ export function PersonSection({ api, onChanged, onInvite }: PersonSectionProps) 
           }
           onCancelRegions={() => store.dispatch({ type: "closeRegions" })}
         >
-          <MembershipSection key={card.account.userId} person={card.account} />
+          <MembershipSection
+            key={card.account.userId}
+            person={card.account}
+            acting={card.acting}
+            refusal={card.refusal}
+            onChange={(row, change) => changeMembership(card.account, row, change)}
+          />
         </PersonPanel>
       ) : (
         <PersonLookupState lookup={lookup} onInvite={onInvite} />
