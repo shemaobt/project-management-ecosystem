@@ -560,9 +560,10 @@ describe("pôr no diretório quem já está na rede (OBT-681)", () => {
     expect(html).toMatch(/<button[^>]*disabled=""[^>]*>[^<]*Registrando/u);
   });
 
-  it("os campos que faltam se dizem como no cadastro", () => {
+  it("os campos que faltam se dizem, e o contato pelo que ele faz aqui: achar a pessoa", () => {
     const html = body({ showing: ["contact", "basis"] });
-    expect(html).toContain(i18n.t("int_needs_contact"));
+    expect(html).toContain(i18n.t("int_list_withheld_needs_contact"));
+    expect(html).not.toContain(i18n.t("int_needs_contact"));
     expect(html).toContain(i18n.t("int_needs_consent_basis"));
   });
 

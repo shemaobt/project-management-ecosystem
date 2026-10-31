@@ -361,6 +361,7 @@
   "int_list_withheld_ambiguous": "More than one person in the network was registered with this contact, so there is no telling which of them agreed. Nothing was recorded.",
   "int_list_withheld_done": "{{name}} is now listed in the directory.",
   "int_list_withheld_already": "{{name}} was already listed in the directory.",
+  "int_list_withheld_needs_contact": "Enter the WhatsApp number or e-mail on record — that is how the person is found.",
   "equipe_eyebrow": "Org chart · Team by region",
   "equipe_title": "Each region’s team",
   "equipe_lead": "Add and update the names of the three roles in each region. Changes appear in the sidebar, meetings and projects.",

@@ -249,11 +249,6 @@ describe("a revisão depois de um ano (OBT-531)", () => {
   });
 });
 
-/**
- * **A rede fica na aba, não no aparelho** (INT-06 · OBT-411). Nomes e contatos de
- * intercessores não vão para o `localStorage`: um celular emprestado é situação
- * normal no campo, e fechar a aba tem de levar a lista junto.
- */
 describe("pôr no diretório quem já está na rede (OBT-681)", () => {
   beforeEach(reset);
 
@@ -301,6 +296,23 @@ describe("pôr no diretório quem já está na rede (OBT-681)", () => {
     expect(usePrayerStore.getState().withheldCount).toBe(2);
   });
 
+  it("a contagem de ocultos volta do servidor: quem outra sessão cadastrou depois segue contado", async () => {
+    await hidden();
+    const { createIntercessor } = await import("../../fixtures/intercessors");
+    await createIntercessor({
+      name: "Carlos Depois",
+      country: "BR",
+      contact: "carlos@exemplo.org",
+      sensitiveCountry: false,
+      consentBasis: "cadastrado em outra sessão",
+    });
+    expect(usePrayerStore.getState().withheldCount).toBe(1);
+
+    expect((await list("351912345678")).kind).toBe("listed");
+
+    expect(usePrayerStore.getState().withheldCount).toBe(1);
+  });
+
   it("sem a base não chama o servidor", async () => {
     await hidden();
 
@@ -320,6 +332,11 @@ describe("pôr no diretório quem já está na rede (OBT-681)", () => {
   });
 });
 
+/**
+ * **A rede fica na aba, não no aparelho** (INT-06 · OBT-411). Nomes e contatos de
+ * intercessores não vão para o `localStorage`: um celular emprestado é situação
+ * normal no campo, e fechar a aba tem de levar a lista junto.
+ */
 describe("onde a rede fica guardada", () => {
   beforeEach(async () => {
     reset();

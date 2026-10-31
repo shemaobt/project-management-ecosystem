@@ -182,19 +182,14 @@ export const usePrayerStore = create<PrayerState>()(
           }
 
           const { entry, recorded } = answer;
-          // Absent from the list means the count read with it still held them, whether this
-          // call listed them or another session did since.
           set((state) =>
             state.intercessors.some((person) => person.id === entry.id)
               ? state
-              : {
-                  intercessors: [entry, ...state.intercessors],
-                  withheldCount: Math.max(0, state.withheldCount - 1),
-                  withheldReviewDueCount: entry.reviewDue
-                    ? Math.max(0, state.withheldReviewDueCount - 1)
-                    : state.withheldReviewDueCount,
-                },
+              : { intercessors: [entry, ...state.intercessors] },
           );
+          // The withheld counts are read again rather than adjusted here: another session may
+          // have added or listed somebody since this page read them.
+          await get().reload();
           return recorded ? { kind: "listed", entry } : { kind: "already", entry };
         },
         reviewIntercessor: async (id) => {

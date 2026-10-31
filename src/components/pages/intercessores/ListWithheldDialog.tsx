@@ -22,7 +22,7 @@ import {
 } from "../../ui";
 
 const HINT_KEYS: Record<DirectoryGrantField, string> = {
-  contact: "int_needs_contact",
+  contact: "int_list_withheld_needs_contact",
   basis: "int_needs_consent_basis",
 };
 

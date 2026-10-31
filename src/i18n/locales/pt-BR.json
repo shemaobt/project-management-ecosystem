@@ -361,6 +361,7 @@
   "int_list_withheld_ambiguous": "Mais de uma pessoa da rede foi cadastrada com esse contato, e não dá para saber qual delas consentiu. Nada foi registrado.",
   "int_list_withheld_done": "{{name}} agora aparece no diretório.",
   "int_list_withheld_already": "{{name}} já estava no diretório.",
+  "int_list_withheld_needs_contact": "Informe o WhatsApp ou o e-mail do cadastro — é por ele que a pessoa é achada.",
   "equipe_eyebrow": "Organograma · Time por região",
   "equipe_title": "A equipe de cada região",
   "equipe_lead": "Adicione e atualize os nomes dos três papéis de cada região. As mudanças aparecem na barra lateral, nas reuniões e nos projetos.",
