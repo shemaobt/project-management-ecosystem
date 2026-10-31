@@ -42,8 +42,8 @@ describe("o link da foto é pedido na hora e re-pedido antes de expirar (OBT-582
     "store(",
   ];
 
-  it("a URL vive só no estado do componente: nem store, nem storage, nem cache, nem log", () => {
-    const component = source("src/components/pages/ficha/tabs/midia/MediaPhotoImage.tsx");
+  it("a URL vive só no estado do PhotoByLink: nem store, nem storage, nem cache, nem log", () => {
+    const component = source("src/components/common/PhotoByLink.tsx");
     expect(component).toContain("useState<string | null>(null)");
     for (const forbidden of FORBIDDEN) {
       expect(component, forbidden).not.toContain(forbidden);
@@ -64,8 +64,14 @@ describe("o link da foto é pedido na hora e re-pedido antes de expirar (OBT-582
     }
   });
 
+  it("o MediaPhotoImage só endereça: nenhum estado, nenhum efeito — o ciclo é do PhotoByLink (OBT-674)", () => {
+    const adapter = source("src/components/pages/ficha/tabs/midia/MediaPhotoImage.tsx");
+    expect(adapter).toContain("<PhotoByLink");
+    expect(adapter).not.toMatch(/use(State|Effect|EffectEvent|Ref)\b/u);
+  });
+
   it("uma recusa não vira frase: o componente não traduz nada nem lê o erro", () => {
-    const component = source("src/components/pages/ficha/tabs/midia/MediaPhotoImage.tsx");
+    const component = source("src/components/common/PhotoByLink.tsx");
     expect(component).not.toContain("useTranslation");
     expect(component).not.toMatch(/catch\(\(?\w+\)?\s*=>/u);
     expect(component).toContain(".catch(() =>");
