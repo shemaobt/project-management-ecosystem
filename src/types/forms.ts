@@ -1,4 +1,6 @@
 import type { MeetingCadence, MeetingReadiness } from "./meeting";
+import type { RecordConflict } from "./projectRecord";
+import type { ApiFailure } from "./session";
 
 export type FormKind = MeetingReadiness;
 
@@ -69,6 +71,18 @@ export interface ReceivedSubmission {
   appliedAt: string | null;
 }
 
+/**
+ * What applying one received Pulse to the record answered (`POST …/forms/submissions/{id}/import`,
+ * OBT-652). A Pulse already applied answers `ok` too — the server's idempotent no-op — so the row
+ * converges on *applied* whoever applied it. A conflict carries the record's version the refusal
+ * named (its `ETag`): the panel says who moved what since the Pulse was opened, and applying again
+ * quotes exactly that version. `version` is `""` when the refusal carried none.
+ */
+export type SubmissionApplyResult =
+  | { ok: true; submission: ReceivedSubmission }
+  | { ok: false; reason: "conflict"; conflict: RecordConflict; version: string }
+  | { ok: false; reason: "failed"; failure: ApiFailure };
+
 // --- the leader link and the form it serves — BE-12 (OBT-401) ---------------------
 
 export type IntakeFieldType =
@@ -118,6 +132,13 @@ export interface ReceivedSubmissionDetail extends ReceivedSubmission {
   fields: readonly IntakeField[];
   answers: IntakeAnswers;
   answersWithheld: boolean;
+  /**
+   * `true` when `GET …/forms/submissions/{id}/image/link` would answer this reader a URL
+   * (OBT-585): the Pulse is pending, names its upload, the leader ticked the box and this reader
+   * may read the bytes. A bit, never the URL. Absent from a server before OBT-585, which serves
+   * no pending image — read as `false`.
+   */
+  pendingImage?: boolean;
 }
 
 export interface IntakeSubmissionPayload {

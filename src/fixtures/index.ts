@@ -8,6 +8,7 @@ import type {
   IntakeSubmissionPayload,
   ReceivedSubmission,
   ReceivedSubmissionDetail,
+  SubmissionApplyResult,
 } from "../types/forms";
 import type {
   MeetingId,
@@ -41,9 +42,11 @@ import type {
 import { createEmptyProject } from "./blank";
 import { loadEtenCredits } from "./eten";
 import {
+  applySubmission,
   listIntakeLinks,
   loadReceivedSubmissions,
   mintIntakeLink,
+  pendingImageLink,
   readIntakeForm,
   readSubmission,
   revokeIntakeLink,
@@ -235,6 +238,12 @@ export const formsAPI = {
   async received(): Promise<ReceivedSubmission[]> {
     return loadReceivedSubmissions();
   },
+  async applySubmission(
+    submissionId: string,
+    version: string,
+  ): Promise<SubmissionApplyResult> {
+    return applySubmission(submissionId, version);
+  },
   async mintIntakeLink(
     payload: IntakeLinkCreatePayload,
   ): Promise<IntakeLinkCreated> {
@@ -264,6 +273,9 @@ export const formsAPI = {
   },
   async readSubmission(submissionId: string): Promise<ReceivedSubmissionDetail> {
     return readSubmission(submissionId);
+  },
+  async pendingImageLink(submissionId: string): Promise<MediaLink> {
+    return pendingImageLink(submissionId);
   },
 };
 

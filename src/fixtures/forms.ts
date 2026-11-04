@@ -12,11 +12,23 @@ import type {
   IntakeSubmissionPayload,
   ReceivedSubmission,
   ReceivedSubmissionDetail,
+  SubmissionApplyResult,
 } from "../types/forms";
+import type { BookProgressItem, MediaLink } from "../types/project";
 import { answerLength } from "../utils/intake";
+import { writesProjectIn } from "../utils/access";
+import type { SessionPersona } from "../contexts/session";
 import { getRegion } from "../utils/region";
+import { applyPulseProgress } from "./projectRecord";
 import { loadProject } from "./projects";
-import { asReadBy, readerOf } from "./reader";
+import {
+  asReadBy,
+  DOWNLOAD_URL_EXPIRY_MINUTES,
+  mayReadMediaBytes,
+  NO_FILE,
+  NOT_SHARED,
+  readerOf,
+} from "./reader";
 import { mockPersona } from "./session";
 
 const received: ReceivedSubmission[] = [];
@@ -145,6 +157,16 @@ const PULSE_FIELDS: readonly IntakeField[] = [
 interface StoredIntakeImage extends IntakeImageStored {
   token: string;
   submissionId: string | null;
+  dataUrl: string;
+}
+
+async function asDataUrl(image: Blob, type: string): Promise<string> {
+  const bytes = new Uint8Array(await image.arrayBuffer());
+  let binary = "";
+  for (let at = 0; at < bytes.length; at += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(at, at + 0x8000));
+  }
+  return `data:${type};base64,${btoa(binary)}`;
 }
 
 const images = new Map<string, StoredIntakeImage>();
@@ -183,6 +205,7 @@ export async function uploadIntakeImage(
     contentType: image.type,
     token,
     submissionId: null,
+    dataUrl: await asDataUrl(image, type),
   };
   images.set(stored.id, stored);
   return { id: stored.id, fileName: stored.fileName, contentType: stored.contentType };
@@ -202,7 +225,122 @@ export async function readSubmission(submissionId: string): Promise<ReceivedSubm
     fields: PULSE_FIELDS,
     answers: withheld ? {} : structuredClone(receivedAnswers.get(submissionId) ?? {}),
     answersWithheld: withheld,
+    pendingImage: pendingImageFor(row, mockPersona()).ok,
   };
+}
+
+const COUNTS = ["chapters", "translated", "communityChecked", "mentorApproved"] as const;
+
+function isBookRow(value: unknown): value is BookProgressItem {
+  if (typeof value !== "object" || value === null) return false;
+  const row = value as Record<string, unknown>;
+  return (
+    typeof row.id === "string" &&
+    typeof row.name === "string" &&
+    COUNTS.every((key) => typeof row[key] === "number" && Number.isFinite(row[key]))
+  );
+}
+
+function bookRows(answers: IntakeAnswers | undefined): BookProgressItem[] | null | "refused" {
+  const rows = answers?.bookProgress;
+  if (rows === undefined || rows === null) return null;
+  return Array.isArray(rows) && rows.every(isBookRow) ? rows : "refused";
+}
+
+/**
+ * Mirrors `apply_submission` (OBT-652) for the mock persona: the coordinator of the project's
+ * region applies, anybody else is the route's refusal; a Pulse already applied is the idempotent
+ * no-op, whatever version it quotes; otherwise the record double meets the version and writes the
+ * book rows, stamped as the Pulse's. **Not mirrored**, on purpose: the prayer request and its
+ * consent, the photo the import mints, and the detail's reduction once applied — those are the
+ * server's privacy rules, and a second copy of them here is a second place for them to be wrong.
+ */
+export async function applySubmission(
+  submissionId: string,
+  version: string,
+): Promise<SubmissionApplyResult> {
+  const persona = mockPersona();
+  if (!persona.roles.includes("coordinator")) {
+    return {
+      ok: false,
+      reason: "failed",
+      failure: { ...failure("forbidden", "Role 'coordinator' is required for this action."), status: 403 },
+    };
+  }
+  const row = received.find((entry) => entry.id === submissionId);
+  const project = row ? loadProject(row.projectId) : null;
+  const notFound: SubmissionApplyResult = {
+    ok: false,
+    reason: "failed",
+    failure: { ...failure("notFound", "Project not found"), status: 404 },
+  };
+  if (!row || !project) return notFound;
+  const region = project.derived?.region ?? getRegion(project);
+  if (!writesProjectIn(persona.writeRegionScope, region)) return notFound;
+  if (row.appliedAt !== null) return { ok: true, submission: asReadInTheInbox(row) };
+
+  const rows = bookRows(receivedAnswers.get(submissionId));
+  if (rows === "refused") {
+    return {
+      ok: false,
+      reason: "failed",
+      failure: {
+        ...failure(
+          "invalid",
+          `pulso v${PULSE_DEFINITION_VERSION}: the submission does not match the record, so none of it was applied — bookProgress`,
+        ),
+        status: 400,
+      },
+    };
+  }
+  const written = applyPulseProgress(row.projectId, rows, version, {
+    fromField: row.submittedBy || undefined,
+    formType: "pulso",
+  });
+  if (!written.ok) {
+    return written.reason === "conflict"
+      ? {
+          ok: false,
+          reason: "conflict",
+          conflict: written.conflict,
+          version: `"${written.conflict.currentVersion}"`,
+        }
+      : notFound;
+  }
+  row.appliedAt = toLocalIsoDate();
+  return { ok: true, submission: asReadInTheInbox(row) };
+}
+
+/**
+ * `pending_image_gates` for the double (OBT-585), in the server's order: **the reader before
+ * the object** — on a withheld project only its coordination (403), whatever the Pulse holds —
+ * then an upload this still-pending Pulse names, bound to it and holding bytes (404), then the
+ * leader's box (403). The detail's flag and the link walk this one function, as the server's two
+ * surfaces walk one, so the flag cannot promise what the link refuses.
+ */
+function pendingImageFor(
+  row: ReceivedSubmission,
+  persona: SessionPersona,
+): { ok: true; url: string } | { ok: false; status: 403 | 404 } {
+  const project = loadProject(row.projectId);
+  if (!project) return { ok: false, status: 404 };
+  if (!mayReadMediaBytes(project, persona)) return { ok: false, status: 403 };
+  const answers = receivedAnswers.get(row.id) ?? {};
+  const imageId = answers.image;
+  const image =
+    row.appliedAt === null && typeof imageId === "string" ? images.get(imageId) : undefined;
+  if (!image || image.submissionId !== row.id || !image.dataUrl) return { ok: false, status: 404 };
+  if (answers.imageAuthorized !== true) return { ok: false, status: 403 };
+  return { ok: true, url: image.dataUrl };
+}
+
+/** Mirrors `pending_image_download_url`: a link per call, or a refusal naming no reason. */
+export async function pendingImageLink(submissionId: string): Promise<MediaLink> {
+  const row = received.find((entry) => entry.id === submissionId);
+  if (!row) throw failure("notFound", "Project not found");
+  const answer = pendingImageFor(row, mockPersona());
+  if (!answer.ok) throw answer.status === 404 ? NO_FILE : NOT_SHARED;
+  return { url: answer.url, expiresInMinutes: DOWNLOAD_URL_EXPIRY_MINUTES };
 }
 
 const DEFAULT_LINK_DAYS = 45;

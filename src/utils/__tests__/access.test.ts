@@ -28,6 +28,7 @@ const account = (shema: AccountGrants["apps"][number]["roles"]): AccountGrants =
   ],
   regions: [],
   regionScope: [],
+  projects: [],
 });
 
 describe("quem administra o acesso", () => {

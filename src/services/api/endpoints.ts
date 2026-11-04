@@ -13,6 +13,7 @@ import type {
   AccessAppRoles,
   AccessRegionGrant,
   AccountGrants,
+  AccountProject,
   AwaitingProject,
   ConfirmedProject,
   DiscardedProject,
@@ -47,6 +48,7 @@ import type {
   IntakeSubmissionPayload,
   ReceivedSubmission,
   ReceivedSubmissionDetail,
+  SubmissionApplyResult,
 } from "../../types/forms";
 import type {
   MeetingId,
@@ -63,7 +65,7 @@ import type {
   PrayerRequest,
   PrayerReviewEntry,
 } from "../../types/prayer";
-import type { Project, ProjectMember, ProjectRef } from "../../types/project";
+import type { MediaLink, Project, ProjectMember, ProjectRef } from "../../types/project";
 import type { Region, RegionKey, RegionTeam, RoleChange } from "../../types/region";
 import type { RequestDecisionStage } from "../../types/request";
 import type { ImportError } from "../../utils/export";
@@ -81,6 +83,7 @@ import { failure, toApiFailure, UNKNOWN_VOCABULARY } from "./errors";
 import { forgetTokens, refreshToken, setTokens } from "./tokens";
 import { toLocalIsoDate } from "../../utils/format";
 import { headerSafeFileName } from "../../utils/intake";
+import { etagOf, readConflict } from "./projectRecord";
 
 const SHEMA = "/shema";
 
@@ -460,12 +463,58 @@ export const formsAPI = {
     return data;
   },
 
+  /**
+   * Apply one Pulse from the inbox to the record (OBT-652), quoting the record's version the
+   * coordinator read when the Pulse was opened. A stale version is the ficha's own 409, read by the
+   * ficha's own reader — `readConflict` — so the inbox says who moved what with the same words, and
+   * the refusal's `ETag` is the version a second attempt quotes. Never throws: every answer is a
+   * result, as `projectRecordAPI.patch`'s is.
+   */
+  async applySubmission(
+    submissionId: string,
+    version: string,
+  ): Promise<SubmissionApplyResult> {
+    try {
+      const response = await http.post<ReceivedSubmission>(
+        `${SHEMA}/forms/submissions/${encodeURIComponent(submissionId)}/import`,
+        undefined,
+        {
+          headers: { "If-Match": version, [LOCAL_DAY_HEADER]: toLocalIsoDate() },
+          validateStatus: (status) => status < 400 || status === 409,
+        },
+      );
+      if (response.status === 409) {
+        return {
+          ok: false,
+          reason: "conflict",
+          conflict: readConflict(response.data),
+          version: etagOf(response.headers),
+        };
+      }
+      return { ok: true, submission: response.data };
+    } catch (thrown) {
+      return { ok: false, reason: "failed", failure: toApiFailure(thrown) };
+    }
+  },
+
   /** One submission opened — the answers beside the form they answered (OBT-580). */
   async readSubmission(submissionId: string): Promise<ReceivedSubmissionDetail> {
     const { data } = await http.get<ReceivedSubmissionDetail>(
       `${SHEMA}/forms/submissions/${encodeURIComponent(submissionId)}`,
     );
     return data;
+  },
+
+  /**
+   * A signed link to a pending Pulse's image, minted by this call (OBT-585), so the
+   * coordination sees the photograph where it decides the import (OBT-674). A 403 or 404
+   * names no reason, and the caller shows no picture.
+   */
+  async pendingImageLink(submissionId: string): Promise<MediaLink> {
+    const { data } = await http.get<MediaLink>(
+      `${SHEMA}/forms/submissions/${encodeURIComponent(submissionId)}/image/link`,
+    );
+    return { url: data.url, expiresInMinutes: data.expiresInMinutes };
   },
 
   async mintIntakeLink(
@@ -624,6 +673,16 @@ function readRegionGrant(value: unknown): AccessRegionGrant {
   };
 }
 
+function readAccountProject(value: unknown): AccountProject {
+  const fields = fieldsOf(value);
+  if (typeof fields.languageNameWithheld !== "boolean") refuseVocabulary();
+  return {
+    id: textOf(fields.id),
+    languageName: textOf(fields.languageName),
+    languageNameWithheld: fields.languageNameWithheld,
+  };
+}
+
 export function readAccount(payload: unknown): AccountGrants {
   const fields = fieldsOf(payload);
   const scope = fields.regionScope;
@@ -639,6 +698,7 @@ export function readAccount(payload: unknown): AccountGrants {
       scope === null || scope === undefined
         ? null
         : listOf(scope).map(knownRegion),
+    projects: listOf(fields.projects).map(readAccountProject),
   };
 }
 

@@ -1182,11 +1182,13 @@ year's had not arrived on 28/set/2026; it lands as a presenter in `shema-api`'s
 GET  /api/shema/forms/submissions                  -> ReceivedSubmission[]
 POST /api/shema/forms/pulse/{projectId}            -> the generated artifact        # Open · GATE-03
 POST /api/shema/forms/submissions                  {the returned artifact}  -> ReceivedSubmission
+POST /api/shema/forms/submissions/{id}/import      If-Match, X-Shema-Local-Date  -> ReceivedSubmission   # coordinator · 409 = RecordConflict + ETag · OBT-652
 POST /api/shema/intake-links   {projectId?, expiresAt}  -> {token, url, expiresAt}
 GET  /api/shema/intake/{token}                     -> the public intake form        # no auth
 POST /api/shema/intake/{token}                     {the filled form}  -> 202        # no auth
 POST /api/shema/intake/{token}/image               raw bytes, Content-Type + X-File-Name -> {id, fileName, contentType}  # no auth · OBT-578
-GET  /api/shema/forms/submissions/{id}             -> ReceivedSubmissionDetail {…, fields, answers, answersWithheld}   # OBT-580
+GET  /api/shema/forms/submissions/{id}             -> ReceivedSubmissionDetail {…, fields, answers, answersWithheld, pendingImage}   # OBT-580 · pendingImage OBT-585
+GET  /api/shema/forms/submissions/{id}/image/link  -> {url, expiresInMinutes}   # a pending Pulse's image · 403/404 with no reason · OBT-585/674
 GET  /api/shema/projects/{id}/media/{item}/link    -> {url, expiresInMinutes}   # 403 with no reason · OBT-581/582
 POST /api/shema/projects/{id}/media/{item}/authorization/withdraw  -> {granted, by, at}   # coordinator · OBT-578/582
 ```
@@ -1421,8 +1423,12 @@ GET  /api/shema/access/changes            -> GrantChange[]             # roles a
 
 All seven are the Admin's (`admin` in the `shema` app): every other role is a `403`. The shapes are
 `src/types/access.ts`. `AccountGrants` is `{userId, email, displayName, isActive, apps: [{appKey,
-roles}], regions: [{regionKey, grantedBy, grantedAt}], regionScope}` — `regions` are the stored rows
-the Admin edits, `regionScope` what they reach (`null` = every region). `SentInvite` is `OpenInvite`
+roles}], regions: [{regionKey, grantedBy, grantedAt}], regionScope, projects: [{id, languageName,
+locationWithheld, languageNameWithheld}]}` — `regions` are the stored rows the Admin edits,
+`regionScope` what they reach (`null` = every region), `projects` the projects the person is a live
+member of, named for the Admin's reader (OBT-679; `[]` is a person on no team, and an answer without
+the field is refused). The console reads `id`, `languageName` and `languageNameWithheld` of each and
+leaves `locationWithheld`, which every leaving shape carries, unread. `SentInvite` is `OpenInvite`
 plus `inviteUrl` and `emailSent`, and it is, with §9.17's `ConfirmedProject`, the **only** shape that
 carries the link: the list never does. `GrantChange` is `{action, at, appKey, roleKey | null,
 regionKey | null, userId, userEmail, userName, actorId, actorEmail, actorName}`, exactly one of
@@ -1456,8 +1462,8 @@ catalogue and never renders `role_label` or `app_name`, per this document's "key
 console shows the UTC day, read by field (`utcDay`).
 
 **In the console:** `/acesso` for `admin` only, `/convite?token=` outside the session gate; the
-lookup does not list the person's memberships (the server does not answer it), so the screen reads
-rosters project by project through §9.14. `accessAPI` has **no fixture double**: it is `null` in
+lookup lists the person's live memberships, each taken off through §9.14's `DELETE` and the person
+read again; putting someone on a team still picks a project and reads its roster through §9.14. `accessAPI` has **no fixture double**: it is `null` in
 fixtures, and both routes are registered only when it exists.
 
 ### 9.16 O formulário dentro do PME — FE-53 ([OBT-544](https://linear.app/shema-obt/issue/OBT-544)) · BE-21 · BE-24 · BE-26, 30/sep/2026

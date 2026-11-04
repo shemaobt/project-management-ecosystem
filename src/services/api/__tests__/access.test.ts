@@ -72,6 +72,7 @@ const ACCOUNT = {
   ],
   regions: [{ regionKey: "africa", grantedBy: "u-1", grantedAt: "2026-09-27T10:00:00Z" }],
   regionScope: ["africa"],
+  projects: [{ id: "p-makua", languageName: "Makua", languageNameWithheld: false }],
 };
 
 function refusalOf(payload: unknown): unknown {
@@ -196,6 +197,29 @@ describe("readAccount falha fechado, como readSession", () => {
     expect(
       refusalOf({ ...ACCOUNT, regionScope: ["atlantida"] }),
     ).toMatchObject({ code: UNKNOWN_VOCABULARY });
+  });
+
+  it("lê cada projeto da pessoa com id, nome e o marcador de nome recolhido (OBT-679)", () => {
+    expect(readAccount(ACCOUNT).projects).toEqual([
+      { id: "p-makua", languageName: "Makua", languageNameWithheld: false },
+    ]);
+    expect(readAccount({ ...ACCOUNT, projects: [] }).projects).toEqual([]);
+  });
+
+  it("uma conta sem projects é recusada, não lida como quem não é membro de nada", () => {
+    const older: Record<string, unknown> = { ...ACCOUNT };
+    delete older.projects;
+    expect(refusalOf(older)).toMatchObject({ code: UNKNOWN_VOCABULARY });
+  });
+
+  it("um projeto malformado é recusado, não lido pela metade", () => {
+    const [makua] = ACCOUNT.projects;
+    expect(
+      refusalOf({ ...ACCOUNT, projects: [{ ...makua, languageNameWithheld: "não" }] }),
+    ).toMatchObject({ code: UNKNOWN_VOCABULARY });
+    expect(refusalOf({ ...ACCOUNT, projects: [{ ...makua, id: 7 }] })).toMatchObject({
+      code: UNKNOWN_VOCABULARY,
+    });
   });
 
   it("aceita o escopo global (null) e o vazio", () => {
