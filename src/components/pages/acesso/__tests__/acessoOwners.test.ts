@@ -95,6 +95,14 @@ describe("pôr e tirar membro reflete na aba Equipe da ficha", () => {
     expect(stores.filter((path) => read(path).includes("ProjectMember"))).toEqual([]);
   });
 
+  it("só o MembershipSection fala com membersAPI em /acesso — a lista do cartão tira por ele", () => {
+    const talkers = shipped.filter(
+      (path) => path.startsWith("src/components/pages/acesso/") && read(path).includes("membersAPI"),
+    );
+    expect(talkers).toEqual(["src/components/pages/acesso/MembershipSection.tsx"]);
+    expect(read("src/components/pages/acesso/MemberProjects.tsx")).not.toMatch(/services\/api/u);
+  });
+
   it("tirar alguém confirma com o aviso de que o histórico fica", () => {
     const dialog = section.slice(section.indexOf("<ConfirmDialog"));
     expect(dialog).toContain('t("acesso_member_remove_warning")');

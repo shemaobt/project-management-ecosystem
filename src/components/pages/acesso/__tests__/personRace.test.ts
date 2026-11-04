@@ -25,13 +25,14 @@ const pause = (ms) => new Promise((done) => setTimeout(done, ms));
 const people = {
   "${A_EMAIL}": {
     userId: "u-a", email: "${A_EMAIL}", displayName: "Pessoa A", isActive: true,
-    apps: [], regions: [], regionScope: [],
+    apps: [], regions: [], regionScope: [], projects: [],
   },
   "${B_EMAIL}": {
     userId: "u-b", email: "${B_EMAIL}", displayName: "Pessoa B", isActive: true,
     apps: [{ appKey: "shema", roles: ["obtLab"] }],
     regions: [{ regionKey: "europe", grantedBy: null, grantedAt: "2026-10-28T10:00:00Z" }],
     regionScope: ["europe"],
+    projects: [],
   },
 };
 
