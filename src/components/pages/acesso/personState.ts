@@ -1,3 +1,4 @@
+import { toApiFailure } from "../../../services/api/errors";
 import type { AccountGrants } from "../../../types/access";
 import type { RegionKey } from "../../../types/region";
 import type { ApiFailure } from "../../../types/session";
@@ -30,7 +31,7 @@ export type PersonEvent =
   | { type: "search"; ticket: number; email: string }
   | { type: "answered"; ticket: number; lookup: Lookup }
   | { type: "write"; ticket: number; target: AccountGrants; row: string }
-  | { type: "written"; ticket: number; account: AccountGrants }
+  | { type: "written"; ticket: number; account: AccountGrants; keepsEditing?: boolean }
   | { type: "refused"; ticket: number; failure: ApiFailure }
   | { type: "openRegions"; editing: RegionEditing; clearsRefusal: boolean }
   | { type: "pickRegions"; regions: RegionKey[] }
@@ -113,7 +114,12 @@ export function personReducer(state: PersonState, event: PersonEvent): PersonSta
       if (!write) return state;
       const writes = withoutWrite(state, event.ticket);
       if (onScreen(state, write.target.userId)) {
-        return { ...state, writes, lookup: { kind: "found", account: event.account }, editing: null };
+        return {
+          ...state,
+          writes,
+          lookup: { kind: "found", account: event.account },
+          editing: event.keepsEditing ? state.editing : null,
+        };
       }
       if (!state.left && state.lookup.kind === "searching") {
         return {
@@ -213,4 +219,39 @@ export function createPersonStore(initial: PersonState = NOBODY_SEARCHED): Perso
     },
     ticket: () => (tickets += 1),
   };
+}
+
+export interface MembershipOutcome {
+  changed: boolean;
+  away: AwayNotice | null;
+}
+
+/**
+ * A write of the card, so it answers under the four rules a grant does and nothing crosses it
+ * (OBT-679). It touches no region, so the picker stays open; and once the membership is written a
+ * failed re-read never tells a card the Admin left that the change was not saved.
+ */
+export async function settleMembership(
+  store: PersonStore,
+  reread: (email: string) => Promise<AccountGrants>,
+  target: AccountGrants,
+  row: string,
+  change: () => Promise<unknown>,
+): Promise<MembershipOutcome> {
+  const ticket = store.ticket();
+  store.dispatch({ type: "write", ticket, target, row });
+  try {
+    await change();
+  } catch (raw: unknown) {
+    const away = store.dispatch({ type: "refused", ticket, failure: toApiFailure(raw) });
+    return { changed: false, away };
+  }
+  try {
+    const account = await reread(target.email);
+    const away = store.dispatch({ type: "written", ticket, account, keepsEditing: true });
+    return { changed: true, away };
+  } catch (raw: unknown) {
+    const away = store.dispatch({ type: "refused", ticket, failure: toApiFailure(raw) });
+    return { changed: true, away: away && { ...away, failure: null } };
+  }
 }

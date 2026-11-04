@@ -15,6 +15,12 @@ export interface AccessRegionGrant {
   grantedAt: string;
 }
 
+export interface AccountProject {
+  id: string;
+  languageName: string;
+  languageNameWithheld: boolean;
+}
+
 export interface AccountGrants {
   userId: string;
   email: string;
@@ -23,6 +29,7 @@ export interface AccountGrants {
   apps: AccessAppRoles[];
   regions: AccessRegionGrant[];
   regionScope: RegionKey[] | null;
+  projects: AccountProject[];
 }
 
 export interface RoleGrantPayload {

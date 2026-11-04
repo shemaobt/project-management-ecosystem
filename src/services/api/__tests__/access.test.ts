@@ -72,6 +72,7 @@ const ACCOUNT = {
   ],
   regions: [{ regionKey: "africa", grantedBy: "u-1", grantedAt: "2026-09-27T10:00:00Z" }],
   regionScope: ["africa"],
+  projects: [{ id: "p-makua", languageName: "Makua", languageNameWithheld: false }],
 };
 
 function refusalOf(payload: unknown): unknown {
@@ -198,6 +199,29 @@ describe("readAccount falha fechado, como readSession", () => {
     ).toMatchObject({ code: UNKNOWN_VOCABULARY });
   });
 
+  it("lê cada projeto da pessoa com id, nome e o marcador de nome recolhido (OBT-679)", () => {
+    expect(readAccount(ACCOUNT).projects).toEqual([
+      { id: "p-makua", languageName: "Makua", languageNameWithheld: false },
+    ]);
+    expect(readAccount({ ...ACCOUNT, projects: [] }).projects).toEqual([]);
+  });
+
+  it("uma conta sem projects é recusada, não lida como quem não é membro de nada", () => {
+    const older: Record<string, unknown> = { ...ACCOUNT };
+    delete older.projects;
+    expect(refusalOf(older)).toMatchObject({ code: UNKNOWN_VOCABULARY });
+  });
+
+  it("um projeto malformado é recusado, não lido pela metade", () => {
+    const [makua] = ACCOUNT.projects;
+    expect(
+      refusalOf({ ...ACCOUNT, projects: [{ ...makua, languageNameWithheld: "não" }] }),
+    ).toMatchObject({ code: UNKNOWN_VOCABULARY });
+    expect(refusalOf({ ...ACCOUNT, projects: [{ ...makua, id: 7 }] })).toMatchObject({
+      code: UNKNOWN_VOCABULARY,
+    });
+  });
+
   it("aceita o escopo global (null) e o vazio", () => {
     expect(readAccount({ ...ACCOUNT, regionScope: null }).regionScope).toBeNull();
     expect(readAccount({ ...ACCOUNT, regionScope: [] }).regionScope).toEqual([]);
@@ -212,7 +236,7 @@ describe("readAccount falha fechado, como readSession", () => {
 });
 
 describe("o convidado — describeInvite e join", () => {
-  it("o convite é lido pela rota genérica do formulário, com o token codificado, e mapeado para camelCase", async () => {
+  it("o convite é lido pela rota do módulo Shemá, com o token codificado, e mapeado para camelCase", async () => {
     script = () => ({
       status: 200,
       data: {
@@ -226,7 +250,7 @@ describe("o convidado — describeInvite e join", () => {
       },
     });
     const invite = await accessAPI.describeInvite("a b/c");
-    expect(calls[0].path).toBe("/resource-requests/access/invites/a%20b%2Fc");
+    expect(calls[0].path).toBe("/shema/access/invites/a%20b%2Fc");
     expect(invite).toEqual({
       status: "pending",
       email: "novo@exemplo.org",
@@ -253,7 +277,7 @@ describe("o convidado — describeInvite e join", () => {
     expect(outcome).toEqual({ ok: true });
     expect(calls.map((call) => call.path)).toEqual([
       "/auth/signup",
-      "/resource-requests/access/invites/tok/accept",
+      "/shema/access/invites/tok/accept",
       "/auth/logout",
     ]);
     expect(calls[0].body).toEqual({
