@@ -14,7 +14,6 @@ export interface MemberProjectsProps {
   onRemove: (project: AccountProject) => void;
 }
 
-/** Pure, so the static render the suite has sees every state (OBT-679). */
 export function MemberProjects({
   person,
   projects,
