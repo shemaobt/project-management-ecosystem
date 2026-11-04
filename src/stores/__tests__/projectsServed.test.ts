@@ -415,7 +415,7 @@ describe("o seletor de membros de /acesso relê a lista (OBT-680)", () => {
 
   beforeEach(freshSession);
 
-  it("um projeto criado depois da última leitura não vem pelo hydrate — o que o seletor usava — e vem pelo revisit, na ordem do seletor", async () => {
+  it("um projeto criado depois da última leitura não vem pelo hydrate — o que o cartão faz ao aparecer — e vem pelo revisit, o da abertura, na ordem do seletor", async () => {
     pages = [servedPage([CHICHEWA], 1), servedPage([CHICHEWA, BARI], 2)];
     await store().hydrate();
 

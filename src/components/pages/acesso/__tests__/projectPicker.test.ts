@@ -144,6 +144,7 @@ describe.skipIf(!CHROME)("o seletor de projetos de /acesso traz um projeto criad
   const seen: {
     openCard?: string[];
     newCardReads?: number;
+    newCardOpenReads?: number;
     newCard?: string[];
     whileHeld?: string[];
     afterHeld?: string[];
@@ -190,10 +191,11 @@ describe.skipIf(!CHROME)("o seletor de projetos de /acesso traz um projeto criad
     served.push(card("lingala", "Lingala"));
     const before = reads;
     await call("newCard()");
-    await readsReach(before + 1);
+    await new Promise((done) => setTimeout(done, 500));
     seen.newCardReads = reads - before;
     await call("open()");
     seen.newCard = await call<string[]>(`waitOption("Lingala")`);
+    seen.newCardOpenReads = reads - before;
     await call("close()");
 
     served.push(card("tikuna", "Tikuna"));
@@ -217,8 +219,9 @@ describe.skipIf(!CHROME)("o seletor de projetos de /acesso traz um projeto criad
     expect(seen.openCard).toEqual(["Bari", "Chichewa"]);
   });
 
-  it("um cartão novo — outra busca — pede a lista ao aparecer, e o projeto criado depois está no seletor", () => {
-    expect(seen.newCardReads).toBeGreaterThanOrEqual(1);
+  it("um cartão novo — outra busca — não pede a lista só por aparecer; abrir o seletor pede uma vez e traz o projeto criado depois", () => {
+    expect(seen.newCardReads).toBe(0);
+    expect(seen.newCardOpenReads).toBe(1);
     expect(seen.newCard).toEqual(["Bari", "Chichewa", "Lingala"]);
   });
 

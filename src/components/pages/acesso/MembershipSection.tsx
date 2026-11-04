@@ -134,7 +134,7 @@ export function MembershipSection({ person }: MembershipSectionProps) {
   const [refusal, setRefusal] = useState<ApiFailure | null>(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
-  useProjectListRead({ everyVisit: true });
+  useProjectListRead();
 
   const name = person.displayName ?? person.email;
 
