@@ -94,6 +94,15 @@ export interface IntercessorCreate {
   consentBasis: string;
 }
 
+/**
+ * `directory` for somebody already in the network, found by the contact they were asked
+ * through (OBT-681): whoever withheld it is on no screen, so the console never holds their id.
+ */
+export interface DirectoryConsentByContact {
+  contact: string;
+  basis: string;
+}
+
 export interface IntercessorUpdatePayload {
   name?: string;
   country?: CountryCode;

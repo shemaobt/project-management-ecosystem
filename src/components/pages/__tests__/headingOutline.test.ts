@@ -194,6 +194,7 @@ const areas: Record<string, () => string> = {
           onRemove: () => Promise.reject(new Error("unused")),
           onRevealContact: async () => null,
           onReview: () => Promise.reject(new Error("unused")),
+          onListWithheld: () => Promise.reject(new Error("unused")),
         }),
       ),
     ),

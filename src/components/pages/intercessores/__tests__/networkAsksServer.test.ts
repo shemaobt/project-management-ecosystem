@@ -23,6 +23,7 @@ const store = {
   removeIntercessor: async () => false,
   revealContact: async () => null,
   reviewIntercessor: async () => false,
+  listWithheld: async () => ({ kind: "notFound" }),
 };
 
 vi.mock("../../../../stores/prayerStore", () => ({

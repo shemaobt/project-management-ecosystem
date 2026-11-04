@@ -2,7 +2,7 @@ import { Lock, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../contexts/AuthContext";
-import { usePrayerStore } from "../../../stores/prayerStore";
+import { usePrayerStore, type DirectoryListing } from "../../../stores/prayerStore";
 import type { IntercessorEntry } from "../../../types/prayer";
 import {
   EMPTY_CREATE_DRAFT,
@@ -12,6 +12,7 @@ import {
   missingEditFields,
   toEditDraft,
   type CreateField,
+  type DirectoryGrantDraft,
   type EditField,
   type IntercessorCreateDraft,
   type IntercessorEditDraft,
@@ -24,10 +25,11 @@ import { LoadingSpinner } from "../../common/LoadingSpinner";
 import { ProjectsUnread } from "../../common/ProjectsUnread";
 import { useReviewsPrayer } from "../../../hooks/useReviewsPrayer";
 import { SubNav } from "../oracao/SubNav";
-import { Input } from "../../ui";
+import { Input, toast } from "../../ui";
 import { CountryGroup } from "./CountryGroup";
 import { EditIntercessorDialog } from "./EditIntercessorDialog";
 import { IntercessorForm } from "./IntercessorForm";
+import { ListWithheldDialog } from "./ListWithheldDialog";
 import { NetworkNotices } from "./NetworkNotices";
 import { RemoveIntercessorDialog } from "./RemoveIntercessorDialog";
 
@@ -42,8 +44,9 @@ export interface IntercessoresViewProps {
   withheldReviewDueCount: number;
   /**
    * Whether this reader writes the network — coordination and the Admin (OBT-574). The
-   * Resource Circle reads it and reveals a contact; it gets no form, no edit and no removal,
-   * which the server would refuse — and so no way to open the two dialogs.
+   * Resource Circle reads it and reveals a contact; it gets no form, no edit, no removal and no
+   * listing of a withheld member by contact (OBT-681), which the server would refuse — and so no
+   * way to open the three dialogs.
    */
   canWrite: boolean;
   /** Whether this reader marks the one-year review — the writers and the Resource Circle. */
@@ -53,6 +56,8 @@ export interface IntercessoresViewProps {
   onRemove: (id: string) => Promise<boolean>;
   onRevealContact: (id: string) => Promise<string | null>;
   onReview: (id: string) => Promise<boolean>;
+  /** `directory` for a member the list does not show, found by their contact (OBT-681). */
+  onListWithheld: (draft: DirectoryGrantDraft) => Promise<DirectoryListing>;
   /** Whether the prayer area's review tab is offered (OBT-575). */
   reviews?: boolean;
 }
@@ -70,6 +75,7 @@ export function IntercessoresView({
   onRemove,
   onRevealContact,
   onReview,
+  onListWithheld,
   reviews = false,
 }: IntercessoresViewProps) {
   const { t } = useTranslation();
@@ -87,6 +93,7 @@ export function IntercessoresView({
   const [contactingId, setContactingId] = useState<string | null>(null);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [removing, setRemoving] = useState<IntercessorEntry | null>(null);
+  const [listing, setListing] = useState(false);
   const [query, setQuery] = useState("");
 
   const locale = t("locale");
@@ -151,6 +158,16 @@ export function IntercessoresView({
       person.contactChannel === "email"
         ? `mailto:${contact}`
         : `tel:${contact}`;
+  };
+
+  const listWithheld = async (draft: DirectoryGrantDraft) => {
+    const outcome = await onListWithheld(draft);
+    if (outcome.kind === "listed") {
+      toast(t("int_list_withheld_done", { name: outcome.entry.name }));
+    } else if (outcome.kind === "already") {
+      toast(t("int_list_withheld_already", { name: outcome.entry.name }));
+    }
+    return outcome;
   };
 
   const handleReview = async (person: IntercessorEntry) => {
@@ -256,6 +273,7 @@ export function IntercessoresView({
             reviewDueCount={reviewDueCount}
             withheldCount={withheldCount}
             withheldReviewDueCount={withheldReviewDueCount}
+            onListWithheld={canWrite ? () => setListing(true) : undefined}
           />
 
           {groups.length === 0 ? (
@@ -304,6 +322,12 @@ export function IntercessoresView({
         onClose={() => setRemoving(null)}
         onConfirm={onRemove}
       />
+
+      <ListWithheldDialog
+        open={listing}
+        onClose={() => setListing(false)}
+        onSubmit={listWithheld}
+      />
     </section>
   );
 }
@@ -324,6 +348,7 @@ export function IntercessoresPage() {
   const removeIntercessor = usePrayerStore((state) => state.removeIntercessor);
   const revealContact = usePrayerStore((state) => state.revealContact);
   const reviewIntercessor = usePrayerStore((state) => state.reviewIntercessor);
+  const listWithheld = usePrayerStore((state) => state.listWithheld);
   const reviews = useReviewsPrayer();
 
   // Always fetched on arrival, cache or not: `reviewDue` is the server's answer for today,
@@ -347,6 +372,7 @@ export function IntercessoresPage() {
       onRemove={removeIntercessor}
       onRevealContact={revealContact}
       onReview={reviewIntercessor}
+      onListWithheld={listWithheld}
       reviews={reviews}
     />
   );
