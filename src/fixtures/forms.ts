@@ -221,7 +221,6 @@ function isBookRow(value: unknown): value is BookProgressItem {
   );
 }
 
-/** The Pulse's book rows: `null` when it sent none, `"refused"` when the record would not take them. */
 function bookRows(answers: IntakeAnswers | undefined): BookProgressItem[] | null | "refused" {
   const rows = answers?.bookProgress;
   if (rows === undefined || rows === null) return null;

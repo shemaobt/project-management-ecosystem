@@ -474,7 +474,7 @@ export const formsAPI = {
     version: string,
   ): Promise<SubmissionApplyResult> {
     try {
-      const response = await http.post<unknown>(
+      const response = await http.post<ReceivedSubmission>(
         `${SHEMA}/forms/submissions/${encodeURIComponent(submissionId)}/import`,
         undefined,
         {
@@ -490,7 +490,7 @@ export const formsAPI = {
           version: etagOf(response.headers),
         };
       }
-      return { ok: true, submission: response.data as ReceivedSubmission };
+      return { ok: true, submission: response.data };
     } catch (thrown) {
       return { ok: false, reason: "failed", failure: toApiFailure(thrown) };
     }
