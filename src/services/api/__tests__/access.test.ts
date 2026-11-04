@@ -236,7 +236,7 @@ describe("readAccount falha fechado, como readSession", () => {
 });
 
 describe("o convidado — describeInvite e join", () => {
-  it("o convite é lido pela rota genérica do formulário, com o token codificado, e mapeado para camelCase", async () => {
+  it("o convite é lido pela rota do módulo Shemá, com o token codificado, e mapeado para camelCase", async () => {
     script = () => ({
       status: 200,
       data: {
@@ -250,7 +250,7 @@ describe("o convidado — describeInvite e join", () => {
       },
     });
     const invite = await accessAPI.describeInvite("a b/c");
-    expect(calls[0].path).toBe("/resource-requests/access/invites/a%20b%2Fc");
+    expect(calls[0].path).toBe("/shema/access/invites/a%20b%2Fc");
     expect(invite).toEqual({
       status: "pending",
       email: "novo@exemplo.org",
@@ -277,7 +277,7 @@ describe("o convidado — describeInvite e join", () => {
     expect(outcome).toEqual({ ok: true });
     expect(calls.map((call) => call.path)).toEqual([
       "/auth/signup",
-      "/resource-requests/access/invites/tok/accept",
+      "/shema/access/invites/tok/accept",
       "/auth/logout",
     ]);
     expect(calls[0].body).toEqual({
