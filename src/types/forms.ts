@@ -1,4 +1,6 @@
 import type { MeetingCadence, MeetingReadiness } from "./meeting";
+import type { RecordConflict } from "./projectRecord";
+import type { ApiFailure } from "./session";
 
 export type FormKind = MeetingReadiness;
 
@@ -68,6 +70,18 @@ export interface ReceivedSubmission {
   definitionVersion: number;
   appliedAt: string | null;
 }
+
+/**
+ * What applying one received Pulse to the record answered (`POST …/forms/submissions/{id}/import`,
+ * OBT-652). A Pulse already applied answers `ok` too — the server's idempotent no-op — so the row
+ * converges on *applied* whoever applied it. A conflict carries the record's version the refusal
+ * named (its `ETag`): the panel says who moved what since the Pulse was opened, and applying again
+ * quotes exactly that version. `version` is `""` when the refusal carried none.
+ */
+export type SubmissionApplyResult =
+  | { ok: true; submission: ReceivedSubmission }
+  | { ok: false; reason: "conflict"; conflict: RecordConflict; version: string }
+  | { ok: false; reason: "failed"; failure: ApiFailure };
 
 // --- the leader link and the form it serves — BE-12 (OBT-401) ---------------------
 

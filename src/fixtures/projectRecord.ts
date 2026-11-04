@@ -7,7 +7,7 @@ import type { RecordSaveResult } from "../services/api/projectRecord";
 import type { ApiFailure } from "../types/session";
 import { applyAssessment } from "../utils/assessment";
 import { toLocalIsoDate } from "../utils/format";
-import { applyProgressUpdate } from "../utils/progress";
+import { applyProgressUpdate, type ProgressEntrySource } from "../utils/progress";
 import { computeDerived } from "../utils/projectDerived";
 import {
   mayWrite,
@@ -132,6 +132,43 @@ export function createRecord(project: Project): RecordSaveResult {
   return { ok: true, record: store(filed, VERSION_ONE) };
 }
 
+type Guarded =
+  | { ok: true; project: Project; version: number }
+  | { ok: false; refusal: RecordSaveResult };
+
+function guarded(id: string, version: string): Guarded {
+  const kept = held(id);
+  if (!kept) {
+    return {
+      ok: false,
+      refusal: {
+        ok: false,
+        reason: "invalid",
+        errors: [{ field: null, index: null, message: `${id}: no such record` }],
+      },
+    };
+  }
+  if (kept.version !== versionOf(version)) {
+    return {
+      ok: false,
+      refusal: {
+        ok: false,
+        reason: "conflict",
+        conflict: {
+          expectedVersion: versionOf(version),
+          currentVersion: kept.version,
+          changedFields: [],
+          unknownFields: [],
+          changedBy: "",
+          changedAt: null,
+          detail: null,
+        },
+      },
+    };
+  }
+  return { ok: true, ...kept };
+}
+
 /**
  * The double's own version guard: the same shape the server's is, so a screen that
  * handles one handles the other. It rolls the aggregates and appends the history entry
@@ -143,29 +180,8 @@ export function patchRecord(
   patch: Record<string, unknown>,
   version: string,
 ): RecordSaveResult {
-  const kept = held(id);
-  if (!kept) {
-    return {
-      ok: false,
-      reason: "invalid",
-      errors: [{ field: null, index: null, message: `${id}: no such record` }],
-    };
-  }
-  if (kept.version !== versionOf(version)) {
-    return {
-      ok: false,
-      reason: "conflict",
-      conflict: {
-        expectedVersion: versionOf(version),
-        currentVersion: kept.version,
-        changedFields: [],
-        unknownFields: [],
-        changedBy: "",
-        changedAt: null,
-        detail: null,
-      },
-    };
-  }
+  const kept = guarded(id, version);
+  if (!kept.ok) return kept.refusal;
 
   // The server's refusal (OBT-528, OBT-553, OBT-556): a reader who is not coordination
   // writes neither the place nor the flag, on a withheld record neither the base, the
@@ -226,6 +242,26 @@ export function patchRecord(
   if ("team" in patch) merged.ywamBase = merged.team;
 
   const applied = applyProgressUpdate(kept.project, merged, toLocalIsoDate());
+  return { ok: true, record: store(applied, kept.version + 1) };
+}
+
+/**
+ * A Pulse's progress written to the record — the double behind `apply_submission`'s
+ * `save_project` call (OBT-652): the version guard of a typed save, the absolute book rows the
+ * leader sent, and the history entry stamped with where it came from. `null` rows change nothing
+ * but still meet the guard, as on the server, where the version is checked before anything moves.
+ */
+export function applyPulseProgress(
+  id: string,
+  bookProgress: Project["bookProgress"] | null,
+  version: string,
+  source: ProgressEntrySource,
+): RecordSaveResult {
+  const kept = guarded(id, version);
+  if (!kept.ok) return kept.refusal;
+  if (bookProgress === null) return { ok: true, record: readRecord(id) };
+  const merged: Project = { ...clone(kept.project), bookProgress: structuredClone(bookProgress) };
+  const applied = applyProgressUpdate(kept.project, merged, toLocalIsoDate(), source);
   return { ok: true, record: store(applied, kept.version + 1) };
 }
 

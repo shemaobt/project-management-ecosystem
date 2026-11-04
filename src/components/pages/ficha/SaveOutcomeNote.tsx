@@ -1,51 +1,18 @@
-import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { FIELD_LABEL_KEYS, tabOf } from "../../../constants/recordFields";
+import { tabOf } from "../../../constants/recordFields";
 import type { RecordTabId } from "../../../constants/recordTabs";
 import { failureMessage } from "../../../services/api";
 import type { SaveOutcome } from "../../../stores/projectRecordStore";
 import type { RecordField, RecordFieldError } from "../../../types/projectRecord";
-import { cn } from "../../../utils/cn";
-import { formatDate } from "../../../utils/format";
+import { OutcomePanel as Panel } from "../../common/OutcomePanel";
 import { Button } from "../../ui";
-import { savedSentence } from "./saveReport";
+import { conflictSentence, fieldList, savedSentence } from "./saveReport";
 
 export interface SaveOutcomeNoteProps {
   outcome: SaveOutcome;
   saving: boolean;
   onRetry: () => void;
   onGoToTab: (tab: RecordTabId) => void;
-}
-
-type Tone = "attention" | "refused" | "quiet";
-
-const TONES: Record<Tone, string> = {
-  attention: "border-status-attention-fg bg-status-attention-bg",
-  refused: "border-telha bg-accent-soft",
-  quiet: "border-line-strong bg-muted",
-};
-
-function Panel({
-  tone,
-  title,
-  children,
-}: {
-  tone: Tone;
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      role="status"
-      className={cn(
-        "flex flex-col gap-2 rounded-md border-l-4 px-4.5 py-3.5 text-small leading-[1.45] text-fg",
-        TONES[tone],
-      )}
-    >
-      <strong className="font-semibold">{title}</strong>
-      {children}
-    </div>
-  );
 }
 
 function ErrorLine({
@@ -102,13 +69,9 @@ export function SaveOutcomeNote({
 }: SaveOutcomeNoteProps) {
   const { t } = useTranslation();
 
-  const fieldName = (field: RecordField): string => {
-    const key = FIELD_LABEL_KEYS[field];
-    return key ? t(key) : field;
-  };
+  const fieldName = (field: RecordField): string => fieldList([field], t);
 
-  const list = (fields: readonly RecordField[], extra: readonly string[] = []) =>
-    [...fields.map(fieldName), ...extra].join(" · ");
+  const list = (fields: readonly RecordField[]) => fieldList(fields, t);
 
   const action = (label: string) => (
     <div>
@@ -122,26 +85,10 @@ export function SaveOutcomeNote({
   switch (outcome.kind) {
     case "conflict": {
       const { conflict, overlap } = outcome;
-      const named =
-        conflict.changedFields.length > 0 || conflict.unknownFields.length > 0;
       return (
         <Panel tone="attention" title={t("record_conflict_title")}>
           <p>{t("record_conflict_kept")}</p>
-          <p>
-            {conflict.changedBy
-              ? t("record_conflict_by", {
-                  name: conflict.changedBy,
-                  date: conflict.changedAt
-                    ? formatDate(conflict.changedAt)
-                    : "—",
-                })
-              : t("record_conflict_by_unnamed")}{" "}
-            {named
-              ? t("record_conflict_changed", {
-                  fields: list(conflict.changedFields, conflict.unknownFields),
-                })
-              : t("record_conflict_changed_unknown")}
-          </p>
+          <p>{conflictSentence(conflict, t)}</p>
           <p className="font-semibold">
             {overlap.length > 0
               ? t("record_conflict_overlap", { fields: list(overlap) })
