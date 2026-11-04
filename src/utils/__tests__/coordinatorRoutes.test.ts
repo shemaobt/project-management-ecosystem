@@ -3,6 +3,7 @@ import { REGIONS } from "../../constants/regions";
 import type { RegionKey } from "../../types/region";
 import type { SessionRole } from "../../types/session";
 import {
+  canApplySubmission,
   canMintLeaderLinks,
   canWithdrawMediaAuthorization,
   canWriteRegionTeam,
@@ -95,5 +96,23 @@ describe("a retirada da autorização da foto segue a mesma régua (OBT-620)", (
 
   it("sem a região do projeto, não aparece nem para a plataforma", () => {
     expect(canWithdrawMediaAuthorization(PLATFORM.roles, PLATFORM.writes)).toBe(false);
+  });
+});
+
+describe("aplicar um Pulso da caixa na ficha segue a régua do POST …/import (OBT-652)", () => {
+  it.each(MATRIX)("o botão de aplicar aparece só para quem a rota admite, na região do projeto — %s", (who, expected) => {
+    expect(canApplySubmission(who.roles, who.writes, who.home), who.name).toBe(expected);
+  });
+
+  it("a coordenação aplica só onde escreve; a plataforma, em qualquer região", () => {
+    for (const region of ALL_REGIONS) {
+      expect(canApplySubmission(COORD.roles, COORD.writes, region), region).toBe(region === "south-america");
+      expect(canApplySubmission(PLATFORM.roles, PLATFORM.writes, region), region).toBe(true);
+    }
+  });
+
+  it("sem a região do projeto, ninguém vê o botão", () => {
+    expect(canApplySubmission(COORD.roles, COORD.writes)).toBe(false);
+    expect(canApplySubmission(PLATFORM.roles, PLATFORM.writes)).toBe(false);
   });
 });

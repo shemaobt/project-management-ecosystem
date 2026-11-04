@@ -656,7 +656,7 @@ function located(entries: readonly unknown[]): RecordFieldError[] {
   });
 }
 
-function etagOf(headers: unknown): string {
+export function etagOf(headers: unknown): string {
   const value = asRecord(headers)?.etag;
   return typeof value === "string" ? value : "";
 }

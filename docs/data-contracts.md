@@ -1182,11 +1182,13 @@ year's had not arrived on 28/set/2026; it lands as a presenter in `shema-api`'s
 GET  /api/shema/forms/submissions                  -> ReceivedSubmission[]
 POST /api/shema/forms/pulse/{projectId}            -> the generated artifact        # Open · GATE-03
 POST /api/shema/forms/submissions                  {the returned artifact}  -> ReceivedSubmission
+POST /api/shema/forms/submissions/{id}/import      If-Match, X-Shema-Local-Date  -> ReceivedSubmission   # coordinator · 409 = RecordConflict + ETag · OBT-652
 POST /api/shema/intake-links   {projectId?, expiresAt}  -> {token, url, expiresAt}
 GET  /api/shema/intake/{token}                     -> the public intake form        # no auth
 POST /api/shema/intake/{token}                     {the filled form}  -> 202        # no auth
 POST /api/shema/intake/{token}/image               raw bytes, Content-Type + X-File-Name -> {id, fileName, contentType}  # no auth · OBT-578
-GET  /api/shema/forms/submissions/{id}             -> ReceivedSubmissionDetail {…, fields, answers, answersWithheld}   # OBT-580
+GET  /api/shema/forms/submissions/{id}             -> ReceivedSubmissionDetail {…, fields, answers, answersWithheld, pendingImage}   # OBT-580 · pendingImage OBT-585
+GET  /api/shema/forms/submissions/{id}/image/link  -> {url, expiresInMinutes}   # a pending Pulse's image · 403/404 with no reason · OBT-585/674
 GET  /api/shema/projects/{id}/media/{item}/link    -> {url, expiresInMinutes}   # 403 with no reason · OBT-581/582
 POST /api/shema/projects/{id}/media/{item}/authorization/withdraw  -> {granted, by, at}   # coordinator · OBT-578/582
 ```

@@ -5,6 +5,7 @@ import {
   membersAPI,
   toApiFailure,
 } from "../../../services/api";
+import { useProjectListRead } from "../../../hooks/useProjectListRead";
 import { useProjectsStore } from "../../../stores/projectsStore";
 import type { AccountGrants, AccountProject } from "../../../types/access";
 import type { Project, ProjectMember } from "../../../types/project";
@@ -139,16 +140,14 @@ export function MembershipSection({ person, acting, refusal, onChange }: Members
   const projects = useProjectsStore((state) => state.projects);
   const hydrated = useProjectsStore((state) => state.hydrated);
   const loadFailure = useProjectsStore((state) => state.error);
-  const hydrate = useProjectsStore((state) => state.hydrate);
+  const revisit = useProjectsStore((state) => state.revisit);
   const reload = useProjectsStore((state) => state.reload);
 
   const [projectId, setProjectId] = useState("");
   const [version, setVersion] = useState(0);
   const [confirmRemove, setConfirmRemove] = useState<Removal | null>(null);
 
-  useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+  useProjectListRead();
 
   const name = person.displayName ?? person.email;
 
@@ -204,7 +203,12 @@ export function MembershipSection({ person, acting, refusal, onChange }: Members
       ) : sorted.length === 0 ? (
         <p className="text-small text-fg-muted">{t("acesso_members_no_projects")}</p>
       ) : (
-        <ProjectSelector projects={sorted} value={projectId} onChange={setProjectId} />
+        <ProjectSelector
+          projects={sorted}
+          value={projectId}
+          onChange={setProjectId}
+          onOpen={() => void revisit()}
+        />
       )}
       {projectId ? (
         <ProjectRoster
