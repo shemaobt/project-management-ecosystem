@@ -1186,7 +1186,8 @@ POST /api/shema/intake-links   {projectId?, expiresAt}  -> {token, url, expiresA
 GET  /api/shema/intake/{token}                     -> the public intake form        # no auth
 POST /api/shema/intake/{token}                     {the filled form}  -> 202        # no auth
 POST /api/shema/intake/{token}/image               raw bytes, Content-Type + X-File-Name -> {id, fileName, contentType}  # no auth · OBT-578
-GET  /api/shema/forms/submissions/{id}             -> ReceivedSubmissionDetail {…, fields, answers, answersWithheld}   # OBT-580
+GET  /api/shema/forms/submissions/{id}             -> ReceivedSubmissionDetail {…, fields, answers, answersWithheld, pendingImage}   # OBT-580 · pendingImage OBT-585
+GET  /api/shema/forms/submissions/{id}/image/link  -> {url, expiresInMinutes}   # a pending Pulse's image · 403/404 with no reason · OBT-585/674
 GET  /api/shema/projects/{id}/media/{item}/link    -> {url, expiresInMinutes}   # 403 with no reason · OBT-581/582
 POST /api/shema/projects/{id}/media/{item}/authorization/withdraw  -> {granted, by, at}   # coordinator · OBT-578/582
 ```

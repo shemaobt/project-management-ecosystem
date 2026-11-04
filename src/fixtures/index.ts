@@ -44,6 +44,7 @@ import {
   listIntakeLinks,
   loadReceivedSubmissions,
   mintIntakeLink,
+  pendingImageLink,
   readIntakeForm,
   readSubmission,
   revokeIntakeLink,
@@ -264,6 +265,9 @@ export const formsAPI = {
   },
   async readSubmission(submissionId: string): Promise<ReceivedSubmissionDetail> {
     return readSubmission(submissionId);
+  },
+  async pendingImageLink(submissionId: string): Promise<MediaLink> {
+    return pendingImageLink(submissionId);
   },
 };
 

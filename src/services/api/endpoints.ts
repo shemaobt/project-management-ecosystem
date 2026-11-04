@@ -63,7 +63,7 @@ import type {
   PrayerRequest,
   PrayerReviewEntry,
 } from "../../types/prayer";
-import type { Project, ProjectMember, ProjectRef } from "../../types/project";
+import type { MediaLink, Project, ProjectMember, ProjectRef } from "../../types/project";
 import type { Region, RegionKey, RegionTeam, RoleChange } from "../../types/region";
 import type { RequestDecisionStage } from "../../types/request";
 import type { ImportError } from "../../utils/export";
@@ -466,6 +466,18 @@ export const formsAPI = {
       `${SHEMA}/forms/submissions/${encodeURIComponent(submissionId)}`,
     );
     return data;
+  },
+
+  /**
+   * A signed link to a pending Pulse's image, minted by this call (OBT-585), so the
+   * coordination sees the photograph where it decides the import (OBT-674). A 403 or 404
+   * names no reason, and the caller shows no picture.
+   */
+  async pendingImageLink(submissionId: string): Promise<MediaLink> {
+    const { data } = await http.get<MediaLink>(
+      `${SHEMA}/forms/submissions/${encodeURIComponent(submissionId)}/image/link`,
+    );
+    return { url: data.url, expiresInMinutes: data.expiresInMinutes };
   },
 
   async mintIntakeLink(
