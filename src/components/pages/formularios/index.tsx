@@ -13,7 +13,7 @@ import type {
   SubmissionApplyResult,
 } from "../../../types/forms";
 import type { ApiFailure } from "../../../types/session";
-import type { Project } from "../../../types/project";
+import type { MediaLink, Project } from "../../../types/project";
 import type { RegionKey } from "../../../types/region";
 import type { SessionRole } from "../../../types/session";
 import {
@@ -56,6 +56,8 @@ export interface FormulariosViewProps {
   onRetry?: () => void;
   /** Opens one received Pulse's answers in the inbox (OBT-580). */
   readSubmission?: (submissionId: string) => Promise<ReceivedSubmissionDetail>;
+  /** Mints a pending Pulse's image link (OBT-674) — the inbox asks only where the route serves it. */
+  pendingImageLink?: (submissionId: string) => Promise<MediaLink>;
   /**
    * Whether this reader files a health assessment (`canWriteHealth`, OBT-579). Without it the
    * card draws no button: the server refuses the filing at the end of the four dimensions, and
@@ -88,6 +90,7 @@ export function FormulariosView({
   loadFailure = null,
   onRetry,
   readSubmission,
+  pendingImageLink,
   writesHealth = true,
   readsHealth = true,
   writeRegionScope,
@@ -218,6 +221,7 @@ export function FormulariosView({
                 submissions={archive}
                 readSubmission={readSubmission}
                 apply={apply}
+                pendingImageLink={pendingImageLink}
               />
             </>
           ) : (
@@ -266,6 +270,7 @@ export function FormulariosPage() {
       loadFailure={loadFailure}
       onRetry={() => void reloadProjects()}
       readSubmission={(id) => formsAPI.readSubmission(id)}
+      pendingImageLink={(id) => formsAPI.pendingImageLink(id)}
       writesHealth={canWriteHealth(user.roles)}
       readsHealth={canReadHealth(user.roles)}
       writeRegionScope={user.writeRegionScope}

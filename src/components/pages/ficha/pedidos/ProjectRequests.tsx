@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { ADMIN_ROLE } from "../../../../constants/access";
 import { useAuth } from "../../../../contexts/AuthContext";
@@ -6,11 +6,8 @@ import { useResourceForm } from "../../../../hooks/useResourceForm";
 import {
   failureMessage,
   membersAPI,
-  toApiFailure,
   type ResourceRequestsAPI,
 } from "../../../../services/api";
-import type { RequestCard } from "../../../../types/request";
-import type { ApiFailure } from "../../../../types/session";
 import {
   projectContext,
   requestAction,
@@ -18,6 +15,7 @@ import {
 } from "../../../../utils/requests";
 import { RequestButton } from "./RequestButton";
 import { RequestsPanel } from "./RequestsPanel";
+import { createRequestList } from "./requestList";
 
 export interface ProjectRequestsProps {
   api: ResourceRequestsAPI;
@@ -28,27 +26,17 @@ export function ProjectRequests({ api, projectId }: ProjectRequestsProps) {
   const { t } = useTranslation();
   const { user, apps } = useAuth();
   const admin = user.roles.includes(ADMIN_ROLE);
-  const [cards, setCards] = useState<readonly RequestCard[] | null>(null);
-  const [failure, setFailure] = useState<ApiFailure | null>(null);
+  const [list] = useState(() => createRequestList(api, projectId));
+  const { cards, failure } = useSyncExternalStore(list.subscribe, list.get, list.get);
   const [memberOf, setMemberOf] = useState<readonly string[] | null>(null);
   const [membershipFailed, setMembershipFailed] = useState(false);
   const [membershipReads, setMembershipReads] = useState(0);
   const { open, opening } = useResourceForm(apps.resourceRequestForm);
 
   useEffect(() => {
-    let cancelled = false;
-    api
-      .projectRequests(projectId)
-      .then((result) => {
-        if (!cancelled) setCards(result);
-      })
-      .catch((raw: unknown) => {
-        if (!cancelled) setFailure(toApiFailure(raw));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [api, projectId]);
+    void list.open();
+    return list.rereadOnReturn(document);
+  }, [list]);
 
   useEffect(() => {
     if (admin) return;

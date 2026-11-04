@@ -4,6 +4,7 @@ import { failureMessage, toApiFailure } from "../../../services/api";
 import { FORM_TAG_LABEL_KEYS } from "../../../constants/forms";
 import { surfaceOutlined } from "../../../styles";
 import type { ReceivedSubmission, ReceivedSubmissionDetail } from "../../../types/forms";
+import type { MediaLink } from "../../../types/project";
 import { cn } from "../../../utils/cn";
 import { formatDate } from "../../../utils/format";
 import { focusIsLost, scheduleFocusRescue } from "../../../utils/focus";
@@ -18,6 +19,8 @@ export interface ReceivedArchiveProps {
   /** Opens one submission's answers (OBT-580); without it the rows are the listing alone. */
   readSubmission?: (submissionId: string) => Promise<ReceivedSubmissionDetail>;
   apply?: PulseApplyAccess;
+  /** Mints a pending Pulse's image link (OBT-674), asked only where the detail says the route serves it. */
+  pendingImageLink?: (submissionId: string) => Promise<MediaLink>;
 }
 
 type Opened =
@@ -25,7 +28,12 @@ type Opened =
   | { kind: "failed"; message: string }
   | { kind: "read"; detail: ReceivedSubmissionDetail };
 
-export function ReceivedArchive({ submissions, readSubmission, apply }: ReceivedArchiveProps) {
+export function ReceivedArchive({
+  submissions,
+  readSubmission,
+  apply,
+  pendingImageLink,
+}: ReceivedArchiveProps) {
   const { t } = useTranslation();
   const [opened, setOpened] = useState<Record<string, Opened>>({});
   const listRef = useRef<HTMLUListElement>(null);
@@ -143,7 +151,7 @@ export function ReceivedArchive({ submissions, readSubmission, apply }: Received
                   </Button>
                 ) : null}
               </div>
-              <OpenedAnswers state={opened[submission.id]} />
+              <OpenedAnswers state={opened[submission.id]} pendingImageLink={pendingImageLink} />
               {opened[submission.id]?.kind === "read" ? (
                 <ApplySlot submission={submission} access={access} />
               ) : null}
@@ -174,7 +182,13 @@ export function ApplySlot({
   return <PulseApply submission={submission} access={access} />;
 }
 
-function OpenedAnswers({ state }: { state: Opened | undefined }) {
+function OpenedAnswers({
+  state,
+  pendingImageLink,
+}: {
+  state: Opened | undefined;
+  pendingImageLink: ReceivedArchiveProps["pendingImageLink"];
+}) {
   const { t } = useTranslation();
   if (!state) return null;
   if (state.kind === "loading") {
@@ -185,7 +199,7 @@ function OpenedAnswers({ state }: { state: Opened | undefined }) {
   }
   return (
     <div className="mt-3">
-      <SubmissionAnswers detail={state.detail} />
+      <SubmissionAnswers detail={state.detail} pendingImageLink={pendingImageLink} />
     </div>
   );
 }
