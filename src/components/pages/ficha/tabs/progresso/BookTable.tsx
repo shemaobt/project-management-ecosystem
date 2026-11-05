@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BIBLE_BOOKS, bookName, bookNameById } from "../../../../../constants/bible";
 import type { BookProgressItem } from "../../../../../types/project";
@@ -36,13 +36,14 @@ export interface BookTableProps {
  * What a cut says, in the table's own words (OBT-605): the book and its ceiling, kept on screen
  * until the person types in that field again — never a toast that leaves before it is read.
  * The live region is always mounted and only its text changes, which is what a screen reader
- * announces; a region born together with its text is often missed.
+ * announces; a region born together with its text is often missed. The sentence carries `id`
+ * so the cut cell can point at it (OBT-670): the id exists only while the sentence does.
  */
-export function CappedNotice({ text }: { text: string | null }) {
+export function CappedNotice({ text, id }: { text: string | null; id?: string }) {
   return (
     <div role="status" aria-live="polite">
       {text ? (
-        <p className="border-t border-line bg-muted px-2.5 py-2 text-micro font-semibold text-fg">
+        <p id={id} className="border-t border-line bg-muted px-2.5 py-2 text-micro font-semibold text-fg">
           {text}
         </p>
       ) : null}
@@ -51,8 +52,6 @@ export function CappedNotice({ text }: { text: string | null }) {
 }
 
 export function BookTable({ rows, onChange }: BookTableProps) {
-  const { t, i18n } = useTranslation();
-  const lang = i18n.language;
   const [capped, setCapped] = useState<CappedCount | null>(null);
 
   const typed = (index: number, field: BookCountField) => (raw: string) => {
@@ -65,7 +64,23 @@ export function BookTable({ rows, onChange }: BookTableProps) {
     onChange(next.rows);
   };
 
+  return <BookTableView rows={rows} onChange={onChange} capped={capped} onTyped={typed} />;
+}
+
+export interface BookTableViewProps extends BookTableProps {
+  /** The last cut, held by `BookTable` — a prop here so a render test can draw one. */
+  capped: CappedCount | null;
+  onTyped: (index: number, field: BookCountField) => (raw: string) => void;
+}
+
+export function BookTableView({ rows, onChange, capped, onTyped }: BookTableViewProps) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
+  const noticeId = useId();
+
   const cappedRow = capped ? rows.find((row) => row.id === capped.bookId) : undefined;
+  const describes = (bookId: string, field: BookCountField) =>
+    cappedRow && capped?.bookId === bookId && capped.field === field ? noticeId : undefined;
   const used = new Set(rows.map((row) => row.id));
   const available = BIBLE_BOOKS.filter((book) => !used.has(book.id));
 
@@ -113,19 +128,22 @@ export function BookTable({ rows, onChange }: BookTableProps) {
             label={`${label} · ${t("col_translated")}`}
             value={row.translated}
             max={row.chapters}
-            onTyped={typed(index, "translated")}
+            describedBy={describes(row.id, "translated")}
+            onTyped={onTyped(index, "translated")}
           />
           <CountInput
             label={`${label} · ${t("col_checked")}`}
             value={row.communityChecked}
             max={row.chapters}
-            onTyped={typed(index, "communityChecked")}
+            describedBy={describes(row.id, "communityChecked")}
+            onTyped={onTyped(index, "communityChecked")}
           />
           <CountInput
             label={`${label} · ${t("col_approved")}`}
             value={row.mentorApproved}
             max={row.chapters}
-            onTyped={typed(index, "mentorApproved")}
+            describedBy={describes(row.id, "mentorApproved")}
+            onTyped={onTyped(index, "mentorApproved")}
           />
           <RemoveRowButton
             label={`${t("row_remove")} · ${label}`}
@@ -136,6 +154,7 @@ export function BookTable({ rows, onChange }: BookTableProps) {
       })}
 
       <CappedNotice
+        id={noticeId}
         text={
           capped && cappedRow
             ? t("progress_capped", {
