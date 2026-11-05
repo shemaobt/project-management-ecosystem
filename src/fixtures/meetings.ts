@@ -34,7 +34,7 @@ function requireAudience(): void {
   if (!persona.roles.some((role) => LOG_AUDIENCE.includes(role))) {
     throw failure(
       "forbidden",
-      "The rhythm's log reaches the coordination, the OBT Lab and the global strategy; this account holds none of those roles in Shemá",
+      "The rhythm's log reaches the coordination, the OBT Lab and the Admin; this account holds none of those roles in Shemá",
     );
   }
 }

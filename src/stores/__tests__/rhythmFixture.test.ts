@@ -144,6 +144,19 @@ describe("o escopo é o do servidor, também no dublê", () => {
     expect(useRhythmStore.getState().log).toEqual([]);
   });
 
+  it("a recusa nomeia os papéis que gravam hoje, não o papel aposentado (OBT-670)", async () => {
+    asRole("resourceCircle");
+
+    const outcome = await useRhythmStore
+      .getState()
+      .logMeeting("bimestral_pi_campo", "oceania", { date: "2026-03-01", notes: "" });
+
+    expect(outcome).toMatchObject({ status: "failed", failure: { kind: "forbidden" } });
+    const detail = outcome.status === "failed" ? (outcome.failure.detail ?? "") : "";
+    expect(detail).toContain("the coordination, the OBT Lab and the Admin");
+    expect(detail).not.toMatch(/global strategy/iu);
+  });
+
   it("uma região fora do escopo de quem registra é recusada", async () => {
     asRole("coordinator");
 
