@@ -16,12 +16,21 @@ export type CountInputProps = {
   label: string;
   value: number;
   max?: number;
+  /** The id of the notice that speaks about this cell, when one does (OBT-670). */
+  describedBy?: string;
 } & (
   | { onChange: (value: number) => void; onTyped?: never }
   | { onTyped: (raw: string) => void; onChange?: never }
 );
 
-export function CountInput({ label, value, max, onChange, onTyped }: CountInputProps) {
+export function CountInput({
+  label,
+  value,
+  max,
+  describedBy,
+  onChange,
+  onTyped,
+}: CountInputProps) {
   return (
     <Input
       type="number"
@@ -29,6 +38,7 @@ export function CountInput({ label, value, max, onChange, onTyped }: CountInputP
       min={0}
       max={max}
       aria-label={label}
+      aria-describedby={describedBy}
       className="px-1.5 py-1.5 text-center tabular-nums"
       value={value}
       onChange={(event) =>

@@ -75,3 +75,62 @@ describe("readCount — a regra do corte, para quem não tem máximo também", (
     expect(clampCount("9", 4)).toBe(4);
   });
 });
+
+const { BookTableView } = await import("../tabs/progresso/BookTable");
+const { IntakeFieldInput } = await import("../../intake/IntakeFieldInput");
+
+/** The table as `BookTable` draws it after a cut — or with none, `capped: null`. */
+const drawn = (capped: { bookId: string; field: "translated"; max: number } | null, list = rows()) =>
+  renderToStaticMarkup(
+    createElement(BookTableView, {
+      rows: list,
+      onChange: () => undefined,
+      capped,
+      onTyped: () => () => undefined,
+    }),
+  );
+
+const inputFor = (html: string, label: string) =>
+  html.match(new RegExp(`<input[^>]*aria-label="${label}"[^>]*>`, "u"))![0];
+
+describe("o aviso do corte é ligado à célula cortada (OBT-670, PME-FRM-050)", () => {
+  it("a célula de Rute · Traduzido aponta para o id da frase, e só ela", () => {
+    const html = drawn({ bookId: "rut", field: "translated", max: 4 });
+    const notice = html.match(/<p id="([^"]+)"[^>]*>([^<]*)<\/p>/u);
+    expect(notice?.[2]).toBe("O máximo de Rute é 4; guardamos 4.");
+    expect(inputFor(html, "Rute · Traduzido")).toContain(`aria-describedby="${notice![1]}"`);
+    expect(inputFor(html, "Rute · Comunidade")).not.toContain("aria-describedby");
+    expect(html.match(/aria-describedby=/gu)).toHaveLength(1);
+  });
+
+  it("sem aviso, nenhuma célula aponta para um id que não existe", () => {
+    const html = drawn(null);
+    expect(html).not.toContain("aria-describedby");
+    expect(html).not.toMatch(/<p id=/u);
+  });
+
+  it("um corte de um livro que saiu da tabela não deixa ligação pendurada", () => {
+    const html = drawn({ bookId: "gen", field: "translated", max: 50 });
+    expect(html).not.toContain("aria-describedby");
+    expect(html).not.toContain("guardamos");
+  });
+
+  it("o link do líder desenha a mesma tabela, com a região viva e sem ligação pendurada", () => {
+    const html = renderToStaticMarkup(
+      createElement(IntakeFieldInput, {
+        field: {
+          key: "progress",
+          type: "progressRows",
+          required: false,
+          labelKey: "col_translated",
+          maxLength: null,
+          options: [],
+        },
+        value: rows(),
+        onChange: () => undefined,
+      }),
+    );
+    expect(inputFor(html, "Rute · Traduzido")).not.toContain("aria-describedby");
+    expect(html).toContain('role="status"');
+  });
+});
