@@ -482,6 +482,7 @@ export async function readIntakeForm(token: string): Promise<IntakeForm> {
     kind: "pulso",
     definitionVersion: PULSE_DEFINITION_VERSION,
     languageName: project.languageName,
+    languageNameWithheld: project.languageNameWithheld === true,
     expiresAt: link.expiresAt,
     fields: PULSE_FIELDS,
   };

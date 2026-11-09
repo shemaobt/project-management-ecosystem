@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { IntakeAnswers, IntakeForm } from "../../../types/forms";
 import { formatDate } from "../../../utils/format";
+import { getLanguageNameDisplay } from "../../../utils/region";
 import type { IntakeImageUpload } from "../../../utils/intake";
 import { Button } from "../../ui";
 import { IntakeFieldInput } from "./IntakeFieldInput";
@@ -40,7 +41,7 @@ export function IntakeFormView({
         {t("intake_form_eyebrow")}
       </p>
       <h1 className="font-serif text-h3 leading-snug font-normal text-fg italic">
-        {t("intake_form_title", { language: form.languageName })}
+        {t("intake_form_title", { language: getLanguageNameDisplay(form, t) })}
       </h1>
       <p className="mt-2 max-w-[50ch] text-small leading-normal text-fg-muted">
         {t("intake_form_lead")}

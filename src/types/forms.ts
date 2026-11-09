@@ -109,7 +109,10 @@ export interface IntakeField {
 export interface IntakeForm {
   kind: ArchivedKind;
   definitionVersion: number;
+  /** A region key when {@link languageNameWithheld} names a sensitive project with no public name (OBT-692). */
   languageName: string;
+  /** Read closed: anything but the server's `false` is `true`, so a region key never prints raw. */
+  languageNameWithheld: boolean;
   expiresAt: string;
   fields: readonly IntakeField[];
 }
