@@ -8,6 +8,7 @@ import { useProjectsStore } from "./projectsStore";
 import { useRecordStore } from "./recordStore";
 import { useRegionsStore } from "./regionsStore";
 import { useRhythmStore } from "./rhythmStore";
+import { useSavedViewsStore } from "./savedViewsStore";
 
 interface WipeableStore<State> {
   getInitialState: () => State;
@@ -17,10 +18,14 @@ interface WipeableStore<State> {
 
 type Wipe = () => void;
 
+/**
+ * Memory first, then the key: `persist` writes on every `setState`, so resetting after clearing
+ * wrote the empty state straight back, and the key outlived the sign-out (OBT-693).
+ */
 function wipeOf<State>(store: WipeableStore<State>): Wipe {
   return () => {
-    store.persist.clearStorage();
     store.setState(store.getInitialState(), true);
+    store.persist.clearStorage();
   };
 }
 
@@ -38,15 +43,17 @@ const READ_FOR_THE_READER: readonly Wipe[] = [
 
 /**
  * What the person typed and has not sent — a health reading's notes and prayer request, a
- * record's unsaved edits, a meeting's draft, the filters they searched with. Wiped on a sign-out
- * the person chose, and kept on an expiry, which nobody chose and which most often ends with the
- * same person signing back in to finish.
+ * record's unsaved edits, a meeting's draft, the filters they searched with, the views they
+ * saved (a name and a search, OBT-693 — Daniel, 9/nov/2026: losing them on Sair is the price).
+ * Wiped on a sign-out the person chose, and kept on an expiry, which nobody chose and which most
+ * often ends with the same person signing back in to finish.
  */
 const TYPED_BY_THE_READER: readonly Wipe[] = [
   wipeOf(useAssessmentStore),
   wipeOf(useRecordStore),
   wipeOf(useRhythmStore),
   wipeOf(useFiltersStore),
+  wipeOf(useSavedViewsStore),
 ];
 
 /**
