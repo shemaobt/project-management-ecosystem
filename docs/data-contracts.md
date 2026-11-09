@@ -1649,8 +1649,8 @@ item.
 leaves for the intercessor network. The **Monthly Pulse** (*Pulso Mensal*, §5.7) is the offline form
 that goes to the team leader and comes back filled. Every answer below says which one it is about.
 
-**Whose each decision is.** Karina's answers are the 22/set/2026 ones (block 3, via Daniel) and the
-1/out/2026 one (3b). The format was delegated to us (3.5) and closed by a field test with Karina in
+**Whose each decision is.** Karina's answers are the 22/set/2026 ones (block 3, via Daniel), the
+1/out/2026 one (3b) and the 6/out/2026 one that narrows it (10b, via Daniel). The format was delegated to us (3.5) and closed by a field test with Karina in
 the week of 2–8/nov/2026; Daniel recorded the result on 9/nov/2026. How the returned file is read
 back is **ours, not the client's**, and must never be cited as hers.
 
@@ -1662,6 +1662,7 @@ back is **ours, not the client's**, and must never be cited as hers.
 | Withdrawal | **What was sent cannot be recalled**; the teams are told so **before** they authorize, and the authorization text says it explicitly | Karina, 22/set (3.3) |
 | Retention | **The returned Monthly Pulse is kept for good** — *"faz parte da história do projeto"* | Karina, 22/set (3.2) |
 | Withdrawal vs. retention | **A request whose authorization is withdrawn is erased from the kept Monthly Pulse too** — *"o pedido é apagado também do Pulso guardado"* | Karina, 1/out (3b) |
+| …and which kept Pulses | **Only a kept Pulse with exactly the same text**; one that carried an earlier wording stays — *"Não, só do Pulso com o texto exatamente igual."* | Karina, 6/out (10b) |
 
 **The privacy rules for what a Pulse carries** — the DoD's fourth item, written down here. None is new:
 each restates an answer above or a rule this document already held, and each says where it lives.
@@ -1684,8 +1685,8 @@ each restates an answer above or a rule this document already held, and each say
    derived, not stored, so a withdrawn request is absent from every Prayer Pulse generated after
    it; and it is erased from the kept Monthly Pulse too (3b) — on `shema-api`'s `dev` since
    [OBT-561](https://linear.app/shema-obt/issue/OBT-561), which leaves who erased it and when and never
-   the text. It erases the request in the words that were authorized; a kept Pulse that carried an
-   earlier wording stays ([OBT-576](https://linear.app/shema-obt/issue/OBT-576)). A Prayer Pulse already delivered is outside the platform, and rule 3 is what says so.
+   the text. It erases the request only where the kept Pulse holds exactly the same text; one with an
+   earlier wording stays (Karina, 6/out, 10b — [OBT-576](https://linear.app/shema-obt/issue/OBT-576)). A Prayer Pulse already delivered is outside the platform, and rule 3 is what says so.
 
 **What this closes, and what it does not build.** The decision closes the gate; no screen generates
 or imports a Pulse file because of it. Three facts as they stand on 9/nov/2026:
