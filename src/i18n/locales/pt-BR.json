@@ -457,7 +457,7 @@
   "forms_pending_none": "Todos os projetos já reportaram no ciclo atual do {{form}}.",
   "forms_loop_closed": "O que este período pedia já chegou de {{project}}.",
   "forms_loop_open": "Para {{project}}, o ciclo deste período ainda começa em “Você gera”.",
-  "forms_format_pending": "O formato do arquivo do Pulso ainda está em definição com a cliente, então nenhuma tela promete um.",
+  "forms_format_pending": "Este ponto da tela ainda não gera nem importa o arquivo do Pulso Mensal.",
   "forms_actions_pending": "O link do líder já pode ser gerado — é o Link do líder no cabeçalho. Cada Pulso que chega por ele espera em Formulários recebidos: a coordenação o abre, lê as respostas e o aplica na ficha do projeto. Gerar o Pulso Mensal e receber um que voltou por fora ainda não chegaram.",
   "forms_reporting_note": "Esta contagem é só do {{form}}: “reportou” quer dizer que um {{form}} deste período chegou e foi arquivado — o mesmo sinal que o Ritmo usa. Atualizar a ficha do projeto não conta como {{form}} devolvido.",
   "forms_no_projects": "Nenhum projeto cadastrado ainda. Cadastre um projeto para acompanhar o Pulso dele aqui.",

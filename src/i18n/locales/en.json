@@ -457,7 +457,7 @@
   "forms_pending_none": "Every project has already reported in the current {{form}} cycle.",
   "forms_loop_closed": "What this period asked for has already arrived from {{project}}.",
   "forms_loop_open": "For {{project}}, this period’s loop still starts at “You generate”.",
-  "forms_format_pending": "The Pulse file format is still being settled with the client, so no screen promises one.",
+  "forms_format_pending": "This part of the screen does not generate or import the Monthly Pulse file yet.",
   "forms_actions_pending": "The leader link can already be generated — it's the header's Leader link action. Every Pulse that arrives through it waits in Forms received: coordination opens it, reads the answers and applies it to the project record. Generating the Monthly Pulse and receiving one that came back some other way have not arrived yet.",
   "forms_reporting_note": "This count is the {{form}} only: “reported” means a {{form}} for this period arrived and was archived — the same signal Rhythm uses. Updating the project record does not count as a {{form}} returned.",
   "forms_no_projects": "No projects registered yet. Register a project to follow its Pulse here.",
