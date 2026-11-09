@@ -100,7 +100,12 @@ O CI roda isso em todo PR. Se falhar, **não suba**: os 127 projetos de exemplo 
 ## 5. Se um dado parece errado ou vazado
 
 1. **Pare a saída, não o sistema.** Se um caminho específico vaza (uma rota, a exportação, o Pulso, um aviso), corrija ou desligue **esse caminho**. Derrubar tudo esconde o problema e tira a ferramenta de quem precisa dela.
-2. **Descubra até onde foi.** Use `shema_exports` para as exportações, o painel de avisos de quem recebeu e os logs da API, que registram ids e regiões e nunca conteúdo (medido na passada de 6/nov: só ids, região e operação; nenhum nome, lugar, e-mail, token ou senha). **Os logs de requisição do Cloud Run e do balanceador são outra coisa**: eles gravam a URL inteira, e ela carrega o token dos links e a busca (`?q=`). Os links são o do líder (`/intake/{token}` e `/api/shema/intake/{token}`), o de saída do intercessor (`/leave/{token}` e `/api/shema/intercessors/leave/{token}`) e o de solicitação do formulário (`/api/resource-requests/link/{token}`). Ver §9.2.
+2. **Descubra até onde foi.** Use `shema_exports` para as exportações, o painel de avisos de quem recebeu e os logs da API, que registram ids e regiões e nunca conteúdo (medido na passada de 6/nov: só ids, região e operação; nenhum nome, lugar, e-mail, token ou senha). **Os logs de requisição do Cloud Run e do balanceador são outra coisa**: eles gravam a URL inteira, e ela carrega a busca (`?q=`) e o token de **todo link que leva token na URL**. Em 9/nov/2026 eram estas famílias, cada uma com a página e a rota da API; trate a lista como ponto de partida, não como garantia de que não há outra:
+
+   - **Console (este repositório):** o link do líder (`/intake/{token}`, `/api/shema/intake/{token}`), a saída do intercessor (`/leave/{token}`, `/api/shema/intercessors/leave/{token}`) e o convite (`/convite?token=`, `/api/shema/access/invites/{token}`).
+   - **Formulário de recursos:** o link de solicitação (`/solicitar/{token}`, `/api/resource-requests/link/{token}`), o endosso do líder de base (`/endossar/{token}`, `/api/resource-requests/endorse/{token}` e `…/verify`) e o convite (`/api/resource-requests/access/invites/{token}` e `…/accept`).
+
+   Ver §9.2.
 3. **Não apague evidência.** O histórico de edições (`shema_record_edits`) e o registro de exportações são o que permite dizer o que saiu.
 4. **Avise quem decide.** Dado de pessoa que saiu é decisão da Karina, via Daniel: quem avisar, e se a equipe do projeto precisa saber.
 5. **Abra uma issue no Linear com `OBT-###`**, com o caminho, o período e quantas pessoas foram afetadas, sem copiar o dado vazado.
@@ -205,7 +210,7 @@ Rastro (passada adversarial, `qa-e2e/execucao/adversarial-0611.md`) e Prumo (rot
 
 ### 9.2 O que depende de staging ou produção e não deu para medir
 
-- **Logs de requisição do Cloud Run e do balanceador.** Gravam a URL completa, com o token dos links (os três da §5: líder, saída do intercessor e solicitação do formulário) e a busca (`?q=`). Na bancada só a instrumentação dela mostra isso. **Falta conferir no staging o que esses logs guardam e quem os lê.**
+- **Logs de requisição do Cloud Run e do balanceador.** Gravam a URL completa, com a busca (`?q=`) e o token de todo link que leva token na URL (as famílias da §5, item 2). Na bancada só a instrumentação dela mostra isso. **Falta conferir no staging o que esses logs guardam e quem os lê.**
 - **E-mails antigos:** a bancada guarda só as últimas 500 mensagens.
 - **Mídia e anexos:** a bancada não tem bucket; só as guardas antes do arquivo foram medidas.
 - **Projeto nascido de pedido aprovado:** não se mediu se um local em país sensível levanta a marca de sensível.
