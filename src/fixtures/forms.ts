@@ -28,6 +28,7 @@ import {
   NO_FILE,
   NOT_SHARED,
   readerOf,
+  withhold,
 } from "./reader";
 import { mockPersona } from "./session";
 
@@ -478,11 +479,14 @@ export async function readIntakeForm(token: string): Promise<IntakeForm> {
   if (!project) {
     throw failure("notFound", "The project this link was issued for no longer exists.");
   }
+  // The leader opens the link with no session, so the server reduces a sensitive project for
+  // everybody (OBT-692): the double reduces it the same way, as the inbox does through `withhold`.
+  const read = project.sensitiveCountry ? withhold(project) : project;
   return {
     kind: "pulso",
     definitionVersion: PULSE_DEFINITION_VERSION,
-    languageName: project.languageName,
-    languageNameWithheld: project.languageNameWithheld === true,
+    languageName: read.languageName,
+    languageNameWithheld: read.languageNameWithheld === true,
     expiresAt: link.expiresAt,
     fields: PULSE_FIELDS,
   };
