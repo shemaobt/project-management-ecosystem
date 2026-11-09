@@ -559,10 +559,10 @@ export const formsAPI = {
   // --- the two unauthenticated routes — the leader's own phone, no session ---------
 
   async intakeForm(token: string): Promise<IntakeForm> {
-    const { data } = await http.get<IntakeForm>(
+    const { data } = await http.get<WireIntakeForm>(
       `${SHEMA}/intake/${encodeURIComponent(token)}`,
     );
-    return data;
+    return intakeFormOf(data);
   },
 
   async submitIntake(
@@ -906,6 +906,30 @@ export type PulseLanguage = "pt-BR" | "en";
 /** The Pulse is written in the language the console is showing; the server speaks both. */
 export function pulseLanguage(language: string): PulseLanguage {
   return language.startsWith("en") ? "en" : "pt-BR";
+}
+
+type WireIntakeForm = Omit<IntakeForm, "languageNameWithheld"> & {
+  languageNameWithheld?: unknown;
+  locationWithheld?: unknown;
+};
+
+/**
+ * The leader's page reads the name closed (OBT-692): a sensitive project's link answers its
+ * region key with `languageNameWithheld: true`, and an answer without a readable flag is treated
+ * as withheld, so the key reaches the screen only through `getLanguageNameDisplay`. The fields
+ * are taken one by one, as `mapCard` and `mapRecord` take theirs: this page is public, and a key
+ * the server adds later does not reach it by default. `locationWithheld` is not read — the page
+ * prints no place.
+ */
+export function intakeFormOf(wire: WireIntakeForm): IntakeForm {
+  return {
+    kind: wire.kind,
+    definitionVersion: wire.definitionVersion,
+    languageName: wire.languageName,
+    languageNameWithheld: wire.languageNameWithheld !== false,
+    expiresAt: wire.expiresAt,
+    fields: wire.fields,
+  };
 }
 
 /**

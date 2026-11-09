@@ -43,6 +43,7 @@ const FORM: IntakeForm = {
   kind: "pulso",
   definitionVersion: 2,
   languageName: "Guarani Mbyá",
+  languageNameWithheld: false,
   expiresAt: "2026-10-30",
   fields: IMAGE_FIELDS,
 };

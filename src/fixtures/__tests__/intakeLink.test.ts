@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formsAPI, projectsAPI } from "..";
+import i18n from "../../i18n";
+import { getLanguageNameDisplay } from "../../utils/region";
 
 const projects = await projectsAPI.list();
 const projectId = projects[0].id;
@@ -203,5 +205,33 @@ describe("o dublê do upload recusa como o servidor, e um reenvio não duplica (
     const before = (await formsAPI.received()).length;
     await expect(formsAPI.submitIntake(link.token, payload)).resolves.toBeUndefined();
     expect((await formsAPI.received()).length).toBe(before);
+  });
+});
+
+/**
+ * O link de um projeto sensível não entrega o nome da língua (OBT-692). O líder abre sem
+ * sessão, e o dublê reduz como o servidor: pelo `withhold`, a mesma regra do inbox — não pelo
+ * flag do seed, que um projeto de seed nunca traz.
+ */
+describe("o link de um projeto sensível, no dublê", () => {
+  it("o projeto sensível saúda pela região; o comum, pelo nome", async () => {
+    await i18n.changeLanguage("pt");
+    const sensitive = projects.find((project) => project.sensitiveCountry);
+    const common = projects.find((project) => !project.sensitiveCountry);
+    if (!sensitive || !common) throw new Error("o seed precisa dos dois casos");
+
+    const withheld = await formsAPI.intakeForm(
+      (await formsAPI.mintIntakeLink({ projectId: sensitive.id })).token,
+    );
+    const named = await formsAPI.intakeForm(
+      (await formsAPI.mintIntakeLink({ projectId: common.id })).token,
+    );
+
+    expect(withheld.languageNameWithheld).toBe(true);
+    expect(withheld.languageName).not.toBe(sensitive.languageName);
+    expect(getLanguageNameDisplay(withheld, i18n.t)).toMatch(/^Projeto sensível — \S/u);
+    expect(JSON.stringify(withheld)).not.toContain(sensitive.languageName);
+    expect(named.languageNameWithheld).toBe(false);
+    expect(getLanguageNameDisplay(named, i18n.t)).toBe(common.languageName);
   });
 });
