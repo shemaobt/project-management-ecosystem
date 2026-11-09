@@ -54,7 +54,7 @@ describe("Receber Atualização não promete o que a onda 1 não entrega", () =>
     expect(markup()).toContain(i18n.t("receive_pending"));
   });
 
-  it("repete a sentença do GATE-03 e não nomeia extensão nenhuma", () => {
+  it("repete a sentença de que o arquivo ainda não é gerado nem importado aqui, e não nomeia extensão nenhuma", () => {
     expect(markup()).toContain(i18n.t("forms_format_pending"));
     expect(markup()).not.toMatch(FORMAT);
   });

@@ -104,7 +104,7 @@ describe("os dois formulários se distinguem à primeira vista", () => {
   });
 });
 
-describe("nenhuma cópia promete um formato enquanto o GATE-03 estiver aberto", () => {
+describe("nenhuma cópia promete um formato enquanto nenhuma tela gera ou importa o arquivo", () => {
   const FORMAT = /\.(json|html|csv|pdf|xlsx?)\b/iu;
   const PULSE_COPY = /^(?:forms_|receive_|intake_)/u;
 
@@ -121,7 +121,7 @@ describe("nenhuma cópia promete um formato enquanto o GATE-03 estiver aberto", 
     expect(view([project()])).not.toMatch(FORMAT);
   });
 
-  it("e diz, em palavras, que o formato ainda está em definição", () => {
+  it("e diz, em palavras, que este ponto ainda não gera nem importa o arquivo", () => {
     expect(view([project()])).toContain(i18n.t("forms_format_pending"));
   });
 });
