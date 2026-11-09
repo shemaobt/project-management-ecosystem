@@ -101,3 +101,25 @@ describe("sem a marca legível, a leitura fecha", () => {
     expect(form.languageNameWithheld).toBe(true);
   });
 });
+
+describe("o objeto da tela leva só as chaves do contrato", () => {
+  it("uma chave que o servidor acrescente não chega à página pública", () => {
+    const wire = {
+      ...WIRE,
+      languageName: "Guarani Mbyá",
+      languageNameWithheld: false,
+      locationWithheld: false,
+      projectId: "guarani-mbya",
+    };
+    const form = intakeFormOf(wire);
+    expect(Object.keys(form).sort()).toEqual([
+      "definitionVersion",
+      "expiresAt",
+      "fields",
+      "kind",
+      "languageName",
+      "languageNameWithheld",
+    ]);
+    expect(form).not.toHaveProperty("projectId");
+  });
+});
