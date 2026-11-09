@@ -17,7 +17,7 @@ Este arquivo **não repete** aquele: ele cobre o sistema inteiro (console mais `
 
 | Peça | Onde | Quem faz o deploy |
 |---|---|---|
-| Console (este repositório) | Cloud Run `project-management-ecosystem`, `us-central1`, **não público** (IAM) | merge na `main` → `.github/workflows/deploy.yml` (FE-42) |
+| Console (este repositório) | Cloud Run `project-management-ecosystem`, `us-central1`, **público** desde 2/out/2026 (`--allow-unauthenticated`; decisão do Henok, `docs/deploy.md` §1): quem decide o que cada um lê é o login do app | merge na `main` → `.github/workflows/deploy.yml` (FE-42) |
 | API de produção | Cloud Run `tripod-backend`, `us-central1` | merge na `main` do `shema-api` → `deploy.yml` |
 | API de staging | Cloud Run `tripod-backend-staging` | merge na `dev` do `shema-api` → `deploy-staging.yml` |
 | Banco | Neon Postgres, **compartilhado por seis aplicações** | migration roda no deploy da API, antes da revisão nova |
@@ -100,7 +100,7 @@ O CI roda isso em todo PR. Se falhar, **não suba**: os 127 projetos de exemplo 
 ## 5. Se um dado parece errado ou vazado
 
 1. **Pare a saída, não o sistema.** Se um caminho específico vaza (uma rota, a exportação, o Pulso, um aviso), corrija ou desligue **esse caminho**. Derrubar tudo esconde o problema e tira a ferramenta de quem precisa dela.
-2. **Descubra até onde foi.** Use `shema_exports` para as exportações, o painel de avisos de quem recebeu e os logs da API, que registram ids e regiões e nunca conteúdo (medido na passada de 6/nov: só ids, região e operação; nenhum nome, lugar, e-mail, token ou senha). **Os logs de requisição do Cloud Run e do balanceador são outra coisa**: eles gravam a URL inteira, e ela carrega o token dos links (`/intake/{token}`, `/link/{token}`) e a busca (`?q=`). Ver §9.2.
+2. **Descubra até onde foi.** Use `shema_exports` para as exportações, o painel de avisos de quem recebeu e os logs da API, que registram ids e regiões e nunca conteúdo (medido na passada de 6/nov: só ids, região e operação; nenhum nome, lugar, e-mail, token ou senha). **Os logs de requisição do Cloud Run e do balanceador são outra coisa**: eles gravam a URL inteira, e ela carrega o token dos links e a busca (`?q=`). Os links são o do líder (`/intake/{token}` e `/api/shema/intake/{token}`), o de saída do intercessor (`/leave/{token}` e `/api/shema/intercessors/leave/{token}`) e o de solicitação do formulário (`/api/resource-requests/link/{token}`). Ver §9.2.
 3. **Não apague evidência.** O histórico de edições (`shema_record_edits`) e o registro de exportações são o que permite dizer o que saiu.
 4. **Avise quem decide.** Dado de pessoa que saiu é decisão da Karina, via Daniel: quem avisar, e se a equipe do projeto precisa saber.
 5. **Abra uma issue no Linear com `OBT-###`**, com o caminho, o período e quantas pessoas foram afetadas, sem copiar o dado vazado.
@@ -149,15 +149,14 @@ Anote o resultado de cada roteiro na própria issue da INT-12, com o papel, a da
 
 ## 7. Lista de acesso de produção
 
-> **Em 9/nov/2026 esta lista ainda não foi revista.** É do Daniel e do Levi, e é o item da [OBT-417](https://linear.app/shema-obt/issue/OBT-417) que falta.
+> **Em 9/nov/2026 a revisão desta lista ainda não foi feita.** É do Daniel e do Levi, e é o item da [OBT-417](https://linear.app/shema-obt/issue/OBT-417) que falta.
 
-Responsável: quem executa o setup da FE-42. A tabela de pessoas fica em `docs/deploy.md`, e a regra é:
+**O IAM do Cloud Run não é mais a barreira.** O console é público desde 2/out/2026 (`docs/deploy.md` §1). A regra que vinha aqui era a do primeiro deploy, da mesma data: IAM nomeado, nunca `allUsers`, o workflow reprovando. Hoje o workflow confere o contrário: a URL responde sem credencial. Para voltar a fechar, siga `docs/deploy.md` §1.
 
-- **IAM nomeado**: uma conta por pessoa, nunca `allUsers` ou `allAuthenticatedUsers` (o próprio workflow reprova);
+**O acesso aos dados vem dos papéis no PME**: quem tem cada papel, e em que regiões. O Admin concede (§5.12 do `CLAUDE.md`), e a API recusa o que o papel não alcança. **Qual lista a OBT-417 espera — os papéis no PME de produção, as contas de deploy do `docs/deploy.md`, ou as duas — é a confirmar com o Daniel e o Levi.** Para qualquer uma, a regra continua:
+
 - **Lista pequena**: quem opera, não quem *talvez* precise;
-- **Revisada a cada lançamento**: quem saiu da equipe sai da lista no mesmo dia.
-
-O acesso **aos dados** é outra camada: ele vem dos papéis no PME (Admin concede, §5.12 do `CLAUDE.md`), e a API recusa o que o papel não alcança. O IAM do Cloud Run só decide quem chega à página.
+- **Revisada a cada lançamento**: quem saiu da equipe perde o papel no mesmo dia.
 
 ## 8. Pendências conhecidas
 
@@ -206,7 +205,7 @@ Rastro (passada adversarial, `qa-e2e/execucao/adversarial-0611.md`) e Prumo (rot
 
 ### 9.2 O que depende de staging ou produção e não deu para medir
 
-- **Logs de requisição do Cloud Run e do balanceador.** Gravam a URL completa, com o token dos links (`/intake/{token}`, `/link/{token}`) e a busca (`?q=`). Na bancada só a instrumentação dela mostra isso. **Falta conferir no staging o que esses logs guardam e quem os lê.**
+- **Logs de requisição do Cloud Run e do balanceador.** Gravam a URL completa, com o token dos links (os três da §5: líder, saída do intercessor e solicitação do formulário) e a busca (`?q=`). Na bancada só a instrumentação dela mostra isso. **Falta conferir no staging o que esses logs guardam e quem os lê.**
 - **E-mails antigos:** a bancada guarda só as últimas 500 mensagens.
 - **Mídia e anexos:** a bancada não tem bucket; só as guardas antes do arquivo foram medidas.
 - **Projeto nascido de pedido aprovado:** não se mediu se um local em país sensível levanta a marca de sensível.
