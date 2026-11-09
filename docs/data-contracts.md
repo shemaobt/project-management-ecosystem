@@ -499,7 +499,8 @@ shape so a renderer cannot leak what the snapshot does not hold.
 
 ### 5.7 Forms
 
-`src/types/forms.ts`. **Frozen except the serialization — Open · GATE-03.**
+`src/types/forms.ts`. **Frozen.** The serialization was Open · GATE-03 and closed on 9/nov/2026:
+`.html` out, the structured answer embedded in the same `.html` on the way back (§11.3).
 
 Two instruments that must not be merged: the **Pulso Mensal** (`kind: "pulso"`, monthly, a file, filled
 by the team leader) and the **Avaliação de Saúde** (`kind: "health"`, quarterly, in-app, filled by the
@@ -926,10 +927,10 @@ the storage before answering them is how silent retention starts:
 
 ### 8.6 The Pulse — the file designed to be forwarded
 
-**Open · GATE-03** for the format, but not for the rule: the Pulse contains prayer requests and is
-built to be forwarded, so **only authorized requests go in, and sensitive countries are transformed
-before serialization, not at render time**. Once it is out, it is out — retention and withdrawal
-from an already-distributed file are part of GATE-03's own DoD.
+The rule never depended on the format, and GATE-03 closed without changing it: the Pulse contains
+prayer requests and is built to be forwarded, so **only authorized requests go in, and sensitive
+countries are transformed before serialization, not at render time**. Once it is out, it is out.
+The full set of rules for what a Pulse may carry — distribution, withdrawal, retention — is §11.3's.
 
 ### 8.7 Authorization is reflected by the frontend, never enforced by it
 
@@ -1180,7 +1181,7 @@ year's had not arrived on 28/set/2026; it lands as a presenter in `shema-api`'s
 
 ```
 GET  /api/shema/forms/submissions                  -> ReceivedSubmission[]
-POST /api/shema/forms/pulse/{projectId}            -> the generated artifact        # Open · GATE-03
+POST /api/shema/forms/pulse/{projectId}            -> the generated artifact        # .html · GATE-03 closed 9/nov · not built
 POST /api/shema/forms/submissions                  {the returned artifact}  -> ReceivedSubmission
 POST /api/shema/forms/submissions/{id}/import      If-Match, X-Shema-Local-Date  -> ReceivedSubmission   # coordinator · 409 = RecordConflict + ETag · OBT-652
 POST /api/shema/intake-links   {projectId?, expiresAt}  -> {token, url, expiresAt}
@@ -1639,22 +1640,64 @@ de recursos.
 
 ### 11.3 GATE-03 — the Pulse file format ([OBT-389](https://linear.app/shema-obt/issue/OBT-389))
 
-**Blocks:** BE-12 ([OBT-401](https://linear.app/shema-obt/issue/OBT-401)), BE-09
-([OBT-398](https://linear.app/shema-obt/issue/OBT-398)), INT-09
-([OBT-414](https://linear.app/shema-obt/issue/OBT-414)) — the Pulse epic, which is the riskiest work
-in the plan.
+**Closed on 9/nov/2026.** It blocked BE-12 ([OBT-401](https://linear.app/shema-obt/issue/OBT-401)),
+BE-09 ([OBT-398](https://linear.app/shema-obt/issue/OBT-398)) and INT-09
+([OBT-414](https://linear.app/shema-obt/issue/OBT-414)); since 29/set/2026 it held only their format
+item.
 
-The prototype emits `.html` and takes back `.json`, and **that pairing has never been confirmed with
-the client.** It is not a fact this contract may repeat: wave 1 removed every mention of a file
-extension from the product's copy and a test fails the build if one comes back.
+**Two files, and the answers divide between them.** The **Prayer Pulse** (*Pulso de Oração*) is what
+leaves for the intercessor network. The **Monthly Pulse** (*Pulso Mensal*, §5.7) is the offline form
+that goes to the team leader and comes back filled. Every answer below says which one it is about.
 
-What must be settled: the format, and if both, **which is authoritative when they disagree**; the
-distribution model — intercessors-only or freely shareable; **retention and withdrawal** from an
-already-distributed file; and the privacy rules for Pulse contents, which §8.6 states
-format-independently.
+**Whose each decision is.** Karina's answers are the 22/set/2026 ones (block 3, via Daniel) and the
+1/out/2026 one (3b). The format was delegated to us (3.5) and closed by a field test with Karina in
+the week of 2–8/nov/2026; Daniel recorded the result on 9/nov/2026. How the returned file is read
+back is **ours, not the client's**, and must never be cited as hers.
 
-**The privacy consequence is the part to raise in the conversation**, because it changes what
-belongs in the file more than the format does.
+| | Decision | Whose |
+|---|---|---|
+| Format of what leaves | **`.html`, both the Prayer Pulse and the Monthly Pulse form.** No `.json` is authoritative for what leaves, so the *"which wins when they disagree"* question has no subject | The choice is ours (3.5: *"não, só colocar o mais simples possível"*); the field test with Karina, 2–8/nov/2026, closed it |
+| Format of what comes back | **One file: the Monthly Pulse comes back as the same `.html`, carrying its structured answer embedded in it** — a JSON block with a version field. The PME reads, validates and applies that block. No loose `.json` beside it. The reading lives in one place, so a real returned file that proves it insufficient costs a swap there and nowhere else | **Ours** — Daniel, 9/nov/2026, a technical decision; the field test did not answer it. To be validated against a real file once generation exists |
+| Distribution | **The intercessor network only**, and whoever receives the Prayer Pulse commits not to forward it | Karina, 22/set (3.1) |
+| Withdrawal | **What was sent cannot be recalled**; the teams are told so **before** they authorize, and the authorization text says it explicitly | Karina, 22/set (3.3) |
+| Retention | **The returned Monthly Pulse is kept for good** — *"faz parte da história do projeto"* | Karina, 22/set (3.2) |
+| Withdrawal vs. retention | **A request whose authorization is withdrawn is erased from the kept Monthly Pulse too** — *"o pedido é apagado também do Pulso guardado"* | Karina, 1/out (3b) |
+
+**The privacy rules for what a Pulse carries** — the DoD's fourth item, written down here. None is new:
+each restates an answer above or a rule this document already held, and each says where it lives.
+
+1. **Only requests the team authorized for the network go in.** A request whose visibility is not
+   `rede` is not in the Prayer Pulse. On the server the Pulse *is* the prayer wall rendered:
+   `generate_prayer_pulse` hands `list_prayer_requests` — the same filter every read of the wall
+   uses — to the renderer, so the file cannot carry what the wall would not show (§8.2, §8.6).
+2. **A sensitive country is transformed before the file is serialized, not when it is shown.** The
+   entries are reduced to their leaving shape before the first character of the file is written, so
+   no later step can put the place back (§8.1, §8.6).
+3. **The file is forwardable by design, and what left does not come back.** Its two sentences come
+   first, before any request, so a file cut short by a forward still carries them: it is for the
+   intercessor network only and receiving it is a commitment not to forward it (3.1), and once sent
+   it cannot be recalled (3.3).
+4. **The teams are told before they authorize.** The console states the no-recall rule under the
+   `rede` option whether or not it is marked, on every surface that asks for the authorization
+   (`prayer_vis_network_no_recall`, BE-20 · [OBT-531](https://linear.app/shema-obt/issue/OBT-531)).
+5. **Withdrawing reaches every copy the platform keeps, and no copy it does not.** The wall is
+   derived, not stored, so a withdrawn request is absent from every Prayer Pulse generated after
+   it; and it is erased from the kept Monthly Pulse too (3b) — on `shema-api`'s `dev` since
+   [OBT-561](https://linear.app/shema-obt/issue/OBT-561), which leaves who erased it and when and never
+   the text. It erases the request in the words that were authorized; a kept Pulse that carried an
+   earlier wording stays ([OBT-576](https://linear.app/shema-obt/issue/OBT-576)). A Prayer Pulse already delivered is outside the platform, and rule 3 is what says so.
+
+**What this closes, and what it does not build.** The decision closes the gate; no screen generates
+or imports a Pulse file because of it. Three facts as they stand on 9/nov/2026:
+
+- **The Prayer Pulse the server writes today is plain text**, not `.html` — `pulse_filename` in
+  `shema-api`'s `app/models/shema_prayer.py` names it `….txt`, and the console saves it under that
+  name. Changing it is replacing the renderer, which BE-09 isolated for exactly this; the filter and
+  the reduction (rules 1 and 2) do not move.
+- **Nothing generates the Monthly Pulse form yet** — the route above is still not built.
+- **Receiving a returned file by upload is [OBT-687](https://linear.app/shema-obt/issue/OBT-687)**,
+  which reads the embedded block. The leader link (§9.9) already brings a Monthly Pulse back without a
+  file, and that path is untouched.
 
 > The offline artifact is the project's highest technical risk: an unknown Android phone, no
 > connectivity, and a file round trip through WhatsApp. **Prove it on a real device early**, not when
