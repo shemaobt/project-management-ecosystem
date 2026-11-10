@@ -225,6 +225,10 @@ fizer a primeira porta passar de 1 MB.
 - **O JSON é escrito com `<` como `\u003c`**, que continua sendo JSON válido e não fecha a tag.
   - No teste local, um nome *Fresia `</script>` `<b>x</b>`* atravessou o arquivo, voltou e foi lido igual.
   - O arquivo continuou com exatamente quatro `</script>`.
+- **Fora dos blocos JSON, todo valor que vem do servidor ou de uma pessoa é escapado como HTML** (`&`, `<`, `>`, `"`).
+  - Isso vale para o `<title>`, que leva o nome de saída do projeto, e para qualquer texto escrito direto no documento. Um nome de língua nunca é normalizado (`CLAUDE.md` §5.2), e um `<` no `<title>` quebraria o `<head>` que o leitor da OBT-687 relê com `DOMParser`.
+  - **Quem escapa é quem escreve o arquivo:** o gerador do PME (I3/I4) ao montar o `.html`, e o próprio formulário ao montar o arquivo de volta. É um escapador só, com teste de um nome hostil.
+  - Dentro do formulário, o React (ou `textContent`) pinta as respostas, e nada vira HTML.
 - **A validação acontece em dois lugares, com a mesma regra.**
   - No celular, `validateIntakeAnswers` impede salvar sem nome e sem mês, e diz o que falta.
   - No servidor, a validação é a de sempre (D7).
@@ -285,6 +289,10 @@ que alcance o bucket, e a regra *"byte a byte"* passa a ter uma exceção escrit
 
 ## 9. Privacidade
 
+- **A opção `rede` diz, no arquivo offline como no link, que o que vai à rede não pode ser recolhido.**
+  - Essa linha é **decidida**, não proposta: é a regra 4 do §11.3, *"em toda superfície que pede a autorização"*, que vem da 3.3 da Karina (22/set: a equipe é avisada **antes** de autorizar).
+  - O texto é o `prayer_vis_network_no_recall` (*"Depois que um pedido é enviado à rede, ele não pode ser recolhido."*), dito sob a opção, marcada ou não, como o `PrayerConsent` faz no link (`intakeViews.test.ts`).
+  - Vale **qualquer que seja a forma do formulário (P1)**. Se o formulário for escrito à mão, ele leva a frase do mesmo jeito, e a I3 a testa.
 - O arquivo gerado é de saída e circula fora da plataforma. Um projeto sensível sai com o nome reduzido (§7).
 - O arquivo não leva nenhum dado de outro projeto e nenhum token.
 - O rascunho no celular (D6) é do próprio líder, sobre o próprio projeto. O botão de apagar é a saída para o celular emprestado.

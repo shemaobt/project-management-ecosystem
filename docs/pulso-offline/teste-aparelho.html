@@ -195,7 +195,7 @@ img.prev{max-width:100%;border-radius:8px;margin-top:8px}
       var html = "<!doctype html>\n<html lang=\"pt-BR\">\n<head>\n<meta charset=\"utf-8\">\n" +
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" +
         document.querySelector("meta[http-equiv]").outerHTML + "\n" +
-        "<title>" + document.title + "</title>\n" +
+        "<title>" + esc(document.title) + "</title>\n" +
         "<style id=\"shema-style\">" + document.getElementById("shema-style").textContent + "</style>\n" +
         "<script type=\"application/json\" id=\"shema-pulso-def\">" + scriptJson(DEF) + "<\/script>\n" +
         "<script type=\"application/json\" id=\"shema-pulso\" data-format-version=\"1\" data-saved-at=\"" + new Date().toISOString() + "\">" + envelope + "<\/script>\n" +
@@ -281,6 +281,7 @@ img.prev{max-width:100%;border-radius:8px;margin-top:8px}
       "<section><h2>04 · Atrapalha algo?</h2>" + '<textarea id="f_blockers"></textarea>' + "</section>" +
       "<section><h2>05 · Pedido de oração</h2>" + '<textarea id="f_prayerRequest"></textarea>' +
       field("Pode ir para a rede de intercessores?", '<select id="f_prayerVisibility"><option value="">Não respondi</option><option value="coordenacao">Fica só com a coordenação</option><option value="rede">Pode ir para a rede</option></select>') +
+      '<p class="note">Depois que um pedido é enviado à rede, ele não pode ser recolhido.</p>' +
       "</section>" +
       "<section><h2>Devolver</h2>" +
       '<button type="button" id="share">Compartilhar o arquivo</button><button type="button" class="sec" id="save">Salvar o arquivo</button>' +
