@@ -246,9 +246,8 @@ img.prev{max-width:100%;border-radius:8px;margin-top:8px}
   function forget() {
     if (!confirm("Apagar deste celular o rascunho deste mês? O arquivo que você já salvou continua em Downloads.")) return;
     try { localStorage.removeItem(KEY); } catch (e) {}
-    idbPut("image", null);
     note("apagado deste celular");
-    location.reload();
+    idbPut("image", null).then(function () { location.reload(); });
   }
 
   // --- Tela ----------------------------------------------------------------------------------

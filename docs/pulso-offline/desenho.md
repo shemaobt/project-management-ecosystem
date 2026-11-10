@@ -105,7 +105,7 @@ Recomendação:
 - **(a) uma segunda entrada no Vite**, com `vite-plugin-singlefile`. O build do console não muda.
 - **(b) só as chaves que o formulário usa**, geradas no build: `intake_*`, `forms_q_*`, `BookTable`, `PrayerConsent`. Estimativa de 300–400 KB, ainda a construir.
 - **(c) fonte do sistema.** Os `woff2` relativos quebram em `file://`, e embutir os dois Montserrat custaria ~165 KB.
-- **(d) a mesma validação do cliente** (`validateIntakeAnswers`) e a mesma redução de foto (`prepareIntakeImage`), que funcionam sem rede.
+- **(d) a mesma validação do cliente** (`validateIntakeAnswers`) e a mesma redução de foto (`prepareIntakeImage`), que funcionam sem rede. A redução ganha o fallback para JPEG da P9 (§5.1).
 
 A alternativa é um formulário à mão, em JS puro, como o protótipo desta pasta (21 KB). Ele é menor,
 mas seria uma segunda cópia das telas e da validação, e as duas iam divergir.
@@ -134,9 +134,15 @@ mas seria uma segunda cópia das telas e da validação, e as duas iam divergir.
 ### 5.1 No celular
 
 - **Entrada:** `<input type="file" accept="image/jpeg,image/png,image/webp">`, **sem** `capture`. Assim o Android oferece câmera **e** galeria. O protótipo usava `capture`, que em alguns aparelhos força a câmera.
-- **Redução antes de entrar:** a mesma do PME (`prepareIntakeImage`), com lado maior de 1200px e WebP 0,85.
-  - Onde o navegador não codifica WebP, cai para JPEG 0,85. Medido localmente, num navegador headless WebKit: ele não codifica WebP e o JPEG funcionou.
-  - Uma foto de origem acima de 10 MiB é recusada com uma frase (D4).
+- **Redução antes de entrar:** a do PME (`prepareIntakeImage`, `src/services/mediaStorage.ts`), que hoje faz assim:
+  - recusa pelo tipo antes de decodificar (JPEG, PNG, WebP);
+  - reduz o lado maior a 1200px e codifica WebP 0,85;
+  - checa o teto de 10 MiB **nos bytes que saem, depois da redução**, e não na foto de origem. A docstring diz que uma foto real nunca chega a esse teto.
+- **Proposto (P9): um fallback de codificação.**
+  - `toWebpBlob` pede `image/webp` ao `canvas.toBlob` e não tem fallback. Um navegador que não codifica WebP devolve PNG pela especificação (ou `null`, e aí a foto é recusada como ilegível), e PNG de 1200px é bem maior.
+  - Medido localmente, num navegador headless WebKit: ele não codifica WebP.
+  - O protótipo desta pasta já experimenta outra saída: quando o resultado não sai WebP, ele recodifica em JPEG 0,85. Esse JPEG e a recusa da foto de origem acima de 10 MiB são **do protótipo**, não do PME.
+  - **Recomendação:** a I3 acrescenta o fallback para JPEG em `prepareIntakeImage`, que serve também o link online. Se o Chrome do Android codificar WebP, isso só importa noutros navegadores.
 - **Tamanho típico:** 100–300 KB depois de reduzir, ou seja, 130–400 KB em base64.
   - No teste local, um PNG de 1600×1000 (134 KB) virou um JPEG de 71 KB (95 KB no bloco de mídia).
   - O tamanho de uma foto real de campo é **a provar no aparelho**.
@@ -174,7 +180,7 @@ A proposta é:
 | O quê | Teto | Fonte |
 |---|---|---|
 | Bloco de respostas (`shema-pulso`) | **256 KiB** | `_submission_archive.py:90` — no `dev` |
-| Foto de origem, no celular | **10 MiB** | D4 |
+| Foto reduzida, no celular | **10 MiB**, checado depois da redução | D4; `prepareIntakeImage` |
 | Foto subida à porta nova | **10 MiB** | proposta do lado da API, igual à do link |
 | Arquivo devolvido inteiro | **proposto: 8 MiB** | a porta de arquivo (P4) proposta do lado da API; com uma foto, o arquivo fica bem abaixo |
 | Corpo de uma requisição no Cloud Run do shema-api | 32 MiB | configuração do shema-api (memória 4 Gi, timeout 300 s) |
@@ -342,7 +348,7 @@ Estimativas em pontos, grosseiras, para dimensionar.
 |---|---|---|---|---|
 | I1 | shema-api | `POST /forms/pulse/{projectId}` devolve JSON e publica a definição (P3a); `period` no cabeçalho; nome de saída reduzido; docstrings de `forms.py:56` e `shema_forms.py:29-36` | 3 | — |
 | I2 | shema-api | Porta `POST /forms/pulse/{projectId}/image` e a origem `sha256:` em `_image_for`, com migração (P5) | 5 | — |
-| I3 | pme | Build offline: segunda entrada no Vite, arquivo único, i18n reduzido, fonte do sistema, blocos `shema-pulso-*`, rascunho em `localStorage`/IndexedDB por projeto e período, *Apagar o rascunho*, arquivo de volta autocopiado, hash em JS puro (P1, D5, D6) | 8 | I1 |
+| I3 | pme | Build offline: segunda entrada no Vite, arquivo único, i18n reduzido, fonte do sistema, blocos `shema-pulso-*`, rascunho em `localStorage`/IndexedDB por projeto e período, *Apagar o rascunho*, arquivo de volta autocopiado, hash em JS puro, fallback JPEG na redução (P1, P9, D5, D6) | 8 | I1 |
 | I4 | pme | O botão *Gerar Pulso Mensal* chama I1 e monta e salva o arquivo; `forms_format_pending` sai | 3 | I1, I3 |
 | I5 | pme | **[OBT-687](https://linear.app/shema-obt/issue/OBT-687), já aberta** — o leitor do arquivo (`DOMParser`, blocos, `data-format-version`), as respostas mostradas antes de enviar (P8), a foto por I2, o envelope verbatim que arquiva e aplica, o 409 | — | I2, I3 |
 | I6 | pme | `client_max_body_size 11m` em `/api` no `nginx.conf` (P6) | 1 | — |
@@ -361,3 +367,4 @@ P4 (arquivar o `.html` inteiro) **não vira issue** enquanto o Daniel não decid
 | P6 | Abrir o nginx do PME a 11 MB em `/api`? | Sim, junto com a primeira porta que precisar (§5.4) |
 | P7 | O hash da idempotência é sobre os bytes como chegam, ou sobre o bloco canônico? | Os bytes, com o PME mandando verbatim (§8) |
 | P8 | Pelo arquivo, a coordenação vê as respostas antes de a chamada aplicar? | Sim, mostradas do bloco antes de enviar, sem mudar o servidor (§8) |
+| P9 | A redução da foto ganha um fallback para JPEG onde o navegador não codifica WebP? | Sim, na I3, em `prepareIntakeImage` (§5.1) |
