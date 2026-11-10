@@ -19,6 +19,8 @@ interface FormsState extends HydrationStatus {
   /** Submissions with an apply on its way — so a Pulse closed and opened again offers no second click. */
   applying: string[];
   hydrate: () => Promise<void>;
+  /** Reads the list again: a Pulse filed from a returned file (OBT-687) is a row this list did not have. */
+  reread: () => Promise<void>;
   applySubmission: (
     submissionId: string,
     version: string,
@@ -31,15 +33,16 @@ export const useFormsStore = create<FormsState>()(
   persist<FormsState, [], [], PersistedForms>(
     (set, get) => {
       const slot = createHydrationSlot();
+      const load = async () => {
+        set({ submissions: await formsAPI.received() });
+      };
 
       return {
         submissions: [],
         applying: [],
         ...NOT_HYDRATED,
-        hydrate: () =>
-          hydrateOnce(slot, get, set, async () => {
-            set({ submissions: await formsAPI.received() });
-          }),
+        hydrate: () => hydrateOnce(slot, get, set, load),
+        reread: () => hydrateOnce(slot, get, set, load, true),
         /**
          * The inbox's one write (OBT-652): the server's answer replaces the row, so *applied* is
          * the server's fact and the screen only reads it; the project list is outdated, as after
