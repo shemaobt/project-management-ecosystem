@@ -956,7 +956,7 @@ export interface PrayerPulseFile {
   readonly fileName: string;
 }
 
-const PULSE_FALLBACK_NAME = "pulso-de-oracao.txt";
+const PULSE_FALLBACK_NAME = "pulso-de-oracao.html";
 
 /** The name a `Content-Disposition: attachment; filename="…"` gives, or `fallback`. */
 export function attachmentFileName(disposition: unknown, fallback: string): string {

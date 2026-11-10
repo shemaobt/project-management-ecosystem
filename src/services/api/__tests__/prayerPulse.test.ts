@@ -55,10 +55,14 @@ describe("o mural", () => {
 });
 
 describe("o Pulso de Oração", () => {
-  it("é o arquivo do servidor, na língua da tela, com o nome que o servidor dá", async () => {
+  it("é o documento HTML do servidor, na língua da tela, com o nome que o servidor dá", async () => {
+    const html = "<!doctype html>\n<html lang=\"en\">\n<body>\n<h1>Prayer Pulse</h1>\n</body>\n</html>\n";
     reply = {
-      data: "PULSO DE ORAÇÃO\n…",
-      headers: { "content-disposition": 'attachment; filename="pulso-2026-10-01.txt"' },
+      data: html,
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "content-disposition": 'attachment; filename="prayer-pulse-2026-11-10.html"',
+      },
     };
 
     const file = await prayerPulseAPI.generate("en");
@@ -66,12 +70,12 @@ describe("o Pulso de Oração", () => {
     expect(calls).toEqual([
       { method: "get", path: "/shema/prayer/pulse", params: { lang: "en" }, responseType: "text" },
     ]);
-    expect(file).toEqual({ text: "PULSO DE ORAÇÃO\n…", fileName: "pulso-2026-10-01.txt" });
+    expect(file).toEqual({ text: html, fileName: "prayer-pulse-2026-11-10.html" });
   });
 
-  it("sem cabeçalho legível, salva com um nome neutro", () => {
-    expect(pulseFileName(undefined)).toBe("pulso-de-oracao.txt");
-    expect(pulseFileName("attachment")).toBe("pulso-de-oracao.txt");
+  it("sem cabeçalho legível, salva com um nome neutro, e em .html", () => {
+    expect(pulseFileName(undefined)).toBe("pulso-de-oracao.html");
+    expect(pulseFileName("attachment")).toBe("pulso-de-oracao.html");
   });
 
   it("a língua do arquivo segue a da tela", () => {

@@ -555,7 +555,7 @@
     color: var(--color-accent-press);
   }
 
-  /* O globo noturno e o medalhão são claros nos dois temas (§7.4). */
+  /* O globo noturno, o medalhão e a prévia do Pulso de Oração são claros nos dois temas (§7.4). */
   .dark .tema-claro {
     color-scheme: light;
 

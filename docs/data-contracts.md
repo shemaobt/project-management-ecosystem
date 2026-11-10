@@ -1689,12 +1689,17 @@ each restates an answer above or a rule this document already held, and each say
    earlier wording stays (Karina, 6/out, 10b — [OBT-576](https://linear.app/shema-obt/issue/OBT-576)). A Prayer Pulse already delivered is outside the platform, and rule 3 is what says so.
 
 **What this closes, and what it does not build.** The decision closes the gate; no screen generates
-or imports a Pulse file because of it. Three facts as they stand on 9/nov/2026:
+or imports a Pulse file because of it. Three facts as they stand on 10/nov/2026:
 
-- **The Prayer Pulse the server writes today is plain text**, not `.html` — `pulse_filename` in
-  `shema-api`'s `app/models/shema_prayer.py` names it `….txt`, and the console saves it under that
-  name. Changing it is replacing the renderer, which BE-09 isolated for exactly this; the filter and
-  the reduction (rules 1 and 2) do not move.
+- **The Prayer Pulse the server writes is `.html`** since [OBT-690](https://linear.app/shema-obt/issue/OBT-690)
+  (`shema-api` #1058, on `dev`; it was plain `.txt` until then): `render_prayer_pulse` in
+  `app/models/shema_prayer.py` returns one whole document, CSS inline and no script, link, image or
+  address, every value from a person through `html.escape`, served as `text/html; charset=utf-8`
+  under `pulso-de-oracao-<day>.html`. Only the renderer moved, which BE-09 isolated for exactly
+  this; the filter and the reduction (rules 1 and 2) did not. The console previews it in a
+  sandboxed `iframe` — no `allow-scripts`, no `allow-same-origin`, never `dangerouslySetInnerHTML`
+  — and saves it as `text/html` under the server's name
+  ([OBT-695](https://linear.app/shema-obt/issue/OBT-695)).
 - **Nothing generates the Monthly Pulse form yet** — the route above is still not built.
 - **Receiving a returned file by upload is [OBT-687](https://linear.app/shema-obt/issue/OBT-687)**,
   which reads the embedded block. The leader link (§9.9) already brings a Monthly Pulse back without a

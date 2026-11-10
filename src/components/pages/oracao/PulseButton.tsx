@@ -8,7 +8,6 @@ import {
   type PrayerPulseFile,
 } from "../../../services/api";
 import type { ApiFailure } from "../../../types/session";
-import { downloadTextFile } from "../../../utils/export";
 import { Button } from "../../ui/Button";
 import {
   Dialog,
@@ -19,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../ui/Dialog";
+import { savePulse } from "./pulseFile";
 
 type Preview =
   | { readonly status: "loading" }
@@ -34,6 +34,26 @@ export interface PulseButtonProps {
    * withdrawn between the two reads — and then the file below is the truth, not this number.
    */
   count: number;
+}
+
+/**
+ * The file as it will be read, drawn apart from the page (OBT-695). It is a whole HTML document
+ * since OBT-690 and it carries text people typed: the server escapes every such value, and the
+ * preview still never trusts that. An empty `sandbox` runs no script and gives the document an
+ * opaque origin that reaches neither this page nor its session; `srcDoc` hands it over as data,
+ * never through `dangerouslySetInnerHTML`. It is light in both themes, because the document
+ * paints its own dark ink and no background: the ground is `branco`, and `.tema-claro` (§7.4,
+ * the globe's) brings back the light `line`, which in `.dark` would vanish into that ground.
+ */
+export function PulsePreview({ file, title }: { file: PrayerPulseFile; title: string }) {
+  return (
+    <iframe
+      sandbox=""
+      srcDoc={file.text}
+      title={title}
+      className="tema-claro h-[50vh] w-full rounded-lg border border-line bg-branco"
+    />
+  );
 }
 
 /**
@@ -87,14 +107,7 @@ export function PulseButton({ api, count }: PulseButtonProps) {
               </p>
             )}
             {preview.status === "ready" && (
-              <pre
-                role="region"
-                aria-label={t("oracao_pulse_preview")}
-                tabIndex={0}
-                className="max-h-[50vh] overflow-auto rounded-lg bg-muted p-3.5 text-micro whitespace-pre-wrap text-fg"
-              >
-                {preview.file.text}
-              </pre>
+              <PulsePreview file={preview.file} title={t("oracao_pulse_preview")} />
             )}
           </DialogBody>
           <DialogFooter>
@@ -106,7 +119,7 @@ export function PulseButton({ api, count }: PulseButtonProps) {
               disabled={preview.status !== "ready"}
               onClick={() => {
                 if (preview.status !== "ready") return;
-                downloadTextFile(preview.file.fileName, preview.file.text, "text/plain;charset=utf-8");
+                savePulse(preview.file);
                 setOpen(false);
               }}
             >
