@@ -3,6 +3,7 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { NeedItem, Project } from "../../types/project";
 import {
+  answersReachPrayerWall,
   buildPrayerRequests,
   countPrayerIndicators,
   groupPrayerRequests,
@@ -223,6 +224,16 @@ describe("groupPrayerRequests", () => {
         expect(request.region).toBe(group.region);
       }
     }
+  });
+});
+
+describe("as respostas de um Pulso vão à rede só com rede (OBT-687)", () => {
+  it("rede vai; ausente, coordenacao ou qualquer outro valor fica com a coordenação", () => {
+    expect(answersReachPrayerWall({ prayerVisibility: "rede" })).toBe(true);
+    for (const value of [undefined, null, "coordenacao", "REDE", 1]) {
+      expect(answersReachPrayerWall({ prayerVisibility: value })).toBe(false);
+    }
+    expect(answersReachPrayerWall({})).toBe(false);
   });
 });
 

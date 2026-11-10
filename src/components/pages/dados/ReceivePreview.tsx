@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { PulseFile } from "../../../services/pulseFile";
 import type { Project } from "../../../types/project";
 import { formatMonthName } from "../../../utils/format";
+import { answersReachPrayerWall } from "../../../utils/prayer";
 import { getLanguageNameDisplay } from "../../../utils/region";
 
 export interface ReceivePreviewProps {
@@ -47,7 +48,7 @@ export function ReceivePreview({ file, project }: ReceivePreviewProps) {
   if (prayer) {
     lines.push([
       "prayer_vis_label",
-      answers.prayerVisibility === "rede" ? (
+      answersReachPrayerWall(answers) ? (
         <>
           {t("prayer_vis_network")}
           <span className="mt-1 block text-fg-muted">{t("prayer_vis_network_no_recall")}</span>
