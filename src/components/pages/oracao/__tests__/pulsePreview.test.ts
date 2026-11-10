@@ -46,6 +46,11 @@ describe("a prévia do Pulso", () => {
     expect(markup).toContain('title="Texto do Pulso de Oração"');
   });
 
+  it("é clara nos dois temas: o fundo branco e a .tema-claro que devolve a linha", () => {
+    const classes = /class="([^"]*)"/u.exec(markup)?.[1].split(" ") ?? [];
+    expect(classes).toEqual(expect.arrayContaining(["tema-claro", "bg-branco", "border-line"]));
+  });
+
   it("o documento entra como dado do srcdoc, e um <script> nele não vira nó da página", () => {
     expect(markup).toMatch(/ srcdoc="/iu);
     expect(markup).not.toMatch(/<script/iu);

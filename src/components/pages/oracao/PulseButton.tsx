@@ -41,8 +41,9 @@ export interface PulseButtonProps {
  * since OBT-690 and it carries text people typed: the server escapes every such value, and the
  * preview still never trusts that. An empty `sandbox` runs no script and gives the document an
  * opaque origin that reaches neither this page nor its session; `srcDoc` hands it over as data,
- * never through `dangerouslySetInnerHTML`. The ground is `branco` in both themes because the
- * document paints its own dark ink and no background.
+ * never through `dangerouslySetInnerHTML`. It is light in both themes, because the document
+ * paints its own dark ink and no background: the ground is `branco`, and `.tema-claro` (§7.4,
+ * the globe's) brings back the light `line`, which in `.dark` would vanish into that ground.
  */
 export function PulsePreview({ file, title }: { file: PrayerPulseFile; title: string }) {
   return (
@@ -50,7 +51,7 @@ export function PulsePreview({ file, title }: { file: PrayerPulseFile; title: st
       sandbox=""
       srcDoc={file.text}
       title={title}
-      className="h-[50vh] w-full rounded-lg border border-line bg-branco"
+      className="tema-claro h-[50vh] w-full rounded-lg border border-line bg-branco"
     />
   );
 }
