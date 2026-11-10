@@ -1220,7 +1220,9 @@ the upload and not the media item, so it shows the image by the word.
 - **Only the Pulse is archivable.** `ReceivedSubmission.kind` is `"pulso"` and nothing else (§5.7).
 - The leader link grants the intake form **and nothing else**: no console, no project data, and it
   expires.
-- **Neither the format nor the distribution model is decided** — §11.3.
+- **The format and the distribution are decided** — §11.3. The offline form and its way back are
+  designed in [`docs/pulso-offline/desenho.md`](pulso-offline/desenho.md)
+  ([OBT-691](https://linear.app/shema-obt/issue/OBT-691)), which separates what is decided from what is proposed.
 
 ### 9.10 Equipe — INT-10 ([OBT-415](https://linear.app/shema-obt/issue/OBT-415)) · BE-13 ([OBT-402](https://linear.app/shema-obt/issue/OBT-402))
 
@@ -1700,7 +1702,10 @@ or imports a Pulse file because of it. Three facts as they stand on 10/nov/2026:
   sandboxed `iframe` — no `allow-scripts`, no `allow-same-origin`, never `dangerouslySetInnerHTML`
   — and saves it as `text/html` under the server's name
   ([OBT-695](https://linear.app/shema-obt/issue/OBT-695)).
-- **Nothing generates the Monthly Pulse form yet** — the route above is still not built.
+- **Nothing generates the Monthly Pulse form yet** — the route above is still not built. The design is
+  [`docs/pulso-offline/desenho.md`](pulso-offline/desenho.md) ([OBT-691](https://linear.app/shema-obt/issue/OBT-691),
+  10/nov/2026): voice stays text and the offline draft is kept on the phone by project and period
+  (both Daniel's, 10/nov); everything else there is a proposal.
 - **Receiving a returned file by upload is [OBT-687](https://linear.app/shema-obt/issue/OBT-687)**,
   which reads the embedded block. The leader link (§9.9) already brings a Monthly Pulse back without a
   file, and that path is untouched.
