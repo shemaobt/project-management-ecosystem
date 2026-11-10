@@ -1706,9 +1706,11 @@ or imports a Pulse file because of it. Three facts as they stand on 10/nov/2026:
   [`docs/pulso-offline/desenho.md`](pulso-offline/desenho.md) ([OBT-691](https://linear.app/shema-obt/issue/OBT-691),
   10/nov/2026): voice stays text and the offline draft is kept on the phone by project and period
   (both Daniel's, 10/nov); everything else there is a proposal.
-- **Receiving a returned file by upload is [OBT-687](https://linear.app/shema-obt/issue/OBT-687)**,
-  which reads the embedded block. The leader link (§9.9) already brings a Monthly Pulse back without a
-  file, and that path is untouched.
+- **Receiving a returned file is built** ([OBT-687](https://linear.app/shema-obt/issue/OBT-687),
+  10/nov/2026): *Receber Atualização* reads the embedded block with `DOMParser` in one module
+  (`src/services/pulseFile.ts`), shows the answers, then sends the photo to
+  `POST /forms/pulse/{projectId}/image` and the block, verbatim, to `POST /forms/submissions`. The
+  leader link (§9.9) already brings a Monthly Pulse back without a file, and that path is untouched.
 
 > The offline artifact is the project's highest technical risk: an unknown Android phone, no
 > connectivity, and a file round trip through WhatsApp. **Prove it on a real device early**, not when

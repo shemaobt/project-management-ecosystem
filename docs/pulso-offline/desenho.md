@@ -359,7 +359,7 @@ Estimativas em pontos, grosseiras, para dimensionar.
 | I2 | shema-api | Porta `POST /forms/pulse/{projectId}/image` e a origem `sha256:` em `_image_for`, com migração (P5) | 5 | — |
 | I3 | pme | Build offline: segunda entrada no Vite, arquivo único, i18n reduzido, fonte do sistema, blocos `shema-pulso-*`, rascunho em `localStorage`/IndexedDB por projeto e período, *Apagar o rascunho*, arquivo de volta autocopiado, hash em JS puro, fallback JPEG na redução (P1, P9, D5, D6) | 8 | I1 |
 | I4 | pme | O botão *Gerar Pulso Mensal* chama I1 e monta e salva o arquivo; `forms_format_pending` sai | 3 | I1, I3 |
-| I5 | pme | **[OBT-687](https://linear.app/shema-obt/issue/OBT-687), já aberta** — o leitor do arquivo (`DOMParser`, blocos, `data-format-version`), as respostas mostradas antes de enviar (P8), a foto por I2, o envelope verbatim que arquiva e aplica, o 409 | — | I2, I3 |
+| I5 | pme | **[OBT-687](https://linear.app/shema-obt/issue/OBT-687), feita** (10/nov/2026; o plano aprovado pelo Daniel aplica P7 e P8) — o leitor do arquivo (`DOMParser`, blocos, `data-format-version`), as respostas mostradas antes de enviar (P8), a foto por I2, o envelope verbatim que arquiva e aplica, o 409 | — | I2, I3 |
 | I6 | pme | **[OBT-699](https://linear.app/shema-obt/issue/OBT-699)** — `client_max_body_size 11m` em `/api` no `nginx.conf` (P6) | 1 | — |
 
 P4 (arquivar o `.html` inteiro) **não vira issue** enquanto o Daniel não decidir a colisão do §8.1.
