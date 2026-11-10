@@ -80,6 +80,18 @@ export function canMintLeaderLinks(
 }
 
 /**
+ * Who is offered the returned Pulse file in *Receber atualização* (OBT-687) — whom
+ * `POST /forms/submissions` and the photo's route admit: `CoordinatorUser` and a write scope. The
+ * project's own region is checked once the file names it (`canApplySubmission`).
+ */
+export function canReceivePulseFile(
+  roles: readonly SessionRole[],
+  writeRegionScope?: readonly RegionKey[] | null,
+): boolean {
+  return admittedAsCoordinator(roles, writeRegionScope) && writesAnyProject(writeRegionScope);
+}
+
+/**
  * Who types over a region's seats on Equipe — whom `PUT /regions/{key}/team` admits:
  * `CoordinatorUser` and the write scope (OBT-620). The OBT Lab reads its region's seats and saves
  * none; a coordinator saves only where it writes a project (OBT-593).

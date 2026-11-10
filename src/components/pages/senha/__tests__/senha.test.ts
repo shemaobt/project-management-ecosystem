@@ -150,7 +150,10 @@ describe("o serviço, em axios cru", () => {
     expect(body).toEqual({ token: "tok", password: "umasenhalonga" });
     expect(options.headers).toEqual({ Accept: "application/json" });
     const endpoints = source("src/services/api/endpoints.ts");
-    const block = endpoints.slice(endpoints.indexOf("export const passwordAPI"));
+    const block = endpoints.slice(
+      endpoints.indexOf("export const passwordAPI"),
+      endpoints.indexOf("export type PasswordAPI"),
+    );
     expect(block).not.toContain("http.post");
   });
 

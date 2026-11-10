@@ -122,6 +122,14 @@ export const resourceRequestsAPI: ResourceRequestsAPI | null =
 export const passwordAPI: api.PasswordAPI | null =
   resolveSource("session") === "api" ? api.passwordAPI : null;
 
+/**
+ * The Pulse that came back as a file has no fixture either (OBT-687): receiving it is the
+ * server's archive and the server's apply, and a double that pretended to keep the file would
+ * be a file nobody kept. `null` is what the receive dialog reads to say it needs the server.
+ */
+export const pulseReturnAPI: api.PulseReturnAPI | null =
+  resolveSource("forms") === "api" ? api.pulseReturnAPI : null;
+
 export const geoAPI = fixture.geoAPI;
 
 export {
@@ -160,6 +168,7 @@ export type {
   PrayerPulseFile,
   PrayerReviewAPI,
   PulseLanguage,
+  PulseReturnAPI,
   ServedPanel,
   TransferAPI,
   TransferFormat,

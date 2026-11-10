@@ -22,6 +22,17 @@ export function reachesPrayerWall(
   return getPrayerVisibility(project) === "rede";
 }
 
+/**
+ * Whether a Pulse's answers send its prayer request to the network: `rede`, and nothing else —
+ * absent or any other value is the coordination, as on the record (`data-contracts.md` §8.2).
+ * The answer is read here, beside the record's rule, so no screen reads the raw field (OBT-687).
+ */
+export function answersReachPrayerWall(answers: Readonly<Record<string, unknown>>): boolean {
+  return reachesPrayerWall({
+    prayerVisibility: answers.prayerVisibility === "rede" ? "rede" : undefined,
+  });
+}
+
 export function buildPrayerRequests(
   projects: readonly Project[],
 ): PrayerRequest[] {
