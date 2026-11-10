@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:">
+<title>Pulso Mensal · teste de aparelho (OBT-691)</title>
+<style id="shema-style">
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;margin:0;background:#f6f5eb;color:#3f3e20;line-height:1.45}
+main{max-width:40em;margin:0 auto;padding:16px}
+h1{font-size:1.35em;margin:.2em 0 .6em}
+h2{font-size:1.05em;margin:1.4em 0 .4em}
+section{background:#fff;border-radius:12px;padding:14px;margin:0 0 12px;border:1px solid rgba(63,62,32,.16)}
+label{display:block;font-weight:600;margin:.6em 0 .2em}
+input[type=text],input[type=month],input[type=number],textarea,select{width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid rgba(63,62,32,.34);border-radius:8px;background:#fff;color:inherit}
+textarea{min-height:5em}
+button{font:inherit;font-weight:600;padding:10px 14px;border-radius:999px;border:1px solid #be4a01;background:#be4a01;color:#fff;margin:4px 4px 4px 0}
+button.sec{background:#fff;color:#872f00}
+button:disabled{opacity:.5}
+.note{font-size:.9em;color:#5a5a3e}
+.warn{color:#872f00;font-weight:600}
+.ok{color:#2f5d1e;font-weight:600}
+#diag{font:12px/1.4 ui-monospace,monospace;white-space:pre-wrap;background:#ecEADF;padding:10px;border-radius:8px;word-break:break-all}
+img.prev{max-width:100%;border-radius:8px;margin-top:8px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+</style>
+<script type="application/json" id="shema-pulso-def">{"projectId":"teste-691","definitionVersion":1,"languageName":"Língua de teste","period":"2026-11","generatedAt":"2026-11-10T00:00:00Z"}</script>
+<script type="application/json" id="shema-pulso" data-format-version="1">null</script>
+<script type="application/json" id="shema-pulso-media">{}</script>
+</head>
+<body>
+<main id="root"><p>Se esta frase continuar aqui, o JavaScript não rodou. Abra este arquivo com o <b>Chrome</b>.</p></main>
+<script id="shema-app">
+(function () {
+  "use strict";
+  var MAX_IMAGE_SOURCE_BYTES = 10 * 1024 * 1024;
+  var MAX_BLOCK_BYTES = 256 * 1024;
+  var MAX_FILE_BYTES = 8 * 1024 * 1024;
+
+  function readJson(id) {
+    try { return JSON.parse(document.getElementById(id).textContent); } catch (e) { return null; }
+  }
+  var DEF = readJson("shema-pulso-def") || {};
+  var RETURNED = readJson("shema-pulso");
+  var MEDIA = readJson("shema-pulso-media") || {};
+  // Rascunho por projeto e período (decisão do Daniel, 10/nov/2026).
+  var KEY = "shema-pulso:" + DEF.projectId + ":" + DEF.period;
+
+  // --- SHA-256 em JS puro: não depende de crypto.subtle, que pede contexto seguro ----------
+  var K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  function sha256Hex(bytes) {
+    var h = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    var len = bytes.length, total = ((len + 9 + 63) >> 6) << 6;
+    var m = new Uint8Array(total); m.set(bytes); m[len] = 0x80;
+    var bits = len * 8, dv = new DataView(m.buffer);
+    dv.setUint32(total - 8, Math.floor(bits / 4294967296)); dv.setUint32(total - 4, bits >>> 0);
+    var w = new Uint32Array(64);
+    for (var off = 0; off < total; off += 64) {
+      for (var i = 0; i < 16; i++) w[i] = dv.getUint32(off + i * 4);
+      for (i = 16; i < 64; i++) {
+        var a = w[i - 15], b = w[i - 2];
+        var s0 = ((a >>> 7) | (a << 25)) ^ ((a >>> 18) | (a << 14)) ^ (a >>> 3);
+        var s1 = ((b >>> 17) | (b << 15)) ^ ((b >>> 19) | (b << 13)) ^ (b >>> 10);
+        w[i] = (w[i - 16] + s0 + w[i - 7] + s1) >>> 0;
+      }
+      var A = h[0], B = h[1], C = h[2], D = h[3], E = h[4], F = h[5], G = h[6], H = h[7];
+      for (i = 0; i < 64; i++) {
+        var S1 = ((E >>> 6) | (E << 26)) ^ ((E >>> 11) | (E << 21)) ^ ((E >>> 25) | (E << 7));
+        var t1 = (H + S1 + ((E & F) ^ (~E & G)) + K[i] + w[i]) >>> 0;
+        var S0 = ((A >>> 2) | (A << 30)) ^ ((A >>> 13) | (A << 19)) ^ ((A >>> 22) | (A << 10));
+        var t2 = (S0 + ((A & B) ^ (A & C) ^ (B & C))) >>> 0;
+        H = G; G = F; F = E; E = (D + t1) >>> 0; D = C; C = B; B = A; A = (t1 + t2) >>> 0;
+      }
+      h[0] = (h[0] + A) >>> 0; h[1] = (h[1] + B) >>> 0; h[2] = (h[2] + C) >>> 0; h[3] = (h[3] + D) >>> 0;
+      h[4] = (h[4] + E) >>> 0; h[5] = (h[5] + F) >>> 0; h[6] = (h[6] + G) >>> 0; h[7] = (h[7] + H) >>> 0;
+    }
+    return h.map(function (x) { return ("00000000" + x.toString(16)).slice(-8); }).join("");
+  }
+
+  function utf8(s) { return new TextEncoder().encode(s); }
+  function b64(bytes) {
+    var s = "", chunk = 0x8000;
+    for (var i = 0; i < bytes.length; i += chunk) s += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    return btoa(s);
+  }
+  function unb64(str) {
+    var s = atob(str), out = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+    return out;
+  }
+  function kb(n) { return n < 10240 ? n + " bytes" : (n / 1024).toFixed(0) + " KB"; }
+  function blobBytes(blob) {
+    return new Promise(function (ok, fail) {
+      var r = new FileReader();
+      r.onload = function () { ok(new Uint8Array(r.result)); };
+      r.onerror = function () { fail(r.error); };
+      r.readAsArrayBuffer(blob);
+    });
+  }
+  // JSON dentro de <script>: "<" vira <, que continua JSON válido e não fecha a tag.
+  function scriptJson(value) { return JSON.stringify(value).replace(/</g, "\\u003c"); }
+
+  // --- Diagnóstico: o que o aparelho deixa fazer ----------------------------------------------
+  var diag = [];
+  function note(line) { diag.push(line); var el = document.getElementById("diag"); if (el) el.textContent = diag.join("\n"); }
+
+  // --- Progresso: respostas em localStorage, foto em IndexedDB --------------------------------
+  var state = { submittedBy: "", period: DEF.period || "", voice: "", book: "", translated: "", blockers: "",
+    prayerRequest: "", prayerVisibility: "", imageDescription: "", imageAuthorized: false };
+  var media = { image: null };
+  var lsOk = false, idb = null;
+
+  function saveState() {
+    if (!lsOk) return;
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { note("localStorage: falhou ao gravar (" + e.name + ")"); }
+  }
+  function openIdb() {
+    return new Promise(function (ok) {
+      if (!window.indexedDB) { ok(null); return; }
+      try {
+        var req = indexedDB.open("shema-pulso", 1);
+        req.onupgradeneeded = function () { req.result.createObjectStore("media"); };
+        req.onsuccess = function () { ok(req.result); };
+        req.onerror = function () { ok(null); };
+      } catch (e) { ok(null); }
+    });
+  }
+  function idbPut(name, value) {
+    if (!idb) return Promise.resolve(false);
+    return new Promise(function (ok) {
+      try {
+        var tx = idb.transaction("media", "readwrite");
+        tx.objectStore("media").put(value, KEY + ":" + name);
+        tx.oncomplete = function () { ok(true); };
+        tx.onerror = function () { ok(false); };
+      } catch (e) { ok(false); }
+    });
+  }
+  function idbGet(name) {
+    if (!idb) return Promise.resolve(null);
+    return new Promise(function (ok) {
+      try {
+        var req = idb.transaction("media").objectStore("media").get(KEY + ":" + name);
+        req.onsuccess = function () { ok(req.result || null); };
+        req.onerror = function () { ok(null); };
+      } catch (e) { ok(null); }
+    });
+  }
+
+  // --- Foto: reduzida a 1200px antes de entrar, como o prepareIntakeImage do PME ----------
+  function reduceImage(file) {
+    return new Promise(function (ok, fail) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var scale = Math.min(1, 1200 / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement("canvas");
+        c.width = Math.round(img.naturalWidth * scale); c.height = Math.round(img.naturalHeight * scale);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (blob) {
+          if (blob && blob.type === "image/webp") { ok(blob); return; }
+          c.toBlob(function (jpeg) { jpeg ? ok(jpeg) : fail(new Error("canvas")); }, "image/jpeg", 0.85);
+        }, "image/webp", 0.85);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); fail(new Error("imagem ilegível")); };
+      img.src = url;
+    });
+  }
+
+  // --- O arquivo de volta: o mesmo .html, com o bloco preenchido -----------------------------
+  function buildReturn() {
+    var mediaBlock = {};
+    var pending = [];
+    var answers = {
+      submittedBy: state.submittedBy,
+      period: state.period
+    };
+    if (state.voice) answers.voice = state.voice;
+    if (state.book && state.translated !== "") answers.bookProgress = [{ name: state.book, translated: Number(state.translated) }];
+    if (state.blockers) answers.blockers = state.blockers;
+    if (state.prayerRequest) answers.prayerRequest = state.prayerRequest;
+    if (state.prayerVisibility) answers.prayerVisibility = state.prayerVisibility;
+    if (state.imageDescription) answers.imageDescription = state.imageDescription;
+    answers.imageAuthorized = !!state.imageAuthorized;
+    function addMedia(name, blob) {
+      return blobBytes(blob).then(function (bytes) {
+        var hash = sha256Hex(bytes);
+        mediaBlock["sha256:" + hash] = { type: blob.type, b64: b64(bytes) };
+        return "sha256:" + hash;
+      });
+    }
+    if (media.image) pending.push(addMedia("image", media.image).then(function (ref) { answers.image = ref; }));
+    return Promise.all(pending).then(function () {
+      var envelope = scriptJson({ projectId: DEF.projectId, definitionVersion: DEF.definitionVersion, answers: answers });
+      var html = "<!doctype html>\n<html lang=\"pt-BR\">\n<head>\n<meta charset=\"utf-8\">\n" +
+        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n" +
+        document.querySelector("meta[http-equiv]").outerHTML + "\n" +
+        "<title>" + esc(document.title) + "</title>\n" +
+        "<style id=\"shema-style\">" + document.getElementById("shema-style").textContent + "</style>\n" +
+        "<script type=\"application/json\" id=\"shema-pulso-def\">" + scriptJson(DEF) + "<\/script>\n" +
+        "<script type=\"application/json\" id=\"shema-pulso\" data-format-version=\"1\" data-saved-at=\"" + new Date().toISOString() + "\">" + envelope + "<\/script>\n" +
+        "<script type=\"application/json\" id=\"shema-pulso-media\">" + scriptJson(mediaBlock) + "<\/script>\n" +
+        "</head>\n<body>\n<main id=\"root\"><p>Se esta frase continuar aqui, o JavaScript não rodou. Abra este arquivo com o <b>Chrome</b>.</p></main>\n" +
+        "<script id=\"shema-app\">" + document.getElementById("shema-app").textContent + "<\/script>\n</body>\n</html>\n";
+      return { html: html, blockBytes: utf8(envelope).length, mediaBytes: utf8(scriptJson(mediaBlock)).length };
+    });
+  }
+
+  function fileName() {
+    var safe = String(DEF.languageName || "projeto").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w-]+/g, "-").replace(/-+/g, "-");
+    return "pulso-mensal-" + safe + "-" + (state.period || "sem-mes") + ".html";
+  }
+
+  function saveReturn(share) {
+    var out = document.getElementById("out");
+    if (!state.submittedBy || !/^\d{4}-(0[1-9]|1[0-2])$/.test(state.period)) {
+      out.innerHTML = '<span class="warn">Falta o seu nome e o mês (AAAA-MM).</span>';
+      return;
+    }
+    buildReturn().then(function (r) {
+      var size = utf8(r.html).length;
+      var lines = ["arquivo: " + kb(size) + " · bloco de respostas: " + kb(r.blockBytes) + " · mídia: " + kb(r.mediaBytes)];
+      if (r.blockBytes > MAX_BLOCK_BYTES) lines.push("bloco passa de 256 KB — o servidor recusaria");
+      if (size > MAX_FILE_BYTES) lines.push("arquivo passa de 8 MB — o servidor recusaria");
+      note(lines.join(" | "));
+      var blob = new Blob([r.html], { type: "text/html;charset=utf-8" });
+      var file = null;
+      try { file = new File([blob], fileName(), { type: "text/html" }); } catch (e) { file = null; }
+      if (share && file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: fileName() }).then(function () {
+          note("compartilhar: enviado ao menu do sistema");
+          out.innerHTML = '<span class="ok">Pronto. Escolha o WhatsApp e mande à coordenação.</span>';
+        }, function (e) { note("compartilhar: falhou (" + e.name + ")"); });
+        return;
+      }
+      if (share) note("compartilhar arquivo: NÃO disponível aqui — use Salvar");
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = fileName(); document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      note("salvar: download pedido como " + fileName());
+      out.innerHTML = '<span class="ok">Arquivo salvo em Downloads: ' + fileName() + '.</span> Anexe no WhatsApp como documento.';
+    });
+  }
+
+  function forget() {
+    if (!confirm("Apagar deste celular o rascunho deste mês? O arquivo que você já salvou continua em Downloads.")) return;
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    note("apagado deste celular");
+    idbPut("image", null).then(function () { location.reload(); });
+  }
+
+  // --- Tela ----------------------------------------------------------------------------------
+  function field(label, html) { return "<label>" + label + "</label>" + html; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  function render() {
+    var root = document.getElementById("root");
+    var returned = RETURNED ? '<section><p class="ok">Este arquivo já foi preenchido e salvo. As respostas abaixo vieram de dentro dele.</p></section>' : "";
+    root.innerHTML =
+      "<h1>Conta o mês · " + esc(DEF.languageName || "") + "</h1>" +
+      '<p class="note">Teste de aparelho da OBT-691. Funciona sem internet. Tudo que você digita fica guardado neste celular até você apertar “Apagar o rascunho deste celular”.</p>' +
+      returned +
+      "<section><h2>Quem e quando</h2>" +
+      field("Seu nome", '<input type="text" id="f_submittedBy" maxlength="200">') +
+      field("Mês (AAAA-MM)", '<input type="month" id="f_period" placeholder="2026-11">') +
+      "</section>" +
+      "<section><h2>01 · Sua voz</h2>" +
+      field("Como foi este mês?", '<textarea id="f_voice"></textarea>') +
+      "</section>" +
+      "<section><h2>02 · Uma foto</h2>" +
+      '<input type="file" id="photo" accept="image/jpeg,image/png,image/webp">' +
+      (media.image ? '<img class="prev" id="photoPrev" alt="Foto escolhida">' : "") +
+      field("Descreva a imagem", '<textarea id="f_imageDescription"></textarea>') +
+      '<label><input type="checkbox" id="f_imageAuthorized"> Autorizo o uso desta imagem pela Shemá fora deste projeto.</label>' +
+      "</section>" +
+      "<section><h2>03 · Capítulos</h2><div class=\"row\">" +
+      '<div><label>Livro</label><input type="text" id="f_book"></div>' +
+      '<div><label>Traduzidos</label><input type="number" id="f_translated" min="0" inputmode="numeric"></div></div>' +
+      "</section>" +
+      "<section><h2>04 · Atrapalha algo?</h2>" + '<textarea id="f_blockers"></textarea>' + "</section>" +
+      "<section><h2>05 · Pedido de oração</h2>" + '<textarea id="f_prayerRequest"></textarea>' +
+      field("Pode ir para a rede de intercessores?", '<select id="f_prayerVisibility"><option value="">Não respondi</option><option value="coordenacao">Fica só com a coordenação</option><option value="rede">Pode ir para a rede</option></select>') +
+      '<p class="note">Depois que um pedido é enviado à rede, ele não pode ser recolhido.</p>' +
+      "</section>" +
+      "<section><h2>Devolver</h2>" +
+      '<button type="button" id="share">Compartilhar o arquivo</button><button type="button" class="sec" id="save">Salvar o arquivo</button>' +
+      '<p id="out" class="note"></p><button type="button" class="sec" id="forget">Apagar o rascunho deste celular</button></section>' +
+      "<section><h2>Diagnóstico (tire uma foto desta caixa)</h2><div id=\"diag\"></div></section>";
+
+    Object.keys(state).forEach(function (k) {
+      var el = document.getElementById("f_" + k);
+      if (!el) return;
+      if (el.type === "checkbox") { el.checked = !!state[k]; el.onchange = function () { state[k] = el.checked; saveState(); }; }
+      else { el.value = state[k]; el.oninput = el.onchange = function () { state[k] = el.value; saveState(); }; }
+    });
+    var photo = document.getElementById("photo");
+    photo.onchange = function () {
+      var f = photo.files[0];
+      if (!f) return;
+      if (f.size > MAX_IMAGE_SOURCE_BYTES) { alert("A foto passa de 10 MB."); return; }
+      reduceImage(f).then(function (blob) {
+        media.image = blob;
+        note("foto: " + kb(f.size) + " → " + kb(blob.size) + " " + blob.type);
+        blobBytes(blob).then(function (bytes) {
+          idbPut("image", { type: blob.type, b64: b64(bytes) }).then(function (ok) { note("foto guardada no aparelho (IndexedDB): " + (ok ? "sim" : "NÃO")); });
+        });
+        render();
+      }, function (e) { note("foto: falhou ao reduzir (" + e.message + ")"); });
+    };
+    if (media.image) document.getElementById("photoPrev").src = URL.createObjectURL(media.image);
+    document.getElementById("share").onclick = function () { saveReturn(true); };
+    document.getElementById("save").onclick = function () { saveReturn(false); };
+    document.getElementById("forget").onclick = forget;
+    document.getElementById("diag").textContent = diag.join("\n");
+  }
+
+  function restoreFromFile() {
+    if (!RETURNED || !RETURNED.answers) return;
+    var a = RETURNED.answers;
+    Object.keys(state).forEach(function (k) { if (a[k] !== undefined) state[k] = a[k]; });
+    if (a.bookProgress && a.bookProgress[0]) { state.book = a.bookProgress[0].name; state.translated = String(a.bookProgress[0].translated); }
+    function fromMedia(ref) {
+      var m = ref && MEDIA[ref];
+      if (!m) return null;
+      var bytes = unb64(m.b64);
+      note("mídia " + ref.slice(0, 15) + "… confere com o hash: " + (sha256Hex(bytes) === ref.slice(7) ? "sim" : "NÃO"));
+      return new Blob([bytes], { type: m.type });
+    }
+    media.image = fromMedia(a.image);
+  }
+
+  // --- Início ---------------------------------------------------------------------------------
+  note("protocolo: " + location.protocol + " · origem: " + (location.origin || "(opaca)"));
+  note("contexto seguro: " + (window.isSecureContext ? "sim" : "NÃO"));
+  note("crypto.subtle: " + (window.crypto && crypto.subtle ? "sim" : "NÃO") + " (o hash usa JS puro de qualquer jeito)");
+  note("compartilhar arquivo (navigator.share): " + (navigator.canShare ? "existe" : "NÃO existe"));
+  note("bloco embutido lido: " + (RETURNED ? "com respostas (arquivo devolvido)" : "vazio (arquivo novo)"));
+  try {
+    var opens = Number(localStorage.getItem(KEY + ":opens") || "0") + 1;
+    localStorage.setItem(KEY + ":opens", String(opens));
+    lsOk = true;
+    note("localStorage: funciona · esta é a abertura nº " + opens + (opens > 1 ? " (persistiu entre aberturas)" : " (feche e abra de novo para ver se persiste)"));
+    var saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (saved && !RETURNED) { Object.keys(state).forEach(function (k) { if (saved[k] !== undefined) state[k] = saved[k]; }); note("respostas restauradas do aparelho"); }
+  } catch (e) {
+    note("localStorage: NÃO funciona (" + e.name + ") — o progresso não fica guardado");
+  }
+  restoreFromFile();
+  openIdb().then(function (db) {
+    idb = db;
+    note("IndexedDB: " + (db ? "abriu" : "NÃO abriu — a foto não fica guardada se fechar"));
+    if (RETURNED) { render(); return; }
+    idbGet("image").then(function (got) {
+      if (got && got.b64) { media.image = new Blob([unb64(got.b64)], { type: got.type }); note("foto restaurada do aparelho"); }
+      render();
+    });
+  });
+  render();
+})();
+</script>
+</body>
+</html>
