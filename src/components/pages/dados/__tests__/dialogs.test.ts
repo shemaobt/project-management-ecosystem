@@ -26,7 +26,7 @@ const { parseProjectsImport } = await import("../../../../utils/export");
 const { ExportDialogBody } = await import("../ExportDialog");
 const { ImportDialogBody } = await import("../ImportDialog");
 const { LeaderLinkDialogBody } = await import("../LeaderLinkDialog");
-const { ReceiveUpdateDialogBody } = await import("../ReceiveUpdateDialog");
+const { ReceiveUpdateDialogBody } = await import("../ReceiveUpdateBody");
 
 type Project = ReturnType<typeof createEmptyProject>;
 
@@ -45,18 +45,27 @@ beforeEach(async () => {
   await i18n.changeLanguage("pt");
 });
 
-describe("Receber Atualização não promete o que a onda 1 não entrega", () => {
-  const markup = () =>
-    renderToStaticMarkup(createElement(ReceiveUpdateDialogBody));
+describe("Receber Atualização diz o que faz, e por que não recebe quando não recebe (OBT-687)", () => {
+  const markup = (receives: "receives" | "noServer" | "notCoordination") =>
+    renderToStaticMarkup(
+      createElement(ReceiveUpdateDialogBody, { step: { kind: "choose" }, receives }),
+    );
 
-  it("diz o que o fluxo é e que a importação chega na onda 2", () => {
-    expect(markup()).toContain(i18n.t("receive_desc"));
-    expect(markup()).toContain(i18n.t("receive_pending"));
+  it("para a coordenação, diz o que o fluxo é e que as respostas aparecem antes de qualquer envio", () => {
+    expect(markup("receives")).toContain(i18n.t("receive_desc"));
+    expect(markup("receives")).toContain(i18n.t("receive_choose_hint"));
   });
 
-  it("repete a sentença de que o arquivo ainda não é gerado nem importado aqui, e não nomeia extensão nenhuma", () => {
-    expect(markup()).toContain(i18n.t("forms_format_pending"));
-    expect(markup()).not.toMatch(FORMAT);
+  it("sem servidor, e para quem a porta recusa, diz por quê — e não oferece o arquivo", () => {
+    expect(markup("noServer")).toContain(i18n.t("receive_needs_server"));
+    expect(markup("notCoordination")).toContain(i18n.t("receive_not_coordination"));
+    expect(markup("noServer")).not.toContain(i18n.t("receive_choose_hint"));
+  });
+
+  it("não nomeia extensão nenhuma", () => {
+    for (const receives of ["receives", "noServer", "notCoordination"] as const) {
+      expect(markup(receives)).not.toMatch(FORMAT);
+    }
   });
 });
 
