@@ -40,7 +40,7 @@ export interface PulseFileImage {
 
 /**
  * A file read. `block` is the answers block **verbatim** — the body `POST /forms/submissions`
- * archives byte for byte and hashes for its idempotency (P7), so it is sent as read and never
+ * archives byte for byte and hashes for its idempotency (D10), so it is sent as read and never
  * re-serialized. The rest is the same block parsed, for the preview and for the photo.
  */
 export interface PulseFile {

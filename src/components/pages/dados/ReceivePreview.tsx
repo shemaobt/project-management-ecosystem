@@ -18,7 +18,7 @@ function text(value: unknown): string | null {
 }
 
 /**
- * What the returned file says, before anything is sent (P8): the same call files and applies, so
+ * What the returned file says, before anything is sent (D11): the same call files and applies, so
  * this is where the coordination reads the answers. The project is named from the record, as this
  * reader is allowed to read it, never from the file. A request for the network says, as the
  * leader's own form does, that once sent it cannot be recalled (`data-contracts.md` §11.3, rule 4) —

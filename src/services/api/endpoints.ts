@@ -1335,7 +1335,7 @@ export const pulseReturnAPI = {
   /**
    * The file's answers block, filed and applied in one call (`POST /forms/submissions`, BE-12).
    * The body is the block as the file carried it: the server archives those bytes and hashes them
-   * for its idempotency (P7), so axios's own transform — which trims a JSON string — is switched
+   * for its idempotency (D10), so axios's own transform — which trims a JSON string — is switched
    * off. A stale version is the ficha's 409, read by `readConflict` as the inbox reads it; the
    * answer stays archived and waits in the inbox. Never throws.
    */

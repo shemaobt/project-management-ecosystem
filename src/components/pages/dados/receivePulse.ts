@@ -16,7 +16,7 @@ import type { ApiFailure } from "../../../types/session";
 /**
  * Where receiving one returned Pulse stands (OBT-687). The record is read **before** anything is
  * sent — its version is what the file is applied against, and its region is how the write scope
- * is checked — and the coordinator sees the answers (P8) before the one call that files and
+ * is checked — and the coordinator sees the answers (D11) before the one call that files and
  * applies. *Applied* and *conflict* are ends: the first lands in the record, the second leaves the
  * answer archived and waiting in the inbox, where the part A apply takes over.
  */
@@ -62,7 +62,7 @@ export async function prepareReceive(
  * The photo first, then the envelope that names it and is applied (`desenho.md` §8). A photo the
  * server stored under another hash is not the one the envelope names, so nothing more is sent.
  * Sending again after a failure is safe: the same bytes answer the same photo row, and the same
- * block the same submission (P7).
+ * block the same submission (D10).
  */
 export async function sendReceive(
   step: Extract<ReceiveStep, { kind: "preview" | "failed" }>,

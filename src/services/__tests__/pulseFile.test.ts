@@ -19,7 +19,7 @@ describe("o leitor do Pulso devolvido (OBT-687, desenho §6 e §8)", () => {
     expect(reading.file.image).toBeNull();
   });
 
-  it("um nome hostil atravessa sem virar tag, e o bloco não é reserializado (P7)", async () => {
+  it("um nome hostil atravessa sem virar tag, e o bloco não é reserializado (D10)", async () => {
     const hostile = "Fresia </script> <b>x</b> <img src=x onerror=alert(1)>";
     const file = returnedPulse({ answers: { submittedBy: hostile } });
     const reading = await readPulseBlocks(file.blocks);

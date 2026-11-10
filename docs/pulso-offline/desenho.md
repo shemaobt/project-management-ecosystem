@@ -33,6 +33,8 @@ Nada aqui é da Karina, a não ser onde está escrito que é.
 | D7 | As perguntas são as da definição do servidor (`PULSE_FIELDS`, `app/utils/shema_forms.py`), validadas contra a versão que o líder viu (`definitionVersion`); um campo fora da definição é recusado inteiro | BE-12 ([OBT-401](https://linear.app/shema-obt/issue/OBT-401)), no `dev` |
 | D8 | `POST /forms/submissions` **arquiva e aplica na mesma chamada** (`file_submission`: *"File an answer… and apply it in one call"*), com `If-Match`; num 409 a resposta fica arquivada e sem aplicar, e se aplica de novo pelo `/{id}/import`, o passo do envelope que veio pelo link. A importação é idempotente e transacional; o envelope é arquivado byte a byte; o aplicar passa pela ficha com `If-Match`, e o 409 é o da ficha | BE-12 e [OBT-652](https://linear.app/shema-obt/issue/OBT-652) parte A, no `dev` e no `main` |
 | D9 | **O nginx do PME aceita até 11 MiB em `/api`** (`client_max_body_size 11m`); antes valia o padrão de 1 MB, e o nginx recusava com a página dele antes da API (§5.4). Era a P6 | **Daniel, 10/nov/2026** — feito na [OBT-699](https://linear.app/shema-obt/issue/OBT-699) |
+| D10 | **O hash da idempotência é sobre os bytes como chegam**, e o PME manda o bloco verbatim, sem reserializar; a regra do servidor não muda. Era a P7 | **Daniel, 10/nov/2026** — no plano da [OBT-687](https://linear.app/shema-obt/issue/OBT-687) |
+| D11 | **Pelo arquivo, a coordenação vê as respostas antes de enviar**: o PME as mostra, lidas do bloco, e só manda depois do *Confirmar*; o servidor não muda. Era a P8 | **Daniel, 10/nov/2026** — no plano da [OBT-687](https://linear.app/shema-obt/issue/OBT-687) |
 
 **O que D5 muda em relação ao protótipo.** O protótipo aprovado (`generateFieldFormHTML`) tem um
 botão *"Tocar para gravar · até 5 minutos"* e *"Gravar pedido em áudio · até 2 min"*, e a issue
@@ -254,16 +256,16 @@ porque o PME a reduz antes de subir. Uma foto maior, ou o arquivo inteiro de P4,
 
 - **O arquivo devolvido não é executado.** O PME o lê com `DOMParser` (`text/html`), que não roda scripts, e pega os três blocos por id. O arquivo nunca entra na página, nem num iframe.
 - **O bloco vai verbatim.** O `textContent` de `#shema-pulso` é o corpo de `POST /forms/submissions` (`application/json`), sem reserializar. Junto vão os cabeçalhos que a porta já pede (`If-Match`, `X-Shema-Local-Date`).
-  - **Proposto (P7) — o hash da idempotência.**
+  - **P7, decidida (D10, Daniel, 10/nov/2026): (a) — o hash da idempotência é sobre os bytes.**
     - **(a)** sobre os bytes como chegam, como hoje;
     - **(b)** sobre o bloco canônico, no servidor.
-    - **Recomendação: (a)**, como propõe o lado da API.
+    - Era a recomendação, como propunha o lado da API; a OBT-687 a aplica.
     - O mesmo arquivo subido duas vezes manda os mesmos bytes e colide no índice `(project_id, content_hash)`. Isso só vale se o PME **não reserializar**; um teste no leitor fixa isso.
     - (b) protegeria contra um leitor que reserializa, mas mudaria uma regra do servidor que já está no `dev`.
 - **A ordem é: a foto, depois o envelope, que já aplica (D8).**
   - Uma falha no meio é dita com a frase do servidor. O 409 é o `readConflict` da parte A, e a resposta fica na caixa para aplicar de novo.
-  - **Proposto (P8) — ver antes de aplicar.** Na caixa, a parte A mostra as respostas antes do *Aplicar*. Pelo arquivo, a mesma chamada arquiva e aplica, e a coordenação não veria nada antes.
-    - **Recomendação:** o PME mostra as respostas lidas do bloco **antes** de enviar, e só envia depois que a coordenação confirma. É local e não muda o servidor.
+  - **P8, decidida (D11, Daniel, 10/nov/2026) — ver antes de aplicar.** Na caixa, a parte A mostra as respostas antes do *Aplicar*. Pelo arquivo, a mesma chamada arquiva e aplica, e a coordenação não veria nada antes.
+    - **Decidido:** o PME mostra as respostas lidas do bloco **antes** de enviar, e só envia depois que a coordenação confirma. É local e não muda o servidor.
     - A alternativa é uma porta que arquive sem aplicar, para o arquivo cair na caixa como o link. Isso muda o servidor, e a [OBT-687](https://linear.app/shema-obt/issue/OBT-687) já foi escrita para *"arquiva e aplica"*.
 - **O leitor fica num módulo só** (D2), que conhece `data-format-version`. Um formato desconhecido é recusado ali, com uma frase.
 
@@ -359,7 +361,7 @@ Estimativas em pontos, grosseiras, para dimensionar.
 | I2 | shema-api | Porta `POST /forms/pulse/{projectId}/image` e a origem `sha256:` em `_image_for`, com migração (P5) | 5 | — |
 | I3 | pme | Build offline: segunda entrada no Vite, arquivo único, i18n reduzido, fonte do sistema, blocos `shema-pulso-*`, rascunho em `localStorage`/IndexedDB por projeto e período, *Apagar o rascunho*, arquivo de volta autocopiado, hash em JS puro, fallback JPEG na redução (P1, P9, D5, D6) | 8 | I1 |
 | I4 | pme | O botão *Gerar Pulso Mensal* chama I1 e monta e salva o arquivo; `forms_format_pending` sai | 3 | I1, I3 |
-| I5 | pme | **[OBT-687](https://linear.app/shema-obt/issue/OBT-687), feita** (10/nov/2026; o plano aprovado pelo Daniel aplica P7 e P8) — o leitor do arquivo (`DOMParser`, blocos, `data-format-version`), as respostas mostradas antes de enviar (P8), a foto por I2, o envelope verbatim que arquiva e aplica, o 409 | — | I2, I3 |
+| I5 | pme | **[OBT-687](https://linear.app/shema-obt/issue/OBT-687), feita** (10/nov/2026; aplica D10 e D11, que eram P7 e P8) — o leitor do arquivo (`DOMParser`, blocos, `data-format-version`), as respostas mostradas antes de enviar (P8), a foto por I2, o envelope verbatim que arquiva e aplica, o 409 | — | I2, I3 |
 | I6 | pme | **[OBT-699](https://linear.app/shema-obt/issue/OBT-699)** — `client_max_body_size 11m` em `/api` no `nginx.conf` (P6) | 1 | — |
 
 P4 (arquivar o `.html` inteiro) **não vira issue** enquanto o Daniel não decidir a colisão do §8.1.
@@ -374,6 +376,6 @@ P4 (arquivar o `.html` inteiro) **não vira issue** enquanto o Daniel não decid
 | P4 | Arquivar o `.html` inteiro em `storage_key`? | Não, por causa da 3b (§8.1) |
 | P5 | A foto entra na importação da coordenação por porta própria e referência `sha256:`? | Sim (§5.3) |
 | P6 | Abrir o nginx do PME a 11 MB em `/api`? | **Decidida: sim** — D9 (Daniel, 10/nov/2026; OBT-699, §5.4) |
-| P7 | O hash da idempotência é sobre os bytes como chegam, ou sobre o bloco canônico? | Os bytes, com o PME mandando verbatim (§8) |
-| P8 | Pelo arquivo, a coordenação vê as respostas antes de a chamada aplicar? | Sim, mostradas do bloco antes de enviar, sem mudar o servidor (§8) |
+| P7 | O hash da idempotência é sobre os bytes como chegam, ou sobre o bloco canônico? | **Decidida: os bytes** — D10 (Daniel, 10/nov/2026; OBT-687, §8) |
+| P8 | Pelo arquivo, a coordenação vê as respostas antes de a chamada aplicar? | **Decidida: sim** — D11 (Daniel, 10/nov/2026; OBT-687, §8) |
 | P9 | A redução da foto ganha um fallback para JPEG onde o navegador não codifica WebP? | Sim, na I3, em `prepareIntakeImage` (§5.1) |

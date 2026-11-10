@@ -67,7 +67,7 @@ const CONFLICT_BODY = {
 /** Spaces a re-serializer or axios's own JSON transform would drop: the body must keep them. */
 const BLOCK = ' {"projectId":"kadiweu", "definitionVersion":3,"answers":{"submittedBy":"Fresia \\u003c/script>"}} ';
 
-describe("o bloco do arquivo devolvido vai cru a POST /forms/submissions (OBT-687, P7)", () => {
+describe("o bloco do arquivo devolvido vai cru a POST /forms/submissions (OBT-687, D10)", () => {
   it("o corpo é o bloco byte a byte, com If-Match, o dia local e o tipo JSON", async () => {
     script = () => ({ status: 201, data: FILED });
     await pulseReturnAPI.fileSubmission(BLOCK, '"7"');
