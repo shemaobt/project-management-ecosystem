@@ -1609,7 +1609,7 @@
   "receive_preview_image_not_authorized": "Uso da imagem não autorizado fora do projeto.",
   "receive_confirm": "Confirmar e aplicar na ficha",
   "receive_sending": "Enviando…",
-  "receive_failed": "Nada foi aplicado na ficha. Tentar de novo manda o mesmo arquivo, e o servidor não guarda a mesma resposta duas vezes.",
+  "receive_failed": "A resposta do servidor não chegou, ou foi uma recusa. Se a ficha já tiver recebido a resposta, tentar de novo não a aplica outra vez: o servidor não guarda a mesma resposta duas vezes. Se foi uma recusa, ela se repete até o arquivo mudar.",
   "receive_image_mismatch": "O servidor guardou a foto com uma marca diferente da que o arquivo cita, e as respostas não foram enviadas. Peça ao líder para salvar o arquivo de volta outra vez.",
   "receive_conflict_title": "A ficha mudou desde que você escolheu este arquivo",
   "receive_conflict_kept": "A resposta ficou guardada na caixa de Formulários, sem aplicar. Abra-a lá para aplicar sobre a ficha como ela está agora.",

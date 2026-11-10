@@ -1609,7 +1609,7 @@
   "receive_preview_image_not_authorized": "Use of the image not authorized outside the project.",
   "receive_confirm": "Confirm and apply to the record",
   "receive_sending": "Sending…",
-  "receive_failed": "Nothing was applied to the record. Trying again sends the same file, and the server does not keep the same answer twice.",
+  "receive_failed": "The server's answer did not arrive, or it was a refusal. If the record already received the answer, trying again does not apply it twice: the server does not keep the same answer twice. If it was a refusal, it repeats until the file changes.",
   "receive_image_mismatch": "The server kept the photo under a different mark than the one the file names, so the answers were not sent. Ask the leader to save the file back again.",
   "receive_conflict_title": "The record changed since you chose this file",
   "receive_conflict_kept": "The answer was kept in the Forms inbox, not applied. Open it there to apply it over the record as it is now.",
