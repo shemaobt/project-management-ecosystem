@@ -46,6 +46,8 @@ import type {
   IntakeLinkCreatePayload,
   IntakeLinkCreated,
   IntakeSubmissionPayload,
+  PulseImageUploadResult,
+  PulseImageStored,
   ReceivedSubmission,
   ReceivedSubmissionDetail,
   SubmissionApplyResult,
@@ -1309,3 +1311,58 @@ export const passwordAPI = {
 };
 
 export type PasswordAPI = typeof passwordAPI;
+
+// --- o Pulso devolvido como arquivo — OBT-687 (as portas da OBT-700 e da BE-12) ---------
+
+export const pulseReturnAPI = {
+  /**
+   * The photo of a Pulse that came back as a file, before the envelope that names it (OBT-700):
+   * raw bytes, the type in `Content-Type`, as the link's upload sends them. Never throws.
+   */
+  async uploadImage(projectId: string, image: Blob): Promise<PulseImageUploadResult> {
+    try {
+      const { data } = await http.post<PulseImageStored>(
+        `${SHEMA}/forms/pulse/${encodeURIComponent(projectId)}/image`,
+        image,
+        { headers: { "Content-Type": image.type } },
+      );
+      return { ok: true, stored: data };
+    } catch (thrown) {
+      return { ok: false, failure: toApiFailure(thrown) };
+    }
+  },
+
+  /**
+   * The file's answers block, filed and applied in one call (`POST /forms/submissions`, BE-12).
+   * The body is the block as the file carried it: the server archives those bytes and hashes them
+   * for its idempotency (P7), so axios's own transform — which trims a JSON string — is switched
+   * off. A stale version is the ficha's 409, read by `readConflict` as the inbox reads it; the
+   * answer stays archived and waits in the inbox. Never throws.
+   */
+  async fileSubmission(block: string, version: string): Promise<SubmissionApplyResult> {
+    try {
+      const response = await http.post<ReceivedSubmission>(`${SHEMA}/forms/submissions`, block, {
+        headers: {
+          "Content-Type": "application/json",
+          "If-Match": version,
+          [LOCAL_DAY_HEADER]: toLocalIsoDate(),
+        },
+        transformRequest: [(data: unknown) => data],
+        validateStatus: (status) => status < 400 || status === 409,
+      });
+      if (response.status === 409) {
+        return {
+          ok: false,
+          reason: "conflict",
+          conflict: readConflict(response.data),
+          version: etagOf(response.headers),
+        };
+      }
+      return { ok: true, submission: response.data };
+    } catch (thrown) {
+      return { ok: false, reason: "failed", failure: toApiFailure(thrown) };
+    }
+  },
+};
+
+export type PulseReturnAPI = typeof pulseReturnAPI;

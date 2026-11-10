@@ -83,6 +83,16 @@ export type SubmissionApplyResult =
   | { ok: false; reason: "conflict"; conflict: RecordConflict; version: string }
   | { ok: false; reason: "failed"; failure: ApiFailure };
 
+/** What `POST /api/shema/forms/pulse/{projectId}/image` answers (OBT-700): the row, and the hash the envelope names the photo by. */
+export interface PulseImageStored {
+  id: string;
+  sha256: string;
+}
+
+export type PulseImageUploadResult =
+  | { ok: true; stored: PulseImageStored }
+  | { ok: false; failure: ApiFailure };
+
 // --- the leader link and the form it serves — BE-12 (OBT-401) ---------------------
 
 export type IntakeFieldType =
