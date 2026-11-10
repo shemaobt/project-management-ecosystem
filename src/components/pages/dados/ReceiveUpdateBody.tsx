@@ -84,6 +84,12 @@ export function ReceiveUpdateDialogBody({ step, receives }: ReceiveUpdateDialogB
           <ReceivePreview file={step.file} project={step.project} />
         </div>
       );
+    case "unopened":
+      return (
+        <OutcomePanel tone="quiet" title={t("receive_refused_title")}>
+          <p>{t("receive_unopened")}</p>
+        </OutcomePanel>
+      );
     case "imageMismatch":
       return (
         <OutcomePanel tone="quiet" title={t("receive_refused_title")}>

@@ -28,7 +28,7 @@ const { createEmptyProject } = await import("../../../../fixtures/blank");
 const { failure } = await import("../../../../services/api");
 const { readConflict } = await import("../../../../services/api/projectRecord");
 const { conflictSentence } = await import("../../ficha/saveReport");
-const { prepareReceive, sendReceive } = await import("../receivePulse");
+const { prepareReceive, sendReceive, settled } = await import("../receivePulse");
 const { ReceiveUpdateDialogBody } = await import("../ReceiveUpdateBody");
 
 type Project = ReturnType<typeof createEmptyProject>;
@@ -177,6 +177,24 @@ describe("receber: a foto antes, depois o envelope que já aplica (desenho §8)"
   });
 });
 
+describe("receber: uma leitura que rejeita não prende a tela em Lendo", () => {
+  it("o arquivo que não abre — movido depois de escolhido — vira um passo com saída", async () => {
+    const moved = { text: () => Promise.reject(new DOMException("moved", "NotReadableError")) };
+    const step = await settled(async () =>
+      prepareReceive(await moved.text(), {
+        readFile,
+        readRecord: async () => ({ project: PROJECT, version: '"7"' }),
+        writes: () => true,
+      }),
+    );
+    expect(step).toEqual({ kind: "unopened" });
+  });
+
+  it("um passo que termina passa como veio", async () => {
+    expect(await settled(async () => ({ kind: "outside" }))).toEqual({ kind: "outside" });
+  });
+});
+
 describe("o que a tela diz em cada passo", () => {
   const render = (step: Step) =>
     renderToStaticMarkup(createElement(ReceiveUpdateDialogBody, { step, receives: "receives" }));
@@ -248,6 +266,10 @@ describe("o que a tela diz em cada passo", () => {
     expect(markup).toContain("pulso v3: the submission does not match the record");
     expect(markup).toContain(i18n.t("receive_failed"));
     expect(markup).toContain("Fresia");
+  });
+
+  it("o arquivo que não abriu diz para escolher de novo", () => {
+    expect(render({ kind: "unopened" })).toContain(i18n.t("receive_unopened"));
   });
 
   it("cada recusa do arquivo tem a sua frase", () => {

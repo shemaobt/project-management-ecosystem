@@ -1615,5 +1615,6 @@
   "receive_conflict_kept": "The answer was kept in the Forms inbox, not applied. Open it there to apply it over the record as it is now.",
   "receive_applied_title": "Update applied",
   "receive_applied": "The answer was kept and applied to the project's record.",
-  "receive_not_coordination": "Receiving the returned file is the coordination's, where it writes the project. The Forms area shows the Pulse loop and who has not reported yet."
+  "receive_not_coordination": "Receiving the returned file is the coordination's, where it writes the project. The Forms area shows the Pulse loop and who has not reported yet.",
+  "receive_unopened": "The file could not be opened on this device — it may have been moved or downloaded again after it was chosen. Choose the file again."
 }

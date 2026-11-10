@@ -29,6 +29,7 @@ export type ReceiveStep =
   | { kind: "preview"; file: PulseFile; project: Project; version: string }
   | { kind: "failed"; failure: ApiFailure; file: PulseFile; project: Project; version: string }
   | { kind: "imageMismatch" }
+  | { kind: "unopened" }
   | { kind: "conflict"; conflict: RecordConflict }
   | { kind: "applied"; submission: ReceivedSubmission };
 
@@ -78,4 +79,14 @@ export async function sendReceive(
   if (filed.ok) return { kind: "applied", submission: filed.submission };
   if (filed.reason === "conflict") return { kind: "conflict", conflict: filed.conflict };
   return { kind: "failed", failure: filed.failure, file, project, version };
+}
+
+/**
+ * A step that always lands. The file's own read can reject — a file moved or downloaded again
+ * after it was picked, the usual life of one that came by WhatsApp — and so can the digest; a
+ * rejection left unhandled would hold the dialog on *reading* with nothing to press. It lands on a
+ * step that says so and offers the chooser again.
+ */
+export function settled(work: () => Promise<ReceiveStep>): Promise<ReceiveStep> {
+  return work().catch((): ReceiveStep => ({ kind: "unopened" }));
 }

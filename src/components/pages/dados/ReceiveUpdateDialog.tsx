@@ -21,7 +21,13 @@ import {
 } from "../../ui";
 import type { HeaderDialogProps } from "./ExportDialog";
 import { ReceiveUpdateDialogBody, type Reception } from "./ReceiveUpdateBody";
-import { prepareReceive, sendReceive, type ReceivePorts, type ReceiveStep } from "./receivePulse";
+import {
+  prepareReceive,
+  sendReceive,
+  settled,
+  type ReceivePorts,
+  type ReceiveStep,
+} from "./receivePulse";
 
 const CHOOSE: ReceiveStep = { kind: "choose" };
 
@@ -73,7 +79,7 @@ export function ReceiveUpdateDialog({ open, onOpenChange }: HeaderDialogProps) {
     busy.current = true;
     setInFlight(true);
     const asked = opening.current;
-    work()
+    settled(work)
       .then((next) => {
         if (asked === opening.current) setStep(next);
         if (next.kind === "applied") {
