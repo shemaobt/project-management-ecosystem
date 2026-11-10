@@ -5,11 +5,11 @@ formulário do projeto, o líder o preenche no celular sem internet, e o arquivo
 embutidos para o PME importar ([OBT-687](https://linear.app/shema-obt/issue/OBT-687)).
 
 **Fontes:**
-- o levantamento do Rastro, `qa-e2e/execucao/levantamento-691.md` (10/nov, PME em `e02e297`, shema-api `dev` em `fe2f9294`);
-- a leitura da API pela Alicerce (10/nov);
+- um levantamento do código de 10/nov (PME em `e02e297`, shema-api `dev` em `fe2f9294`), com um build de medição;
+- a leitura da API do lado do shema-api (10/nov);
 - `docs/data-contracts.md` §5.7, §9.9 e §11.3;
 - o protótipo `DS-PROJECT/modals.jsx` (`generateFieldFormHTML`);
-- o teste de bancada do protótipo desta pasta (§10).
+- o teste local do protótipo desta pasta (§10).
 
 Cada linha diz de quem é. Há três tipos:
 - **Decidido**, com o dono e a data;
@@ -27,11 +27,11 @@ Nada aqui é da Karina, a não ser onde está escrito que é.
 | D1 | **O que sai é `.html`** — o formulário do Pulso Mensal é um arquivo `.html` | GATE-03; a escolha foi delegada a nós (3.5) e o teste de campo com a Karina, 2–8/nov/2026, fechou ([OBT-389](https://linear.app/shema-obt/issue/OBT-389), `data-contracts.md` §11.3) |
 | D2 | **O que volta é o mesmo `.html`, com a resposta estruturada embutida num bloco JSON com versão**; o PME lê, valida e aplica esse bloco; nenhum `.json` solto ao lado; a leitura mora num lugar só | **Nosso** — Daniel, 9/nov/2026 (§11.3). A validar com um arquivo real |
 | D3 | **O Pulso devolvido é guardado para sempre** (*"faz parte da história do projeto"*), e um pedido de oração com autorização retirada é apagado do Pulso guardado quando o texto é exatamente igual | Karina, 22/set (3.2), 1/out (3b), 6/out (10b) |
-| D4 | **Uma imagem por Pulso, com descrição e autorização de uso**; JPEG, PNG ou WebP; teto de 10 MiB; bucket privado | Karina, 6/out (a imagem, a descrição e a autorização); o resto é do Daniel, 8/out ([OBT-578](https://linear.app/shema-obt/issue/OBT-578)…582) |
+| D4 | **Uma imagem por Pulso, com descrição e autorização de uso**; JPEG, PNG ou WebP; teto de 10 MiB; bucket privado | Karina, via Daniel, 6/out (a imagem, a descrição e a autorização); o resto é do Daniel, 8/out ([OBT-578](https://linear.app/shema-obt/issue/OBT-578)…582) |
 | D5 | **Voz: basta escrever.** O campo `voice` continua texto (`longText`, 4000); **nada de gravação de áudio neste ciclo** — nem na página, nem pelo gravador do celular, nem no pedido de oração | **Daniel, 10/nov/2026** |
 | D6 | **O rascunho offline fica guardado no celular**, com chave por **projeto e período**, e com um botão para **apagar o rascunho**. Contraria a [OBT-558](https://linear.app/shema-obt/issue/OBT-558) (rascunho só na aba, por causa do celular emprestado) **só para o arquivo offline**; o link online continua em `sessionStorage` | **Daniel, 10/nov/2026** |
 | D7 | As perguntas são as da definição do servidor (`PULSE_FIELDS`, `app/utils/shema_forms.py`), validadas contra a versão que o líder viu (`definitionVersion`); um campo fora da definição é recusado inteiro | BE-12 ([OBT-401](https://linear.app/shema-obt/issue/OBT-401)), no `dev` |
-| D8 | A importação é idempotente e transacional; o envelope é arquivado byte a byte; o aplicar passa pela ficha com `If-Match`, e o 409 é o da ficha | BE-12 e [OBT-652](https://linear.app/shema-obt/issue/OBT-652) parte A, no `dev` e no `main` |
+| D8 | `POST /forms/submissions` **arquiva e aplica na mesma chamada** (`file_submission`: *"File an answer… and apply it in one call"*), com `If-Match`; num 409 a resposta fica arquivada e sem aplicar, e se aplica de novo pelo `/{id}/import`, o passo do envelope que veio pelo link. A importação é idempotente e transacional; o envelope é arquivado byte a byte; o aplicar passa pela ficha com `If-Match`, e o 409 é o da ficha | BE-12 e [OBT-652](https://linear.app/shema-obt/issue/OBT-652) parte A, no `dev` e no `main` |
 
 **O que D5 muda em relação ao protótipo.** O protótipo aprovado (`generateFieldFormHTML`) tem um
 botão *"Tocar para gravar · até 5 minutos"* e *"Gravar pedido em áudio · até 2 min"*, e a issue
@@ -53,12 +53,13 @@ entram**; a pergunta 01 fica com a caixa de texto que o protótipo já tem (*"ou
 4. **Receber.** No *Receber atualização* ([OBT-687](https://linear.app/shema-obt/issue/OBT-687)), a coordenação sobe o arquivo.
    - O PME lê os blocos sem executar o arquivo (§8).
    - Sobe a foto por uma porta autenticada (§5.3).
-   - Entrega o bloco de respostas, verbatim, a `POST /api/shema/forms/submissions`.
-5. **Aplicar.** O aplicar continua sendo o da [OBT-652](https://linear.app/shema-obt/issue/OBT-652) parte A (`POST /forms/submissions/{id}/import`, `If-Match`). Esta etapa não muda.
+   - Mostra as respostas lidas do bloco **antes de enviar**, para a coordenação ver o que vai entrar (P8).
+   - Entrega o bloco de respostas, verbatim, a `POST /api/shema/forms/submissions`, com `If-Match`. **Essa chamada arquiva e aplica de uma vez** (D8).
+5. **Se a ficha mudou no meio.** O 409 deixa a resposta arquivada e sem aplicar, e ela aparece na caixa. Aplicar de novo é o caminho da [OBT-652](https://linear.app/shema-obt/issue/OBT-652) parte A (`POST /forms/submissions/{id}/import`, com o `ETag` da recusa). Essa porta já existe e não muda.
 
 **Nenhum token viaja no arquivo.** A volta é sempre pela porta autenticada da coordenação. É isso
 que mantém fora deste desenho a superfície do Levi (`_deps.py`, `_scope.py`, `session.py`,
-`auth.py`, `access_control.py`, `tokens/`): a Alicerce confirmou que nada ali precisa ser editado
+`auth.py`, `access_control.py`, `tokens/`): do lado da API, ficou confirmado que nada ali precisa ser editado
 enquanto o arquivo não carregar token.
 
 ## 3. O conteúdo do `.html`
@@ -96,7 +97,7 @@ Um documento só, sem nenhum recurso de fora. A estrutura proposta:
 - **`shema-app`** é o formulário. Ele precisa ser um **script clássico, inline**, porque é ele mesmo que se recopia no arquivo de volta (lido por `textContent`).
 - **A CSP proíbe toda rede.** Um arquivo que circula no WhatsApp não chama nada, nem por engano.
 
-**Proposto (P1): o formulário é o mesmo React da página do líder, num build próprio.** O Rastro mediu:
+**Proposto (P1): o formulário é o mesmo React da página do líder, num build próprio.** O levantamento mediu:
 - um build de arquivo único com `IntakeShell` + `IntakeFormView` dá **726 KB** (223 KB com gzip);
 - desses, cerca de **209 KB são os dois catálogos inteiros do i18n**.
 
@@ -134,10 +135,10 @@ mas seria uma segunda cópia das telas e da validação, e as duas iam divergir.
 
 - **Entrada:** `<input type="file" accept="image/jpeg,image/png,image/webp">`, **sem** `capture`. Assim o Android oferece câmera **e** galeria. O protótipo usava `capture`, que em alguns aparelhos força a câmera.
 - **Redução antes de entrar:** a mesma do PME (`prepareIntakeImage`), com lado maior de 1200px e WebP 0,85.
-  - Onde o navegador não codifica WebP, cai para JPEG 0,85. Medido no portal: o WebKit não codifica WebP e o JPEG funcionou.
+  - Onde o navegador não codifica WebP, cai para JPEG 0,85. Medido localmente, num navegador headless WebKit: ele não codifica WebP e o JPEG funcionou.
   - Uma foto de origem acima de 10 MiB é recusada com uma frase (D4).
 - **Tamanho típico:** 100–300 KB depois de reduzir, ou seja, 130–400 KB em base64.
-  - No teste de bancada, um PNG de 1600×1000 (134 KB) virou um JPEG de 71 KB (95 KB no bloco de mídia).
+  - No teste local, um PNG de 1600×1000 (134 KB) virou um JPEG de 71 KB (95 KB no bloco de mídia).
   - O tamanho de uma foto real de campo é **a provar no aparelho**.
 
 ### 5.2 No arquivo
@@ -146,10 +147,10 @@ mas seria uma segunda cópia das telas e da validação, e as duas iam divergir.
 - A resposta `answers.image` leva a mesma referência, `"sha256:<hex>"`.
 - **O hash é calculado em JS puro.** `crypto.subtle` pede contexto seguro, que ninguém garante em `content://`.
   - O protótipo traz um SHA-256 de ~40 linhas.
-  - No teste de bancada, o hash bateu com o `hashlib` do Python sobre os mesmos bytes.
-- **A mídia nunca vai dentro de `answers`.** O envelope tem teto de **256 KiB** (`MAX_PAYLOAD_BYTES`, `_submission_archive.py:91`), e uma foto não cabe.
+  - No teste local, o hash bateu com o `hashlib` do Python sobre os mesmos bytes.
+- **A mídia nunca vai dentro de `answers`.** O envelope tem teto de **256 KiB** (`MAX_PAYLOAD_BYTES`, `_submission_archive.py:90`), e uma foto não cabe.
 
-### 5.3 Na importação — Proposto (P5), com a forma da Alicerce
+### 5.3 Na importação — Proposto (P5), com a forma proposta do lado da API
 
 Hoje a importação da coordenação **recusa foto**:
 - `import_submission.py:239-241` chama `bind_intake_image(..., link=None)`;
@@ -172,11 +173,11 @@ A proposta é:
 
 | O quê | Teto | Fonte |
 |---|---|---|
-| Bloco de respostas (`shema-pulso`) | **256 KiB** | `_submission_archive.py:91` — no `dev` |
+| Bloco de respostas (`shema-pulso`) | **256 KiB** | `_submission_archive.py:90` — no `dev` |
 | Foto de origem, no celular | **10 MiB** | D4 |
-| Foto subida à porta nova | **10 MiB** | proposta da Alicerce, igual à do link |
-| Arquivo devolvido inteiro | **proposto: 8 MiB** | a porta de arquivo (P4) que a Alicerce propôs; com uma foto, o arquivo fica bem abaixo |
-| Corpo de uma requisição no Cloud Run do shema-api | 32 MiB | Alicerce (memória 4 Gi, timeout 300 s) |
+| Foto subida à porta nova | **10 MiB** | proposta do lado da API, igual à do link |
+| Arquivo devolvido inteiro | **proposto: 8 MiB** | a porta de arquivo (P4) proposta do lado da API; com uma foto, o arquivo fica bem abaixo |
+| Corpo de uma requisição no Cloud Run do shema-api | 32 MiB | configuração do shema-api (memória 4 Gi, timeout 300 s) |
 | **Corpo no nginx do PME** | **1 MB — o padrão, nada declarado** | `nginx.conf`, `location ^~ /api`, sem `client_max_body_size` |
 
 **O nginx do PME é um gargalo que nenhuma porta vê hoje.** Tudo que o PME manda ao `/api` passa por
@@ -194,7 +195,7 @@ fizer a primeira porta passar de 1 MB.
 ```
 
 - **O conteúdo do bloco é exatamente o envelope `SubmissionImport`**: `{projectId, definitionVersion, answers}` e nada mais.
-  - O modelo é `extra="forbid"`, então qualquer outra chave dentro do bloco (`format`, `formatVersion`, `generatedAt`, `media`) é recusada (Alicerce, 10/nov).
+  - O modelo é `extra="forbid"`, então qualquer outra chave dentro do bloco (`format`, `formatVersion`, `generatedAt`, `media`) é recusada.
 - **A versão do formato** do arquivo fica no atributo `data-format-version`, junto com `data-saved-at`, fora do JSON.
   - São **duas versões diferentes**, e não se confundem:
     - `data-format-version` versiona a **forma do arquivo**: os ids dos blocos, onde mora a mídia, a referência `sha256:`;
@@ -215,8 +216,8 @@ fizer a primeira porta passar de 1 MB.
   | `imageDescription` | texto | até 1000 |
   | `imageAuthorized` | `true`/`false` | ausente e `false` = nada autorizado |
 
-- **O JSON é escrito com `<` como `<`**, que continua sendo JSON válido e não fecha a tag.
-  - No teste de bancada, um nome *Fresia `</script>` `<b>x</b>`* atravessou o arquivo, voltou e foi lido igual.
+- **O JSON é escrito com `<` como `\u003c`**, que continua sendo JSON válido e não fecha a tag.
+  - No teste local, um nome *Fresia `</script>` `<b>x</b>`* atravessou o arquivo, voltou e foi lido igual.
   - O arquivo continuou com exatamente quatro `</script>`.
 - **A validação acontece em dois lugares, com a mesma regra.**
   - No celular, `validateIntakeAnswers` impede salvar sem nome e sem mês, e diz o que falta.
@@ -228,14 +229,14 @@ fizer a primeira porta passar de 1 MB.
 - **Proposto (P3) — quem monta o `.html`.**
   - **(a)** a rota devolve **JSON** e o PME monta o arquivo no navegador, com o build offline (P1);
   - **(b)** o shema-api guarda um template `.html` construído pelo PME, como artefato versionado.
-  - **Recomendação: (a)**, que é também a preferência da Alicerce. Um build só, sem artefato do front dentro da API, e o arquivo continua sendo trocado num lugar só (D2).
+  - **Recomendação: (a)**, que é também a preferência do lado da API. Um build só, sem artefato do front dentro da API, e o arquivo continua sendo trocado num lugar só (D2).
   - A docstring de `forms.py:56` (*"the generated artifact"*) muda junto.
 - **É `POST` porque publica.** A rota publica a definição vigente (`publish_definition`, idempotente por conteúdo), como a emissão do link faz. Uma submissão é validada contra a versão que o líder viu.
 - **Guarda:** `CoordinatorUser` + `WriteScope`, consumidos de `_deps.py` sem editar o arquivo. Fica no roteador interno, fora de `UNAUTHENTICATED_PATHS`.
 - **Resposta:** `{projectId, kind, definitionVersion, fields, languageName, languageNameWithheld, locationWithheld, period, generatedAt}`.
   - É a forma de saída, sem leitor (`outside`). Um projeto sensível sai com o nome público ou a chave da região, como o link do líder desde a OBT-692.
   - O arquivo é leitor `outside`: `shema_privacy.py:143` já lista *"the Pulse"*.
-  - `period` entrou por este desenho (§4). A Alicerce não o listou.
+  - `period` entrou por este desenho (§4).
 - **Sem token, sem URL, sem nada que leve de volta à plataforma.**
 
 ## 8. A leitura no PME (para a OBT-687)
@@ -245,17 +246,19 @@ fizer a primeira porta passar de 1 MB.
   - **Proposto (P7) — o hash da idempotência.**
     - **(a)** sobre os bytes como chegam, como hoje;
     - **(b)** sobre o bloco canônico, no servidor.
-    - **Recomendação: (a)**, como a Alicerce.
+    - **Recomendação: (a)**, como propõe o lado da API.
     - O mesmo arquivo subido duas vezes manda os mesmos bytes e colide no índice `(project_id, content_hash)`. Isso só vale se o PME **não reserializar**; um teste no leitor fixa isso.
     - (b) protegeria contra um leitor que reserializa, mas mudaria uma regra do servidor que já está no `dev`.
-- **A ordem é: a foto, depois o envelope, depois o aplicar.**
-  - Uma falha no meio é dita com a frase do servidor (o 409 é o `readConflict` da parte A).
-  - Nada é aplicado sozinho.
+- **A ordem é: a foto, depois o envelope, que já aplica (D8).**
+  - Uma falha no meio é dita com a frase do servidor. O 409 é o `readConflict` da parte A, e a resposta fica na caixa para aplicar de novo.
+  - **Proposto (P8) — ver antes de aplicar.** Na caixa, a parte A mostra as respostas antes do *Aplicar*. Pelo arquivo, a mesma chamada arquiva e aplica, e a coordenação não veria nada antes.
+    - **Recomendação:** o PME mostra as respostas lidas do bloco **antes** de enviar, e só envia depois que a coordenação confirma. É local e não muda o servidor.
+    - A alternativa é uma porta que arquive sem aplicar, para o arquivo cair na caixa como o link. Isso muda o servidor, e a [OBT-687](https://linear.app/shema-obt/issue/OBT-687) já foi escrita para *"arquiva e aplica"*.
 - **O leitor fica num módulo só** (D2), que conhece `data-format-version`. Um formato desconhecido é recusado ali, com uma frase.
 
 ### 8.1 Arquivar o `.html` inteiro? — Proposto (P4), com uma colisão de privacidade
 
-A Alicerce propôs uma porta nova: `PUT /forms/submissions/{id}/file`, com corpo cru, chave por
+Do lado da API veio a proposta de uma porta nova: `PUT /forms/submissions/{id}/file`, com corpo cru, chave por
 `sha256` e teto de ~8 MiB, para guardar o arquivo inteiro em `storage_key`. Essa coluna existe para
 *"the day GATE-03 settles a format that produces one"* e hoje fica nula.
 
@@ -271,7 +274,7 @@ O mesmo vale para a foto cuja autorização de uso for retirada (OBT-582).
 - A foto fica no bucket como hoje, onde a retirada já funciona.
 - O arquivo inteiro não acrescenta dado nenhum: é o formulário mais esses dois.
 
-Se o Daniel quiser o arquivo, a porta da Alicerce resolve. Mas o apagar da 3b tem que ganhar um passo
+Se o Daniel quiser o arquivo, essa porta resolve. Mas o apagar da 3b tem que ganhar um passo
 que alcance o bucket, e a regra *"byte a byte"* passa a ter uma exceção escrita.
 
 ## 9. Privacidade
@@ -294,7 +297,7 @@ para fotografar:
 - se o compartilhar com arquivo existe;
 - ao reabrir um arquivo devolvido, se a mídia confere com o hash.
 
-**Medido na bancada (portal Maestri, 360px, via `http://` e via `file://`, 10/nov):**
+**Medido localmente (navegador headless, 360px, via `http://` e via `file://`, 10/nov):**
 - rascunho e foto restaurados depois de recarregar;
 - arquivo de volta com 116 KB (bloco de 320 bytes, mídia de 95 KB);
 - o bloco tem exatamente `{projectId, definitionVersion, answers}`;
@@ -331,7 +334,7 @@ O resultado responde o que está marcado **a provar no aparelho**:
 
 Se o passo 2 falhar no Chrome, o desenho inteiro muda: o formato volta à mesa, e isso é do GATE-03.
 
-## 11. As propostas, para virar issues (pelo Mega Brain, via `/achado`)
+## 11. As propostas, para virar issues
 
 Estimativas em pontos, grosseiras, para dimensionar.
 
@@ -341,7 +344,7 @@ Estimativas em pontos, grosseiras, para dimensionar.
 | I2 | shema-api | Porta `POST /forms/pulse/{projectId}/image` e a origem `sha256:` em `_image_for`, com migração (P5) | 5 | — |
 | I3 | pme | Build offline: segunda entrada no Vite, arquivo único, i18n reduzido, fonte do sistema, blocos `shema-pulso-*`, rascunho em `localStorage`/IndexedDB por projeto e período, *Apagar o rascunho*, arquivo de volta autocopiado, hash em JS puro (P1, D5, D6) | 8 | I1 |
 | I4 | pme | O botão *Gerar Pulso Mensal* chama I1 e monta e salva o arquivo; `forms_format_pending` sai | 3 | I1, I3 |
-| I5 | pme | **[OBT-687](https://linear.app/shema-obt/issue/OBT-687), já aberta** — o leitor do arquivo (`DOMParser`, blocos, `data-format-version`), a foto por I2, o envelope verbatim, o 409 | — | I2, I3 |
+| I5 | pme | **[OBT-687](https://linear.app/shema-obt/issue/OBT-687), já aberta** — o leitor do arquivo (`DOMParser`, blocos, `data-format-version`), as respostas mostradas antes de enviar (P8), a foto por I2, o envelope verbatim que arquiva e aplica, o 409 | — | I2, I3 |
 | I6 | pme | `client_max_body_size 11m` em `/api` no `nginx.conf` (P6) | 1 | — |
 
 P4 (arquivar o `.html` inteiro) **não vira issue** enquanto o Daniel não decidir a colisão do §8.1.
@@ -357,3 +360,4 @@ P4 (arquivar o `.html` inteiro) **não vira issue** enquanto o Daniel não decid
 | P5 | A foto entra na importação da coordenação por porta própria e referência `sha256:`? | Sim (§5.3) |
 | P6 | Abrir o nginx do PME a 11 MB em `/api`? | Sim, junto com a primeira porta que precisar (§5.4) |
 | P7 | O hash da idempotência é sobre os bytes como chegam, ou sobre o bloco canônico? | Os bytes, com o PME mandando verbatim (§8) |
+| P8 | Pelo arquivo, a coordenação vê as respostas antes de a chamada aplicar? | Sim, mostradas do bloco antes de enviar, sem mudar o servidor (§8) |
