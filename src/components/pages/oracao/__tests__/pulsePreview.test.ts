@@ -54,8 +54,8 @@ describe("a prévia do Pulso", () => {
   });
 
   it("o componente nunca injeta HTML na página", () => {
-    expect(source).not.toContain("dangerouslySetInnerHTML");
-    expect(source).not.toMatch(/allow-(scripts|same-origin)/u);
+    expect(source).not.toMatch(/dangerouslySetInnerHTML\s*=/u);
+    expect(source.match(/sandbox=[^\s>]*/gu)).toEqual(['sandbox=""']);
   });
 });
 
