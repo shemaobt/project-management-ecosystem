@@ -576,7 +576,7 @@
   "ritmo_saving": "Salvando…",
   "ritmo_log_loading": "Lendo o registro das reuniões…",
   "ritmo_log_unread": "O registro das reuniões ainda não pôde ser lido, então nenhuma linha diz se a reunião está em dia — não é que nunca tenha acontecido, é que não sabemos ainda.",
-  "ritmo_log_forbidden": "O registro das reuniões guarda como as equipes estão, e é lido por {{coordinator}} e {{obtLab}} — por isso ele não aparece para o seu papel.",
+  "ritmo_log_forbidden": "O registro das reuniões guarda como as equipes estão e chega só a {{coordinator}} e a {{obtLab}}; esta conta não tem nenhum desses dois papéis no Shemá.",
   "ritmo_no_projects_reach": "Nenhum projeto nas regiões que você acompanha — as reuniões delas aparecem assim que houver um.",
   "ritmo_no_projects": "Nenhum projeto cadastrado ainda — as reuniões aparecem assim que a primeira região tiver projetos.",
   "ritmo_period_quarter": "T{{quarter}} · {{year}}",

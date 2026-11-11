@@ -144,7 +144,7 @@ describe("o escopo é o do servidor, também no dublê", () => {
     expect(useRhythmStore.getState().log).toEqual([]);
   });
 
-  it("a recusa nomeia os papéis que gravam hoje, não o papel aposentado (OBT-670)", async () => {
+  it("a recusa é a frase do servidor: os papéis que gravam hoje, sem o papel aposentado nem o Admin (OBT-670, OBT-694)", async () => {
     asRole("resourceCircle");
 
     const outcome = await useRhythmStore
@@ -153,8 +153,10 @@ describe("o escopo é o do servidor, também no dublê", () => {
 
     expect(outcome).toMatchObject({ status: "failed", failure: { kind: "forbidden" } });
     const detail = outcome.status === "failed" ? (outcome.failure.detail ?? "") : "";
-    expect(detail).toContain("the coordination, the OBT Lab and the Admin");
-    expect(detail).not.toMatch(/global strategy/iu);
+    expect(detail).toBe(
+      "The rhythm's log reaches the coordination and the OBT Lab; this account holds neither of those roles in Shemá",
+    );
+    expect(detail).not.toMatch(/global strategy|Admin/iu);
   });
 
   it("uma região fora do escopo de quem registra é recusada", async () => {
