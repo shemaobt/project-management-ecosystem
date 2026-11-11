@@ -100,8 +100,14 @@ export function Medallion({ project, onClose, onOpen }: MedallionProps) {
       <div className="grid w-full grid-cols-2 border-y border-fg/18 pt-1.5 pb-2">
         <div className="flex flex-col items-center leading-[1.1]">
           <span className="text-[17px] font-extrabold tracking-[-0.02em] text-telha tabular-nums">
-            {Math.round(progress)}
-            <small className="text-[10px] font-semibold">%</small>
+            {progress === null ? (
+              "—"
+            ) : (
+              <>
+                {Math.round(progress)}
+                <small className="text-[10px] font-semibold">%</small>
+              </>
+            )}
           </span>
           <span className="mt-0.5 text-[8px] font-bold tracking-[0.12em] uppercase text-fg-muted">
             {t("d_p_translated").split(" ")[0]}

@@ -56,7 +56,7 @@ export function ProgressRings({ project, className }: ProgressRingsProps) {
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-[22px] leading-none font-black tracking-[-0.02em] text-fg">
-        {Math.round(progress)}%
+        {progress === null ? "—" : `${Math.round(progress)}%`}
         <small className="mt-0.5 text-[9px] font-semibold tracking-[0.12em] uppercase text-fg-muted">
           {t("d_p_translated_short")}
         </small>

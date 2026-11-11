@@ -24,6 +24,7 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { projectsAPI } = await import("../../../../fixtures");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
+const { computeDerived } = await import("../../../../utils/projectDerived");
 const { ProjectCardDiario } = await import("../Journal/ProjectCardDiario");
 const { ProjectCardAtlas } = await import("../ProjectCardAtlas");
 const { JournalView } = await import("../Journal");
@@ -172,14 +173,20 @@ const onlyCard = (markup: string): CardReading => {
   return cards[0];
 };
 
+/** A card as the browse serves it: with the server's `derived`, which the card only reads. */
+const served = (project: Project, now?: Date): Project => ({
+  ...project,
+  derived: computeDerived(project, now),
+});
+
 const fixture = async (id: string) => {
   const project = (await projectsAPI.list()).find((item) => item.id === id);
   if (!project) throw new Error(id);
-  return project;
+  return served(project);
 };
 
 const assessed = () =>
-  makeProject({
+  served(makeProject({
     id: "avaliado",
     languageName: "Língua Avaliada",
     status: "em-andamento",
@@ -190,7 +197,7 @@ const assessed = () =>
     communityCheckedUnits: 7,
     approvedUnits: 42,
     totalUnits: 1189,
-  });
+  }));
 
 beforeEach(async () => {
   await i18n.changeLanguage("pt");
@@ -275,15 +282,18 @@ describe("o cartão lido pela árvore de acessibilidade", () => {
 describe("o resumo diz o que a Karina definiu, nesta ordem (OBT-550)", () => {
   const NOW = new Date("2026-09-30T12:00:00");
   const pending = (over: Partial<Project>) =>
-    makeProject({
-      id: "pendente",
-      languageName: "Língua Pendente",
-      status: "em-andamento",
-      translatedUnits: 3,
-      totalUnits: 25,
-      totalUnitsType: "Capítulos",
-      ...over,
-    });
+    served(
+      makeProject({
+        id: "pendente",
+        languageName: "Língua Pendente",
+        status: "em-andamento",
+        translatedUnits: 3,
+        totalUnits: 25,
+        totalUnitsType: "Capítulos",
+        ...over,
+      }),
+      NOW,
+    );
   const updatedOn = (date: string): Partial<Project> => ({
     progressHistory: [
       {
@@ -299,7 +309,6 @@ describe("o resumo diz o que a Karina definiu, nesta ordem (OBT-550)", () => {
     const sentences = cardSummary(
       pending(updatedOn("2026-09-10")),
       i18n.t,
-      NOW,
     ).split(/(?<=\.) /u);
 
     expect(sentences.length).toBeGreaterThanOrEqual(6);
@@ -315,24 +324,24 @@ describe("o resumo diz o que a Karina definiu, nesta ordem (OBT-550)", () => {
 
   it("a unidade é a do projeto, com o padrão e a minúscula da aba Progresso", () => {
     expect(
-      cardSummary(pending({ totalUnitsType: "Histórias" }), i18n.t, NOW),
+      cardSummary(pending({ totalUnitsType: "Histórias" }), i18n.t),
     ).toContain("3 de 25 histórias traduzidos.");
-    expect(cardSummary(pending({ totalUnitsType: "" }), i18n.t, NOW)).toContain(
+    expect(cardSummary(pending({ totalUnitsType: "" }), i18n.t)).toContain(
       "3 de 25 livros traduzidos.",
     );
   });
 
   it("a data traz o ano, para um registro antigo não soar como um recente", () => {
     expect(
-      cardSummary(pending(updatedOn("2024-04-13")), i18n.t, NOW),
+      cardSummary(pending(updatedOn("2024-04-13")), i18n.t),
     ).toContain("Atualizado em 13 de abr. de 2024.");
     expect(
-      cardSummary(pending(updatedOn("2024-04-13")), i18n.t, NOW),
+      cardSummary(pending(updatedOn("2024-04-13")), i18n.t),
     ).not.toContain("..");
   });
 
   it("sem data de atualização, o resumo diz que não há", () => {
-    const summary = cardSummary(pending({}), i18n.t, NOW);
+    const summary = cardSummary(pending({}), i18n.t);
 
     expect(summary).toContain("Sem atualização registrada.");
     expect(summary).not.toContain("Atualizado em");
@@ -347,7 +356,6 @@ describe("o resumo diz o que a Karina definiu, nesta ordem (OBT-550)", () => {
         ...updatedOn("2026-04-01"),
       }),
       i18n.t,
-      NOW,
     );
 
     expect(summary).not.toMatch(/Prazo|em atraso|Crítico 120|Sem notícias/u);
@@ -361,7 +369,6 @@ describe("o resumo diz o que a Karina definiu, nesta ordem (OBT-550)", () => {
       cardSummary(
         pending({ ...updatedOn("2026-09-10"), totalUnitsType: "Chapters" }),
         i18n.t,
-        NOW,
       ),
     ).toMatch(/3 of 25 chapters translated\. Updated Sep 10, 2026\./u);
   });
@@ -389,7 +396,7 @@ describe("cada cartão da lista aponta para o próprio resumo", () => {
 
   for (const [view, render] of Object.entries(views)) {
     it(`${view}: um id por cartão, e o resumo de cada um é o do seu projeto`, async () => {
-      const page = (await projectsAPI.list()).slice(0, 8);
+      const page = (await projectsAPI.list()).slice(0, 8).map((project) => served(project));
       const cards = readCards(renderToStaticMarkup(render(page)));
 
       expect(cards).toHaveLength(page.length);
