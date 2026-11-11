@@ -292,9 +292,10 @@ export interface DeadlineInfo {
 
 /**
  * BE-05's `ShemaProjectDerived`, field for field — the server's answer to the nine
- * derivations wave 1 computed client-side. Optional on `Project` because a record read some
- * other way (the plain project list, a local import) does not carry it. The server's browse
- * and the double's stamp it on every card; the Projetos screen's helpers
+ * derivations wave 1 computed client-side. Optional on `Project` because the wire types it
+ * nullable and a project built in the browser (a draft, a test) has none. The server's browse
+ * stamps it on every card, and so does the double — its browse, its list and its local import
+ * (`projectsStore.importProjects`); the Projetos screen's helpers
  * (`components/pages/projetos/derived.ts`) read it and nothing else, and a card without it
  * draws the empty state instead of a client derivation (OBT-694, item 5). A render test that
  * draws a card serves it with `computeDerived`, as the browse does.

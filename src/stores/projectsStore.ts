@@ -9,6 +9,7 @@ import {
 } from "../services/api";
 import type { Project } from "../types/project";
 import type { ListFacets } from "../types/projectBrowse";
+import { computeDerived } from "../utils/projectDerived";
 import { EMPTY_FILTERS } from "./filtersStore";
 import {
   createHydrationSlot,
@@ -22,8 +23,10 @@ const PROJECTS_KEY = "shema-projects-v1";
 /**
  * 4 since INT-12 (OBT-417): the bump discards every list an older build wrote — the whole
  * fixture set, contacts and unauthorized prayer text included — the first time this store loads.
+ * 5 since OBT-694 (item 5): a list kept by an older build carries no `derived`, and the cards no
+ * longer compute it, so it is discarded and read again from the double, which stamps it.
  */
-export const PROJECTS_VERSION = 4;
+export const PROJECTS_VERSION = 5;
 
 interface ProjectsState extends HydrationStatus {
   projects: Project[];
@@ -159,8 +162,18 @@ export const useProjectsStore = create<ProjectsState>()(
           set({ outdated: true, facets: null });
           announceReread();
         },
+        // Only the double imports here (with a server the import is the server's, and the list
+        // is read again): it stamps `derived` as the browse would after the import, because
+        // the cards read it and compute nothing (OBT-694, item 5).
         importProjects: (projects) =>
-          set({ projects, ...NOT_HYDRATED, hydrated: true }),
+          set({
+            projects: projects.map((project) => ({
+              ...project,
+              derived: computeDerived(project),
+            })),
+            ...NOT_HYDRATED,
+            hydrated: true,
+          }),
         saveProject: (project) =>
           set((state) => {
             const index = state.projects.findIndex(

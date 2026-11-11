@@ -32,6 +32,14 @@ beforeEach(() => {
 });
 
 describe("importProjects", () => {
+  it("cada projeto importado sai com derived, como a busca o daria depois do import (OBT-694)", () => {
+    useProjectsStore.getState().importProjects([imported("um", "Língua Um"), imported("dois", "Língua Dois")]);
+
+    const projects = useProjectsStore.getState().projects;
+    expect(projects).toHaveLength(2);
+    expect(projects.every((project) => project.derived !== undefined)).toBe(true);
+  });
+
   it("substitui a coleção inteira — nada do estado anterior sobrevive", async () => {
     await useProjectsStore.getState().hydrate();
     const before = useProjectsStore.getState().projects;
