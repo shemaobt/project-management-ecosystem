@@ -1615,5 +1615,6 @@
   "receive_applied_title": "Atualização aplicada",
   "receive_applied": "A resposta foi guardada e aplicada na ficha do projeto.",
   "receive_not_coordination": "Receber o arquivo devolvido é da coordenação, onde ela grava o projeto. A área de Formulários mostra o ciclo do Pulso e quem ainda não reportou.",
-  "receive_unopened": "O arquivo não pôde ser aberto neste aparelho — talvez tenha sido movido ou baixado de novo depois de escolhido. Escolha o arquivo outra vez."
+  "receive_unopened": "O arquivo não pôde ser aberto neste aparelho — talvez tenha sido movido ou baixado de novo depois de escolhido. Escolha o arquivo outra vez.",
+  "oracao_pulse_saved": "Pulso de Oração salvo como {{name}}. O navegador o guarda onde guarda os seus downloads."
 }
