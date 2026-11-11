@@ -150,10 +150,12 @@ export function ProjectCardAtlas({ project, onOpen }: ProjectCardAtlasProps) {
           </strong>
         </div>
         <div className="relative h-1.5 overflow-hidden rounded-pill bg-muted">
-          <div
-            className="h-full rounded-pill bg-linear-to-r from-verde-claro to-telha transition-[width] duration-slow ease-out"
-            style={{ width: `${progress ?? 0}%` }}
-          />
+          {progress !== null && (
+            <div
+              className="h-full rounded-pill bg-linear-to-r from-verde-claro to-telha transition-[width] duration-slow ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          )}
         </div>
         <div className="mt-0.5 flex justify-between text-[10px] text-fg-subtle tabular-nums">
           <span>

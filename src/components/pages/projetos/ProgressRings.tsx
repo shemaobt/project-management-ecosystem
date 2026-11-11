@@ -18,11 +18,14 @@ export interface ProgressRingsProps {
 export function ProgressRings({ project, className }: ProgressRingsProps) {
   const { t } = useTranslation();
   const progress = cardProgress(project);
-  const shares = [
-    getUnitShare(project.translatedUnits, project.totalUnits),
-    getUnitShare(project.communityCheckedUnits, project.totalUnits),
-    getUnitShare(project.approvedUnits, project.totalUnits),
-  ];
+  const shares =
+    progress === null
+      ? [0, 0, 0]
+      : [
+          getUnitShare(project.translatedUnits, project.totalUnits),
+          getUnitShare(project.communityCheckedUnits, project.totalUnits),
+          getUnitShare(project.approvedUnits, project.totalUnits),
+        ];
 
   return (
     <div className={cn("relative size-[86px] shrink-0", className)}>
