@@ -24,6 +24,7 @@ vi.stubGlobal("window", { localStorage: storage });
 const { default: i18n } = await import("../../../../i18n");
 const { HEALTH_LABEL_KEYS } = await import("../../../../constants/status");
 const { createRecord, readRecord } = await import("../../../../fixtures/projectRecord");
+const { projectsAPI } = await import("../../../../fixtures");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
 const { AssessmentHistory } = await import("../tabs/saude/AssessmentHistory");
 const { ProjectCardDiario } = await import("../../projetos/Journal/ProjectCardDiario");
@@ -76,5 +77,14 @@ describe("o cartão sem o bloco derived desenha o vazio (OBT-694, item 5)", () =
     );
     expect(markup).not.toContain("50%");
     expect(markup).toContain("—");
+    const arcs = [...markup.matchAll(/stroke-dasharray="([\d.]+) /gu)].map((match) => Number(match[1]));
+    expect(arcs).toHaveLength(3);
+    expect(arcs.every((length) => length === 0)).toBe(true);
+  });
+
+  it("a lista do dublê — a que o Início lê sem servidor — traz derived em todo projeto, como a busca", async () => {
+    const list = await projectsAPI.list();
+    expect(list.length).toBeGreaterThan(0);
+    expect(list.every((project) => project.derived !== undefined)).toBe(true);
   });
 });

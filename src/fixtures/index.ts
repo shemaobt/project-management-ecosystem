@@ -73,6 +73,7 @@ import { listMembers, myProjects, refuseRosterWrite } from "./members";
 import { buildPrayerRequests } from "../utils/prayer";
 import type { AssessmentDraft } from "../types/assessment";
 import { browseProjects } from "./projectBrowse";
+import { computeDerived } from "../utils/projectDerived";
 import { loadProject, loadProjects } from "./projects";
 import {
   createRecord,
@@ -92,8 +93,13 @@ export {
 } from "./session";
 
 export const projectsAPI = {
+  /**
+   * The whole list, each project with the `derived` block the server's browse stamps on every
+   * card (OBT-694, item 5): the Início reads this list with no server (`loadProjectList`), and
+   * the card helpers read `derived` and compute nothing.
+   */
   async list(): Promise<Project[]> {
-    return loadProjects();
+    return loadProjects().map((project) => ({ ...project, derived: computeDerived(project) }));
   },
   async get(id: string): Promise<Project | null> {
     return loadProject(id);

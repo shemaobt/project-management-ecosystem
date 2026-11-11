@@ -8,9 +8,11 @@ import type {
 /**
  * The Projetos screen's reading of a project's derivations: the server's `derived` block, and
  * nothing computed here. BE-05's browse stamps it on every card (`browse_projects.py`), and the
- * double does the same (`fixtures/projectBrowse.ts`); the wire still types it nullable, so a
- * card without it draws the empty state — no progress, priority `unknown`, health `na`, no
- * staleness, no last update — instead of a second computation in the browser (OBT-694, item 5).
+ * double does the same on its browse and on the list the Início reads with no server
+ * (`fixtures/projectBrowse.ts`, `projectsAPI.list`); the wire still types it nullable, so a
+ * card without it draws the empty state — no progress (and no arcs or bar), priority `unknown`,
+ * health `na`, no staleness, no last update — instead of a second computation in the browser
+ * (OBT-694, item 5).
  * Place and position are not here: they go through `utils/region.ts`, whose `getRegion` reads
  * the region key a reduced card carries in `location` (OBT-532).
  */
