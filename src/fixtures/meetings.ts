@@ -22,19 +22,21 @@ import { mockPersona } from "./session";
  * health audience plus the platform admin, as `_health_audience.py` reads it, so the Resource
  * Circle gets a 403 on all three routes), a region outside the caller's scope, a day that is not a
  * calendar day, and an undo of a period nobody logged.
+ *
+ * The audience is the server's `HEALTH_AUDIENCE` — `coordinator` and `obtLab` — and the refusal
+ * is its sentence word for word (`_meeting_log.py`, shema-api#1077; OBT-694, item 13). The server
+ * also admits the platform admin, an account flag and not a role; no persona here is one, so the
+ * double has nothing to mirror for it — and the app's `admin` role, which the server does not
+ * admit, is not in the list.
  */
-const LOG_AUDIENCE: readonly SessionRole[] = [
-  "coordinator",
-  "obtLab",
-  "admin",
-];
+const LOG_AUDIENCE: readonly SessionRole[] = ["coordinator", "obtLab"];
 
 function requireAudience(): void {
   const persona = mockPersona();
   if (!persona.roles.some((role) => LOG_AUDIENCE.includes(role))) {
     throw failure(
       "forbidden",
-      "The rhythm's log reaches the coordination, the OBT Lab and the Admin; this account holds none of those roles in Shemá",
+      "The rhythm's log reaches the coordination and the OBT Lab; this account holds neither of those roles in Shemá",
     );
   }
 }

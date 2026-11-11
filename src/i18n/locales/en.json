@@ -576,7 +576,7 @@
   "ritmo_saving": "Saving…",
   "ritmo_log_loading": "Reading the meeting log…",
   "ritmo_log_unread": "The meeting log could not be read yet, so no row says whether a meeting is up to date — not because it never happened, but because we do not know yet.",
-  "ritmo_log_forbidden": "The meeting log holds how the teams are doing, and is read by {{coordinator}} and {{obtLab}} — that is why it does not appear for your role.",
+  "ritmo_log_forbidden": "The meeting log holds how the teams are doing and reaches only {{coordinator}} and {{obtLab}}; this account holds neither of those roles in Shemá.",
   "ritmo_no_projects_reach": "No projects in the regions you follow — their meetings appear as soon as there is one.",
   "ritmo_no_projects": "No projects yet — the meetings appear as soon as the first region has any.",
   "ritmo_period_quarter": "Q{{quarter}} · {{year}}",
@@ -1497,7 +1497,6 @@
   "export_progress_bytes": "{{size}} received…",
   "export_progress_percent": "{{percent}}% — {{size}} of {{total}}",
   "export_keep_working": "You can close this window and keep working: the file is saved when it finishes.",
-  "import_coordination_only": "Importing belongs to coordination: it writes whole records, which only coordination reads. If projects need restoring, talk to your region's coordination.",
   "import_preview_more_one": "and {{count}} more project",
   "import_preview_more_other": "and {{count}} more projects",
   "import_preview_kept": "Projects not in the file stay as they are — nothing is deleted.",
@@ -1616,5 +1615,6 @@
   "receive_applied_title": "Update applied",
   "receive_applied": "The answer was kept and applied to the project's record.",
   "receive_not_coordination": "Receiving the returned file is the coordination's, where it writes the project. The Forms area shows the Pulse loop and who has not reported yet.",
-  "receive_unopened": "The file could not be opened on this device — it may have been moved or downloaded again after it was chosen. Choose the file again."
+  "receive_unopened": "The file could not be opened on this device — it may have been moved or downloaded again after it was chosen. Choose the file again.",
+  "oracao_pulse_saved": "Prayer Pulse saved as {{name}}. The browser keeps it where it keeps your downloads."
 }

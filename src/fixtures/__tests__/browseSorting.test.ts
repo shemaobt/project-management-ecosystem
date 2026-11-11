@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { projectsAPI } from "../../../../fixtures";
-import { EMPTY_FILTERS } from "../../../../stores/filtersStore";
-import { makeProject } from "../../../../utils/__tests__/factory";
-import { filterProjects } from "../../../../utils/search";
-import { SORT_KEYS } from "../../../../constants/sorting";
-import { sortProjects } from "../sorting";
+import { projectsAPI } from "..";
+import { EMPTY_FILTERS } from "../../stores/filtersStore";
+import { makeProject } from "../../utils/__tests__/factory";
+import { filterProjects } from "../../utils/search";
+import { SORT_KEYS } from "../../constants/sorting";
+import { sortForBrowse } from "../projectBrowse";
 
 const PT = "pt-BR";
 const NOW = new Date("2026-05-14T12:00:00");
@@ -17,7 +17,7 @@ const ids = (projects: { id: string }[]) => projects.map((project) => project.id
 describe("ordenação por língua", () => {
   it("põe o nome com diacrítico no lugar do alfabeto, não depois do z", async () => {
     const all = await projectsAPI.list();
-    const order = names(sortProjects(all, "name", PT));
+    const order = names(sortForBrowse(all, "name", PT));
     const at = (name: string) => order.indexOf(name);
 
     expect(at("Newar")).toBeGreaterThan(-1);
@@ -27,7 +27,7 @@ describe("ordenação por língua", () => {
 
   it("põe o nome em minúscula junto com a letra dele, não no fim da lista", async () => {
     const all = await projectsAPI.list();
-    const order = names(sortProjects(all, "name", PT));
+    const order = names(sortForBrowse(all, "name", PT));
     const at = (name: string) => order.indexOf(name);
 
     expect(at("Pattani")).toBeLessThan(at("popoluca"));
@@ -47,7 +47,7 @@ describe("ordenação por língua", () => {
       ),
     );
 
-    expect(names(sortProjects(all, "name", PT))).not.toEqual(naive);
+    expect(names(sortForBrowse(all, "name", PT))).not.toEqual(naive);
   });
 
   it("ordena nome fora do alfabeto latino pela collation, não pelo code unit", () => {
@@ -57,7 +57,7 @@ describe("ordenação por língua", () => {
       makeProject({ id: "elka", languageName: "Елка" }),
     ];
 
-    expect(ids(sortProjects(projects, "name", PT))).toEqual([
+    expect(ids(sortForBrowse(projects, "name", PT))).toEqual([
       "elka",
       "yolka",
       "yarilo",
@@ -78,7 +78,7 @@ describe("ordenação por prazo", () => {
       makeProject({ id: "dez", deadline: "2025-12-31" }),
     ];
 
-    expect(ids(sortProjects(projects, "deadline", PT))).toEqual([
+    expect(ids(sortForBrowse(projects, "deadline", PT))).toEqual([
       "dez",
       "jan",
       "mar",
@@ -94,7 +94,7 @@ describe("ordenação por prazo", () => {
       makeProject({ id: "mar-empate", deadline: "2026-03-01" }),
     ];
 
-    expect(ids(sortProjects(projects, "deadline", PT))).toEqual([
+    expect(ids(sortForBrowse(projects, "deadline", PT))).toEqual([
       "jan",
       "mar",
       "mar-empate",
@@ -108,7 +108,7 @@ describe("ordenação por prazo", () => {
       makeProject({ id, deadline: "" }),
     );
 
-    expect(ids(sortProjects(projects, "deadline", PT))).toEqual([
+    expect(ids(sortForBrowse(projects, "deadline", PT))).toEqual([
       "a",
       "b",
       "c",
@@ -124,7 +124,7 @@ describe("ordenação por progresso, equipe e saúde", () => {
       makeProject({ id: "noventa", totalUnits: 100, translatedUnits: 90 }),
     ];
 
-    expect(ids(sortProjects(projects, "progress", PT))).toEqual([
+    expect(ids(sortForBrowse(projects, "progress", PT))).toEqual([
       "noventa",
       "dez",
       "sem-unidades",
@@ -150,7 +150,7 @@ describe("ordenação por progresso, equipe e saúde", () => {
       }),
     ];
 
-    expect(ids(sortProjects(projects, "health", PT))).toEqual([
+    expect(ids(sortForBrowse(projects, "health", PT))).toEqual([
       "boa",
       "critica",
       "sem-avaliacao",
@@ -165,7 +165,7 @@ describe("ordenação por progresso, equipe e saúde", () => {
       makeProject({ id: "amazonia", team: "YWAM Amazônia" }),
     ];
 
-    expect(ids(sortProjects(projects, "team", PT))).toEqual([
+    expect(ids(sortForBrowse(projects, "team", PT))).toEqual([
       "acores",
       "amazonia",
       "zulu",
@@ -186,7 +186,7 @@ describe("a ordenação é uma permutação do conjunto filtrado", () => {
     expect(filtered.projects.length).toBeGreaterThan(0);
 
     for (const key of SORT_KEYS) {
-      const sorted = sortProjects(filtered.projects, key, PT);
+      const sorted = sortForBrowse(filtered.projects, key, PT);
       expect(sorted).toHaveLength(filtered.projects.length);
       expect([...ids(sorted)].sort()).toEqual([...ids(filtered.projects)].sort());
     }
@@ -195,7 +195,7 @@ describe("a ordenação é uma permutação do conjunto filtrado", () => {
   it("não altera o array recebido", async () => {
     const all = await projectsAPI.list();
     const before = ids(all);
-    sortProjects(all, "name", PT);
+    sortForBrowse(all, "name", PT);
     expect(ids(all)).toEqual(before);
   });
 });

@@ -17,6 +17,7 @@ import {
   openableCardProps,
 } from "../card";
 import { makeProject } from "../../../../utils/__tests__/factory";
+import { computeDerived } from "../../../../utils/projectDerived";
 
 const PT = "pt-BR";
 
@@ -98,8 +99,9 @@ describe("ficha esparsa mantém o cartão composto", () => {
       ],
     });
 
-    expect(getCardDateLabel(project, PT)).toBe("14 de mai.");
-    expect(getCardDateLabel(makeProject({ startDate: "2026-01-05" }), PT)).toBe(
+    const served = (card: Project): Project => ({ ...card, derived: computeDerived(card) });
+    expect(getCardDateLabel(served(project), PT)).toBe("14 de mai.");
+    expect(getCardDateLabel(served(makeProject({ startDate: "2026-01-05" })), PT)).toBe(
       "05 de jan.",
     );
   });

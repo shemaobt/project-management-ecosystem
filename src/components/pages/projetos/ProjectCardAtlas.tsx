@@ -145,15 +145,17 @@ export function ProjectCardAtlas({ project, onOpen }: ProjectCardAtlasProps) {
           <strong className="text-[13px] font-bold text-fg tabular-nums">
             {project.translatedUnits || 0}/{project.totalUnits || 0}{" "}
             <span className="text-tag font-medium text-fg-muted">
-              · {Math.round(progress)}%
+              · {progress === null ? "—" : `${Math.round(progress)}%`}
             </span>
           </strong>
         </div>
         <div className="relative h-1.5 overflow-hidden rounded-pill bg-muted">
-          <div
-            className="h-full rounded-pill bg-linear-to-r from-verde-claro to-telha transition-[width] duration-slow ease-out"
-            style={{ width: `${progress}%` }}
-          />
+          {progress !== null && (
+            <div
+              className="h-full rounded-pill bg-linear-to-r from-verde-claro to-telha transition-[width] duration-slow ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          )}
         </div>
         <div className="mt-0.5 flex justify-between text-[10px] text-fg-subtle tabular-nums">
           <span>

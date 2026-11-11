@@ -8,6 +8,7 @@ import type { ApiFailure } from "../types/session";
 import { applyAssessment } from "../utils/assessment";
 import { toLocalIsoDate } from "../utils/format";
 import { applyProgressUpdate, type ProgressEntrySource } from "../utils/progress";
+import { overallOfEntry } from "../utils/health";
 import { computeDerived } from "../utils/projectDerived";
 import {
   mayWrite,
@@ -46,8 +47,21 @@ const VERSION_ONE = 1;
 
 const clone = (project: Project): Project => structuredClone(project);
 
+/**
+ * What the server stamps on a record it answers: `derived`, and each history entry's
+ * `overall` (a computed field of `ShemaHealthHistoryEntry`). The console draws both as given
+ * and computes neither (OBT-694, item 5), so the double stamps them as the server does.
+ */
 function withDerived(project: Project): Project {
-  return { ...clone(project), derived: computeDerived(project) };
+  const copy = clone(project);
+  return {
+    ...copy,
+    derived: computeDerived(project),
+    healthHistory: copy.healthHistory?.map((entry) => ({
+      ...entry,
+      overall: entry.overall ?? overallOfEntry(entry),
+    })),
+  };
 }
 
 /**

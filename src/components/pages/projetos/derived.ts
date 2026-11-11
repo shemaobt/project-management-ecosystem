@@ -4,40 +4,34 @@ import type {
   ProjectPriority,
   StaleStatus,
 } from "../../../types/project";
-import { getPriority, getOverallHealth } from "../../../utils/health";
-import { getProgress } from "../../../utils/progress";
-import { getLastProgressUpdate, getStaleStatus } from "../../../utils/recency";
 
 /**
- * The Projetos screen's own reading of a project's derivations — the server's `derived`
- * block when the card carries one, the plain util otherwise. Place and position are not
- * here: they go through `utils/region.ts`, whose `getRegion` reads the region key a
- * reduced card carries in `location` (OBT-532).
+ * The Projetos screen's reading of a project's derivations: the server's `derived` block, and
+ * nothing computed here. BE-05's browse stamps it on every card (`browse_projects.py`), and the
+ * double does the same on its browse and on the list the Início reads with no server
+ * (`fixtures/projectBrowse.ts`, `projectsAPI.list`); the wire still types it nullable, so a
+ * card without it draws the empty state — no progress (and no arcs or bar), priority `unknown`,
+ * health `na`, no staleness, no last update — instead of a second computation in the browser
+ * (OBT-694, item 5).
+ * Place and position are not here: they go through `utils/region.ts`, whose `getRegion` reads
+ * the region key a reduced card carries in `location` (OBT-532).
  */
-export function cardProgress(project: Project): number {
-  return project.derived?.progress ?? getProgress(project);
+export function cardProgress(project: Project): number | null {
+  return project.derived?.progress ?? null;
 }
 
-export function cardPriority(
-  project: Project,
-  now: Date = new Date(),
-): ProjectPriority {
-  return project.derived?.priority ?? getPriority(project, now);
+export function cardPriority(project: Project): ProjectPriority {
+  return project.derived?.priority ?? "unknown";
 }
 
-export function cardStale(
-  project: Project,
-  now: Date = new Date(),
-): StaleStatus | null {
-  return project.derived ? project.derived.stale : getStaleStatus(project, now);
+export function cardStale(project: Project): StaleStatus | null {
+  return project.derived?.stale ?? null;
 }
 
 export function cardHealth(project: Project): OverallHealth {
-  return project.derived?.health ?? getOverallHealth(project);
+  return project.derived?.health ?? "na";
 }
 
 export function cardLastProgressUpdate(project: Project): string | null {
-  return project.derived
-    ? project.derived.lastProgressUpdate
-    : getLastProgressUpdate(project);
+  return project.derived?.lastProgressUpdate ?? null;
 }

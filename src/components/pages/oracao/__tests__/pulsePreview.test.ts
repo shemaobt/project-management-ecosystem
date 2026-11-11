@@ -14,6 +14,12 @@ vi.mock("../../../../utils/export", () => ({
   },
 }));
 
+const toasts: string[] = [];
+vi.mock("sonner", () => ({
+  toast: { success: (message: string) => toasts.push(message) },
+}));
+
+const { default: i18n } = await import("../../../../i18n");
 const { PulsePreview } = await import("../PulseButton");
 const { savePulse } = await import("../pulseFile");
 const source = (await import("../PulseButton?raw")).default;
@@ -66,7 +72,7 @@ describe("a prévia do Pulso", () => {
 
 describe("salvar o Pulso", () => {
   it("salva o documento com o nome do servidor e o tipo text/html", () => {
-    savePulse(HOSTILE);
+    savePulse(HOSTILE, i18n.t);
 
     expect(downloads).toEqual([
       {
@@ -75,5 +81,15 @@ describe("salvar o Pulso", () => {
         mimeType: "text/html;charset=utf-8",
       },
     ]);
+  });
+
+  it("e diz na tela que salvou, com o nome do arquivo (OBT-694, item 13)", () => {
+    toasts.length = 0;
+    savePulse(HOSTILE, i18n.t);
+
+    expect(toasts).toEqual([
+      i18n.t("oracao_pulse_saved", { name: "pulso-de-oracao-2026-11-10.html" }),
+    ]);
+    expect(toasts[0]).toContain("pulso-de-oracao-2026-11-10.html");
   });
 });

@@ -576,7 +576,7 @@
   "ritmo_saving": "Salvando…",
   "ritmo_log_loading": "Lendo o registro das reuniões…",
   "ritmo_log_unread": "O registro das reuniões ainda não pôde ser lido, então nenhuma linha diz se a reunião está em dia — não é que nunca tenha acontecido, é que não sabemos ainda.",
-  "ritmo_log_forbidden": "O registro das reuniões guarda como as equipes estão, e é lido por {{coordinator}} e {{obtLab}} — por isso ele não aparece para o seu papel.",
+  "ritmo_log_forbidden": "O registro das reuniões guarda como as equipes estão e chega só a {{coordinator}} e a {{obtLab}}; esta conta não tem nenhum desses dois papéis no Shemá.",
   "ritmo_no_projects_reach": "Nenhum projeto nas regiões que você acompanha — as reuniões delas aparecem assim que houver um.",
   "ritmo_no_projects": "Nenhum projeto cadastrado ainda — as reuniões aparecem assim que a primeira região tiver projetos.",
   "ritmo_period_quarter": "T{{quarter}} · {{year}}",
@@ -1497,7 +1497,6 @@
   "export_progress_bytes": "{{size}} recebidos…",
   "export_progress_percent": "{{percent}}% — {{size}} de {{total}}",
   "export_keep_working": "Pode fechar esta janela e continuar trabalhando: o arquivo é salvo quando terminar.",
-  "import_coordination_only": "A importação é da coordenação: ela grava registros inteiros, que só a coordenação lê. Se precisar restaurar projetos, fale com a coordenação da sua região.",
   "import_preview_more_one": "e mais {{count}} projeto",
   "import_preview_more_other": "e mais {{count}} projetos",
   "import_preview_kept": "Os projetos que não estão no arquivo ficam como estão — nada é apagado.",
@@ -1616,5 +1615,6 @@
   "receive_applied_title": "Atualização aplicada",
   "receive_applied": "A resposta foi guardada e aplicada na ficha do projeto.",
   "receive_not_coordination": "Receber o arquivo devolvido é da coordenação, onde ela grava o projeto. A área de Formulários mostra o ciclo do Pulso e quem ainda não reportou.",
-  "receive_unopened": "O arquivo não pôde ser aberto neste aparelho — talvez tenha sido movido ou baixado de novo depois de escolhido. Escolha o arquivo outra vez."
+  "receive_unopened": "O arquivo não pôde ser aberto neste aparelho — talvez tenha sido movido ou baixado de novo depois de escolhido. Escolha o arquivo outra vez.",
+  "oracao_pulse_saved": "Pulso de Oração salvo como {{name}}. O navegador o guarda onde guarda os seus downloads."
 }

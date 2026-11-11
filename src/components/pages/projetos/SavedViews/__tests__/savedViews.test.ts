@@ -27,13 +27,13 @@ const { encodeView, decodeView, encodeViewToUrl, isEmptyView } = await import(
 );
 type ViewState = import("../../../../../utils/filterSerialisation").ViewState;
 const { filterProjects } = await import("../../../../../utils/search");
-const { sortProjects } = await import("../../sorting");
-const { applicableState, datasetCounts, findUnavailable } = await import(
+const { sortForBrowse } = await import("../../../../../fixtures/projectBrowse");
+const { applicableState, findUnavailable } = await import(
   "../availability"
 );
 
 const projects = await projectsAPI.list();
-const counts = datasetCounts(projects);
+const counts = filterProjects(projects, EMPTY_FILTERS, "").counts;
 
 const COMPLEX: ViewState = {
   filters: {
@@ -54,7 +54,7 @@ const WITH_PRESETS: ViewState = {
 };
 
 const resultIds = (state: ViewState) =>
-  sortProjects(
+  sortForBrowse(
     filterProjects(projects, state.filters, state.search).projects,
     state.sort,
     "pt",
@@ -161,7 +161,7 @@ describe("uma visão com valor que sumiu degrada com aviso", () => {
   it("aponta preset que não pega mais nenhum projeto", () => {
     const presets = { ...EMPTY_FILTERS, attention: true, celebrate: true };
     expect(findUnavailable(presets, counts)).toEqual([]);
-    expect(findUnavailable(presets, datasetCounts([]))).toEqual([
+    expect(findUnavailable(presets, filterProjects([], EMPTY_FILTERS, "").counts)).toEqual([
       { key: "attention", value: "attention" },
       { key: "celebrate", value: "celebrate" },
     ]);
@@ -172,7 +172,7 @@ describe("uma visão com valor que sumiu degrada com aviso", () => {
       ...COMPLEX,
       filters: { ...EMPTY_FILTERS, attention: true, celebrate: true },
     };
-    const { state, missing } = applicableState(view, datasetCounts([]));
+    const { state, missing } = applicableState(view, filterProjects([], EMPTY_FILTERS, "").counts);
     expect(missing.map(({ key }) => key)).toEqual(["attention", "celebrate"]);
     expect(state.filters.attention).toBe(false);
     expect(state.filters.celebrate).toBe(false);

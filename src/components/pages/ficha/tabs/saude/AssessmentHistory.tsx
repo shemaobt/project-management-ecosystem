@@ -3,7 +3,6 @@ import { CURRENT_QUESTION_SET_VERSION, HEALTH_DIMENSIONS } from "../../../../../
 import { HEALTH_LABEL_KEYS } from "../../../../../constants/status";
 import type { HealthAssessment } from "../../../../../types/project";
 import { formatDate } from "../../../../../utils/format";
-import { overallOfEntry } from "../../../../../utils/health";
 import { StatusBadge, StatusDot } from "../../../../common/StatusBadge";
 
 export interface AssessmentHistoryProps {
@@ -55,7 +54,7 @@ export function AssessmentHistory({ entries }: AssessmentHistoryProps) {
       {entries.length > 0 && (
         <ol className="mt-2.5 flex flex-col gap-2">
           {[...entries].reverse().map((entry, index) => {
-            const overall = entry.overall ?? overallOfEntry(entry);
+            const { overall } = entry;
             return (
               <li
                 key={`${entry.date}-${index}`}
@@ -76,11 +75,13 @@ export function AssessmentHistory({ entries }: AssessmentHistoryProps) {
                     </span>
                   )}
                   <span className="ml-auto flex items-center gap-2">
-                    <StatusBadge
-                      kind="health"
-                      state={overall}
-                      label={t(HEALTH_LABEL_KEYS[overall])}
-                    />
+                    {overall && (
+                      <StatusBadge
+                        kind="health"
+                        state={overall}
+                        label={t(HEALTH_LABEL_KEYS[overall])}
+                      />
+                    )}
                     {HEALTH_DIMENSIONS.map((dimension) => (
                       <StatusDot
                         key={dimension.key}

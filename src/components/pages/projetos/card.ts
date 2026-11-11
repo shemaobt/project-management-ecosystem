@@ -116,11 +116,8 @@ export function cardHealthDots(project: Project): CardHealthDot[] {
   }));
 }
 
-export function cardStaleNotice(
-  project: Project,
-  now: Date = new Date(),
-): StaleStatus | null {
-  const stale = cardStale(project, now);
+export function cardStaleNotice(project: Project): StaleStatus | null {
+  const stale = cardStale(project);
   return stale === "em-dia" ? null : stale;
 }
 
@@ -173,12 +170,11 @@ export function cardFunnel(project: Project, t: TFunction): CardFunnel {
 export function cardSummary(
   project: Project,
   t: TFunction,
-  now: Date = new Date(),
 ): string {
   const lastUpdate = cardLastProgressUpdate(project);
   const updated = lastUpdate ? formatDate(lastUpdate, t("locale")) : null;
   return [
-    priorityPhrase(t, cardPriority(project, now)),
+    priorityPhrase(t, cardPriority(project)),
     ...cardHealthDots(project).map((dot) =>
       healthDotPhrase(t, t(dot.labelKey), dot.state),
     ),

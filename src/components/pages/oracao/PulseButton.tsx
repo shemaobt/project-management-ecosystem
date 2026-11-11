@@ -119,7 +119,7 @@ export function PulseButton({ api, count }: PulseButtonProps) {
               disabled={preview.status !== "ready"}
               onClick={() => {
                 if (preview.status !== "ready") return;
-                savePulse(preview.file);
+                savePulse(preview.file, t);
                 setOpen(false);
               }}
             >
