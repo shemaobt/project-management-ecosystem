@@ -1,8 +1,8 @@
 import { normaliseMetaphor } from "../../../../constants/metaphors";
 import { EMPTY_FILTERS, type ProjectFilters } from "../../../../stores/filtersStore";
-import type { PresetId, Project } from "../../../../types/project";
+import type { PresetId } from "../../../../types/project";
 import type { ViewState } from "../../../../utils/filterSerialisation";
-import { filterProjects, type FacetCounts, type FacetGroup } from "../../../../utils/search";
+import type { FacetCounts, FacetGroup } from "../../../../utils/search";
 
 const FACET_FILTERS = [
   "status",
@@ -58,10 +58,6 @@ export const FILTER_LABEL_KEYS: Record<FilterKey, string> = {
 export interface UnavailableFilter {
   key: FilterKey;
   value: string;
-}
-
-export function datasetCounts(projects: readonly Project[]): FacetCounts {
-  return filterProjects(projects, EMPTY_FILTERS, "").counts;
 }
 
 export function findUnavailable(
