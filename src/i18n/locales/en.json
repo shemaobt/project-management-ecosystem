@@ -1497,7 +1497,6 @@
   "export_progress_bytes": "{{size}} received…",
   "export_progress_percent": "{{percent}}% — {{size}} of {{total}}",
   "export_keep_working": "You can close this window and keep working: the file is saved when it finishes.",
-  "import_coordination_only": "Importing belongs to coordination: it writes whole records, which only coordination reads. If projects need restoring, talk to your region's coordination.",
   "import_preview_more_one": "and {{count}} more project",
   "import_preview_more_other": "and {{count}} more projects",
   "import_preview_kept": "Projects not in the file stay as they are — nothing is deleted.",

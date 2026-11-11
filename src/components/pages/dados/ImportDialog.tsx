@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../../contexts/AuthContext";
 import {
   failureMessage,
   toApiFailure,
@@ -8,7 +7,6 @@ import {
   type TransferAPI,
 } from "../../../services/api";
 import { useProjectsStore } from "../../../stores/projectsStore";
-import { canImportProjects } from "../../../utils/access";
 import {
   parseProjectsImport,
   type ImportParseResult,
@@ -37,8 +35,6 @@ export interface ImportPick {
 export interface ImportDialogBodyProps {
   /** `"server"` merges by id through the record's own write; `"local"` replaces the fixtures. */
   target: "server" | "local";
-  /** Only coordination imports (BE-14); anybody else is told whose it is. */
-  allowed: boolean;
   pick: ImportPick | null;
   applying: boolean;
   /** The sentence a failed apply earned, when it did. */
@@ -49,7 +45,6 @@ export interface ImportDialogBodyProps {
 
 export function ImportDialogBody({
   target,
-  allowed,
   pick,
   applying,
   refusal,
@@ -57,14 +52,6 @@ export function ImportDialogBody({
   onApply,
 }: ImportDialogBodyProps) {
   const { t } = useTranslation();
-
-  if (!allowed) {
-    return (
-      <p className="text-small leading-body text-fg">
-        {t("import_coordination_only")}
-      </p>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-3.5">
@@ -171,7 +158,6 @@ function ImportPreview({ target, projects, applying, onApply }: ImportPreviewPro
 
 export function ImportDialog({ open, onOpenChange }: HeaderDialogProps) {
   const { t } = useTranslation();
-  const { user } = useAuth();
   const importLocally = useProjectsStore((state) => state.importProjects);
   const listChanged = useProjectsStore((state) => state.invalidate);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -266,7 +252,6 @@ export function ImportDialog({ open, onOpenChange }: HeaderDialogProps) {
           />
           <ImportDialogBody
             target={transferAPI === null ? "local" : "server"}
-            allowed={transferAPI === null || canImportProjects(user.roles, user.writeRegionScope)}
             pick={pick}
             applying={applying}
             refusal={refusal}

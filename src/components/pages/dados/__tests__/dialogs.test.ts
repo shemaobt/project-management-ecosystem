@@ -223,7 +223,6 @@ describe("o Importar mostra o efeito antes de aplicar, e recusa dizendo o porqu�
     renderToStaticMarkup(
       createElement(ImportDialogBody, {
         target: "server",
-        allowed: true,
         pick: null,
         applying: false,
         refusal: null,
@@ -243,13 +242,6 @@ describe("o Importar mostra o efeito antes de aplicar, e recusa dizendo o porqu�
     expect(out).toContain(i18n.t("import_desc"));
     expect(out).toContain(i18n.t("import_choose"));
     expect(out).not.toContain(i18n.t("import_apply_server"));
-  });
-
-  it("quem não é coordenação não recebe o seletor — recebe de quem é a importação", () => {
-    const out = body({ allowed: false });
-
-    expect(out).toContain(i18n.t("import_coordination_only"));
-    expect(out).not.toContain(i18n.t("import_choose"));
   });
 
   it("contra o servidor, a prévia nomeia os projetos e diz as regras da gravação", () => {

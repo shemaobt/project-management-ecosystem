@@ -1497,7 +1497,6 @@
   "export_progress_bytes": "{{size}} recebidos…",
   "export_progress_percent": "{{percent}}% — {{size}} de {{total}}",
   "export_keep_working": "Pode fechar esta janela e continuar trabalhando: o arquivo é salvo quando terminar.",
-  "import_coordination_only": "A importação é da coordenação: ela grava registros inteiros, que só a coordenação lê. Se precisar restaurar projetos, fale com a coordenação da sua região.",
   "import_preview_more_one": "e mais {{count}} projeto",
   "import_preview_more_other": "e mais {{count}} projetos",
   "import_preview_kept": "Os projetos que não estão no arquivo ficam como estão — nada é apagado.",
