@@ -27,7 +27,7 @@ const {
   OBJECTIVES,
   TRANSLATION_TYPES,
 } = await import("../../../../constants/project");
-const { sortProjects } = await import("../../projetos/sorting");
+const { sortForBrowse } = await import("../../../../fixtures/projectBrowse");
 const { getDeadlineInfo } = await import("../../../../utils/recency");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
 const { appendPhase, patchPhase, phaseTitle, removePhase } = await import(
@@ -89,7 +89,7 @@ describe("o prazo definido na aba é o que a ordenação do F2 consome", () => {
     const early = makeProject({ id: "cedo", deadline: "2026-09-01" });
     const late = makeProject({ id: "tarde", deadline: "2026-10-01" });
     const blank = makeProject({ id: "sem-prazo", deadline: "" });
-    const ordered = sortProjects([blank, late, early], "deadline", "pt");
+    const ordered = sortForBrowse([blank, late, early], "deadline", "pt");
     expect(ordered.map((project) => project.id)).toEqual([
       "cedo",
       "tarde",

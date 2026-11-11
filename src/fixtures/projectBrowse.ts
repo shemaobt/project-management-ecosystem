@@ -19,10 +19,9 @@ import { mockPersona } from "./session";
 export type { ProjectBrowseQuery, ProjectBrowseResult };
 
 /**
- * The same comparator `components/pages/projetos/sorting.ts` uses, kept as a private
- * copy rather than an import: `fixtures/` is the foundation every screen reads from and
- * must not depend on a page component. Sort now happens server-side, so the shared one
- * still exists only to order the window this test double already computed.
+ * The double's order, standing in for the server's: sort happens there, so this is the one
+ * comparator the console still has. The page's own copy (`projetos/sorting.ts`) had no caller
+ * since the sort moved to the server and left with OBT-694; its tests read this one.
  */
 function blanksLast(
   pick: (project: Project) => string,
@@ -61,6 +60,15 @@ function comparatorFor(
     case "health":
       return (a, b) => healthScore(b) - healthScore(a);
   }
+}
+
+/** The double's order of a list — a copy, never the input reordered. */
+export function sortForBrowse(
+  projects: readonly Project[],
+  key: ProjectBrowseQuery["sort"],
+  locale: string | undefined,
+): Project[] {
+  return [...projects].sort(comparatorFor(key, locale));
 }
 
 /**
@@ -136,7 +144,7 @@ export async function browseProjects(
     ),
   );
   const result = filterProjects(cards, query.filters, query.search);
-  const sorted = [...result.projects].sort(comparatorFor(query.sort, language));
+  const sorted = sortForBrowse(result.projects, query.sort, language);
 
   const start = query.offset;
   const stop = query.limit === null ? undefined : start + query.limit;

@@ -24,17 +24,18 @@ const { default: i18n } = await import("../../../../i18n");
 const { projectsAPI } = await import("../../../../fixtures");
 const { ProjectCardDiario } = await import("../Journal/ProjectCardDiario");
 const { makeProject } = await import("../../../../utils/__tests__/factory");
+const { computeDerived } = await import("../../../../utils/projectDerived");
 const { JournalView } = await import("../Journal");
 const { AtlasView } = await import("../Atlas");
 const { DEFAULT_SORT } = await import("../../../../constants/sorting");
-const { sortProjects } = await import("../sorting");
+const { sortForBrowse } = await import("../../../../fixtures/projectBrowse");
 
 const noop = () => {};
 
 const fixture = async (id: string) => {
   const project = (await projectsAPI.list()).find((item) => item.id === id);
   if (!project) throw new Error(id);
-  return project;
+  return { ...project, derived: computeDerived(project) };
 };
 
 const diario = (project: Parameters<typeof ProjectCardDiario>[0]["project"]) =>
@@ -152,7 +153,7 @@ describe("as duas metáforas mostram a mesma janela do conjunto", () => {
 
   it("a página exibida é a mesma nas duas, e nenhuma passa dela", async () => {
     const all = await projectsAPI.list();
-    const sorted = sortProjects(all, DEFAULT_SORT, "pt");
+    const sorted = sortForBrowse(all, DEFAULT_SORT, "pt");
     expect(sorted.length).toBeGreaterThan(PAGE_SIZE);
 
     const page = sorted.slice(0, PAGE_SIZE);
@@ -178,7 +179,7 @@ describe("as duas metáforas mostram a mesma janela do conjunto", () => {
 
   it("o Atlas recebe o conjunto inteiro e pagina sozinho, sem encolher o globo", async () => {
     const all = await projectsAPI.list();
-    const sorted = sortProjects(all, DEFAULT_SORT, "pt");
+    const sorted = sortForBrowse(all, DEFAULT_SORT, "pt");
     const markup = renderToStaticMarkup(
       createElement(AtlasView, { projects: sorted, locationsWithheld: null, onSelect: noop }),
     );
