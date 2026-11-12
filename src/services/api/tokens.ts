@@ -47,3 +47,15 @@ export function forgetTokens(reason: "signedOut" | "expired"): void {
   tokens = null;
   if (had) announce(reason);
 }
+
+/**
+ * The person's own Sair, announced even when there is nothing left to forget (OBT-704). After an
+ * expiry the tokens are already gone, so `forgetTokens` stays silent, and the Sair of the
+ * expired-session dialog left the drafts and the remembered account the header's Sair wipes. Not
+ * `forgetTokens` announcing always: a refused sign-in also clears through it, with no session
+ * yet, and a wrong password must not cost the drafts the expired dialog exists to keep.
+ */
+export function leaveSession(): void {
+  tokens = null;
+  announce("signedOut");
+}

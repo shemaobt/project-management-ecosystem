@@ -286,6 +286,22 @@ describe("entrar e sair", () => {
     expect(accessToken()).toBeNull();
   });
 
+  it("depois de expirar, só o Sair escolhido anuncia a saída; a limpeza de um login recusado, não (OBT-704)", async () => {
+    script = () => ({ status: 200, data: LOGIN_BODY });
+    await authAPI.signIn({ email: "a@b.co", password: "12345678" });
+    forgetTokens("expired");
+
+    const seen: string[] = [];
+    const stop = onSessionEvent((event) => seen.push(event));
+    script = () => ({ status: 204 });
+    await authAPI.signOut();
+    expect(seen).toEqual([]);
+
+    await authAPI.signOut({ chosen: true });
+    expect(seen).toEqual(["signedOut"]);
+    stop();
+  });
+
   it("uma rede caída não prende ninguém numa sessão que já acabou", async () => {
     script = () => ({ status: 200, data: LOGIN_BODY });
     await authAPI.signIn({ email: "a@b.co", password: "12345678" });
