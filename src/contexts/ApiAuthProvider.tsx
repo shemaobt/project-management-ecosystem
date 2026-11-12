@@ -54,7 +54,7 @@ export function ApiAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await authAPI.signOut();
+    await authAPI.signOut({ chosen: true });
     dispatch({ type: "left" });
   }, []);
 

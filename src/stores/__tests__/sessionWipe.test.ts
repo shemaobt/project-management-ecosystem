@@ -29,7 +29,7 @@ vi.stubGlobal("sessionStorage", tabStorage);
 vi.stubGlobal("window", { localStorage: storage, sessionStorage: tabStorage });
 
 const { matchReader, readerOf, storesWipedOn } = await import("../sessionWipe");
-const { forgetTokens, setTokens } = await import("../../services/api/tokens");
+const { forgetTokens, leaveSession, setTokens } = await import("../../services/api/tokens");
 const { useProjectsStore } = await import("../projectsStore");
 const { useFiltersStore } = await import("../filtersStore");
 const { useFormsStore } = await import("../formsStore");
@@ -182,10 +182,26 @@ describe("Sair leva as vistas salvas, as avaliações e os rascunhos do Ritmo", 
     forgetTokens("expired");
     expect(storage.raw.get(SAVED_VIEWS)).toContain("Makua");
 
-    forgetTokens("signedOut");
+    leaveSession();
 
     expectTheThreeGone();
     expect(storage.raw.has("shema-last-reader-v1")).toBe(false);
+  });
+
+  it("uma senha errada no diálogo da sessão expirada não leva os rascunhos (OBT-704)", () => {
+    // O login recusado limpa pelo mesmo signOut, ainda sem sessão: essa limpeza não é a
+    // escolha de sair, e os rascunhos que o diálogo existe para guardar ficam.
+    setTokens({ accessToken: token("user-a"), refreshToken: "r" });
+    typeIntoTheThree();
+    forgetTokens("expired");
+
+    forgetTokens("signedOut");
+
+    expect(storage.raw.get(SAVED_VIEWS)).toContain("Makua");
+    expect(storage.raw.has(ASSESSMENTS)).toBe(true);
+    expect(storage.raw.get(RHYTHM_DRAFTS)).toContain("pauta");
+    expect(storage.raw.has("shema-last-reader-v1")).toBe(true);
+    leaveSession();
   });
 
   it("uma expiração ainda guarda o que a pessoa salvou, para quem volta", () => {

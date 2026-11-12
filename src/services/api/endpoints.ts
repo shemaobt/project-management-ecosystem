@@ -83,7 +83,7 @@ import type {
 } from "../../types/session";
 import { API_BASE_URL, REQUEST_TIMEOUT_MS, http, refreshSession } from "./client";
 import { failure, toApiFailure, UNKNOWN_VOCABULARY } from "./errors";
-import { forgetTokens, refreshToken, setTokens } from "./tokens";
+import { forgetTokens, leaveSession, refreshToken, setTokens } from "./tokens";
 import { toLocalIsoDate } from "../../utils/format";
 import { headerSafeFileName } from "../../utils/intake";
 import { etagOf, readConflict } from "./projectRecord";
@@ -230,7 +230,7 @@ export const authAPI = {
     return data.code;
   },
 
-  async signOut(): Promise<void> {
+  async signOut({ chosen = false }: { chosen?: boolean } = {}): Promise<void> {
     const token = refreshToken();
     try {
       if (token) await http.post("/auth/logout", { refresh_token: token });
@@ -238,7 +238,8 @@ export const authAPI = {
       // The local session is gone either way, and a refresh token this browser
       // never wrote down cannot be replayed from here.
     } finally {
-      forgetTokens("signedOut");
+      if (chosen) leaveSession();
+      else forgetTokens("signedOut");
     }
   },
 };
