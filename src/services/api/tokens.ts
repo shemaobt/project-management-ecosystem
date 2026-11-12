@@ -42,8 +42,14 @@ export function hasSession(): boolean {
   return tokens !== null;
 }
 
+/**
+ * An expiry is announced only when there was a session to expire. A sign-out is announced
+ * always: it is the person's act, and after an expiry the tokens are already gone, so the Sair of
+ * the expired-session dialog announced nothing and the drafts and the remembered account the
+ * header's Sair wipes stayed on the device (OBT-704).
+ */
 export function forgetTokens(reason: "signedOut" | "expired"): void {
   const had = tokens !== null;
   tokens = null;
-  if (had) announce(reason);
+  if (had || reason === "signedOut") announce(reason);
 }

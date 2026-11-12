@@ -174,6 +174,20 @@ describe("Sair leva as vistas salvas, as avaliações e os rascunhos do Ritmo", 
     expectTheThreeGone();
   });
 
+  it("Sair no diálogo da sessão expirada leva o mesmo que o Sair do cabeçalho (OBT-704)", () => {
+    // A expiração já esqueceu os tokens; o Sair escolhido depois dela anunciava nada, e os
+    // rascunhos e a conta guardada ficavam no aparelho como se ninguém tivesse saído.
+    setTokens({ accessToken: token("user-a"), refreshToken: "r" });
+    typeIntoTheThree();
+    forgetTokens("expired");
+    expect(storage.raw.get(SAVED_VIEWS)).toContain("Makua");
+
+    forgetTokens("signedOut");
+
+    expectTheThreeGone();
+    expect(storage.raw.has("shema-last-reader-v1")).toBe(false);
+  });
+
   it("uma expiração ainda guarda o que a pessoa salvou, para quem volta", () => {
     setTokens({ accessToken: token("user-a"), refreshToken: "r" });
     typeIntoTheThree();
