@@ -113,9 +113,9 @@ this contract's reading for **Shemá's** needs; BE-01 confirms or overrides it.
 | Notifications (per user, per app, read/unread) | `app/db/models/notification.py`, `app/services/notifications/` (9 files), `app/api/notifications.py` | **Reuse the table, not the router.** Gaps below. |
 | Content translation helpers | `app/services/i18n/` | **Not applicable.** It is Gemini machine-translation of authored JSON content (`translate_content`, `back_translate_content`). Shemá's PT/EN is an i18next catalogue in this repository. |
 
-### 3.1 Three corrections to the capability table `CLAUDE.md` §3.2 carries
+### 3.1 Three corrections to the capability table `CLAUDE.md` §3.2 carried
 
-`CLAUDE.md` §3.2 lists these capabilities by path and they are all present. Three of them do less
+`CLAUDE.md` §3.2, as of commit [`79958a7`](https://github.com/shemaobt/project-management-ecosystem/blob/79958a7/CLAUDE.md), listed these capabilities by path and they are all present. Three of them do less
 than the label suggests, and each one costs a wave-2 issue if it is discovered during
 implementation instead of now.
 
@@ -177,7 +177,7 @@ either way.
 
 ## 4. The boundary: a `shema-api` project is not a Shemá project
 
-This is the question `CLAUDE.md` §3.2 flags as the hardest, and the evidence settles it.
+This is the question `CLAUDE.md` §3.2 flagged as the hardest (as of commit [`79958a7`](https://github.com/shemaobt/project-management-ecosystem/blob/79958a7/CLAUDE.md)), and the evidence settles it.
 
 `shema-api`'s `projects` table is `id, name, description, language_id (FK, RESTRICT), latitude,
 longitude, location_display_name, created_at, updated_at` — a translation workspace several products

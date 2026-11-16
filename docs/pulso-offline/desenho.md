@@ -229,7 +229,7 @@ porque o PME a reduz antes de subir. Uma foto maior, ou o arquivo inteiro de P4,
   - No teste local, um nome *Fresia `</script>` `<b>x</b>`* atravessou o arquivo, voltou e foi lido igual.
   - O arquivo continuou com exatamente quatro `</script>`.
 - **Fora dos blocos JSON, todo valor que vem do servidor ou de uma pessoa é escapado como HTML** (`&`, `<`, `>`, `"`).
-  - Isso vale para o `<title>`, que leva o nome de saída do projeto, e para qualquer texto escrito direto no documento. Um nome de língua nunca é normalizado (`CLAUDE.md` §5.2), e um `<` no `<title>` quebraria o `<head>` que o leitor da OBT-687 relê com `DOMParser`.
+  - Isso vale para o `<title>`, que leva o nome de saída do projeto, e para qualquer texto escrito direto no documento. Um nome de língua nunca é normalizado ([`PRD.md` RN-PME-095](../PRD.md#rn-pme-095)), e um `<` no `<title>` quebraria o `<head>` que o leitor da OBT-687 relê com `DOMParser`.
   - **Quem escapa é quem escreve o arquivo:** o gerador do PME (I3/I4) ao montar o `.html`, e o próprio formulário ao montar o arquivo de volta. É um escapador só, com teste de um nome hostil.
   - Dentro do formulário, o React (ou `textContent`) pinta as respostas, e nada vira HTML.
 - **A validação acontece em dois lugares, com a mesma regra.**

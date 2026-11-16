@@ -19,7 +19,7 @@ export function keepsWorkMounted(surface: SessionSurface): boolean {
 
 export const SIGNED_OUT_ADDRESS = "/";
 
-/** A first visit keeps its address, so a shared link survives the sign-in (OBT-626, CLAUDE.md §8). */
+/** A first visit keeps its address, so a shared link survives the sign-in (OBT-626, docs/PRD.md RN-PME-001 and RN-PME-010). */
 export function forgetsAddress(
   from: SessionSurface,
   to: SessionSurface,
