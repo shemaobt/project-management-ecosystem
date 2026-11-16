@@ -5,6 +5,7 @@
 Este documento diz **o que o PME faz hoje**. Ele foi escrito a partir do código, não do plano original. Quando o código
 mudar uma regra daqui, a mesma mudança atualiza a regra.
 
+<a id="sec-0"></a>
 ## 0. Como ler este documento
 
 - **O que é uma regra.** Cada regra de negócio (`RN-PME-nnn`) é uma garantia que alguém confere na tela ou no servidor. A
@@ -28,6 +29,7 @@ mudar uma regra daqui, a mesma mudança atualiza a regra.
   [`integracao-pme-rrf.md`](integracao-pme-rrf.md). A operação está em [`deploy.md`](deploy.md) e
   [`runbook.md`](runbook.md).
 
+<a id="sec-1"></a>
 ## 1. Visão e público
 
 O PME é o console do Ecossistema Shemá. Ele acompanha os projetos de tradução da Bíblia que equipes de campo da
@@ -58,6 +60,7 @@ As demais áreas (Ritmo, Oração, ETEN, Formulários, Equipe) são os ciclos qu
 
 O PME fala com um único servidor, o `shema-api`, e tem a interface em português e em inglês.
 
+<a id="sec-2"></a>
 ## 2. Papéis e o que cada um pode fazer
 
 ### 2.1 Os papéis
@@ -249,11 +252,13 @@ Como ler as tabelas:
 | "Solicitar recurso" / "Continuar" | só se for membro do projeto | só se for membro | só se for membro | sim | não no PME (no Formulário, pela entrada "Círculo de Recursos", abre pedido de qualquer projeto) | sim, nos seus projetos (se abre a ficha) | [RN-PME-308](#rn-pme-308) |
 | "Link de solicitação externa" | não | não | não | sim | não | não | [RN-PME-310](#rn-pme-310) |
 
+<a id="sec-3"></a>
 ## 3. Áreas do produto
 
 Quinze áreas, na ordem em que uma pessoa as encontra: primeiro entrar, depois a casca do app, depois cada área da
 navegação e, por fim, o que só o Admin vê. Os dados sensíveis têm seção própria (5).
 
+<a id="sec-3-1"></a>
 ## 3.1 Sessão, entrada e senha
 
 Como uma pessoa entra no PME, o que acontece quando a sessão acaba, o que sai do navegador e como se troca uma senha
@@ -439,6 +444,7 @@ e `/reset-password`. Usa toda conta do PME. As três telas de senha e a de entra
 - **Exceções:** nenhuma.
 - **Origem:** `src/components/pages/senha/RedefinirPage.tsx:72-83` · `app/services/auth/reset_password_with_token.py:13-33` · `app/core/config.py:20`
 
+<a id="sec-3-2"></a>
 ## 3.2 Casca do app
 
 O que envolve todas as áreas depois da entrada: o cabeçalho com os botões globais, a navegação das seis áreas, o idioma, o
@@ -521,6 +527,7 @@ estão na área "Dados do cabeçalho".
 - **Exceções:** nenhuma.
 - **Origem:** `src/components/layout/AppHeader.tsx:88-93` · `src/components/layout/__tests__/headerScroll.test.ts`
 
+<a id="sec-3-3"></a>
 ## 3.3 Início
 
 A primeira tela, no endereço `/`: a saudação ("Vem ouvir." / "Assim na terra como no céu."), a faixa de seis indicadores e
@@ -598,6 +605,7 @@ com o escopo de regiões da conta.
 - **Exceções:** sem projetos no alcance o globo não é desenhado. O comportamento do globo (rotação, agrupamento, posição aproximada) é o da área Projetos.
 - **Origem:** `src/components/pages/inicio/index.tsx:69-82,127-129,136` · `src/components/pages/projetos/Atlas/Globe.tsx:47-49,264-277,356` · `src/components/pages/inicio/__tests__/home.test.ts`
 
+<a id="sec-3-4"></a>
 ## 3.4 Projetos
 
 A lista de todos os projetos que a conta alcança, na rota `/projetos`: busca, atalhos, filtros com contagem, visões salvas,
@@ -852,6 +860,7 @@ Línguas, o Intercessor (papel) e o Admin. A tela só lê: quem escreve é a fic
 - **Exceções:** para quem não lê saúde, a prioridade é calculada sem a saúde. Um cartão sem dados derivados aparece como "Sem informação".
 - **Origem:** `app/utils/shema_derivations.py:649` · `app/utils/shema_derivations.py:521` · `src/constants/status.ts:57` · `src/constants/status.ts:68` · `src/components/pages/projetos/derived.ts:23` · `tests/test_shema/test_parity.py`
 
+<a id="sec-3-5"></a>
 ## 3.5 Ficha do projeto
 
 A ficha é o cadastro de um projeto, em dez abas, aberta sobre a lista de projetos. Rotas: `/ficha/:recordId` e
@@ -1357,6 +1366,7 @@ servidor é o `shema-api` (`GET`, `POST` e `PATCH /api/shema/projects`); a tela 
 - **Exceções:** sem material: "Nenhum material traduzido registrado ainda — os áudios e textos já traduzidos entram aqui, cada um com seu tipo e escopo.".
 - **Origem:** `src/components/pages/ficha/tabs/materiais/MateriaisForm.tsx:65` · `src/components/pages/ficha/tabs/materiais/MateriaisView.tsx:16` · `src/components/pages/ficha/tabs/materiais/MaterialStatus.tsx:7` · `src/constants/recordFields.ts:286` · `src/components/pages/ficha/__tests__/materiais.test.ts`
 
+<a id="sec-3-6"></a>
 ## 3.6 Formulários
 
 A área reúne os dois instrumentos que trazem notícias das equipes: o **Pulso Mensal**, respondido pelo líder do projeto sem
@@ -1675,6 +1685,7 @@ Pulso Mensal aberto pelo link do líder). Usam a área o Administrador (da regi�
 - **Exceções:** em projeto sensível, para quem não lê a verdade (o Operacional de Línguas), o campo fica desabilitado e vazio, com a nota de que é da coordenação; um rascunho antigo que ainda tenha pedido de oração é enviado sem ele, e o servidor recusa uma avaliação que o traga. As regras de consentimento e da fila de revisão de oração estão nas suas seções.
 - **Origem:** `src/components/pages/avaliacao/PrayerRequestStep.tsx:35-57` · `src/services/api/healthAssessments.ts:44-47` · `src/utils/assessment.ts:62-64` · `src/utils/recordAccess.ts:131-133` · `app/services/shema/append_assessment.py:303-310,351-357` · `src/components/pages/avaliacao/__tests__/wizard.test.ts`
 
+<a id="sec-3-7"></a>
 ## 3.7 Ritmo
 
 O Ritmo mostra os cinco encontros do ano e guarda o registro das três reuniões, por região. Rotas: `/ritmo` (os encontros, o bloco do Pulso Mensal, as reuniões por região e o cartão da Celebração) e `/ritmo/relatorio/:year?` (o relatório do ano). Abre para qualquer conta com papel no PME; o registro das reuniões é lido e escrito só pelo Administrador (da região) e pelo Operacional de Línguas.
@@ -1847,6 +1858,7 @@ O Ritmo mostra os cinco encontros do ano e guarda o registro das três reuniões
 - **Exceções:** nenhuma.
 - **Origem:** `src/utils/annualReport.ts:60` · `src/components/pages/ritmo/relatorio/RelatorioPage.tsx:30` · `src/utils/region.ts:166` · `src/utils/__tests__/annualReport.test.ts`
 
+<a id="sec-3-8"></a>
 ## 3.8 Oração
 
 A área Oração reúne o que as equipes autorizaram levar à rede de intercessores. Rotas: `/oracao` (o mural de oração e, para o Intercessor (papel), "Gerar Pulso de Oração") e `/oracao/revisao` (a fila de revisão de oração, da coordenação). A rede de intercessores (`/oracao/intercessores`) está na seção 3.9.
@@ -1979,6 +1991,7 @@ A área Oração reúne o que as equipes autorizaram levar à rede de intercesso
 - **Exceções:** quem fez a gravação não é avisado. Um pedido de oração que entra na fila pela Avaliação de Saúde não avisa a coordenação. O Admin sem o papel de Administrador não recebe o aviso de revisão, embora possa liberar. A liberação de uma necessidade e a reedição de um pedido já liberado não avisam o Intercessor (papel).
 - **Origem:** `app/services/shema/_prayer_review.py:48` · `app/services/shema/_prayer_review.py:53` · `app/services/shema/release_prayer_request.py:68` · `src/components/pages/notificacoes/NotificationLog.tsx:97` · `tests/test_shema/test_prayer_review.py` (`test_the_coordination_is_told_when_a_request_starts_waiting`)
 
+<a id="sec-3-9"></a>
 ## 3.9 Rede de intercessores
 
 A rede de intercessores é o cadastro das pessoas de fora que recebem os pedidos de oração. Rotas: `/oracao/intercessores` (a aba "Rede de intercessores" da área Oração, para o Administrador (da região), o Admin e o Intercessor (papel)) e a página pública `/leave/:token` (a saída da rede, sem conta).
@@ -2119,6 +2132,7 @@ A rede de intercessores é o cadastro das pessoas de fora que recebem os pedidos
 - **Exceções:** nenhuma.
 - **Origem:** `src/components/pages/intercessores/IntercessoresPage.tsx:307` · `app/services/shema/generate_prayer_pulse.py:14` · `app/services/shema/leave_intercessor.py:52` · `app/services/shema/leave_intercessor.py:61`
 
+<a id="sec-3-10"></a>
 ## 3.10 ETEN
 
 O relatório anual de créditos ETEN, na rota `/eten`: por ano fiscal, quantos créditos os projetos da lista do ETEN ganharam, com
@@ -2220,6 +2234,7 @@ a procedência de cada número. Os quatro papéis do PME leem. A tela não calcu
 - **Exceções:** nenhuma.
 - **Origem:** `src/components/pages/eten/index.tsx:110` · `app/api/shema/eten.py:48` · `src/components/pages/eten/__tests__/etenRender.test.ts`
 
+<a id="sec-3-11"></a>
 ## 3.11 Equipe (organograma)
 
 O organograma de quem ocupa os três papéis de cada região, na rota `/equipe`. É a fonte única desses nomes: a ficha, "Time
@@ -2297,6 +2312,7 @@ por região", o Ritmo e o nome da sessão leem daqui. Leem a tela os quatro pap�
 - **Exceções:** registros do que alguém fez (quem autorizou uma mídia, quem trocou um assento) guardam o nome da época e não mudam. O nome da sessão só muda na próxima entrada.
 - **Origem:** `src/utils/region.ts:268` · `src/components/pages/ficha/tabs/equipe/RegionalRoles.tsx:75` · `src/components/pages/projetos/Sidebar/TeamByRegion.tsx:93` · `src/utils/rhythm.ts:183` · `app/services/shema/get_session.py:73` · `app/services/shema/get_session.py:82` · `src/stores/__tests__/orgChart.test.ts`
 
+<a id="sec-3-12"></a>
 ## 3.12 Notificações
 
 O sino do cabeçalho e o painel "Notificações do campo": os avisos endereçados à conta, o contador de não lidos e as
@@ -2427,6 +2443,7 @@ servidor no momento do fato, cada um para as pessoas certas.
 - **Exceções:** nenhuma.
 - **Origem:** `src/components/pages/notificacoes/useNotifications.ts:74-76,93-108,247-248,276-281,328` · `src/components/pages/notificacoes/NotificationsPanel.tsx:77-81,202` · `app/api/shema/notifications.py:49-58,61-72` · `src/components/pages/notificacoes/__tests__/notificationPolling.test.ts`
 
+<a id="sec-3-13"></a>
 ## 3.13 Dados do cabeçalho
 
 Cinco botões do cabeçalho abrem diálogos que mexem nos dados como um todo: "Receber Atualização" (um Pulso Mensal que voltou
@@ -2585,6 +2602,7 @@ PME; "Importar" e "Link do líder" só para quem pode usá-los.
 - **Exceções:** se a lista não pôde ser lida, a tela diz a falha com "Tentar de novo", nunca "Nenhum link gerado". Só a leitura mais recente chega à lista, e nada de outro projeto aparece ao trocar o seletor.
 - **Origem:** `src/components/pages/dados/LeaderLinkDialog.tsx:121-166` · `src/constants/linkStatus.ts:3-8` · `src/components/pages/dados/leaderLinkList.ts:101-108,174-190` · `app/services/common/tokens/status.py:45-57` · `app/services/shema/revoke_intake_link.py:32-75` · `src/components/pages/dados/__tests__/leaderLinkList.test.ts`
 
+<a id="sec-3-14"></a>
 ## 3.14 Acesso
 
 A área de quem administra as contas. Rota `/acesso` (atrás do login) e a página pública `/convite?token=…`. Só o **Admin**
@@ -2840,6 +2858,7 @@ projetos, envia convites, confere os projetos aguardando confirmação, mantém 
 - **Exceções:** sem autor guardado a linha diz "sem autor registrado"; conta apagada aparece como "uma conta que não existe mais". Papel ganho por convite aparece em nome de quem convidou. Não entram entradas e saídas de equipe, convites, a lista de países nem as conferências.
 - **Origem:** `src/components/pages/acesso/HistorySection.tsx:18` · `src/components/pages/acesso/labels.ts:49` · `app/services/shema/list_grant_changes.py:36` · `app/api/shema/access.py:99` · `tests/test_shema/test_admin_grants.py:385`
 
+<a id="sec-3-15"></a>
 ## 3.15 Formulário de Recursos dentro do PME
 
 O PME é a porta de entrada do Formulário de Recursos. Esta área cobre só o que é do PME: onde aparecem os três pontos de
@@ -2886,6 +2905,7 @@ recurso é do documento de integração (blocos INT-A a INT-H). Tudo aqui só ex
 - **Exceções:** sem o endereço do Formulário, o diálogo abre, lista os links já emitidos e não oferece emitir ([RN-PME-306](#rn-pme-306)).
 - **Origem:** `src/components/layout/AppHeader.tsx:71` · `src/components/layout/AppHeader.tsx:146` · `src/services/api/resourceRequests.ts:97` · `src/components/pages/dados/__tests__/requestLink.test.ts`
 
+<a id="sec-4"></a>
 ## 4. Estados e transições
 
 Os ciclos de vida do PME. Vários estados são **derivados**: ninguém os grava, o servidor os calcula a cada leitura.
@@ -3401,6 +3421,7 @@ stateDiagram-v2
 
 Origem: `src/utils/sensitiveMark.ts:9` · `app/services/shema/_redaction.py:431` · `app/services/shema/_redaction.py:448` · `app/services/shema/_redaction.py:537` · `tests/test_shema/test_sensitive_countries.py:267` · `tests/test_shema/test_sensitive_countries.py:331`
 
+<a id="sec-5"></a>
 ## 5. Dados sensíveis e privacidade
 
 Esta seção é uma **propriedade de segurança**, não uma opção de tela. Ela vale para toda tela, todo arquivo e toda rota, e
@@ -3602,6 +3623,7 @@ As regras acima são as que valem em todo o sistema. As demais moram na área em
 | O que um aviso do sino mostra de um projeto sensível | [RN-PME-247](#rn-pme-247) |
 | O que o link do líder mostra de um projeto sensível | [RN-PME-146](#rn-pme-146) |
 
+<a id="sec-6"></a>
 ## 6. Relação com o Formulário de Recursos
 
 O PME é a porta de entrada do Formulário de Recursos: a conta, a senha e os papéis das duas aplicações moram aqui. As
@@ -3626,6 +3648,7 @@ Este documento só diz o que cada bloco cobre e quais regras do PME tocam nele.
 - **INT-H · A passagem do PME para o Formulário.** Cobre o código de passagem que o PME pede e o Formulário troca por uma
   sessão. No PME: a entrada "Círculo de Recursos" e os botões "Solicitar recurso" e "Continuar" ([RN-PME-306](#rn-pme-306) a [RN-PME-308](#rn-pme-308)).
 
+<a id="sec-7"></a>
 ## 7. Fora de escopo
 
 O que alguém esperaria encontrar e **não existe hoje**. Cada item traz a evidência. Nada aqui é promessa de entrega.
@@ -3752,6 +3775,7 @@ O que alguém esperaria encontrar e **não existe hoje**. Cada item traz a evid�
 - **Registro de quem leu um projeto sensível.** O servidor guarda quem escreveu, não quem leu (`app/services/shema/_redaction.py:142` registra só recusas e referências).
 - **Liberar as notas para algum arquivo.** Nenhuma saída leva as notas e não há opção para isso (`app/services/shema/_media_sharing.py:130`).
 
+<a id="sec-8"></a>
 ## 8. Divergências encontradas
 
 Onde um documento, ou um texto da própria tela, diz uma coisa e o código faz outra. **Vale o código**: as regras deste
@@ -3863,6 +3887,7 @@ PRD descrevem a coluna da direita. As linhas que pedem decisão da cliente tamb�
 | DV-101 | Projetos, Equipe e ETEN | Texto da tela `src/i18n/locales/pt-BR.json:518`: um crédito informado à mão "resolve a linha". | Numa linha de conclusão sem ano, a célula continua dizendo "Concluído, sem ano registrado" e o total soma o crédito manual: a linha e o total discordam (`src/components/pages/eten/CreditTable.tsx:23-29`; `app/services/shema/eten_report.py:291`). |
 | DV-102 | Sessão, casca do app, Início e notificações | "Sem notícias" mede o tempo sem atualização de progresso ([RN-PME-068](#rn-pme-068)). | Sem registro de progresso, os dias contam da data de início; um projeto sem registro de progresso e sem data de início nunca fica "sem notícias", nem no filtro nem no sino (`app/utils/shema_derivations.py:549-584`). O próprio código anota que 119 dos 127 projetos da exportação estão nessa situação. |
 
+<a id="sec-9"></a>
 ## 9. Para a Karina validar
 
 São decisões que ninguém tomou, ou que o código tomou por conta própria. Elas estão em dois grupos: as de produto, que são da Karina (9.1), e os defeitos e decisões técnicas, que são da equipe (9.2). Cada pergunta é fechada: a opção
