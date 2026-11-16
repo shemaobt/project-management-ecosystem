@@ -4212,7 +4212,7 @@ integração. O rótulo da tela vai entre aspas, exatamente como aparece.
 | [RN-PME-005](#rn-pme-005) | A sessão traz papéis, regiões lidas, regiões escritas, nome e o endereço do Formulário, e é lida uma vez | `src/types/session.ts:15-27` |
 | [RN-PME-006](#rn-pme-006) | Nenhum token fica no navegador; recarregar a página pede a senha de novo | `src/services/api/tokens.ts:5,22-49` |
 | [RN-PME-007](#rn-pme-007) | Um 401 renova a sessão uma vez e repete a chamada uma vez | `src/services/api/client.ts:17-25,39-87` |
-| [RN-PME-008](#rn-pme-008) | Sessão expirada abre um diálogo por cima do trabalho, com duas saídas | `src/services/api/client.ts:79-82` |
+| [RN-PME-008](#rn-pme-008) | Sessão expirada abre um diálogo por cima do trabalho, com duas saídas | `src/services/api/client.ts:41-55,79-82` |
 | [RN-PME-009](#rn-pme-009) | Senha errada no diálogo mantém o diálogo e a sessão de antes | `src/contexts/apiSession.ts:51-53,69-77` |
 | [RN-PME-010](#rn-pme-010) | "Sair" encerra a sessão no servidor, esvazia o navegador e volta para o início | `src/contexts/ApiAuthProvider.tsx:56-59` |
 | [RN-PME-011](#rn-pme-011) | Ao expirar, sai só o que foi lido; o que a pessoa digitou fica | `src/stores/sessionWipe.ts:112-118` |
@@ -4339,7 +4339,7 @@ integração. O rótulo da tela vai entre aspas, exatamente como aparece.
 | [RN-PME-132](#rn-pme-132) | O botão "Abrir avaliação no app" só existe para quem pode registrar | `src/components/pages/formularios/index.tsx:194-203` |
 | [RN-PME-133](#rn-pme-133) | "Como o pulso volta": o passo a passo do Pulso Mensal | `src/components/pages/formularios/StepByStep.tsx:18-29,31-83` |
 | [RN-PME-134](#rn-pme-134) | "Quem ainda não reportou o Pulso Mensal" | `src/utils/forms.ts:87-127` |
-| [RN-PME-135](#rn-pme-135) | Enquanto os recebidos não foram lidos, nada é contado | `src/components/pages/formularios/index.tsx:113,187-188,211-231,269` |
+| [RN-PME-135](#rn-pme-135) | Enquanto os recebidos não foram lidos, nada é contado | `src/components/pages/formularios/index.tsx:113,178-181,187-188,211-231,268-269` |
 | [RN-PME-136](#rn-pme-136) | Formulários recebidos são lidos do servidor e nada fica no navegador | `src/stores/formsStore.ts:36-45,68-73` |
 | [RN-PME-137](#rn-pme-137) | Abrir um Pulso Mensal mostra as respostas de acordo com quem lê | `src/components/pages/formularios/SubmissionAnswers.tsx:52-82` |
 | [RN-PME-138](#rn-pme-138) | Projeto sensível: quem não lê a verdade não recebe resposta nenhuma | `app/services/shema/read_submission.py:116-122,161-162,235,247` |
@@ -4401,7 +4401,7 @@ integração. O rótulo da tela vai entre aspas, exatamente como aparece.
 | [RN-PME-194](#rn-pme-194) | O mural não escreve, não compartilha, não exporta e não toca áudio | `src/components/pages/oracao/index.tsx:85` |
 | [RN-PME-195](#rn-pme-195) | Só o Intercessor (papel) gera o Pulso de Oração | `src/components/pages/oracao/index.tsx:157` |
 | [RN-PME-196](#rn-pme-196) | O Pulso de Oração é mostrado inteiro antes de ser salvo | `src/components/pages/oracao/PulseButton.tsx:51` |
-| [RN-PME-197](#rn-pme-197) | O arquivo do Pulso de Oração é um HTML só, com os pedidos do mural e dois avisos | `app/models/shema_prayer.py:290` |
+| [RN-PME-197](#rn-pme-197) | O arquivo do Pulso de Oração é um HTML só, com os pedidos do mural e dois avisos | `app/models/shema_prayer.py:115-118,165-174,322,333` |
 | [RN-PME-198](#rn-pme-198) | O pedido de oração de um projeto sensível passa pela coordenação antes de ir ao mural e ao Pulso de Oração | `app/services/shema/_consent.py:160` |
 | [RN-PME-199](#rn-pme-199) | A aba "Revisão" é do Administrador (da região) e do Admin, e cada um libera onde coordena | `src/hooks/useReviewsPrayer.ts:9` |
 | [RN-PME-200](#rn-pme-200) | A coordenação pode ajustar o texto, e a liberação vale para o texto que ela leu | `src/components/pages/oracao/RevisaoPage.tsx:82` |
@@ -4487,7 +4487,7 @@ integração. O rótulo da tela vai entre aspas, exatamente como aparece.
 | [RN-PME-280](#rn-pme-280) | Papel regional só é concedido com pelo menos uma região | `src/components/pages/acesso/PersonPanel.tsx:149` |
 | [RN-PME-281](#rn-pme-281) | Ninguém concede nem revoga o próprio papel | `app/services/shema/grant_role.py:55` |
 | [RN-PME-282](#rn-pme-282) | Mesa não convive com Gestor nem com Admin | `app/services/resource_request_access/_rules.py:41` |
-| [RN-PME-283](#rn-pme-283) | A recusa do servidor é mostrada como veio, na linha que a causou | `src/components/pages/acesso/refusal.ts:13` |
+| [RN-PME-283](#rn-pme-283) | A recusa do servidor é mostrada como veio, na linha que a causou | `src/components/pages/acesso/refusal.ts:13-23` |
 | [RN-PME-284](#rn-pme-284) | Revogar pede confirmação e fecha os convites pendentes do mesmo papel | `src/components/pages/acesso/PersonSection.tsx:245` |
 | [RN-PME-285](#rn-pme-285) | Revogar o último papel regional apaga as regiões da pessoa | `src/utils/access.ts:326` |
 | [RN-PME-286](#rn-pme-286) | O cartão só mostra respostas da pessoa que está nele | `src/components/pages/acesso/personState.ts:91` |
