@@ -692,7 +692,8 @@ passing — it is a product decision or a change with a blast radius.
 - **Notification channels and the daily digest only record the choice.**
 - **An account that is only a project member sees the six areas and gets a 403 in each.**
 - **The region `other` is labelled "América Central" and also receives every place the tables do not recognise.**
-- **`projectsAPI` (`list`/`get`) and `etenAPI.credits` and `authAPI.me` are declared and called by no screen.**
+- **`projectsAPI.get`, `etenAPI.credits` and `authAPI.me` are declared and called by no screen.** `projectsAPI.list` is
+  not dead: it is the whole project list in fixture mode (`loadProjectList` in `src/stores/projectsStore.ts`).
 - **Two screens still compute on the client over the server's cards**: the Ritmo readiness and the annual report.
 - **Some copy still says "onda 2"** for things that exist, or that have no date.
 - **`role_coordinator` is labelled "Administrador" and `role_admin` "Admin da plataforma"**; `role_resource` is
