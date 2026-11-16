@@ -1819,6 +1819,11 @@ The quality rule is that a document a change contradicts is reconciled in the sa
 conflict is recorded explicitly. These are recorded rather than silently resolved, because each has
 an owner who is not this issue.
 
+This appendix is a historical record. The `CLAUDE.md` it cites is the one of the time it was written: B.1 and B.4 were
+resolved there later (the [`CLAUDE.md` at commit `79958a7`](https://github.com/shemaobt/project-management-ecosystem/blob/79958a7/CLAUDE.md)
+names `shema-api` and `origin/dev` in §3.2 and describes `src/services/api/` in §8), and the capability table of B.3
+left `CLAUDE.md` when the business rules moved to [`PRD.md`](PRD.md). B.2 still stands: `README.md` names `tripod-api`.
+
 **B.1 `CLAUDE.md` §3.2 on this branch says the Shemá module "already exists, scaffolded".** It does
 not — §3.2 of this document is the verification, and it names the branch the cited commit really
 lives on. The correction is already written and sits **uncommitted** in this repository's main
