@@ -598,7 +598,10 @@ Scope and issues are in Linear: team `OBT`, project *Project management (Ecossis
 Read these first / Context & specs / Scope / Definition of Done / Out of scope**, and every Scope repeats *do not touch
 `DS-PROJECT/`*. Do not skip a Definition of Done checkbox: several encode the product guarantee itself.
 
-What the client has decided is in the PRD's rules; what she has not is in its section 9. Do not decide in silence what is
+**Watch the shared files.** `src/components/ui/**`, the i18n catalogues, and on the backend the Alembic chain, are where
+two people collide.
+
+What the client has decided is in the PRD's rules; what is still open is in its section 9. Do not decide in silence what is
 the client's.
 
 ---
