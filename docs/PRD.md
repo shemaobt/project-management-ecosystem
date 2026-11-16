@@ -248,10 +248,7 @@ Como ler as tabelas:
 | Ver o painel "Pedidos de recurso" | na sua região | na sua região | na sua região | sim | não (não abre a ficha) | só se também abre a ficha | [RN-PME-308](#rn-pme-308) |
 | "Solicitar recurso" / "Continuar" | só se for membro do projeto | só se for membro | só se for membro | sim | não no PME (no Formulário, pela entrada "Círculo de Recursos", abre pedido de qualquer projeto) | sim, nos seus projetos (se abre a ficha) | [RN-PME-308](#rn-pme-308) |
 | "Link de solicitação externa" | não | não | não | sim | não | não | [RN-PME-310](#rn-pme-310) |
-- <a id="q-pme-106"></a>**Q-PME-106** · **O filtro "País" conta os projetos sensíveis (DV-77).** (a) Hoje: o Operacional de Línguas vê, pelo filtro "País", quantos projetos sensíveis há em cada região e consegue listá-los. (b) O filtro "País" deixa de contar o projeto sensível para quem não lê a verdade. (c) Mantém, já que o projeto mostra a região e não o país.
-- <a id="q-pme-107"></a>**Q-PME-107** · **Aviso da fila de revisão de oração quando o pedido vem da Avaliação de Saúde (DV-89).** (a) Hoje: um pedido de oração de projeto sensível que entra na fila pela Avaliação de Saúde não avisa a coordenação. (b) Avisar também nesse caso.
-- <a id="q-pme-108"></a>**Q-PME-108** · **Projeto sensível sem nome público no arquivo exportado (DV-94).** (a) Hoje: o arquivo leva a chave da região (`africa`). (b) O arquivo leva "Projeto sensível — {região}", como a tela.
-- <a id="q-pme-109"></a>**Q-PME-109** · **Gestor dos Projetos e Mesa abrem pedido de recurso de qualquer projeto (DV-95).** (a) Hoje: pelo Formulário, sim, para qualquer projeto. (b) Só para os projetos de que são membros, como no PME.
+
 ## 3. Áreas do produto
 
 Quinze áreas, na ordem em que uma pessoa as encontra: primeiro entrar, depois a casca do app, depois cada área da
@@ -322,11 +319,11 @@ e `/reset-password`. Usa toda conta do PME. As três telas de senha e a de entra
 
 <a id="rn-pme-008"></a>
 ### RN-PME-008 · Sessão expirada abre um diálogo por cima do trabalho, com duas saídas
-- **Gatilho:** a renovação da sessão é recusada.
+- **Gatilho:** a renovação da sessão falha, por qualquer motivo: o servidor recusa, a rede cai, o tempo se esgota ou não há token de renovação.
 - **Condição:** a pessoa estava com o app aberto.
 - **Efeito:** o diálogo "Sua sessão expirou" abre sobre a tela, que continua montada: "Entre de novo para voltar de onde parou. A tela continua aberta atrás desta janela e nada que você digitou foi descartado.". O endereço não muda. Esc e clique fora não fecham. As saídas são duas: entrar de novo (volta ao ponto em que estava) ou "Sair" (botão do rodapé ou o X).
 - **Exceções:** o diálogo não tem o link "Esqueci a senha". As listas que tinham sido lidas do servidor são esvaziadas ao expirar (ver a regra do que sai ao expirar); a tela atrás do diálogo pode ficar sem esses dados até a pessoa navegar ou clicar em "Recarregar".
-- **Origem:** `src/services/api/client.ts:79-82` · `src/contexts/apiSession.ts:78-80` · `src/components/layout/SessionGate.tsx:41-52` · `src/components/pages/entrar/SessionExpired.tsx:34-52` · `src/components/pages/entrar/__tests__/entrar.test.ts` · `src/contexts/__tests__/apiSession.test.ts`
+- **Origem:** `src/services/api/client.ts:41-55,79-82` · `src/contexts/apiSession.ts:78-80` · `src/components/layout/SessionGate.tsx:41-52` · `src/components/pages/entrar/SessionExpired.tsx:34-52` · `src/components/pages/entrar/__tests__/entrar.test.ts` · `src/contexts/__tests__/apiSession.test.ts`
 
 <a id="rn-pme-009"></a>
 ### RN-PME-009 · Senha errada no diálogo mantém o diálogo e a sessão de antes
@@ -1211,8 +1208,8 @@ servidor é o `shema-api` (`GET`, `POST` e `PATCH /api/shema/projects`); a tela 
 - **Gatilho:** um salvamento que muda as tabelas de progresso.
 - **Condição:** sempre.
 - **Efeito:** o servidor soma as linhas de livros e de outras unidades em "Já traduzido", "Checado na comunidade", "Aprovado pelo mentor" e no total; as tabelas vencem um total digitado. As histórias não entram na soma. Se algum total mudou, o servidor acrescenta um registro ao "Histórico de progresso", com a foto das três tabelas e o dia local de quem salvou. A leitura da aba mostra os totais que o salvamento gravaria. O histórico aparece do mais novo para o mais antigo, com a diferença de cada número.
-- **Exceções:** soma de total igual a zero não apaga o total já guardado. Salvamento que não muda nenhum total não cria registro. Projeto criado já com números ganha um registro marcado "(registro inicial)". Um dia local a mais de um dia do dia do servidor é recusado (400).
-- **Origem:** `app/services/shema/_progress.py:94` · `app/services/shema/_progress.py:120` · `app/services/shema/save_project.py:593` · `app/api/shema/projects.py:143` · `src/services/api/projectRecord.ts:760` · `src/components/pages/ficha/tabs/progresso/ProgressoView.tsx:181` · `src/components/pages/ficha/tabs/progresso/ProgressoHistory.tsx:77` · `tests/test_shema/test_progress_rollup.py` · `src/components/pages/ficha/__tests__/progresso.test.ts`
+- **Exceções:** soma de total igual a zero não apaga o total já guardado. Salvamento que não muda nenhum total não cria registro. Projeto criado com "Já traduzido", "Checado na comunidade" ou "Aprovado pelo mentor" acima de zero ganha um registro marcado "(registro inicial)"; um projeto criado só com o total, ou com tudo em zero, não ganha registro. Um dia local a mais de um dia do dia do servidor é recusado (400).
+- **Origem:** `app/services/shema/_progress.py:94` · `app/services/shema/_progress.py:120` · `app/services/shema/_progress.py:146-149` · `app/services/shema/save_project.py:593` · `app/api/shema/projects.py:143` · `src/services/api/projectRecord.ts:760` · `src/components/pages/ficha/tabs/progresso/ProgressoView.tsx:181` · `src/components/pages/ficha/tabs/progresso/ProgressoHistory.tsx:77` · `tests/test_shema/test_progress_rollup.py` · `src/components/pages/ficha/__tests__/progresso.test.ts`
 
 <a id="rn-pme-112"></a>
 ### RN-PME-112 · Uma queda nos números é anunciada antes de salvar
@@ -1938,9 +1935,9 @@ A área Oração reúne o que as equipes autorizaram levar à rede de intercesso
 ### RN-PME-197 · O arquivo do Pulso de Oração é um HTML só, com os pedidos do mural e dois avisos
 - **Gatilho:** o servidor gera o Pulso de Oração.
 - **Condição:** sempre.
-- **Efeito:** o arquivo é um documento HTML sem script, imagem nem endereço externo, com o nome `pulso-de-oracao-AAAA-MM-DD.html`. Abre com "Só para a rede de intercessores. Ao receber este arquivo, você se compromete a não repassá-lo." e "Depois de enviado, o que está aqui não pode ser recolhido."; depois a contagem e, para cada pedido do mural, o nome da língua, o país (ou a região, num projeto sensível), "(respondido)" quando for o caso e o texto. Não leva base, data de cada pedido, gravação, identificador do projeto nem link de saída da rede; a única data é a do dia em que foi gerado, no título e no nome do arquivo. Sai no idioma da tela (português ou inglês).
-- **Exceções:** um projeto na região "América Central" (que também recebe os projetos sem lugar reconhecido) sai sem lugar quando não há país a imprimir. Um projeto sensível sem nome público sai como "Projeto sensível".
-- **Origem:** `app/models/shema_prayer.py:290` · `app/models/shema_prayer.py:254` · `app/models/shema_prayer.py:156` · `app/models/shema_prayer.py:333` · `app/models/shema_prayer.py:127` · `src/components/pages/oracao/PulseButton.tsx:77` · `tests/test_shema/test_prayer.py`
+- **Efeito:** o arquivo é um documento HTML sem script, imagem nem endereço externo, com o nome `pulso-de-oracao-AAAA-MM-DD.html`. Abre com "Só para a rede de intercessores. Ao receber este arquivo, você se compromete a não repassá-lo." e "Depois de enviado, o que está aqui não pode ser recolhido."; depois a contagem e, para cada pedido do mural, o nome da língua, o país e, quando não há país a imprimir (projeto sensível, ou local que não nomeia país), a região, "(respondido)" quando for o caso e o texto. Não leva base, data de cada pedido, gravação, identificador do projeto nem link de saída da rede; a única data é a do dia em que foi gerado, no título e no nome do arquivo. Sai no idioma da tela (português ou inglês).
+- **Exceções:** sem país, um projeto da região "América Central" (que também recebe os projetos sem lugar reconhecido) sai sem lugar, sensível ou não: o arquivo não tem nome para essa região. Um projeto sensível sem nome público sai como "Projeto sensível".
+- **Origem:** `app/models/shema_prayer.py:115-118,165-174,322,333` · `app/models/shema_prayer.py:290` · `app/models/shema_prayer.py:254` · `app/models/shema_prayer.py:156` · `app/models/shema_prayer.py:333` · `app/models/shema_prayer.py:127` · `src/components/pages/oracao/PulseButton.tsx:77` · `tests/test_shema/test_prayer.py`
 
 <a id="rn-pme-198"></a>
 ### RN-PME-198 · O pedido de oração de um projeto sensível passa pela coordenação antes de ir ao mural e ao Pulso de Oração
@@ -1990,9 +1987,9 @@ A rede de intercessores é o cadastro das pessoas de fora que recebem os pedidos
 ### RN-PME-203 · O intercessor da rede não é conta nem papel, e a rede não tem região
 - **Gatilho:** alguém cadastra ou lê a rede.
 - **Condição:** sempre.
-- **Efeito:** um intercessor da rede é um nome, um país, um contato e a data em que entrou. Não entra no sistema, não ocupa assento na Equipe (organograma) e não pertence a projeto nem a região: quem lê a rede lê a rede inteira, agrupada por país.
+- **Efeito:** um intercessor da rede é um nome, um país, um contato e a data em que entrou. Não entra no sistema, não ocupa assento na Equipe (organograma) e não pertence a projeto nem a região: quem lê a rede lê, de todas as regiões, todos os que consentiram em ser listados (consentimento `directory`), agrupados por país; os demais são só contados ([RN-PME-207](#rn-pme-207)).
 - **Exceções:** nenhuma. O papel Intercessor (`resourceCircle`) é outra coisa: uma conta do PME.
-- **Origem:** `src/types/prayer.ts:62` · `app/api/shema/intercessors.py:40` · `src/components/pages/intercessores/__tests__/networkSeparation.test.ts` · `tests/test_shema/test_people_privacy.py`
+- **Origem:** `src/types/prayer.ts:62` · `app/api/shema/intercessors.py:40` · `app/services/shema/list_intercessors.py:46-62` · `app/services/shema/_directory.py:350-375` · `src/components/pages/intercessores/__tests__/networkSeparation.test.ts` · `tests/test_shema/test_people_privacy.py`
 
 <a id="rn-pme-204"></a>
 ### RN-PME-204 · Três conjuntos de papéis: quem lê, quem escreve e quem mantém a rede
@@ -2662,10 +2659,10 @@ projetos, envia convites, confere os projetos aguardando confirmação, mantém 
 <a id="rn-pme-283"></a>
 ### RN-PME-283 · A recusa do servidor é mostrada como veio, na linha que a causou
 - **Gatilho:** o servidor recusa uma concessão, uma revogação, um convite, uma confirmação ou a lista de países.
-- **Condição:** o servidor mandou uma frase.
+- **Condição:** a recusa é de validação (400/422), conflito (409), não encontrado (404) ou permissão (403), e o servidor mandou uma frase.
 - **Efeito:** a tela mostra "O servidor recusou:" seguido da frase do servidor, sem traduzir, na linha do papel, do projeto ou do formulário que pediu. Nada do que foi recusado fica gravado pela metade.
-- **Exceções:** sem frase do servidor (queda de rede, erro interno), a tela usa a frase de falha de rede do PME, sem "O servidor recusou:".
-- **Origem:** `src/components/pages/acesso/refusal.ts:13` · `src/components/pages/acesso/RefusalNote.tsx:18` · `app/services/shema/grant_role.py:1` · `src/components/pages/acesso/__tests__/acessoRender.test.ts:143` · `tests/test_shema/test_admin_grants.py:307`
+- **Exceções:** nos outros casos (queda de rede, tempo esgotado, erro interno do servidor, recusa sem frase) a tela usa a frase do PME para o tipo de falha ([RN-PME-014](#rn-pme-014)), sem "O servidor recusou:". Um papel ou região que o PME não conhece dá "O servidor respondeu um papel ou uma região que este painel não conhece…".
+- **Origem:** `src/components/pages/acesso/refusal.ts:13-23` · `src/services/api/errors.ts:37-41,142` · `src/components/pages/acesso/RefusalNote.tsx:18` · `app/services/shema/grant_role.py:1` · `src/components/pages/acesso/__tests__/acessoRender.test.ts:143` · `tests/test_shema/test_admin_grants.py:307`
 
 <a id="rn-pme-284"></a>
 ### RN-PME-284 · Revogar pede confirmação e fecha os convites pendentes do mesmo papel
@@ -2832,8 +2829,8 @@ projetos, envia convites, confere os projetos aguardando confirmação, mantém 
 - **Gatilho:** o Admin edita a seção "Países sensíveis" e clica em "Salvar a lista".
 - **Condição:** a lista mudou (sem mudança o botão fica desligado).
 - **Efeito:** cada linha tem "País" e "Outras grafias" (separadas por vírgula; maiúsculas e acentos não contam). A lista é enviada inteira: o que ficou de fora sai dela. Salva, a tela diz "Lista salva. Vale para os projetos criados, salvos ou confirmados daqui em diante." A seção explica o que a lista faz: "A lista só liga a marca: tirar um país daqui não desmarca nenhum projeto, e os projetos já gravados só mudam quando forem salvos de novo." (regra completa na seção 5).
-- **Exceções:** o servidor recusa país sem nome, nome ou grafia com vírgula, e uma grafia que sirva a dois países (422); dois salvamentos no mesmo instante dão conflito (409). Nenhum outro papel lê nem grava a lista (403).
-- **Origem:** `src/components/pages/acesso/SensitiveCountriesSection.tsx:43` · `src/components/pages/acesso/sensitiveList.ts:21` · `app/api/shema/sensitive_countries.py:35` · `app/services/shema/save_sensitive_countries.py:47` · `app/models/shema_sensitive_countries.py:92` · `tests/test_shema/test_sensitive_countries.py:106`
+- **Exceções:** o servidor recusa país sem nome, nome com mais de 120 caracteres, mais de 20 grafias num país, mais de 250 países, nome ou grafia com vírgula, o mesmo país duas vezes e uma grafia que sirva a dois países (422); dois salvamentos no mesmo instante dão conflito (409). Nenhum outro papel lê nem grava a lista (403). A lista tem uma segunda leitura, indireta: a ficha entrega, só a quem lê a verdade, os países da lista que o lugar daquele projeto nomeia ([RN-PME-313](#rn-pme-313)).
+- **Origem:** `src/components/pages/acesso/SensitiveCountriesSection.tsx:43` · `src/components/pages/acesso/sensitiveList.ts:21` · `app/api/shema/sensitive_countries.py:35` · `app/services/shema/save_sensitive_countries.py:47` · `app/models/shema_sensitive_countries.py:28,59-60,89,92-104` · `app/services/shema/_redaction.py:458-471` · `tests/test_shema/test_sensitive_countries.py:106`
 
 <a id="rn-pme-305"></a>
 ### RN-PME-305 · "Histórico" registra concessões e revogações de papéis e de regiões
@@ -3779,7 +3776,7 @@ PRD descrevem a coluna da direita. As linhas que pedem decisão da cliente tamb�
 | DV-14 | Projetos, Equipe e ETEN | `CLAUDE.md:644`: `hydrate()` do organograma também lê `GET /regions/role-changes`. | `src/stores/regionsStore.ts:46`: `hydrate` lê só `/regions`; o registro de trocas é `hydrateChanges` (`:54`), chamado só pela tela Equipe (`src/components/pages/equipe/index.tsx:218`). |
 | DV-15 | Projetos, Equipe e ETEN | `CLAUDE.md:637` e `:1076`: existe `GLOBAL_STRATEGIST_NAME` em `AuthContext.tsx` / `MockAuthProvider`. | Não existe em `src/`; o nome da sessão vem de `app/services/shema/get_session.py:73`. |
 | DV-16 | Projetos, Equipe e ETEN | `src/utils/team.ts:87` (`lastChangeFor`) lê a lista de trocas do fim para o começo, esperando a mais nova por último. | `app/services/shema/list_role_changes.py:59` entrega a mais nova primeiro, e `src/stores/regionsStore.ts:62` guarda a lista como veio. Com duas trocas no mesmo assento, a linha "por {quem}, em {data}" mostra a mais antiga. (Código contra código; não rodei para confirmar na tela.) |
-| DV-17 | Projetos, Equipe e ETEN | `docs/data-contracts.md:66` e `:750`: filtro e contagens ficam no navegador ("stays in the browser for now"). | `app/utils/shema_facets.py:540` e `src/components/pages/projetos/ProjetosPage.tsx:129`: filtro, contagem, ordem e página são do servidor. |
+| DV-17 | Projetos, Equipe e ETEN | `docs/data-contracts.md:66` e `:750`: filtro e contagens ficam no navegador ("stays in the browser for now"). | `app/utils/shema_facets.py:540` e `src/components/pages/projetos/ProjetosPage.tsx:126-129`: filtro, contagem e ordem são do servidor. A página também, só no Diário: o Atlas pede o conjunto inteiro (`limit: null`) e pagina no navegador. |
 | DV-18 | Projetos, Equipe e ETEN | `src/i18n/locales/pt-BR.json:24`: o campo de busca diz "Língua, equipe, parceiro...". | `app/services/shema/_redaction.py:207`: a busca não lê o parceiro (nem mentor, nem líder). |
 | DV-19 | Projetos, Equipe e ETEN | `src/i18n/locales/pt-BR.json:85`: "Pedem atenção" = "Saúde crítica · sem notícias · necessidades urgentes". | `app/utils/shema_facets.py:300`: só entram os sem notícias no nível crítico (120 dias ou mais), não os de 60 a 119. |
 | DV-20 | Projetos, Equipe e ETEN | `src/i18n/locales/pt-BR.json:91`: "Recentes" = "Atualizados em 30 dias". | `app/utils/shema_derivations.py:613` lê o campo `last_updated`; nenhum serviço da api o carimba e nenhuma aba da ficha o edita (só chega por importação ou por um `PATCH` que o traga: `app/models/shema.py:202`, `src/constants/recordFields.ts:155`). Salvar progresso não torna o projeto "recente". |
@@ -3866,35 +3863,30 @@ PRD descrevem a coluna da direita. As linhas que pedem decisão da cliente tamb�
 
 ## 9. Para a Karina validar
 
-São decisões que ninguém da cliente tomou, ou que o código tomou por conta própria. Cada pergunta é fechada: a opção
+São decisões que ninguém tomou, ou que o código tomou por conta própria. Elas estão em dois grupos: as de produto, que são da Karina (9.1), e os defeitos e decisões técnicas, que são da equipe (9.2). Cada pergunta é fechada: a opção
 **(a) é o que o sistema faz hoje**, e as outras são alternativas. Enquanto não houver resposta, vale (a). O número
 `Q-PME-nnn` é estável, para a resposta poder citá-lo.
 
-### As que mais pesam
+### 9.1 Para a Karina decidir
 
-Estas tocam privacidade, perda de dado, dinheiro ou uma promessa que a tela faz e o sistema não cumpre. Convém respondê-las
-primeiro.
+Decisões de produto: o que um papel vê ou faz, as definições de negócio (prazo, período, limiar) e os textos e nomes.
+
+#### As que mais pesam
+
+Estas tocam privacidade, dinheiro ou o que um papel pode fazer. Convém respondê-las primeiro.
 
 | Pergunta | Por que pesa |
 |---|---|
 | [Q-PME-106](#q-pme-106) · O filtro "País" e os projetos sensíveis | Quem não deve saber quantos projetos sensíveis há numa região consegue contá-los e listá-los pelo filtro "País". |
-| [Q-PME-083](#q-pme-083) · Envio dos pedidos de oração à rede | A tela promete envio por WhatsApp ou e-mail. O sistema só gera o arquivo, e nenhum intercessor da rede recebe o link de saída. |
-| [Q-PME-061](#q-pme-061) e [Q-PME-062](#q-pme-062) · O progresso do Pulso Mensal | Pela leitura do código, aplicar um Pulso Mensal troca a tabela de livros da ficha inteira pelos livros que o líder listou, e quem aplica não vê os números antes. |
 | [Q-PME-047](#q-pme-047) · Como um projeto vira "Concluído" | A ficha não oferece "Concluído" nem "Cancelado". A data de conclusão alimenta o crédito ETEN e o relatório anual. |
-| [Q-PME-049](#q-pme-049) · Fotos, vídeos e materiais anexados pela ficha | Ficam só no navegador de quem anexou. Ninguém mais os vê, e somem ao sair. |
 | [Q-PME-099](#q-pme-099) · O Admin e o que é "Só a coordenação" | O Admin lê o lugar real de todo projeto sensível, mas recebe em branco a saúde e os pedidos de oração "Só a coordenação". |
 | [Q-PME-098](#q-pme-098) · Quem vê quantos projetos foram recolhidos | A tela e os documentos dizem "só a coordenação". O Intercessor (papel) também vê. |
 | [Q-PME-094](#q-pme-094) e [Q-PME-095](#q-pme-095) · O que continua à vista num projeto sensível | Nomes das pessoas, etapas e alguns campos de texto continuam visíveis para o Operacional de Línguas. |
-| [Q-PME-064](#q-pme-064) · Foto sem autorização do líder | A tela do líder diz que a foto "fica só com a coordenação". Ninguém a vê no PME. |
-| [Q-PME-063](#q-pme-063) · "Rede de oração" marcado sem pedido de oração novo | O pedido de oração que já estava na ficha passa a valer para a rede. |
-| [Q-PME-022](#q-pme-022) · O atalho "Recentes" | Lê uma data que nenhuma tela atualiza. Salvar progresso não torna o projeto "recente". |
-| [Q-PME-018](#q-pme-018) · Canais de notificação | E-mail, push, WhatsApp e "Resumo diário" aparecem como opção e nada é entregue. |
-| [Q-PME-007](#q-pme-007) · A conta que só é Equipe do projeto | Vê as seis áreas e recebe "Sua conta não tem acesso…" em todas. |
 | [Q-PME-042](#q-pme-042) e [Q-PME-044](#q-pme-044) · Crédito ETEN manual e exportação | A tela diz que a coordenação lança o crédito à mão; não existe tela para isso, nem exportação do relatório. |
 | [Q-PME-084](#q-pme-084) e [Q-PME-087](#q-pme-087) · Revisão anual e consentimento da rede antiga | Sem registro de envio, todo contato vence uma vez por ano. A rede antiga espera a base do consentimento para ser registrada. |
 | [Q-PME-045](#q-pme-045) · Quem reconhece uma necessidade | O glossário diz "a coordenação". No sistema, quem edita a ficha reconhece, o Operacional de Línguas incluído. |
 
-### Sessão, casca do app, Início e notificações
+#### Sessão, casca do app, Início e notificações
 
 - <a id="q-pme-001"></a>**Q-PME-001** · **Recarregar a página pede a senha de novo ([RN-PME-006](#rn-pme-006)).** (a) Hoje: a sessão vive só na aba; recarregar ou fechar pede a senha. (b) Manter a pessoa conectada ao recarregar (pede mudança no servidor).
 - <a id="q-pme-002"></a>**Q-PME-002** · **"Sair" apaga as visões salvas e os rascunhos ([RN-PME-010](#rn-pme-010)).** (a) Hoje: sair apaga tudo o que a pessoa digitou e não enviou, e as visões salvas. (b) Guardar as visões salvas para a próxima entrada da mesma conta.
@@ -3902,8 +3894,6 @@ primeiro.
 - <a id="q-pme-004"></a>**Q-PME-004** · **Conta desativada lê a frase de "sem papel" ([RN-PME-003](#rn-pme-003)).** (a) Hoje: "Sua conta entrou, mas ainda não tem papel no Shemá…". (b) Uma frase própria para conta desativada.
 - <a id="q-pme-005"></a>**Q-PME-005** · **Textos de entrada e de senha ([RN-PME-001](#rn-pme-001) a [RN-PME-021](#rn-pme-021)).** Nenhum foi aprovado pela cliente. (a) Manter como estão. (b) Revisar a redação (a lista está nas regras).
 - <a id="q-pme-006"></a>**Q-PME-006** · **Tema escuro ([RN-PME-028](#rn-pme-028)).** A paleta escura é da equipe técnica. (a) Hoje: só aparece para quem clica na lua. (b) Aprovar a paleta e passar a seguir o sistema do aparelho.
-- <a id="q-pme-007"></a>**Q-PME-007** · **Conta que só é Equipe do projeto vê as seis áreas ([RN-PME-025](#rn-pme-025)).** (a) Hoje: as áreas aparecem e respondem "Sua conta não tem acesso…". (b) Esconder as áreas para essa conta, como já acontece com Gestor dos Projetos e Mesa.
-- <a id="q-pme-008"></a>**Q-PME-008** · **Início sem link ([RN-PME-023](#rn-pme-023)).** (a) Hoje: o Início só abre no endereço `/`. (b) Colocar "Início" na navegação ou na marca do cabeçalho.
 - <a id="q-pme-009"></a>**Q-PME-009** · **Idioma ([RN-PME-027](#rn-pme-027)).** (a) Hoje: fica no navegador, começa em português e a tela de entrada não tem o botão. (b) Guardar na conta e oferecer o botão já na entrada.
 - <a id="q-pme-010"></a>**Q-PME-010** · **"Urgentes" no Início ([RN-PME-031](#rn-pme-031)).** (a) Hoje: conta saúde crítica, 120+ dias sem atualização e necessidade urgente aberta, com a legenda "pedem oração". (b) Outra definição ou outra legenda.
 - <a id="q-pme-011"></a>**Q-PME-011** · **"Bases" não abre lista ([RN-PME-033](#rn-pme-033)).** (a) Hoje: é só um número. (b) Abrir uma lista das bases.
@@ -3913,26 +3903,17 @@ primeiro.
 - <a id="q-pme-015"></a>**Q-PME-015** · **"Só os urgentes" ([RN-PME-252](#rn-pme-252)).** (a) Hoje: saúde crítica e necessidade urgente. (b) Incluir também "Projeto sem notícias".
 - <a id="q-pme-016"></a>**Q-PME-016** · **Quem recebe "Pedido para revisar" ([RN-PME-245](#rn-pme-245)).** (a) Hoje: só o Administrador da região. (b) Também o Admin, que libera pedidos na mesma fila.
 - <a id="q-pme-017"></a>**Q-PME-017** · **Saúde crítica e o Intercessor ([RN-PME-242](#rn-pme-242)).** (a) Hoje: o Intercessor lê a saúde mas não é avisado quando ela fica crítica. (b) Avisar também o Intercessor.
-- <a id="q-pme-018"></a>**Q-PME-018** · **Canais e "Resumo diário" que não entregam nada ([RN-PME-253](#rn-pme-253)).** (a) Hoje: as opções aparecem, com o aviso de que a entrega "chega na onda 2". (b) Esconder as opções até a entrega existir. (c) Priorizar a entrega por e-mail.
 - <a id="q-pme-019"></a>**Q-PME-019** · **Cartão "Pré-visualização" ([RN-PME-253](#rn-pme-253)).** (a) Hoje: exemplo fixo ("Fresia enviou o pulso de maio", "Asháninka · YWAM Aurora"). (b) Tirar o cartão ou trocar por um exemplo sem nome de pessoa.
-- <a id="q-pme-020"></a>**Q-PME-020** · **Preferências filtram só os 30 mais recentes ([RN-PME-251](#rn-pme-251), [RN-PME-252](#rn-pme-252)).** (a) Hoje: com "Só os urgentes", um urgente mais antigo que os 30 últimos avisos não aparece. (b) O servidor aplicar a preferência antes de cortar em 30.
 
-### Projetos, Equipe e ETEN
+#### Projetos, Equipe e ETEN
 
 - <a id="q-pme-021"></a>**Q-PME-021** · **"Pedem atenção" e os sem notícias ([RN-PME-043](#rn-pme-043)).** Um projeto entra no atalho por falta de notícias: (a) só com 120 dias ou mais, como é hoje; ou (b) já com 60 dias, como o texto do atalho ("sem notícias") dá a entender?
-- <a id="q-pme-022"></a>**Q-PME-022** · **"Recentes" ([RN-PME-043](#rn-pme-043)).** O atalho "Recentes" olha um campo de data que nenhuma tela atualiza hoje. Ele deve: (a) continuar assim (na prática, só reflete a importação); ou (b) contar todo projeto com progresso registrado, ou qualquer salvamento na ficha, nos últimos 30 dias?
-- <a id="q-pme-023"></a>**Q-PME-023** · **Opção de filtro com zero ([RN-PME-046](#rn-pme-046)).** (a) Fica visível e apagada, como é hoje; ou (b) some da lista enquanto não tiver projeto?
-- <a id="q-pme-024"></a>**Q-PME-024** · **Faixas de "% Progresso" ([RN-PME-047](#rn-pme-047)).** Um projeto com exatamente 50%: (a) conta em "25–50%" e em "50–75%", como é hoje; ou (b) em uma faixa só?
 - <a id="q-pme-025"></a>**Q-PME-025** · **Saúde no cartão para quem não lê saúde ([RN-PME-058](#rn-pme-058)).** O Admin vê as três bolinhas como "N/A", iguais às de uma equipe nunca avaliada. (a) Manter; ou (b) não desenhar as bolinhas para quem não lê saúde?
-- <a id="q-pme-026"></a>**Q-PME-026** · **Filtro "País" e projeto sensível ([RN-PME-046](#rn-pme-046)).** Para o Operacional de Línguas, um projeto sensível aparece no filtro "País" sob a chave da região, em letras minúsculas (por exemplo `africa`). (a) Manter; (b) mostrar o nome da região ("África"); ou (c) deixar o projeto sensível fora do filtro "País"?
 - <a id="q-pme-027"></a>**Q-PME-027** · **Ordem "Saúde" ([RN-PME-054](#rn-pme-054)).** (a) Das equipes mais saudáveis para as menos, com as não avaliadas no fim, como é hoje; ou (b) das mais críticas para as mais saudáveis?
-- <a id="q-pme-028"></a>**Q-PME-028** · **Onde entra na ordem um projeto sensível sem nome público ([RN-PME-055](#rn-pme-055)).** (a) Na letra de "Projeto sensível — região", como é hoje; ou (b) sempre no fim da lista?
 - <a id="q-pme-029"></a>**Q-PME-029** · **Projeto sensível no globo ([RN-PME-063](#rn-pme-063)).** (a) Desenhado no centro da região, com aviso de posição aproximada, como é hoje; ou (b) fora do globo?
 - <a id="q-pme-030"></a>**Q-PME-030** · **O que o aviso de recolhidos conta ([RN-PME-063](#rn-pme-063)).** (a) Os projetos sensíveis do resultado filtrado, como é hoje; ou (b) todos os projetos sensíveis que a pessoa alcança, qualquer que seja o filtro?
-- <a id="q-pme-031"></a>**Q-PME-031** · **O globo é só ilustração ([RN-PME-061](#rn-pme-061), [RN-PME-062](#rn-pme-062)).** (a) Quem usa teclado ou leitor de tela chega aos projetos pela lista abaixo do globo, como é hoje; ou (b) o globo também deve ser operável por teclado?
 - <a id="q-pme-032"></a>**Q-PME-032** · **Link de um colega e a "Base" de quem abre ([RN-PME-064](#rn-pme-064)).** O link nunca leva "Base" nem "País". Ao abrir o link de um colega: (a) quem abre mantém a própria "Base" guardada, e a lista pode sair mais estreita que a do colega, como é hoje; ou (b) a "Base" de quem abre é zerada, para ver exatamente o recorte do colega?
 - <a id="q-pme-033"></a>**Q-PME-033** · **Onde moram as visões salvas ([RN-PME-051](#rn-pme-051)).** (a) No navegador de cada pessoa, sem ir para outro aparelho, como é hoje; ou (b) na conta, disponíveis em qualquer aparelho?
-- <a id="q-pme-034"></a>**Q-PME-034** · **"Europa" em "Time por região" ([RN-PME-053](#rn-pme-053)).** (a) Aparece mesmo sem projeto, como é hoje; ou (b) só aparece quando tiver projeto, como as outras regiões?
 - <a id="q-pme-035"></a>**Q-PME-035** · **Lista vazia sem filtro ([RN-PME-065](#rn-pme-065)).** A frase "As regiões que você acompanha ainda não têm nenhum projeto.", sem botão: (a) aprovar; ou (b) outro texto?
 - <a id="q-pme-036"></a>**Q-PME-036** · **Nomes dos três papéis ([RN-PME-232](#rn-pme-232)).** (a) "Administrador", "Operacional de Línguas" e "Intercessor", como é hoje; ou (b) os nomes da apresentação da Equipe ("Anfitrião Regional", "Facilitador de Projetos", "Mobilizador de Recursos")?
 - <a id="q-pme-037"></a>**Q-PME-037** · **Assento e conta ([RN-PME-233](#rn-pme-233), [RN-PME-240](#rn-pme-240)).** O assento guarda só um nome digitado; o nome que a pessoa vê na própria sessão vem do assento da sua região. (a) Manter texto livre; ou (b) ligar cada assento a uma conta, escolhida numa lista?
@@ -3943,64 +3924,45 @@ primeiro.
 - <a id="q-pme-042"></a>**Q-PME-042** · **Crédito manual ([RN-PME-226](#rn-pme-226)).** (a) Continua sem tela, lançado pela equipe técnica a pedido; ou (b) o PME ganha uma tela para o Administrador da região lançar? E o Admin deve poder lançar?
 - <a id="q-pme-043"></a>**Q-PME-043** · **Lugar na linha do relatório ([RN-PME-230](#rn-pme-230)).** (a) O país, ou a região quando o projeto é sensível, como é hoje; ou (b) a região em todas as linhas ("idioma, região e progresso")?
 - <a id="q-pme-044"></a>**Q-PME-044** · **Formato do relatório do ETEN ([RN-PME-231](#rn-pme-231)).** Qual é o formato deste ano? Sem ele, a exportação continua (a) inexistente; ou (b) entra uma exportação simples (CSV da tabela) até o formato chegar?
+- <a id="q-pme-106"></a>**Q-PME-106** · **O filtro "País" conta os projetos sensíveis (DV-77).** (a) Hoje: o Operacional de Línguas vê, pelo filtro "País", quantos projetos sensíveis há em cada região e consegue listá-los. (b) O filtro "País" deixa de contar o projeto sensível para quem não lê a verdade. (c) Mantém, já que o projeto mostra a região e não o país.
 
-### Ficha do projeto
+#### Ficha do projeto
 
 - <a id="q-pme-045"></a>**Q-PME-045** · **Quem pode marcar uma necessidade como vista?** ([RN-PME-120](#rn-pme-120)) (a) Hoje: qualquer pessoa que edita a ficha, ou seja, o Administrador (da região) e o Operacional de Línguas. (b) Só a coordenação (Administrador da região), como diz o glossário.
 - <a id="q-pme-046"></a>**Q-PME-046** · **Depois de quantos dias uma necessidade sem retorno ganha o selo?** ([RN-PME-121](#rn-pme-121)) (a) Hoje: 30 dias. (b) Outro prazo (por exemplo 15 ou 60 dias).
 - <a id="q-pme-047"></a>**Q-PME-047** · **Como um projeto vira "Concluído" ou "Cancelado"?** ([RN-PME-109](#rn-pme-109)) (a) Hoje: a ficha só oferece "Em andamento", "Paralisado / Inativo" e "Em planejamento"; "Concluído" e "Cancelado" só chegam por importação de arquivo. (b) A ficha passa a oferecer "Concluído" e "Cancelado". Isto pesa no crédito ETEN, que conta a partir do dia em que o status vira "Concluído".
-- <a id="q-pme-048"></a>**Q-PME-048** · **As leituras de saúde devem continuar editáveis na ficha?** ([RN-PME-115](#rn-pme-115)) (a) Hoje: os campos aparecem no formulário, mas o que se digita fica só no navegador de quem digitou, com um aviso. (b) Tirar esses campos do formulário e deixar só a leitura, já que a Avaliação de Saúde é o único caminho.
-- <a id="q-pme-049"></a>**Q-PME-049** · **Fotos, vídeos e materiais anexados pela ficha podem ficar só no navegador de quem anexou?** ([RN-PME-087](#rn-pme-087), [RN-PME-124](#rn-pme-124), [RN-PME-128](#rn-pme-128)) (a) Hoje: sim, com aviso; ninguém mais os vê. (b) Esconder essas partes até o servidor guardá-las. (c) Priorizar a gravação no servidor.
-- <a id="q-pme-050"></a>**Q-PME-050** · **O modo de leitura deve mostrar o que ainda não foi salvo?** ([RN-PME-076](#rn-pme-076)) (a) Hoje: quem digitou e fechou sem salvar vê, na leitura, a ficha com o rascunho por cima, sem aviso (só o status diz "ainda não salvo"). (b) A leitura mostra só o que está salvo. (c) A leitura mostra o rascunho, com um aviso.
 - <a id="q-pme-051"></a>**Q-PME-051** · **Reescrever um pedido de oração que já está na "Rede de oração" mantém a autorização?** ([RN-PME-117](#rn-pme-117)) (a) Hoje: sim, o pedido de oração reescrito na ficha continua na rede. (b) Perguntar de novo antes de salvar.
-- <a id="q-pme-052"></a>**Q-PME-052** · **Quando a criação de um projeto chega ao servidor mas a resposta se perde, o que fazer com o que foi digitado depois?** ([RN-PME-092](#rn-pme-092)) (a) Hoje: a ficha criada é aberta e a tela oferece "Aplicar a diferença". (b) Abrir a ficha criada e descartar a diferença.
-- <a id="q-pme-053"></a>**Q-PME-053** · **O que fazer quando alguém digita mais capítulos do que o livro tem?** ([RN-PME-113](#rn-pme-113)) (a) Hoje: o número é cortado para o máximo, com o aviso "O máximo de {livro} é {n}; guardamos {n}.". (b) Manter o número digitado e marcar o campo como erro.
 - <a id="q-pme-054"></a>**Q-PME-054** · **Projeto novo sem lugar, ou com país que o sistema não conhece, cai em "América Central".** ([RN-PME-080](#rn-pme-080), [RN-PME-081](#rn-pme-081)) (a) Hoje: é assim, e quem não grava em "América Central" é obrigado a informar o lugar. (b) Criar uma região própria para "lugar não informado". (c) Tornar o lugar obrigatório para todos.
 - <a id="q-pme-055"></a>**Q-PME-055** · **Quem retira a autorização de uma foto?** ([RN-PME-126](#rn-pme-126)) (a) Hoje: só o Administrador da região; o Admin não, e ninguém concede a autorização no lugar da equipe. (b) O Admin também retira.
 - <a id="q-pme-056"></a>**Q-PME-056** · **Quem vê a imagem de uma foto de projeto sensível?** ([RN-PME-125](#rn-pme-125)) (a) Hoje: só a coordenação; o Intercessor (papel), que lê o resto da ficha, não vê a imagem. (b) O Intercessor (papel) também vê.
-- <a id="q-pme-057"></a>**Q-PME-057** · **As frases de recusa do servidor podem aparecer em inglês?** ([RN-PME-090](#rn-pme-090), [RN-PME-107](#rn-pme-107)) (a) Hoje: aparecem como o servidor mandou, em inglês (por exemplo, a do prazo antes do início). (b) Traduzir as recusas mais comuns.
 - <a id="q-pme-058"></a>**Q-PME-058** · **Uma necessidade salva pode ser apagada?** ([RN-PME-119](#rn-pme-119)) (a) Hoje: não; ela muda para "Não é mais necessário" e fica no registro. (b) Permitir apagar um lançamento feito por engano.
-- <a id="q-pme-110"></a>**Q-PME-110** · **"Notas sobre a saúde" de projeto sensível pela Avaliação de Saúde (DV-98).** (a) Hoje: o Operacional de Línguas não as escreve na ficha, mas as substitui ao salvar uma Avaliação de Saúde de um projeto sensível. (b) A avaliação dele num projeto sensível não muda essas notas.
-### Formulários e dados do cabeçalho
+
+#### Formulários e dados do cabeçalho
 
 - <a id="q-pme-059"></a>**Q-PME-059** · **O que conta como "reportou" no Pulso Mensal** ([RN-PME-130](#rn-pme-130)). (a) Hoje: conta o dia em que a resposta chegou; um Pulso Mensal de setembro que chega em 2 de outubro conta para outubro. (b) Contar pelo mês que o líder declarou em "De qual mês é este Pulso?".
 - <a id="q-pme-060"></a>**Q-PME-060** · **O período da Avaliação de Saúde** ([RN-PME-130](#rn-pme-130)). (a) Hoje: em Formulários a avaliação vale por trimestre, e no Ritmo a prontidão de saúde é contada por bimestre. (b) Um período só nas duas telas (qual?).
-- <a id="q-pme-061"></a>**Q-PME-061** · **O progresso do Pulso Mensal substitui a tabela de livros** ([RN-PME-144](#rn-pme-144)). (a) Hoje: ao aplicar, a ficha fica só com os livros que o líder listou naquele mês, e o líder não vê a tabela atual ao responder. (b) Atualizar só os livros que o Pulso Mensal traz e manter os outros.
-- <a id="q-pme-062"></a>**Q-PME-062** · **O que a coordenação vê antes de aplicar** ([RN-PME-137](#rn-pme-137), [RN-PME-258](#rn-pme-258)). (a) Hoje: vê só "3 linhas de progresso", sem os números. (b) Mostrar os livros e os números antes de aplicar.
-- <a id="q-pme-063"></a>**Q-PME-063** · **"Rede de oração" marcado sem pedido de oração novo** ([RN-PME-150](#rn-pme-150), [RN-PME-144](#rn-pme-144)). (a) Hoje: se o líder marca "Rede de oração" e deixa o pedido de oração em branco, ao aplicar o pedido de oração que já está na ficha passa a valer para a rede. (b) Ignorar a escolha de público quando não há pedido de oração novo.
-- <a id="q-pme-064"></a>**Q-PME-064** · **Foto sem autorização do líder** ([RN-PME-139](#rn-pme-139), [RN-PME-151](#rn-pme-151)). (a) Hoje: a foto fica guardada, mas ninguém a vê no PME, embora a tela do líder diga que "fica só com a coordenação". (b) A coordenação vê a foto mesmo sem autorização de uso externo.
 - <a id="q-pme-065"></a>**Q-PME-065** · **Uso e validade do link do líder** ([RN-PME-272](#rn-pme-272)). (a) Hoje: o link vale 45 dias, serve para várias respostas e a tela não deixa escolher a validade. (b) Link de uso único, ou validade escolhida ao gerar (o servidor aceita até 90 dias).
 - <a id="q-pme-066"></a>**Q-PME-066** · **Nome da língua no link de projeto sensível** ([RN-PME-146](#rn-pme-146)). (a) Hoje: a saudação usa o nome público da língua ou "Projeto sensível — região". (b) Mostrar o nome real, já que quem abre é a equipe.
-- <a id="q-pme-067"></a>**Q-PME-067** · **Aplicar um Pulso Mensal com a ficha alterada** ([RN-PME-141](#rn-pme-141), [RN-PME-142](#rn-pme-142)). (a) Hoje: a aplicação é recusada e a pessoa decide se aplica de novo por cima. (b) Aplicar sempre, sem conferir a versão.
-- <a id="q-pme-068"></a>**Q-PME-068** · **Aviso de leitura crítica** ([RN-PME-159](#rn-pme-159)). (a) Hoje: a coordenação é avisada só quando a leitura geral passa a "Crítica"; a tela diz que é notificada sempre. (b) Avisar em toda avaliação salva, ou corrigir a frase.
-- <a id="q-pme-069"></a>**Q-PME-069** · **Leitura com data anterior** ([RN-PME-162](#rn-pme-162)). (a) Hoje: a resposta de cuidado pastoral de uma leitura retroativa não chega à ficha, e a tela não avisa quem registrou. (b) Avisar na tela antes de salvar.
-- <a id="q-pme-070"></a>**Q-PME-070** · **"Algo mais que valha registrar"** ([RN-PME-164](#rn-pme-164)). (a) Hoje: o texto fica só no rascunho e se perde ao salvar. (b) Guardar esse texto na avaliação.
 - <a id="q-pme-071"></a>**Q-PME-071** · **Nomes usados nos textos** ([RN-PME-129](#rn-pme-129), [RN-PME-154](#rn-pme-154)). (a) Hoje: os textos dizem "Facilitador de Projetos", "Coordenação" e "seu coordenador", enquanto os papéis se chamam "Operacional de Línguas" e "Administrador". (b) Trocar os textos pelos nomes dos papéis.
-- <a id="q-pme-072"></a>**Q-PME-072** · **Áudio no Pulso Mensal** ([RN-PME-147](#rn-pme-147)). (a) Hoje: a pergunta promete "áudio ou texto" e o campo aceita só texto. (b) Aceitar áudio, ou tirar "áudio" do rótulo.
-- <a id="q-pme-073"></a>**Q-PME-073** · **Formato do Pulso Mensal que volta como arquivo** ([RN-PME-257](#rn-pme-257)). (a) Hoje: o PME aceita um arquivo `.html` com as respostas num bloco embutido, formato escolhido pela equipe técnica e ainda não testado com um arquivo real, porque nada o gera. (b) Outro formato de volta.
 
-### Ritmo, Oração e rede de intercessores
+#### Ritmo, Oração e rede de intercessores
 
 - <a id="q-pme-074"></a>**Q-PME-074** · **Pessoas-ponte da reunião trimestral ([RN-PME-181](#rn-pme-181)).** (a) Hoje a reunião lista os três papéis da região (Administrador, Operacional de Línguas, Intercessor) e avisa que as pessoas-ponte não foram definidas. (b) Definir quem são: outros papéis, ou uma lista de nomes por região.
 - <a id="q-pme-075"></a>**Q-PME-075** · **Quem lê o registro das reuniões ([RN-PME-176](#rn-pme-176)).** (a) Hoje só o Administrador da região e o Operacional de Línguas; o Intercessor e o Admin veem um aviso. (b) Abrir a leitura também ao Admin, ao Intercessor, ou aos dois.
-- <a id="q-pme-076"></a>**Q-PME-076** · **As notas de uma reunião ([RN-PME-172](#rn-pme-172)).** (a) Hoje as notas são gravadas e não aparecem em nenhuma tela depois de salvas. (b) Mostrar as notas a quem lê o registro.
 - <a id="q-pme-077"></a>**Q-PME-077** · **O ano do relatório da Celebração ([RN-PME-185](#rn-pme-185)).** (a) Hoje é o ano civil, de janeiro a dezembro. (b) Usar o ano fiscal de agosto a julho, como nos Créditos ETEN.
 - <a id="q-pme-078"></a>**Q-PME-078** · **Metas no relatório anual ([RN-PME-185](#rn-pme-185)).** (a) Hoje o relatório não tem seção de metas, porque não há onde registrá-las. (b) Criar o registro de metas por projeto e somá-las no relatório.
 - <a id="q-pme-079"></a>**Q-PME-079** · **Projeto sensível no relatório anual ([RN-PME-186](#rn-pme-186)).** (a) Hoje todos, inclusive a coordenação, veem a região no lugar do local. (b) A coordenação vê o local.
 - <a id="q-pme-080"></a>**Q-PME-080** · **Quem gera o Pulso de Oração ([RN-PME-195](#rn-pme-195)).** (a) Hoje só quem tem o papel Intercessor; um Administrador que envia precisa receber também esse papel. (b) O Administrador da região e o Admin também geram.
 - <a id="q-pme-081"></a>**Q-PME-081** · **Áudio do pedido de oração ([RN-PME-194](#rn-pme-194)).** (a) Hoje só o texto vai ao mural e ao Pulso de Oração; a gravação fica na ficha. (b) Tocar a gravação no mural.
-- <a id="q-pme-082"></a>**Q-PME-082** · **Lugar no Pulso de Oração para a região "América Central" ([RN-PME-197](#rn-pme-197)).** (a) Hoje um projeto dessa região, quando não há país a imprimir, sai sem lugar, porque a mesma região recebe os projetos sem lugar reconhecido. (b) Imprimir "América Central".
-- <a id="q-pme-083"></a>**Q-PME-083** · **Envio dos pedidos à rede ([RN-PME-219](#rn-pme-219)).** (a) Hoje o sistema só gera o arquivo do Pulso de Oração; o envio é feito por fora, a tela ainda promete envio por WhatsApp ou e-mail e nenhum intercessor recebe o link de saída. (b) O sistema envia a cada intercessor da rede, com o link de saída, e registra a data.
 - <a id="q-pme-084"></a>**Q-PME-084** · **Prazo da revisão anual da rede ([RN-PME-211](#rn-pme-211)).** (a) Hoje, sem envio registrado, todo contato fica pendente um ano depois da entrada ou da última revisão, mesmo que receba os pedidos toda semana. (b) Registrar o envio (pelo sistema ou por um botão "enviei") para que o prazo conte do último uso.
 - <a id="q-pme-085"></a>**Q-PME-085** · **Não listados com revisão vencida ([RN-PME-213](#rn-pme-213)).** (a) Hoje são só contados; ninguém consegue revisá-los nem removê-los pela tela. (b) A coordenação vê e revisa esses cadastros.
 - <a id="q-pme-086"></a>**Q-PME-086** · **Listar pelo contato quem já está na rede ([RN-PME-214](#rn-pme-214)).** (a) Hoje a coordenação digita o contato e a pessoa só aparece depois de o consentimento ficar gravado. (b) A coordenação vê os nomes dos não listados e escolhe.
 - <a id="q-pme-087"></a>**Q-PME-087** · **Base do consentimento da rede antiga ([RN-PME-207](#rn-pme-207)).** (a) Hoje quem está no banco sem consentimento registrado não é contado nem listado, e o registro em lote espera a base. (b) Informar a base (como e quando a rede autorizou) para registrar todos de uma vez.
 - <a id="q-pme-088"></a>**Q-PME-088** · **Intercessor da rede em país sensível ([RN-PME-205](#rn-pme-205)).** (a) Hoje o cadastro ganha o selo "País sensível para divulgação da Bíblia", e quem lê a rede continua vendo o nome e o país. (b) Esconder o país, ou o nome, de parte dos leitores.
 - <a id="q-pme-089"></a>**Q-PME-089** · **Consentimento para arquivo de parceiro ([RN-PME-206](#rn-pme-206)).** (a) Hoje nenhuma tela faz essa pergunta e nenhum arquivo leva pessoas da rede. (b) Criar a pergunta e o arquivo.
-- <a id="q-pme-090"></a>**Q-PME-090** · **Botão do telefone ([RN-PME-208](#rn-pme-208)).** (a) Hoje o canal aparece como "WhatsApp" e o botão "Ligar" abre uma ligação. (b) O botão abre a conversa no WhatsApp.
 - <a id="q-pme-091"></a>**Q-PME-091** · **Textos da fila de revisão de oração, da listagem pelo contato e da página de saída ([RN-PME-199](#rn-pme-199), [RN-PME-200](#rn-pme-200), [RN-PME-214](#rn-pme-214), [RN-PME-217](#rn-pme-217), [RN-PME-218](#rn-pme-218)).** (a) Manter os textos atuais, que não foram aprovados pela cliente. (b) Revisar a redação.
 
-### Acesso, Formulário de Recursos e dados sensíveis
+#### Acesso, Formulário de Recursos e dados sensíveis
 
 - <a id="q-pme-092"></a>**Q-PME-092** · **Tirar um país da lista de países sensíveis ([RN-PME-312](#rn-pme-312), [RN-PME-304](#rn-pme-304)).** (a) Hoje: nenhum projeto é desmarcado; a coordenação desmarca um por um, se quiser. (b) Alternativa: desmarcar sozinho os projetos que só estavam marcados por causa daquele país.
 - <a id="q-pme-093"></a>**Q-PME-093** · **Projeto gravado antes de o país entrar na lista ([RN-PME-312](#rn-pme-312)).** (a) Hoje: só passa a ser sensível quando alguém o salvar com alguma alteração. (b) Alternativa: marcar todos os projetos daquele país no momento em que o Admin salva a lista.
@@ -4013,9 +3975,81 @@ primeiro.
 - <a id="q-pme-100"></a>**Q-PME-100** · **O Intercessor (papel) e a saúde da equipe ([RN-PME-324](#rn-pme-324)).** (a) Hoje: ele lê a saúde das equipes da região dele e não registra nada. (b) Alternativa: ele não lê a saúde.
 - <a id="q-pme-101"></a>**Q-PME-101** · **Mesa e Admin na mesma conta ([RN-PME-282](#rn-pme-282)).** (a) Hoje: uma conta não pode ser Mesa e Admin, assim como não pode ser Mesa e Gestor dos Projetos. (b) Alternativa: permitir Admin e Mesa juntos.
 - <a id="q-pme-102"></a>**Q-PME-102** · **Prazo do convite ([RN-PME-293](#rn-pme-293)).** (a) Hoje: o convite vale 7 dias. (b) Alternativa: outro prazo (dizer qual).
+- <a id="q-pme-105"></a>**Q-PME-105** · **Textos da tela "Acesso" e da página de convite ([RN-PME-275](#rn-pme-275) a [RN-PME-305](#rn-pme-305)).** Nenhum desses textos foi aprovado pela cliente. (a) Aprovar como estão. (b) Revisar a redação antes de fechar.
+- <a id="q-pme-109"></a>**Q-PME-109** · **Gestor dos Projetos e Mesa abrem pedido de recurso de qualquer projeto (DV-95).** (a) Hoje: pelo Formulário, sim, para qualquer projeto. (b) Só para os projetos de que são membros, como no PME.
+
+### 9.2 Para a equipe decidir
+
+Defeitos e decisões técnicas: a tela promete o que o código não cumpre, um dado se perde ou é sobrescrito, dois caminhos fazem a mesma coisa de jeitos diferentes, ou a decisão é de mecânica de interface. A opção (a) continua sendo o que o sistema faz hoje.
+
+#### As que mais pesam
+
+Estas estavam entre as que mais pesam e são decisões da equipe. Se a correção mudar o que a pessoa vê ou faz, a prioridade delas pode voltar à Karina.
+
+| Pergunta | Por que pesa |
+|---|---|
+| [Q-PME-083](#q-pme-083) · Envio dos pedidos de oração à rede | A tela promete envio por WhatsApp ou e-mail. O sistema só gera o arquivo, e nenhum intercessor da rede recebe o link de saída. |
+| [Q-PME-061](#q-pme-061) e [Q-PME-062](#q-pme-062) · O progresso do Pulso Mensal | Pela leitura do código, aplicar um Pulso Mensal troca a tabela de livros da ficha inteira pelos livros que o líder listou, e quem aplica não vê os números antes. |
+| [Q-PME-049](#q-pme-049) · Fotos, vídeos e materiais anexados pela ficha | Ficam só no navegador de quem anexou. Ninguém mais os vê, e somem ao sair. |
+| [Q-PME-064](#q-pme-064) · Foto sem autorização do líder | A tela do líder diz que a foto "fica só com a coordenação". Ninguém a vê no PME. |
+| [Q-PME-063](#q-pme-063) · "Rede de oração" marcado sem pedido de oração novo | O pedido de oração que já estava na ficha passa a valer para a rede. |
+| [Q-PME-022](#q-pme-022) · O atalho "Recentes" | Lê uma data que nenhuma tela atualiza. Salvar progresso não torna o projeto "recente". |
+| [Q-PME-018](#q-pme-018) · Canais de notificação | E-mail, push, WhatsApp e "Resumo diário" aparecem como opção e nada é entregue. |
+| [Q-PME-007](#q-pme-007) · A conta que só é Equipe do projeto | Vê as seis áreas e recebe "Sua conta não tem acesso…" em todas. |
+
+#### Sessão, casca do app, Início e notificações
+
+- <a id="q-pme-007"></a>**Q-PME-007** · **Conta que só é Equipe do projeto vê as seis áreas ([RN-PME-025](#rn-pme-025)).** (a) Hoje: as áreas aparecem e respondem "Sua conta não tem acesso…". (b) Esconder as áreas para essa conta, como já acontece com Gestor dos Projetos e Mesa.
+- <a id="q-pme-008"></a>**Q-PME-008** · **Início sem link ([RN-PME-023](#rn-pme-023)).** (a) Hoje: o Início só abre no endereço `/`. (b) Colocar "Início" na navegação ou na marca do cabeçalho.
+- <a id="q-pme-018"></a>**Q-PME-018** · **Canais e "Resumo diário" que não entregam nada ([RN-PME-253](#rn-pme-253)).** (a) Hoje: as opções aparecem, com o aviso de que a entrega "chega na onda 2". (b) Esconder as opções até a entrega existir. (c) Priorizar a entrega por e-mail.
+- <a id="q-pme-020"></a>**Q-PME-020** · **Preferências filtram só os 30 mais recentes ([RN-PME-251](#rn-pme-251), [RN-PME-252](#rn-pme-252)).** (a) Hoje: com "Só os urgentes", um urgente mais antigo que os 30 últimos avisos não aparece. (b) O servidor aplicar a preferência antes de cortar em 30.
+
+#### Projetos, Equipe e ETEN
+
+- <a id="q-pme-022"></a>**Q-PME-022** · **"Recentes" ([RN-PME-043](#rn-pme-043)).** O atalho "Recentes" olha um campo de data que nenhuma tela atualiza hoje. Ele deve: (a) continuar assim (na prática, só reflete a importação); ou (b) contar todo projeto com progresso registrado, ou qualquer salvamento na ficha, nos últimos 30 dias?
+- <a id="q-pme-023"></a>**Q-PME-023** · **Opção de filtro com zero ([RN-PME-046](#rn-pme-046)).** (a) Fica visível e apagada, como é hoje; ou (b) some da lista enquanto não tiver projeto?
+- <a id="q-pme-024"></a>**Q-PME-024** · **Faixas de "% Progresso" ([RN-PME-047](#rn-pme-047)).** Um projeto com exatamente 50%: (a) conta em "25–50%" e em "50–75%", como é hoje; ou (b) em uma faixa só?
+- <a id="q-pme-026"></a>**Q-PME-026** · **Filtro "País" e projeto sensível ([RN-PME-046](#rn-pme-046)).** Para o Operacional de Línguas, um projeto sensível aparece no filtro "País" sob a chave da região, em letras minúsculas (por exemplo `africa`). (a) Manter; (b) mostrar o nome da região ("África"); ou (c) deixar o projeto sensível fora do filtro "País"?
+- <a id="q-pme-028"></a>**Q-PME-028** · **Onde entra na ordem um projeto sensível sem nome público ([RN-PME-055](#rn-pme-055)).** (a) Na letra de "Projeto sensível — região", como é hoje; ou (b) sempre no fim da lista?
+- <a id="q-pme-031"></a>**Q-PME-031** · **O globo é só ilustração ([RN-PME-061](#rn-pme-061), [RN-PME-062](#rn-pme-062)).** (a) Quem usa teclado ou leitor de tela chega aos projetos pela lista abaixo do globo, como é hoje; ou (b) o globo também deve ser operável por teclado?
+- <a id="q-pme-034"></a>**Q-PME-034** · **"Europa" em "Time por região" ([RN-PME-053](#rn-pme-053)).** (a) Aparece mesmo sem projeto, como é hoje; ou (b) só aparece quando tiver projeto, como as outras regiões?
+
+#### Ficha do projeto
+
+- <a id="q-pme-048"></a>**Q-PME-048** · **As leituras de saúde devem continuar editáveis na ficha?** ([RN-PME-115](#rn-pme-115)) (a) Hoje: os campos aparecem no formulário, mas o que se digita fica só no navegador de quem digitou, com um aviso. (b) Tirar esses campos do formulário e deixar só a leitura, já que a Avaliação de Saúde é o único caminho.
+- <a id="q-pme-049"></a>**Q-PME-049** · **Fotos, vídeos e materiais anexados pela ficha podem ficar só no navegador de quem anexou?** ([RN-PME-087](#rn-pme-087), [RN-PME-124](#rn-pme-124), [RN-PME-128](#rn-pme-128)) (a) Hoje: sim, com aviso; ninguém mais os vê. (b) Esconder essas partes até o servidor guardá-las. (c) Priorizar a gravação no servidor.
+- <a id="q-pme-050"></a>**Q-PME-050** · **O modo de leitura deve mostrar o que ainda não foi salvo?** ([RN-PME-076](#rn-pme-076)) (a) Hoje: quem digitou e fechou sem salvar vê, na leitura, a ficha com o rascunho por cima, sem aviso (só o status diz "ainda não salvo"). (b) A leitura mostra só o que está salvo. (c) A leitura mostra o rascunho, com um aviso.
+- <a id="q-pme-052"></a>**Q-PME-052** · **Quando a criação de um projeto chega ao servidor mas a resposta se perde, o que fazer com o que foi digitado depois?** ([RN-PME-092](#rn-pme-092)) (a) Hoje: a ficha criada é aberta e a tela oferece "Aplicar a diferença". (b) Abrir a ficha criada e descartar a diferença.
+- <a id="q-pme-053"></a>**Q-PME-053** · **O que fazer quando alguém digita mais capítulos do que o livro tem?** ([RN-PME-113](#rn-pme-113)) (a) Hoje: o número é cortado para o máximo, com o aviso "O máximo de {livro} é {n}; guardamos {n}.". (b) Manter o número digitado e marcar o campo como erro.
+- <a id="q-pme-057"></a>**Q-PME-057** · **As frases de recusa do servidor podem aparecer em inglês?** ([RN-PME-090](#rn-pme-090), [RN-PME-107](#rn-pme-107)) (a) Hoje: aparecem como o servidor mandou, em inglês (por exemplo, a do prazo antes do início). (b) Traduzir as recusas mais comuns.
+- <a id="q-pme-110"></a>**Q-PME-110** · **"Notas sobre a saúde" de projeto sensível pela Avaliação de Saúde (DV-98).** (a) Hoje: o Operacional de Línguas não as escreve na ficha, mas as substitui ao salvar uma Avaliação de Saúde de um projeto sensível. (b) A avaliação dele num projeto sensível não muda essas notas.
+
+#### Formulários e dados do cabeçalho
+
+- <a id="q-pme-061"></a>**Q-PME-061** · **O progresso do Pulso Mensal substitui a tabela de livros** ([RN-PME-144](#rn-pme-144)). (a) Hoje: ao aplicar, a ficha fica só com os livros que o líder listou naquele mês, e o líder não vê a tabela atual ao responder. (b) Atualizar só os livros que o Pulso Mensal traz e manter os outros.
+- <a id="q-pme-062"></a>**Q-PME-062** · **O que a coordenação vê antes de aplicar** ([RN-PME-137](#rn-pme-137), [RN-PME-258](#rn-pme-258)). (a) Hoje: vê só "3 linhas de progresso", sem os números. (b) Mostrar os livros e os números antes de aplicar.
+- <a id="q-pme-063"></a>**Q-PME-063** · **"Rede de oração" marcado sem pedido de oração novo** ([RN-PME-150](#rn-pme-150), [RN-PME-144](#rn-pme-144)). (a) Hoje: se o líder marca "Rede de oração" e deixa o pedido de oração em branco, ao aplicar o pedido de oração que já está na ficha passa a valer para a rede. (b) Ignorar a escolha de público quando não há pedido de oração novo.
+- <a id="q-pme-064"></a>**Q-PME-064** · **Foto sem autorização do líder** ([RN-PME-139](#rn-pme-139), [RN-PME-151](#rn-pme-151)). (a) Hoje: a foto fica guardada, mas ninguém a vê no PME, embora a tela do líder diga que "fica só com a coordenação". (b) A coordenação vê a foto mesmo sem autorização de uso externo.
+- <a id="q-pme-067"></a>**Q-PME-067** · **Aplicar um Pulso Mensal com a ficha alterada** ([RN-PME-141](#rn-pme-141), [RN-PME-142](#rn-pme-142)). (a) Hoje: a aplicação é recusada e a pessoa decide se aplica de novo por cima. (b) Aplicar sempre, sem conferir a versão.
+- <a id="q-pme-068"></a>**Q-PME-068** · **Aviso de leitura crítica** ([RN-PME-159](#rn-pme-159)). (a) Hoje: a coordenação é avisada só quando a leitura geral passa a "Crítica"; a tela diz que é notificada sempre. (b) Avisar em toda avaliação salva, ou corrigir a frase.
+- <a id="q-pme-069"></a>**Q-PME-069** · **Leitura com data anterior** ([RN-PME-162](#rn-pme-162)). (a) Hoje: a resposta de cuidado pastoral de uma leitura retroativa não chega à ficha, e a tela não avisa quem registrou. (b) Avisar na tela antes de salvar.
+- <a id="q-pme-070"></a>**Q-PME-070** · **"Algo mais que valha registrar"** ([RN-PME-164](#rn-pme-164)). (a) Hoje: o texto fica só no rascunho e se perde ao salvar. (b) Guardar esse texto na avaliação.
+- <a id="q-pme-072"></a>**Q-PME-072** · **Áudio no Pulso Mensal** ([RN-PME-147](#rn-pme-147)). (a) Hoje: a pergunta promete "áudio ou texto" e o campo aceita só texto. (b) Aceitar áudio, ou tirar "áudio" do rótulo.
+- <a id="q-pme-073"></a>**Q-PME-073** · **Formato do Pulso Mensal que volta como arquivo** ([RN-PME-257](#rn-pme-257)). (a) Hoje: o PME aceita um arquivo `.html` com as respostas num bloco embutido, formato escolhido pela equipe técnica e ainda não testado com um arquivo real, porque nada o gera. (b) Outro formato de volta.
+
+#### Ritmo, Oração e rede de intercessores
+
+- <a id="q-pme-076"></a>**Q-PME-076** · **As notas de uma reunião ([RN-PME-172](#rn-pme-172)).** (a) Hoje as notas são gravadas e não aparecem em nenhuma tela depois de salvas. (b) Mostrar as notas a quem lê o registro.
+- <a id="q-pme-082"></a>**Q-PME-082** · **Lugar no Pulso de Oração para a região "América Central" ([RN-PME-197](#rn-pme-197)).** (a) Hoje um projeto dessa região, quando não há país a imprimir, sai sem lugar, porque a mesma região recebe os projetos sem lugar reconhecido. (b) Imprimir "América Central".
+- <a id="q-pme-083"></a>**Q-PME-083** · **Envio dos pedidos à rede ([RN-PME-219](#rn-pme-219)).** (a) Hoje o sistema só gera o arquivo do Pulso de Oração; o envio é feito por fora, a tela ainda promete envio por WhatsApp ou e-mail e nenhum intercessor recebe o link de saída. (b) O sistema envia a cada intercessor da rede, com o link de saída, e registra a data.
+- <a id="q-pme-090"></a>**Q-PME-090** · **Botão do telefone ([RN-PME-208](#rn-pme-208)).** (a) Hoje o canal aparece como "WhatsApp" e o botão "Ligar" abre uma ligação. (b) O botão abre a conversa no WhatsApp.
+- <a id="q-pme-107"></a>**Q-PME-107** · **Aviso da fila de revisão de oração quando o pedido vem da Avaliação de Saúde (DV-89).** (a) Hoje: um pedido de oração de projeto sensível que entra na fila pela Avaliação de Saúde não avisa a coordenação. (b) Avisar também nesse caso.
+
+#### Acesso, Formulário de Recursos e dados sensíveis
+
 - <a id="q-pme-103"></a>**Q-PME-103** · **Local que não começa pelo país ([RN-PME-301](#rn-pme-301)).** (a) Hoje: "Cidade do Cabo, África do Sul" cai na região "América Central" e a coordenação da África não vê o projeto; a conferência avisa e o Admin corrige à mão. (b) Alternativa: o sistema procurar o país em qualquer posição do local para decidir a região.
 - <a id="q-pme-104"></a>**Q-PME-104** · **Aviso de alteração gravada longe do cartão ([RN-PME-287](#rn-pme-287)).** (a) Hoje: se o Admin troca de pessoa antes de a gravação responder, um aviso diz se a alteração foi ou não gravada. (b) Alternativa: não avisar.
-- <a id="q-pme-105"></a>**Q-PME-105** · **Textos da tela "Acesso" e da página de convite ([RN-PME-275](#rn-pme-275) a [RN-PME-305](#rn-pme-305)).** Nenhum desses textos foi aprovado pela cliente. (a) Aprovar como estão. (b) Revisar a redação antes de fechar.
+- <a id="q-pme-108"></a>**Q-PME-108** · **Projeto sensível sem nome público no arquivo exportado (DV-94).** (a) Hoje: o arquivo leva a chave da região (`africa`). (b) O arquivo leva "Projeto sensível — {região}", como a tela.
 
 ## Apêndice A · Glossário
 
