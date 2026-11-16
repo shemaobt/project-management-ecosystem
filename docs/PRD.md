@@ -69,8 +69,8 @@ Uma conta pode ter vários papéis. A sessão traz todos, em ordem de precedênc
 |---|---|---|---|---|
 | Administrador (da região) | `coordinator` | "Administrador" | O Admin concede, com uma ou mais regiões | Lê e grava nas suas regiões. Com o Admin, forma a coordenação. |
 | Operacional de Línguas | `obtLab` | "Operacional de Línguas" | O Admin concede, com regiões | Lê e grava nas suas regiões. Não lê a verdade de um projeto sensível. |
-| Intercessor (papel) | `resourceCircle` | "Intercessor" | O Admin concede, com regiões | Lê tudo nas suas regiões, inclusive projeto sensível. Não grava projeto. |
-| Admin | `admin` | "Admin da plataforma" | O Admin concede (nunca por convite) | Lê todas as regiões como coordenação. Grava só o acesso, salvo se também for Administrador de uma região. |
+| Intercessor (papel) | `resourceCircle` | "Intercessor" | O Admin concede, com regiões | Lê os projetos das suas regiões como a coordenação, inclusive o lugar real de projeto sensível; dos pedidos de oração, só os autorizados para a rede; sem a imagem das fotos de projeto sensível, sem o registro de reuniões e sem o histórico dos assentos. Não grava projeto. |
+| Admin | `admin` | "Admin da plataforma" | O Admin concede (nunca por convite) | Lê todas as regiões como coordenação (o lugar real de projeto sensível), mas recebe a saúde vazia e só o pedido de oração autorizado. Não grava projeto, salvo se também for Administrador de uma região. Grava o acesso, a rede de intercessores e a liberação de pedidos de oração. |
 | Gestor dos Projetos | `gestor` | "Gestor dos Projetos" | O Admin concede, no Formulário de Recursos | Entra no PME só para passar ao Formulário. Não lê nenhuma área. |
 | Mesa | `mesa` | "Mesa · Círculo de Recursos" | O Admin concede, no Formulário de Recursos | Igual ao Gestor dos Projetos, no PME. |
 | Equipe do projeto | `equipe` | "Equipe do projeto" | Não se concede: é ser membro de um projeto | Entra no PME, lê os seus projetos e o elenco deles, e usa o sino. |
@@ -95,7 +95,7 @@ O servidor decide toda permissão, em três camadas.
    | Saúde da equipe | Administrador, Operacional de Línguas, Intercessor | Administrador, Operacional de Línguas | `app/services/shema/_health_audience.py:81-87` |
    | Registro de reuniões do Ritmo | Administrador, Operacional de Línguas | os mesmos | `app/services/shema/_meeting_log.py:53` |
    | Rede de intercessores | Administrador, Intercessor, Admin | Administrador, Admin (a revisão anual da rede também o Intercessor) | `app/services/shema/_directory.py:136-148` |
-   | Acesso (papéis, convites, membros, países sensíveis) | Admin | Admin | `app/api/shema/_deps.py:162` |
+   | Acesso (papéis, convites, gravação de membros, países sensíveis) | Admin (o rol de membros também é lido por quem alcança a região do projeto e pelos próprios membros) | Admin | `app/api/shema/_deps.py:162` · `app/services/shema/_scope.py:848` |
    | Pulso de Oração | Intercessor | — | `app/api/shema/prayer.py:62-65` |
 
 3. **A região.** A conta lê as regiões do seu escopo de leitura e grava nas do seu escopo de escrita. O Admin lê todas e,
@@ -109,7 +109,7 @@ coordenação e de outro a quem não é ([RN-PME-314](#rn-pme-314)).
 
 - A tela lê a sessão uma vez, na entrada: os papéis, o escopo de leitura, o escopo de escrita, o nome e o endereço do
   Formulário de Recursos ([RN-PME-005](#rn-pme-005)).
-- Cada botão pergunta a uma função de um único arquivo, `src/utils/access.ts`. Nenhuma tela decide por conta própria.
+- Quase todo botão pergunta a uma função de `src/utils/access.ts`. As exceções decidem pelo papel da sessão no próprio lugar: "Solicitar recurso" (`src/utils/requests.ts`), "Gerar Pulso de Oração" e a aba "Revisão" (`src/hooks/useReviewsPrayer.ts`).
 - Na ficha, o que cada pessoa vê e escreve sai da leitura que o servidor mandou junto com o registro
   (`src/utils/recordAccess.ts`).
 - A tela só reflete. Um botão escondido evita um clique que seria recusado; quem protege o dado é o servidor.
@@ -147,7 +147,7 @@ Como ler as tabelas:
 | Receber "Pedido para revisar" | na região | não | não | não | não | não | [RN-PME-245](#rn-pme-245) |
 | Receber a chegada de um pedido de recurso | não | não | não | sim | Gestor: sim · Mesa: não | não | [RN-PME-246](#rn-pme-246) |
 | Receber a decisão da mesa | se iniciou o pedido | se iniciou o pedido | se iniciou o pedido | se iniciou o pedido | se iniciou o pedido | se iniciou o pedido | [RN-PME-246](#rn-pme-246) |
-| Abrir a ficha pelo aviso | se alcança o projeto | se alcança o projeto | se alcança o projeto | sim | Gestor: sem link | se é membro do projeto | [RN-PME-248](#rn-pme-248) |
+| Abrir a ficha pelo aviso | se alcança o projeto | se alcança o projeto | se alcança o projeto | sim | sem link | o link aparece se é membro do projeto; o servidor recusa a ficha (403) | [RN-PME-248](#rn-pme-248) |
 | Marcar avisos como lidos | sim | sim | sim | sim | sim | sim | [RN-PME-249](#rn-pme-249) |
 | Salvar preferências de notificação | sim | sim | sim | sim | não | não | [RN-PME-254](#rn-pme-254), [RN-PME-255](#rn-pme-255) |
 
@@ -163,7 +163,7 @@ Como ler as tabelas:
 | Salvar, abrir, renomear e excluir visões; copiar o link | sim | sim | sim | sim | não | não | [RN-PME-051](#rn-pme-051), [RN-PME-064](#rn-pme-064) |
 | Ver "Time por região" | na sua região | na sua região | na sua região | todas as regiões | não | não | [RN-PME-053](#rn-pme-053) |
 | Abrir a ficha pelo cartão ou pelo medalhão | na sua região | na sua região | na sua região | todas as regiões | não | não | [RN-PME-060](#rn-pme-060), [RN-PME-062](#rn-pme-062) |
-| Ler o organograma em `/equipe` | na sua região | na sua região | na sua região | todas as regiões | não | não | [RN-PME-235](#rn-pme-235) |
+| Ler o organograma em `/equipe` | na sua região (o servidor entrega as sete) | na sua região (o servidor entrega as sete) | na sua região (o servidor entrega as sete) | todas as regiões | não | não | [RN-PME-235](#rn-pme-235) |
 | Editar os assentos de uma região | na sua região | só leitura | só leitura | só leitura | não | não | [RN-PME-236](#rn-pme-236) |
 | Ler quem trocou um assento e quando | na sua região | não | não | não | não | não | [RN-PME-238](#rn-pme-238) |
 | Ler o relatório ETEN | na sua região | na sua região | na sua região | todas as regiões | não | não | [RN-PME-220](#rn-pme-220) |
@@ -178,7 +178,7 @@ Como ler as tabelas:
 | Criar projeto ("Novo Projeto", `/ficha/novo`) | na sua região | na sua região | não | não | não | não | [RN-PME-075](#rn-pme-075), [RN-PME-081](#rn-pme-081), [RN-PME-085](#rn-pme-085) |
 | Editar a ficha ("Editar Projeto", "Salvar Projeto") | na sua região | na sua região | não (só leitura) | não (só leitura) | — | — | [RN-PME-074](#rn-pme-074), [RN-PME-084](#rn-pme-084) |
 | Editar lugar, coordenadas, marca de país sensível e nome público numa ficha salva | na sua região | não | não | não | — | — | [RN-PME-098](#rn-pme-098), [RN-PME-100](#rn-pme-100) |
-| Editar base, contatos e texto livre de um projeto sensível | na sua região | não | não | não | — | — | [RN-PME-094](#rn-pme-094) |
+| Editar base, contatos e texto livre de um projeto sensível | na sua região | não pela ficha (as "Notas sobre a saúde" mudam pela Avaliação de Saúde, que ele preenche) | não | não | — | — | [RN-PME-094](#rn-pme-094) |
 | Gravar a intervenção pastoral | na sua região | na sua região | não | não | — | — | [RN-PME-116](#rn-pme-116) |
 | Escrever o pedido de oração e o seu público | na sua região | na sua região (o texto, não em projeto sensível) | não | não | — | — | [RN-PME-117](#rn-pme-117) |
 | Registrar e mudar necessidades | na sua região | na sua região | não | não | — | — | [RN-PME-118](#rn-pme-118), [RN-PME-119](#rn-pme-119) |
@@ -213,7 +213,7 @@ Como ler as tabelas:
 
 | Ação | Administrador (da região) | Operacional de Línguas | Intercessor (papel) | Admin | Gestor · Mesa | Equipe do projeto | RN |
 |---|---|---|---|---|---|---|---|
-| Ver os cinco encontros e o bloco do Pulso Mensal | sim, nas suas regiões | sim, nas suas regiões | sim, nas suas regiões | sim, em todas | não | não | [RN-PME-166](#rn-pme-166), [RN-PME-178](#rn-pme-178), [RN-PME-179](#rn-pme-179) |
+| Ver os cinco encontros e o bloco do Pulso Mensal | sim, nas suas regiões | sim, nas suas regiões | sim, nas suas regiões | sim, em todas | não | só os cinco encontros; o bloco do Pulso Mensal não (o servidor recusa a lista) | [RN-PME-166](#rn-pme-166), [RN-PME-178](#rn-pme-178), [RN-PME-179](#rn-pme-179) |
 | Ler o registro das reuniões (estados por região) | nas suas regiões | nas suas regiões | não (aviso de quem é o registro) | não (aviso de quem é o registro) | não | não | [RN-PME-170](#rn-pme-170), [RN-PME-176](#rn-pme-176) |
 | "Registrar reunião" e "Desfazer" | na sua região | na sua região | não | não | não | não | [RN-PME-172](#rn-pme-172), [RN-PME-174](#rn-pme-174) |
 | Ver o relatório anual | sim, dos projetos que alcança | sim, dos projetos que alcança | sim, dos projetos que alcança | sim, de todos | não | não | [RN-PME-183](#rn-pme-183) |
@@ -246,9 +246,12 @@ Como ler as tabelas:
 | Ler o "Histórico" de papéis e regiões | não | não | não | sim | não | não | [RN-PME-305](#rn-pme-305) |
 | Ver a entrada "Círculo de Recursos" | não | não | não | sim | sim | não | [RN-PME-307](#rn-pme-307) |
 | Ver o painel "Pedidos de recurso" | na sua região | na sua região | na sua região | sim | não (não abre a ficha) | só se também abre a ficha | [RN-PME-308](#rn-pme-308) |
-| "Solicitar recurso" / "Continuar" | só se for membro do projeto | só se for membro | só se for membro | sim | não | sim, nos seus projetos (se abre a ficha) | [RN-PME-308](#rn-pme-308) |
+| "Solicitar recurso" / "Continuar" | só se for membro do projeto | só se for membro | só se for membro | sim | não no PME (no Formulário, pela entrada "Círculo de Recursos", abre pedido de qualquer projeto) | sim, nos seus projetos (se abre a ficha) | [RN-PME-308](#rn-pme-308) |
 | "Link de solicitação externa" | não | não | não | sim | não | não | [RN-PME-310](#rn-pme-310) |
-
+- <a id="q-pme-106"></a>**Q-PME-106** · **O filtro "País" conta os projetos sensíveis (DV-77).** (a) Hoje: o Operacional de Línguas vê, pelo filtro "País", quantos projetos sensíveis há em cada região e consegue listá-los. (b) O filtro "País" deixa de contar o projeto sensível para quem não lê a verdade. (c) Mantém, já que o projeto mostra a região e não o país.
+- <a id="q-pme-107"></a>**Q-PME-107** · **Aviso da fila de revisão de oração quando o pedido vem da Avaliação de Saúde (DV-89).** (a) Hoje: um pedido de oração de projeto sensível que entra na fila pela Avaliação de Saúde não avisa a coordenação. (b) Avisar também nesse caso.
+- <a id="q-pme-108"></a>**Q-PME-108** · **Projeto sensível sem nome público no arquivo exportado (DV-94).** (a) Hoje: o arquivo leva a chave da região (`africa`). (b) O arquivo leva "Projeto sensível — {região}", como a tela.
+- <a id="q-pme-109"></a>**Q-PME-109** · **Gestor dos Projetos e Mesa abrem pedido de recurso de qualquer projeto (DV-95).** (a) Hoje: pelo Formulário, sim, para qualquer projeto. (b) Só para os projetos de que são membros, como no PME.
 ## 3. Áreas do produto
 
 Quinze áreas, na ordem em que uma pessoa as encontra: primeiro entrar, depois a casca do app, depois cada área da
@@ -297,7 +300,7 @@ e `/reset-password`. Usa toda conta do PME. As três telas de senha e a de entra
 ### RN-PME-005 · A sessão traz papéis, regiões lidas, regiões escritas, nome e o endereço do Formulário, e é lida uma vez
 - **Gatilho:** a entrada (ou a reentrada no diálogo de sessão expirada).
 - **Condição:** sempre.
-- **Efeito:** a sessão guarda todos os papéis da conta em ordem de precedência (Administrador, Operacional de Línguas, Intercessor, Admin, Gestor dos Projetos, Mesa, Equipe do projeto), as regiões que a conta lê, as regiões onde escreve projeto, o nome e o endereço do Formulário. O nome é o do assento do organograma quando a conta tem uma só região; senão, o nome da própria conta. Toda tela decide o que mostrar a partir disso. Papel concedido ou revogado depois só vale na próxima entrada.
+- **Efeito:** a sessão guarda todos os papéis da conta em ordem de precedência (Administrador, Operacional de Línguas, Intercessor, Admin, Gestor dos Projetos, Mesa, Equipe do projeto), as regiões que a conta lê, as regiões onde escreve projeto, o nome e o endereço do Formulário. O nome é o do assento do papel principal da conta no organograma, quando a conta tem uma só região e esse assento está preenchido; senão, o nome da própria conta (ou nenhum, se a conta não tem nome). Toda tela decide o que mostrar a partir disso. Papel concedido ou revogado depois só vale na próxima entrada.
 - **Exceções:** o PME só reflete: a recusa de verdade é do servidor, em cada chamada.
 - **Origem:** `src/types/session.ts:15-27` · `src/contexts/apiSession.ts:38-49` · `app/services/shema/get_session.py:73-86,121-133` · `app/models/shema_session.py:62-90` · `app/services/shema/_scope.py:148`
 
@@ -328,16 +331,16 @@ e `/reset-password`. Usa toda conta do PME. As três telas de senha e a de entra
 <a id="rn-pme-009"></a>
 ### RN-PME-009 · Senha errada no diálogo mantém o diálogo e a sessão de antes
 - **Gatilho:** a reentrada no diálogo "Sua sessão expirou" é recusada.
-- **Condição:** qualquer recusa (senha errada, rede, conta sem papel).
+- **Condição:** a reentrada é recusada no login: senha errada, ou rede caindo antes de o servidor aceitar a senha.
 - **Efeito:** o diálogo continua aberto com a frase da recusa, a tela atrás continua montada com o mesmo papel e as mesmas regiões, e a pessoa pode tentar quantas vezes quiser. Os rascunhos não são tocados.
-- **Exceções:** nenhuma.
-- **Origem:** `src/contexts/apiSession.ts:51-53,69-77` · `src/services/api/tokens.ts:45-49` · `src/contexts/__tests__/apiSession.test.ts` · `src/stores/__tests__/sessionWipe.test.ts`
+- **Exceções:** se o login é aceito e a leitura da sessão falha depois (conta sem papel, papel ou região que o PME não conhece, rede caindo na segunda chamada), o PME desfaz o login como um "Sair": o diálogo continua aberto, mas saem do navegador o lido e o digitado (rascunhos, filtros, visões salvas), como em [RN-PME-010](#rn-pme-010).
+- **Origem:** `src/contexts/apiSession.ts:51-53,69-77` · `src/contexts/ApiAuthProvider.tsx:44-54` · `src/services/api/tokens.ts:45-49` · `src/contexts/__tests__/apiSession.test.ts` · `src/stores/__tests__/sessionWipe.test.ts`
 
 <a id="rn-pme-010"></a>
 ### RN-PME-010 · "Sair" encerra a sessão no servidor, esvazia o navegador e volta para o início
 - **Gatilho:** a pessoa clica em "Sair" no cabeçalho ou no diálogo de sessão expirada.
 - **Condição:** sempre.
-- **Efeito:** o token de renovação é revogado no servidor. Saem do navegador o que foi lido para a conta (lista de projetos, Formulários recebidos, organograma, rede de intercessores) e o que ela digitou sem enviar (rascunho da ficha, rascunho da Avaliação de Saúde, rascunho de reunião, filtros e busca, visões salvas). O endereço é trocado por `/` e aparece "Entrar no Shemá", para que a próxima conta não abra a busca da anterior.
+- **Efeito:** o token de renovação é revogado no servidor, quando ainda está no navegador ("Sair" do cabeçalho). Saem do navegador o que foi lido para a conta (lista de projetos, Formulários recebidos, organograma, rede de intercessores) e o que ela digitou sem enviar (rascunho da ficha, rascunho da Avaliação de Saúde, rascunho de reunião, filtros e busca, visões salvas). O endereço é trocado por `/` e aparece "Entrar no Shemá", para que a próxima conta não abra a busca da anterior.
 - **Exceções:** se a chamada de saída falhar, a sessão local some do mesmo jeito. As páginas anteriores do histórico da aba continuam lá; só fechar a aba apaga.
 - **Origem:** `src/contexts/ApiAuthProvider.tsx:56-59` · `src/services/api/endpoints.ts:233-244` · `src/services/api/tokens.ts:58-61` · `src/stores/sessionWipe.ts:37-57,112-129` · `src/components/layout/SessionGate.tsx:21-27` · `app/api/auth.py:101` · `src/stores/__tests__/sessionWipe.test.ts` · `src/components/layout/__tests__/sessionAddress.test.ts`
 
@@ -359,7 +362,7 @@ e `/reset-password`. Usa toda conta do PME. As três telas de senha e a de entra
 
 <a id="rn-pme-013"></a>
 ### RN-PME-013 · O que fica no navegador depois de sair não é dado de ninguém
-- **Gatilho:** qualquer fim de sessão.
+- **Gatilho:** a pessoa clica em "Sair" (no cabeçalho ou no diálogo de sessão expirada).
 - **Condição:** sempre.
 - **Efeito:** ficam o tema (claro ou escuro), a ordenação, a vista dos cartões e o idioma. O rascunho do link do líder vive na aba de quem responde e sai no envio. Toda chave que o PME grava no navegador ou sai com a sessão ou está nesta lista.
 - **Exceções:** nenhuma.
@@ -396,8 +399,8 @@ e `/reset-password`. Usa toda conta do PME. As três telas de senha e a de entra
 - **Gatilho:** falha a leitura da lista de projetos, dos Formulários recebidos, do organograma, da rede de intercessores ou do registro de reuniões.
 - **Condição:** sempre.
 - **Efeito:** um aviso com a frase da falha aparece uma vez. A tela fica no estado "não lido" (nunca "0 itens") e oferece "Tentar de novo" onde depende da lista. Duas telas que pedem a mesma leitura ao mesmo tempo fazem uma chamada só.
-- **Exceções:** se já havia uma leitura boa, ela continua na tela enquanto a nova não chega.
-- **Origem:** `src/stores/hydration.ts:24-48` · `src/services/api/announce.ts:14-17` · `src/components/common/ProjectsUnread.tsx:16-29` · `src/stores/__tests__/hydration.test.ts`
+- **Exceções:** se já havia uma leitura boa, ela continua na tela enquanto a nova não chega. O 403 do registro de reuniões e da rede de intercessores não é falha: não há aviso, e a tela diz de quem é o registro ou a rede (áreas Ritmo e Oração).
+- **Origem:** `src/stores/hydration.ts:24-48` · `src/stores/rhythmStore.ts:175-178` · `src/stores/prayerStore.ts:99-104` · `src/services/api/announce.ts:14-17` · `src/components/common/ProjectsUnread.tsx:16-29` · `src/stores/__tests__/hydration.test.ts`
 
 <a id="rn-pme-017"></a>
 ### RN-PME-017 · "Esqueci a senha" responde igual para qualquer e-mail
@@ -502,7 +505,7 @@ estão na área "Dados do cabeçalho".
 - **Gatilho:** a pessoa clica no botão da lua ("Tema escuro").
 - **Condição:** sempre.
 - **Efeito:** o PME alterna entre claro e escuro e guarda a escolha no navegador. Sem escolha guardada abre claro, mesmo com o sistema em modo escuro. A escolha guardada vale desde a primeira pintura da página (sem piscar claro).
-- **Exceções:** nenhuma na interface (o botão só oferece claro e escuro).
+- **Exceções:** o botão só oferece claro e escuro. Uma escolha "seguir o sistema" já guardada neste navegador continua seguindo o sistema.
 - **Origem:** `src/components/layout/AppHeader.tsx:113-122` · `src/contexts/ThemeContext.tsx:37-60` · `index.html:9-19` · `src/contexts/__tests__/theme.test.ts` · `src/contexts/__tests__/themeFirstPaint.test.ts`
 
 <a id="rn-pme-029"></a>
@@ -607,7 +610,7 @@ Línguas, o Intercessor (papel) e o Admin. A tela só lê: quem escreve é a fic
 <a id="rn-pme-039"></a>
 ### RN-PME-039 · A lista vem do servidor já filtrada, contada, ordenada e cortada, só nas regiões que a conta lê
 - **Gatilho:** a pessoa abre `/projetos`, muda a busca, um filtro, a ordem ou a vista.
-- **Condição:** a conta tem papel no PME (Administrador, Operacional de Línguas, Intercessor (papel) ou Admin).
+- **Condição:** a conta tem um papel do Shemá: Administrador (da região), Operacional de Línguas, Intercessor (papel) ou Admin.
 - **Efeito:** o servidor responde, numa só resposta, os cartões, as contagens de todos os filtros, quantos projetos passaram no filtro e quantos a conta alcança. Entram só projetos das regiões do escopo de leitura; o Admin lê todas. A ordem do cálculo é fixa: escopo, filtro e contagens juntos, ordenação, corte da página. A tela não recalcula nada.
 - **Exceções:** conta só com Gestor, Mesa ou Equipe do projeto recebe 403 do servidor (a tela mostra a frase de falha).
 - **Origem:** `app/api/shema/projects.py:69` · `app/services/shema/browse_projects.py:278` · `app/api/shema/_deps.py:158` · `src/services/api/projectBrowse.ts:244` · `src/components/pages/projetos/useProjectBrowse.ts:68` · `tests/test_shema/test_projects.py` · `tests/test_shema/test_facets.py:303`
@@ -624,7 +627,7 @@ Línguas, o Intercessor (papel) e o Admin. A tela só lê: quem escreve é a fic
 ### RN-PME-041 · A busca procura no nome da língua, na língua-ponte, na região e, para quem lê o lugar, no local e na base
 - **Gatilho:** a pessoa digita no campo "Língua, equipe, parceiro..." (nome para leitor de tela: "Buscar projetos").
 - **Condição:** sempre; a busca soma com os filtros e atalhos (todos têm de valer).
-- **Efeito:** o servidor compara o texto, sem acento, sem diferença de maiúscula e com os três tipos de apóstrofo igualados, com: o nome da língua como este leitor o lê, a língua-ponte e a região. Entram também o local, o segundo local e a base quando o leitor lê a verdade do projeto: todo projeto não sensível, e o projeto sensível para a coordenação e para o Intercessor (papel). O botão "Limpar busca" esvazia o campo.
+- **Efeito:** o servidor compara o texto, sem acento, sem diferença de maiúscula e com os três tipos de apóstrofo igualados, com: o nome da língua como este leitor o lê, a língua-ponte e a chave da região em inglês (por exemplo `africa`, `south-america`, `oceania`, `other`), não o nome impresso da região. Entram também o local, o segundo local e a base quando o leitor lê a verdade do projeto: todo projeto não sensível, e o projeto sensível para a coordenação e para o Intercessor (papel). O botão "Limpar busca" esvazia o campo.
 - **Exceções:** não procura parceiro, mentor, líder nem notas, embora o texto do campo diga "parceiro". Num projeto sensível lido por quem não lê a verdade, só o nome público da língua, a língua-ponte e a região entram (ver a seção de dados sensíveis).
 - **Origem:** `app/services/shema/_redaction.py:188` · `app/services/shema/_redaction.py:207` · `app/utils/shema_facets.py:263` · `app/utils/shema_facets.py:421` · `src/components/pages/projetos/Sidebar/SearchBox.tsx:21`
 
@@ -642,7 +645,7 @@ Línguas, o Intercessor (papel) e o Admin. A tela só lê: quem escreve é a fic
 - **Condição:** sempre.
 - **Efeito:** "Pedem atenção" = saúde geral "Crítica", **ou** sem notícias no nível crítico (120 dias ou mais), **ou** uma necessidade de urgência alta ainda aberta ("Aberto" ou "Em curso"). "Em oração" = alguma necessidade marcada para compartilhar em oração. "Celebrar" = status "Concluído" **ou** alguma necessidade com oração respondida. "Recentes" = o campo de última atualização do projeto tem 30 dias ou menos.
 - **Exceções:** para quem não lê saúde ([RN-PME-048](#rn-pme-048)), "Pedem atenção" não conta a saúde. "Em oração" não olha o pedido de oração da equipe, só as necessidades. O campo que "Recentes" lê não é o registro de progresso e nenhuma tela o atualiza (ver Divergências, item 13).
-- **Origem:** `app/utils/shema_facets.py:290` · `app/utils/shema_facets.py:286` · `app/utils/shema_facets.py:135` · `app/utils/shema_derivations.py:613` · `src/components/pages/projetos/Sidebar/Chips.tsx:52` · `tests/test_shema/test_facets.py:222`
+- **Origem:** `app/utils/shema_facets.py:290` · `app/utils/shema_facets.py:286` · `app/utils/shema_facets.py:135` · `app/utils/shema_derivations.py:613` · `src/components/pages/projetos/Sidebar/Chips.tsx:52` · `tests/test_shema/test_facets.py:222` (só a contagem; nenhum teste prende as quatro definições)
 
 <a id="rn-pme-044"></a>
 ### RN-PME-044 · Os atalhos se combinam, mostram contagem e ficam desabilitados com zero
@@ -650,13 +653,13 @@ Línguas, o Intercessor (papel) e o Admin. A tela só lê: quem escreve é a fic
 - **Condição:** sempre.
 - **Efeito:** atalhos ligados somam entre si e com a busca e os filtros (o projeto precisa passar em todos). Cada atalho mostra quantos projetos ele traria se fosse ligado agora, com o resto como está. Atalho com contagem 0 e desligado fica desabilitado e apagado.
 - **Exceções:** um atalho já ligado continua clicável mesmo com contagem 0, para poder ser desligado.
-- **Origem:** `src/components/pages/projetos/Sidebar/Chips.tsx:103` · `src/stores/filtersStore.ts:122` · `app/utils/shema_facets.py:540` · `src/components/pages/projetos/Sidebar/__tests__/chips.test.ts`
+- **Origem:** `src/components/pages/projetos/Sidebar/Chips.tsx:103` · `src/stores/filtersStore.ts:122` · `app/utils/shema_facets.py:540` · `src/components/pages/projetos/Sidebar/__tests__/chips.test.ts` (só a soma e a contagem, no dublê; nenhum teste prende o atalho desabilitado com 0)
 
 <a id="rn-pme-045"></a>
 ### RN-PME-045 · Os filtros: três grupos sempre à vista e doze atrás de "Mais filtros", uma opção por grupo
 - **Gatilho:** a pessoa abre um grupo sob o título "Filtros detalhados" e escolhe uma opção.
 - **Condição:** sempre.
-- **Efeito:** ficam sempre à vista "Status", "Base" e "Saúde". O botão "Mais filtros" (vira "Menos filtros") abre: "País", "Objetivo", "Tipo de Tradução", "ETEN" ("Sim"/"Não"), "País sensível" ("Sensível"/"Aberto"), "Recursos", "% Progresso" ("0–25%", "25–50%", "50–75%", "75–100%"), "Vitalidade", "Necessidades" (categorias), "Necessidades em aberto" ("Com pedido em aberto"/"Sem pedido em aberto"), "Mídia" ("Com fotos/vídeos"/"Sem mídia") e "Atualização" ("Em dia", "Sem notícias 60+ dias", "Crítico 120+ dias"). Cada grupo aceita uma opção por vez; "Todos" tira o filtro do grupo. Grupos diferentes somam. O filtro por região não é um grupo: vem de "Time por região" ([RN-PME-053](#rn-pme-053)).
+- **Efeito:** ficam à vista "Status", "Base" e "Saúde" ("Saúde" só para quem lê saúde, e "País sensível", em "Mais filtros", só para quem lê a verdade em alguma região: [RN-PME-048](#rn-pme-048)). O botão "Mais filtros" (vira "Menos filtros") abre: "País", "Objetivo", "Tipo de Tradução", "ETEN" ("Sim"/"Não"), "País sensível" ("Sensível"/"Aberto"), "Recursos", "% Progresso" ("0–25%", "25–50%", "50–75%", "75–100%"), "Vitalidade", "Necessidades" (categorias), "Necessidades em aberto" ("Com pedido em aberto"/"Sem pedido em aberto"), "Mídia" ("Com fotos/vídeos"/"Sem mídia") e "Atualização" ("Em dia", "Sem notícias 60+ dias", "Crítico 120+ dias"). Cada grupo aceita uma opção por vez; "Todos" tira o filtro do grupo. Grupos diferentes somam. O filtro por região não é um grupo: vem de "Time por região" ([RN-PME-053](#rn-pme-053)).
 - **Exceções:** "Saúde" oferece "Boa", "Atenção" e "Crítica"; não há opção para equipe ainda não avaliada. "Mídia" olha se há foto ou vídeo com conteúdo, não a autorização.
 - **Origem:** `src/components/pages/projetos/Sidebar/Filters/sections.ts:45` · `src/components/pages/projetos/Sidebar/Filters/sections.ts:51` · `src/components/pages/projetos/Sidebar/Filters/index.tsx:113` · `src/components/pages/projetos/Sidebar/Filters/FilterSection.tsx:76` · `app/utils/shema_facets.py:405` · `app/services/shema/browse_projects.py:105`
 
@@ -832,7 +835,7 @@ Línguas, o Intercessor (papel) e o Admin. A tela só lê: quem escreve é a fic
 ### RN-PME-067 · O status do projeto é o gravado, quando é um dos seis; senão, sai do progresso
 - **Gatilho:** o servidor monta um cartão.
 - **Condição:** sempre; é o status que o filtro "Status", os atalhos e a prioridade usam.
-- **Efeito:** se a ficha gravou "Em andamento", "Pausado", "Planejado", "Concluído", "Cancelado" ou "Sem informação", vale o gravado. Sem status gravado, o servidor deriva do progresso: 0% é "Não iniciado"; exatamente 100% é "Concluído"; 75% ou mais é "Fase final"; o resto é "Em andamento".
+- **Efeito:** se o registro tem gravado "Em andamento", "Pausado", "Planejado", "Concluído", "Cancelado" ou "Sem informação", vale o gravado (a ficha só escolhe os três primeiros; os outros chegam por importação). Sem status gravado, o servidor deriva do progresso: 0% é "Não iniciado"; exatamente 100% é "Concluído"; 75% ou mais é "Fase final"; o resto é "Em andamento".
 - **Exceções:** "Não iniciado" e "Fase final" nunca são gravados, só derivados. Progresso acima de 100% cai em "Fase final".
 - **Origem:** `app/utils/shema_derivations.py:472` · `app/utils/shema_derivations.py:76` · `src/constants/status.ts:12` · `src/services/api/projectBrowse.ts:174` · `tests/test_shema/test_parity.py`
 
@@ -969,7 +972,7 @@ servidor é o `shema-api` (`GET`, `POST` e `PATCH /api/shema/projects`); a tela 
 ### RN-PME-083 · Abrir uma ficha é sempre uma leitura nova do servidor
 - **Gatilho:** alguém abre uma ficha salva.
 - **Condição:** sempre.
-- **Efeito:** a ficha mostra "Abrindo a ficha…" e lê o projeto do servidor, com a versão que o próximo salvamento vai citar. Nada do registro fica guardado no navegador, só o rascunho. Projeto inexistente ou fora das regiões da conta dá a mesma resposta: "Ficha não encontrada" e "Este registro não existe mais, ou não está na sua região.". Outras falhas mostram a frase da falha e "Tentar de novo".
+- **Efeito:** a ficha mostra "Abrindo a ficha…" e lê o projeto do servidor, com a versão que o próximo salvamento vai citar. Nada do registro fica guardado no navegador, só o rascunho. Projeto inexistente ou fora das regiões da conta dá a mesma resposta: "Ficha não encontrada" e a frase do servidor, como veio ("Project not found", em inglês). A frase "Este registro não existe mais, ou não está na sua região." só aparece se o servidor não mandar frase. Outras falhas mostram a frase da falha e "Tentar de novo".
 - **Exceções:** nenhuma.
 - **Origem:** `src/stores/projectRecordStore.ts:182` · `src/components/pages/ficha/index.tsx:257` · `src/services/api/projectRecord.ts:713` · `app/api/shema/projects.py:261` · `app/api/shema/projects.py:279` · `src/stores/__tests__/recordSave.test.ts`
 
@@ -1209,7 +1212,7 @@ servidor é o `shema-api` (`GET`, `POST` e `PATCH /api/shema/projects`); a tela 
 - **Condição:** sempre.
 - **Efeito:** o servidor soma as linhas de livros e de outras unidades em "Já traduzido", "Checado na comunidade", "Aprovado pelo mentor" e no total; as tabelas vencem um total digitado. As histórias não entram na soma. Se algum total mudou, o servidor acrescenta um registro ao "Histórico de progresso", com a foto das três tabelas e o dia local de quem salvou. A leitura da aba mostra os totais que o salvamento gravaria. O histórico aparece do mais novo para o mais antigo, com a diferença de cada número.
 - **Exceções:** soma de total igual a zero não apaga o total já guardado. Salvamento que não muda nenhum total não cria registro. Projeto criado já com números ganha um registro marcado "(registro inicial)". Um dia local a mais de um dia do dia do servidor é recusado (400).
-- **Origem:** `app/services/shema/_progress.py:94` · `app/services/shema/_progress.py:120` · `app/services/shema/save_project.py:593` · `app/api/shema/projects.py:143` · `src/services/api/projectRecord.ts:760` · `src/components/pages/ficha/tabs/progresso/ProgressoView.tsx:181` · `src/components/pages/ficha/tabs/progresso/ProgressoHistory.tsx:77` · `src/components/pages/ficha/__tests__/progresso.test.ts`
+- **Origem:** `app/services/shema/_progress.py:94` · `app/services/shema/_progress.py:120` · `app/services/shema/save_project.py:593` · `app/api/shema/projects.py:143` · `src/services/api/projectRecord.ts:760` · `src/components/pages/ficha/tabs/progresso/ProgressoView.tsx:181` · `src/components/pages/ficha/tabs/progresso/ProgressoHistory.tsx:77` · `tests/test_shema/test_progress_rollup.py` · `src/components/pages/ficha/__tests__/progresso.test.ts`
 
 <a id="rn-pme-112"></a>
 ### RN-PME-112 · Uma queda nos números é anunciada antes de salvar
@@ -1277,7 +1280,7 @@ servidor é o `shema-api` (`GET`, `POST` e `PATCH /api/shema/projects`); a tela 
 - **Condição:** sempre.
 - **Efeito:** a leitura separa "Em aberto" ("Aberto" e "Em curso") de "Já encerrados" ("Atendido" e "Não é mais necessário"), com a contagem de cada grupo. O botão de remover só existe na linha ainda não salva. Para tirar da lista aberta uma necessidade salva, muda-se a situação para "Não é mais necessário": "Sai da lista aberta e continua no registro, com a data em que deixou de ser necessário.". No servidor, uma necessidade que não vem no envio fica como estava; nenhuma é apagada.
 - **Exceções:** nenhuma.
-- **Origem:** `src/utils/needs.ts:14` · `src/constants/project.ts:116` · `src/components/pages/ficha/tabs/necessidades/NecessidadesView.tsx:116` · `src/components/pages/ficha/tabs/necessidades/NeedRow.tsx:151` · `app/services/shema/_needs.py:222` · `src/components/pages/ficha/__tests__/necessidades.test.ts`
+- **Origem:** `src/utils/needs.ts:14` · `src/constants/project.ts:116` · `src/components/pages/ficha/tabs/necessidades/NecessidadesView.tsx:116` · `src/components/pages/ficha/tabs/necessidades/NeedRow.tsx:151` · `app/services/shema/_needs.py:222` · `tests/test_shema/test_needs.py` · `src/components/pages/ficha/__tests__/necessidades.test.ts`
 
 <a id="rn-pme-120"></a>
 ### RN-PME-120 · Reconhecer uma necessidade é um gesto de quem edita a ficha, e não volta atrás
@@ -1309,7 +1312,7 @@ servidor é o `shema-api` (`GET`, `POST` e `PATCH /api/shema/projects`); a tela 
 - **Condição:** sempre.
 - **Efeito:** a dica do campo diz "Urgência é sobre o pedido, não sobre a saúde da equipe."; a urgência não muda a saúde do projeto. Com "Urgente" e "Aberto", a linha avisa "Necessidade urgente e aberta notifica quem coordena e o Operacional de Línguas desta região."; em projeto sensível, acrescenta que o aviso mostra a região e o valor, nunca a localização exata. No salvamento, o servidor manda uma notificação por salvamento a quem tem esses dois papéis e alcança a região, menos a quem salvou, quando a necessidade passa a ser urgente e em aberto.
 - **Exceções:** reenviar uma necessidade que já era urgente e aberta não gera novo aviso.
-- **Origem:** `src/components/pages/ficha/tabs/necessidades/NeedRow.tsx:67` · `src/components/pages/ficha/tabs/necessidades/NeedRow.tsx:163` · `app/services/shema/_needs.py:94` · `app/services/shema/_needs.py:349` · `app/services/shema/_needs.py:515` · `src/components/pages/ficha/__tests__/necessidades.test.ts`
+- **Origem:** `src/components/pages/ficha/tabs/necessidades/NeedRow.tsx:67` · `src/components/pages/ficha/tabs/necessidades/NeedRow.tsx:163` · `app/services/shema/_needs.py:94` · `app/services/shema/_needs.py:349` · `app/services/shema/_needs.py:515` · `tests/test_shema/test_needs.py` · `src/components/pages/ficha/__tests__/necessidades.test.ts`
 
 **Aba 8 · Fotos / Vídeos**
 
@@ -1377,7 +1380,7 @@ Pulso Mensal aberto pelo link do líder). Usam a área o Administrador (da regi�
 ### RN-PME-130 · O que conta como "reportou", para cada instrumento
 - **Gatilho:** a tela calcula a situação do projeto escolhido e a lista de quem falta.
 - **Condição:** sempre.
-- **Efeito:** o **Pulso Mensal** conta como reportado quando um Pulso Mensal do projeto **chegou** dentro do mês civil corrente (vale o dia da chegada, não o mês que o líder declarou); editar a ficha não conta. A **Avaliação de Saúde** conta quando ao menos uma dimensão está avaliada e a data da avaliação cai no trimestre civil corrente. O cartão mostra "Reportou neste período", "Ainda não reportou" ou "Nunca reportou", com "Último em {{date}}" ou "Sem registro" e "O período fecha em {{date}}.".
+- **Efeito:** o **Pulso Mensal** conta como reportado quando um Pulso Mensal do projeto **chegou** dentro do mês civil corrente (vale o dia da chegada, contado em UTC, não o mês que o líder declarou); editar a ficha não conta. A **Avaliação de Saúde** conta quando ao menos uma dimensão está avaliada e a data da avaliação cai no trimestre civil corrente. O cartão mostra "Reportou neste período", "Ainda não reportou" ou "Nunca reportou", com "Último em {{date}}" ou "Sem registro" e "O período fecha em {{date}}.".
 - **Exceções:** uma data de avaliação sem nenhuma dimensão avaliada não conta como avaliação.
 - **Origem:** `src/utils/rhythm.ts:99-129` · `src/utils/cadence.ts:143-151` · `src/utils/forms.ts:28-41,59-85` · `src/utils/health.ts:34-38` · `src/components/pages/formularios/FormCard.tsx:76-96` · `src/utils/__tests__/forms.test.ts`
 
@@ -1401,7 +1404,7 @@ Pulso Mensal aberto pelo link do líder). Usam a área o Administrador (da regi�
 ### RN-PME-133 · "Como o pulso volta": o passo a passo do Pulso Mensal
 - **Gatilho:** alguém abre "Formulários" com os recebidos lidos.
 - **Condição:** sempre.
-- **Efeito:** a tela mostra cinco passos fixos, cada um com quem age: "Você gera", "Você envia", "O líder responde", "Você importa" ("Coordenação" ou "Líder de campo") e "Fica arquivado" ("Automático"), e "As cinco perguntas". Se o projeto ainda não reportou no período, a frase é "Para {{project}}, o ciclo deste período ainda começa em “Você gera”." e o passo 1 fica destacado; se reportou, "O que este período pedia já chegou de {{project}}.".
+- **Efeito:** a tela mostra cinco passos fixos, cada um com quem age: "Você gera", "Você envia" e "Você importa" ("Coordenação"), "O líder responde" ("Líder de campo") e "Fica arquivado" ("Automático"), e "As cinco perguntas". Se o projeto ainda não reportou no período, a frase é "Para {{project}}, o ciclo deste período ainda começa em “Você gera”." e o passo 1 fica destacado; se reportou, "O que este período pedia já chegou de {{project}}.".
 - **Exceções:** o passo "Você gera" descreve algo que a tela não faz; o rodapé diz "Esta tela ainda não gera o arquivo do Pulso Mensal." (ver "Fora de escopo").
 - **Origem:** `src/components/pages/formularios/StepByStep.tsx:18-29,31-83` · `src/constants/forms.ts:34-73` · `src/components/pages/formularios/index.tsx:213-216,233-237`
 
@@ -1415,11 +1418,11 @@ Pulso Mensal aberto pelo link do líder). Usam a área o Administrador (da regi�
 
 <a id="rn-pme-135"></a>
 ### RN-PME-135 · Enquanto os recebidos não foram lidos, nada é contado
-- **Gatilho:** a leitura de Formulários recebidos ainda não chegou ou falhou.
+- **Gatilho:** a leitura de Formulários recebidos falhou.
 - **Condição:** a lista de projetos foi lida.
 - **Efeito:** somem o cartão do Pulso Mensal, o passo a passo, "Quem ainda não reportou" e a caixa. No lugar aparece "Os Pulsos recebidos ainda não puderam ser lidos. Quem devolveu e quem falta aparecem quando a leitura chegar — até lá, nada aqui diz que alguém não reportou.". O cartão da Avaliação de Saúde continua.
-- **Exceções:** nenhuma.
-- **Origem:** `src/components/pages/formularios/index.tsx:113,187-188,211-231,269` · `src/components/pages/formularios/__tests__/formsRender.test.ts`
+- **Exceções:** enquanto a leitura está a caminho, a área inteira mostra só "Carregando...", sem os cartões. Não há botão para ler de novo; a próxima carga da página tenta outra vez.
+- **Origem:** `src/components/pages/formularios/index.tsx:113,178-181,187-188,211-231,268-269` · `src/components/pages/formularios/__tests__/formsRender.test.ts`
 
 <a id="rn-pme-136"></a>
 ### RN-PME-136 · Formulários recebidos são lidos do servidor e nada fica no navegador
@@ -1459,7 +1462,7 @@ Pulso Mensal aberto pelo link do líder). Usam a área o Administrador (da regi�
 - **Condição:** a conta é Administrador (da região), ou admin da instalação, e grava na região do projeto.
 - **Efeito:** abaixo das respostas aparece o botão "Aplicar na ficha". O servidor exige o mesmo papel e o escopo de escrita; fora do escopo responde 404.
 - **Exceções:** o Operacional de Línguas, o Intercessor (papel) e o Admin leem a caixa e não veem o botão. Região desconhecida: sem botão.
-- **Origem:** `src/utils/access.ts:125-132` · `src/components/pages/formularios/index.tsx:141-151` · `src/components/pages/formularios/ReceivedArchive.tsx:171-183` · `app/api/shema/forms.py:312-348` · `app/services/shema/import_submission.py:293-338` · `src/utils/__tests__/access.test.ts`
+- **Origem:** `src/utils/access.ts:125-132` · `src/components/pages/formularios/index.tsx:141-151` · `src/components/pages/formularios/ReceivedArchive.tsx:171-183` · `app/api/shema/forms.py:312-348` · `app/services/shema/import_submission.py:293-338` · `src/utils/__tests__/coordinatorRoutes.test.ts`
 
 <a id="rn-pme-141"></a>
 ### RN-PME-141 · Aplicar cita a versão da ficha lida quando o Pulso Mensal foi aberto
@@ -1489,9 +1492,9 @@ Pulso Mensal aberto pelo link do líder). Usam a área o Administrador (da regi�
 ### RN-PME-144 · O que o Pulso Mensal escreve na ficha, e o que não escreve
 - **Gatilho:** um Pulso Mensal é aplicado (pela caixa ou por "Receber Atualização").
 - **Condição:** só as respostas preenchidas contam; resposta vazia não escreve nem apaga nada.
-- **Efeito:** entram na ficha: (1) o **progresso por livro**, que substitui a tabela de livros da ficha pelas linhas que o líder enviou, recalcula os totais e cria uma entrada no histórico com o nome de quem respondeu e a origem "pulso"; (2) o **pedido de oração**, com o público que o líder escolheu; (3) a **foto**, que vira um item da aba Mídia com a descrição como legenda e, se o líder marcou a caixa, autorizada em nome dele no dia da chegada. Não entram na ficha: "Como foi este mês?", "Atrapalha algo?", o mês e quem respondeu (ficam só no Pulso Mensal guardado); necessidades, saúde, status e notas não são tocados.
+- **Efeito:** entram na ficha: (1) o **progresso por livro**, que substitui a tabela de livros da ficha pelas linhas que o líder enviou, recalcula os totais e, se algum dos quatro totais mudou, cria uma entrada no histórico com o nome de quem respondeu e a origem "pulso"; (2) o **pedido de oração**, com o público que o líder escolheu; (3) a **foto**, que vira um item da aba Mídia com a descrição como legenda e, se o líder marcou a caixa, autorizada em nome dele no dia da chegada. Não entram na ficha: "Como foi este mês?", "Atrapalha algo?", o mês e quem respondeu (ficam só no Pulso Mensal guardado); necessidades, saúde, status e notas não são tocados.
 - **Exceções:** um pedido de oração novo sem escolha de público chega como "Só a coordenação"; uma foto sem a caixa marcada fica sem decisão de autorização (ver a seção de consentimento). A gravação obedece às regras de quem aplica (escopo, campos de projeto sensível).
-- **Origem:** `app/utils/shema_forms.py:198-279` · `app/services/shema/_form_validation.py:103-111,147-191` · `app/services/shema/import_submission.py:105-171,174-211` · `app/services/shema/save_project.py:268-275` · `app/services/shema/_media_sharing.py:174-196` · `tests/test_shema/test_forms.py` · `tests/test_shema/test_pulse_image.py`
+- **Origem:** `app/utils/shema_forms.py:198-279` · `app/services/shema/_form_validation.py:103-111,147-191` · `app/services/shema/import_submission.py:105-171,174-211` · `app/services/shema/save_project.py:268-275` · `app/services/shema/_media_sharing.py:174-196` · `tests/test_shema/test_forms.py` · `tests/test_shema/test_pulse_image.py` (nenhum teste prende que os livros já gravados saem da tabela; os testes de aplicação partem de uma ficha sem livros)
 
 <a id="rn-pme-145"></a>
 ### RN-PME-145 · O link do líder abre o Pulso Mensal sem conta e sem dados do projeto
@@ -1723,7 +1726,7 @@ O Ritmo mostra os cinco encontros do ano e guarda o registro das três reuniões
 ### RN-PME-171 · A próxima ocorrência é o fim do período
 - **Gatilho:** a tela desenha uma linha que não está "Em dia".
 - **Condição:** o registro foi lido.
-- **Efeito:** a linha mostra "Próxima:" com o último dia do período corrente. Numa linha "Em dia", o prazo seguinte passa a ser o último dia do período seguinte, e a linha mostra "Realizada em" com o nome do período.
+- **Efeito:** a linha mostra "Próxima:" com o último dia do período corrente. Numa linha "Em dia", a linha não mostra "Próxima:" nem "Registrar reunião": mostra "Realizada em" com o nome do período e o botão "Desfazer".
 - **Exceções:** nenhuma.
 - **Origem:** `src/utils/rhythm.ts:75` · `src/utils/cadence.ts:109` · `src/utils/cadence.ts:136` · `src/components/pages/ritmo/MeetingRow.tsx:106`
 
@@ -1854,7 +1857,7 @@ A área Oração reúne o que as equipes autorizaram levar à rede de intercesso
 <a id="rn-pme-187"></a>
 ### RN-PME-187 · O mural de oração mostra só pedidos de oração autorizados para a rede, dentro das regiões da conta
 - **Gatilho:** a pessoa abre `/oracao`.
-- **Condição:** a conta tem papel no PME.
+- **Condição:** a conta tem um papel do Shemá: Administrador (da região), Operacional de Línguas, Intercessor (papel) ou Admin.
 - **Efeito:** o servidor devolve só os pedidos de oração com público "Rede de oração" e as necessidades marcadas "Compartilhado em rede de oração", dos projetos das regiões da conta (o Admin lê todas). Um pedido com público "Só a coordenação" nunca chega à tela. A página diz: "Só aparecem aqui os pedidos que as equipes autorizaram para a rede de intercessores."
 - **Exceções:** o pedido de oração de um projeto sensível só entra depois de liberado ([RN-PME-198](#rn-pme-198)).
 - **Origem:** `src/components/pages/oracao/index.tsx:92` · `app/api/shema/prayer.py:52` · `app/services/shema/list_prayer_requests.py:33` · `app/services/shema/_consent.py:105` · `app/services/shema/_consent.py:217` · `tests/test_shema/test_prayer.py`
@@ -1911,7 +1914,7 @@ A área Oração reúne o que as equipes autorizaram levar à rede de intercesso
 ### RN-PME-194 · O mural não escreve, não compartilha, não exporta e não toca áudio
 - **Gatilho:** a pessoa usa o mural.
 - **Condição:** sempre.
-- **Efeito:** o mural só lê. Não há botão para marcar respondido, compartilhar ou baixar; o público do pedido muda na ficha, na Avaliação de Saúde ou no Pulso Mensal. O servidor não entrega a gravação de um pedido de oração: só o texto chega ao mural. A única saída é o Pulso de Oração ([RN-PME-195](#rn-pme-195)).
+- **Efeito:** o mural só lê. Não há botão para marcar respondido, compartilhar ou baixar; o público do pedido muda na ficha, na Avaliação de Saúde ou no Pulso Mensal; um pedido de oração com texto novo trazido por "Importar" volta a "Só a coordenação". O servidor não entrega a gravação de um pedido de oração: só o texto chega ao mural. A única saída é o Pulso de Oração ([RN-PME-195](#rn-pme-195)).
 - **Exceções:** nenhuma.
 - **Origem:** `src/components/pages/oracao/index.tsx:85` · `app/models/shema_prayer.py:85` · `app/services/shema/_consent.py:230`
 
@@ -1935,7 +1938,7 @@ A área Oração reúne o que as equipes autorizaram levar à rede de intercesso
 ### RN-PME-197 · O arquivo do Pulso de Oração é um HTML só, com os pedidos do mural e dois avisos
 - **Gatilho:** o servidor gera o Pulso de Oração.
 - **Condição:** sempre.
-- **Efeito:** o arquivo é um documento HTML sem script, imagem nem endereço externo, com o nome `pulso-de-oracao-AAAA-MM-DD.html`. Abre com "Só para a rede de intercessores. Ao receber este arquivo, você se compromete a não repassá-lo." e "Depois de enviado, o que está aqui não pode ser recolhido."; depois a contagem e, para cada pedido do mural, o nome da língua, o país (ou a região, num projeto sensível), "(respondido)" quando for o caso e o texto. Não leva base, data, gravação, identificador do projeto nem link de saída da rede. Sai no idioma da tela (português ou inglês).
+- **Efeito:** o arquivo é um documento HTML sem script, imagem nem endereço externo, com o nome `pulso-de-oracao-AAAA-MM-DD.html`. Abre com "Só para a rede de intercessores. Ao receber este arquivo, você se compromete a não repassá-lo." e "Depois de enviado, o que está aqui não pode ser recolhido."; depois a contagem e, para cada pedido do mural, o nome da língua, o país (ou a região, num projeto sensível), "(respondido)" quando for o caso e o texto. Não leva base, data de cada pedido, gravação, identificador do projeto nem link de saída da rede; a única data é a do dia em que foi gerado, no título e no nome do arquivo. Sai no idioma da tela (português ou inglês).
 - **Exceções:** um projeto na região "América Central" (que também recebe os projetos sem lugar reconhecido) sai sem lugar quando não há país a imprimir. Um projeto sensível sem nome público sai como "Projeto sensível".
 - **Origem:** `app/models/shema_prayer.py:290` · `app/models/shema_prayer.py:254` · `app/models/shema_prayer.py:156` · `app/models/shema_prayer.py:333` · `app/models/shema_prayer.py:127` · `src/components/pages/oracao/PulseButton.tsx:77` · `tests/test_shema/test_prayer.py`
 
@@ -1959,7 +1962,7 @@ A área Oração reúne o que as equipes autorizaram levar à rede de intercesso
 ### RN-PME-200 · A coordenação pode ajustar o texto, e a liberação vale para o texto que ela leu
 - **Gatilho:** a coordenação edita (ou não) o campo "Texto que vai ao mural" e clica em "Liberar para o mural".
 - **Condição:** o campo não está vazio.
-- **Efeito:** o pedido vai ao mural e aos próximos Pulsos de Oração com o texto do campo; o texto da equipe na ficha não muda. O cartão sai da fila e a tela diz "Pedido liberado para o mural e o Pulso." O servidor guarda quem liberou e quando, nunca as palavras. Se a equipe trocou o texto depois de a fila ser lida, a liberação é recusada: a tela mostra o motivo e lê a fila de novo, e o cartão volta com o texto novo.
+- **Efeito:** o pedido vai ao mural e aos próximos Pulsos de Oração com o texto do campo; o texto da equipe na ficha não muda. O cartão sai da fila e a tela diz "Pedido liberado para o mural e o Pulso." O histórico guarda quem liberou e quando, sem as palavras; o texto liberado fica guardado no projeto. Se a equipe trocou o texto depois de a fila ser lida, a liberação é recusada: a tela mostra o motivo e lê a fila de novo, e o cartão volta com o texto novo.
 - **Exceções:** com o campo vazio, o botão fica desativado. A tela não oferece editar nem recolher um pedido já liberado.
 - **Origem:** `src/components/pages/oracao/RevisaoPage.tsx:82` · `src/components/pages/oracao/RevisaoPage.tsx:171` · `src/components/pages/oracao/RevisaoPage.tsx:179` · `src/utils/prayer.ts:134` · `app/services/shema/_consent.py:375` · `app/services/shema/release_prayer_request.py:39` · `tests/test_shema/test_prayer_review.py` (`test_a_release_of_a_text_the_team_has_since_changed_is_a_conflict`, `test_a_release_is_in_the_trail_with_its_author_and_never_its_words`)
 
@@ -1973,10 +1976,10 @@ A área Oração reúne o que as equipes autorizaram levar à rede de intercesso
 
 <a id="rn-pme-202"></a>
 ### RN-PME-202 · A fila de revisão de oração e a chegada ao mural avisam no sino
-- **Gatilho:** uma gravação deixa um pedido de oração esperando revisão; ou a coordenação libera o pedido de oração de um projeto.
+- **Gatilho:** uma gravação da ficha (salvar ou criar, inclusive o Pulso Mensal aplicado) deixa um pedido de oração esperando revisão; ou a coordenação libera o pedido de oração de um projeto.
 - **Condição:** só com servidor.
 - **Efeito:** quando um pedido começa a esperar, cada Administrador da região do projeto recebe no sino "Pedido para revisar" ("Um pedido de oração que a equipe de {nome} compartilhou aguarda a revisão da coordenação antes de ir ao mural e ao Pulso."); o clique abre a aba "Revisão". Quando a liberação põe no mural o pedido de oração do projeto, o Intercessor (papel) da região recebe "Pedido de oração".
-- **Exceções:** quem fez a gravação não é avisado. O Admin sem o papel de Administrador não recebe o aviso de revisão, embora possa liberar. A liberação de uma necessidade e a reedição de um pedido já liberado não avisam o Intercessor (papel).
+- **Exceções:** quem fez a gravação não é avisado. Um pedido de oração que entra na fila pela Avaliação de Saúde não avisa a coordenação. O Admin sem o papel de Administrador não recebe o aviso de revisão, embora possa liberar. A liberação de uma necessidade e a reedição de um pedido já liberado não avisam o Intercessor (papel).
 - **Origem:** `app/services/shema/_prayer_review.py:48` · `app/services/shema/_prayer_review.py:53` · `app/services/shema/release_prayer_request.py:68` · `src/components/pages/notificacoes/NotificationLog.tsx:97` · `tests/test_shema/test_prayer_review.py` (`test_the_coordination_is_told_when_a_request_starts_waiting`)
 
 ## 3.9 Rede de intercessores
@@ -1995,7 +1998,7 @@ A rede de intercessores é o cadastro das pessoas de fora que recebem os pedidos
 ### RN-PME-204 · Três conjuntos de papéis: quem lê, quem escreve e quem mantém a rede
 - **Gatilho:** a pessoa abre a área Oração ou tenta uma ação na rede.
 - **Condição:** sempre.
-- **Efeito:** leem a rede e revelam um contato: Administrador (da região), Admin e Intercessor (papel). Cadastram, editam, removem e listam alguém pelo contato: Administrador (da região) e Admin. Marcam a revisão anual da rede: os três. Para o Intercessor (papel), a tela não mostra o formulário, o lápis, o "×" nem o botão "Remover". O Operacional de Línguas não vê a aba; pelo endereço, o servidor recusa e a página diz "A rede de intercessores guarda nomes e contatos de pessoas, e é lida por Administrador, Admin da plataforma e Intercessor — por isso ela não aparece para o seu papel."
+- **Efeito:** leem a rede e revelam um contato: Administrador (da região), Admin e Intercessor (papel). Cadastram, editam, removem e listam alguém pelo contato: Administrador (da região) e Admin. Marcam a revisão anual da rede e, pelo servidor, registram ou retiram os consentimentos `directory` e `partner-export` de uma pessoa pelo id: os três. Registrar ou retirar `network` é só do Administrador (da região) e do Admin. Nenhuma tela oferece ao Intercessor (papel) os consentimentos. Para o Intercessor (papel), a tela não mostra o formulário, o lápis, o "×" nem o botão "Remover". O Operacional de Línguas não vê a aba; pelo endereço, o servidor recusa e a página diz "A rede de intercessores guarda nomes e contatos de pessoas, e é lida por Administrador, Admin da plataforma e Intercessor — por isso ela não aparece para o seu papel."
 - **Exceções:** o admin da instalação passa por todas as guardas do servidor.
 - **Origem:** `src/utils/access.ts:158` · `src/utils/access.ts:169` · `src/utils/access.ts:178` · `src/components/pages/intercessores/IntercessoresPage.tsx:209` · `src/components/pages/intercessores/CountryGroup.tsx:112` · `app/services/shema/_directory.py:136` · `app/api/shema/_deps.py:236` · `src/stores/__tests__/prayerForbidden.test.ts` · `tests/test_shema/test_intercessors.py`
 
@@ -2029,7 +2032,7 @@ A rede de intercessores é o cadastro das pessoas de fora que recebem os pedidos
 - **Condição:** a conta lê a rede; a pessoa tem os consentimentos `network` e `directory`.
 - **Efeito:** a lista traz só o canal ("WhatsApp" ou "E-mail") e uma pista mascarada: a primeira letra do e-mail, ou os dois últimos dígitos do telefone. O contato inteiro é pedido ao servidor para uma pessoa de cada vez, e o servidor registra quem revelou o contato de qual cadastro. "Ligar" abre a ligação do aparelho e "Mensagem" abre o e-mail do aparelho com o contato revelado.
 - **Exceções:** cadastro sem canal reconhecível mostra "Sem canal de contato registrado" e não tem botão.
-- **Origem:** `src/components/pages/intercessores/IntercessoresPage.tsx:152` · `src/components/pages/intercessores/CountryGroup.tsx:82` · `src/services/api/endpoints.ts:406` · `app/utils/shema_contacts.py:57` · `app/services/shema/_directory.py:546` · `app/services/shema/reveal_intercessor_contact.py:47` · `src/components/pages/intercessores/__tests__/networkAsksServer.test.ts`
+- **Origem:** `src/components/pages/intercessores/IntercessoresPage.tsx:152` · `src/components/pages/intercessores/CountryGroup.tsx:82` · `src/services/api/endpoints.ts:406` · `app/utils/shema_contacts.py:57` · `app/services/shema/_directory.py:546` · `app/services/shema/reveal_intercessor_contact.py:47` · `tests/test_shema/test_intercessors.py` (`test_a_phone_hint_keeps_two_digits_and_the_domain_of_an_email_never_survives`, `test_the_real_contact_is_read_one_person_at_a_time`, `test_a_contact_without_directory_consent_is_revealed_to_nobody`) · `src/components/pages/intercessores/__tests__/intercessoresRender.test.ts`
 
 <a id="rn-pme-209"></a>
 ### RN-PME-209 · Editar muda nome, país, contato e a marca de país sensível; a data de entrada não muda
@@ -2127,7 +2130,7 @@ a procedência de cada número. Os quatro papéis do PME leem. A tela não calcu
 <a id="rn-pme-220"></a>
 ### RN-PME-220 · Só entram os projetos marcados na lista do ETEN, dentro do escopo de leitura
 - **Gatilho:** a pessoa abre `/eten` ou troca o ano.
-- **Condição:** a conta tem papel no PME.
+- **Condição:** a conta tem um papel do Shemá: Administrador (da região), Operacional de Línguas, Intercessor (papel) ou Admin.
 - **Efeito:** o relatório traz todo projeto com "Língua na lista do ETEN" marcado na ficha, nas regiões que a conta lê (todas, para o Admin). Um projeto listado aparece mesmo com zero crédito. Três indicadores: "Créditos no ano", "Projetos no ETEN" e "Com avanço" (projetos cujos capítulos aprovados subiram no ano). Sem nenhum listado: "Nenhum projeto marcado na lista do ETEN. Marque "Língua na lista do ETEN" no formulário de cada projeto.".
 - **Exceções:** dois leitores de regiões diferentes veem totais diferentes; o total é do escopo de quem lê, não do ecossistema.
 - **Origem:** `app/services/shema/eten_report.py:277` · `app/api/shema/eten.py:48` · `src/components/pages/eten/index.tsx:95` · `src/components/pages/eten/Indicators.tsx:42` · `src/components/pages/eten/__tests__/etenRender.test.ts` · `tests/test_shema/test_eten.py`
@@ -2144,7 +2147,7 @@ a procedência de cada número. Os quatro papéis do PME leem. A tela não calcu
 ### RN-PME-222 · O ano é o fiscal do ETEN, de 1º de agosto a 31 de julho, e duas fontes dizem em que ano o escopo fechou
 - **Gatilho:** o servidor decide a que ano pertence um crédito.
 - **Condição:** sempre.
-- **Efeito:** o ano fiscal N vai de 01/08/N−1 a 31/07/N: o que fecha em 31/07 conta no ano que termina ali; em 01/08, no seguinte. O ano do crédito vem de: (1) a data de conclusão, que o servidor carimba quando a ficha passa para o status "Concluído"; ou, sem ela, (2) as leituras de progresso: o crédito cai no ano em que os aprovados estavam abaixo do escopo no corte anterior e no escopo, ou acima, no corte do ano. A leitura de um corte é o registro de progresso mais novo até 31/07; para o ano ainda aberto, sem registro, vale a ficha como está.
+- **Efeito:** o ano fiscal N vai de 01/08/N−1 a 31/07/N: o que fecha em 31/07 conta no ano que termina ali; em 01/08, no seguinte. O ano do crédito vem de: (1) a data de conclusão, que o servidor carimba quando um salvamento leva o status para "Concluído" (no PME, só a importação de um arquivo faz isso: a ficha não oferece "Concluído" como escolha nova, ver [RN-PME-109](#rn-pme-109)); criar um projeto já concluído não carimba data; ou, sem ela, (2) as leituras de progresso: o crédito cai no ano em que os aprovados estavam abaixo do escopo no corte anterior e no escopo, ou acima, no corte do ano. A leitura de um corte é o registro de progresso mais novo até 31/07; para o ano ainda aberto, sem registro, vale a ficha como está.
 - **Exceções:** se as leituras mostram o escopo já fechado antes do ano da data de conclusão, a data é ignorada e as leituras decidem (o crédito não é contado duas vezes). Pela fonte (2) o crédito é dado mesmo que o status não seja "Concluído". Sair de "Concluído" apaga a data.
 - **Origem:** `app/utils/shema_derivations.py:823` · `app/utils/shema_derivations.py:826` · `app/utils/shema_derivations.py:841` · `app/utils/shema_derivations.py:965` · `app/utils/shema_derivations.py:1055` · `app/services/shema/save_project.py:557` · `tests/test_shema/test_eten_rule.py:76` · `tests/test_shema/test_eten_rule.py:167` · `tests/test_shema/test_eten_rule.py:201`
 
@@ -2158,8 +2161,8 @@ a procedência de cada número. Os quatro papéis do PME leem. A tela não calcu
 
 <a id="rn-pme-224"></a>
 ### RN-PME-224 · Conclusão que não dá para datar não recebe crédito em ano nenhum
-- **Gatilho:** o servidor calcula uma linha de projeto com status "Concluído" sem como dizer o ano.
-- **Condição:** não há data de conclusão válida e as leituras ficam abaixo do escopo; ou o primeiro registro confiável do projeto já chegou com o escopo fechado.
+- **Gatilho:** o servidor calcula uma linha de projeto sem como dizer o ano em que o escopo fechou.
+- **Condição:** o status é "Concluído", não há data de conclusão válida e as leituras ficam abaixo do escopo (inclusive sem nenhuma leitura, ou sem escopo definido); ou, em qualquer status, o primeiro registro confiável do projeto já chegou com o escopo fechado. Neste último caso a linha diz "Concluído, sem ano registrado" mesmo que o projeto não esteja concluído.
 - **Efeito:** a linha mostra "Concluído, sem ano registrado" no lugar do crédito, com a explicação ao passar o mouse, e não soma no total.
 - **Exceções:** um crédito manual para o ano certo resolve a linha ([RN-PME-226](#rn-pme-226)).
 - **Origem:** `app/utils/shema_derivations.py:1069` · `app/utils/shema_derivations.py:995` · `app/utils/shema_derivations.py:1078` · `src/components/pages/eten/CreditTable.tsx:26` · `tests/test_shema/test_eten_rule.py:214` · `tests/test_shema/test_eten_rule.py:271`
@@ -2168,7 +2171,7 @@ a procedência de cada número. Os quatro papéis do PME leem. A tela não calcu
 ### RN-PME-225 · Ano sem dado não é ano com zero
 - **Gatilho:** um projeto, ou o relatório inteiro, não tem leitura até o corte do ano.
 - **Condição:** ano já encerrado sem registro de progresso até 31/07; ou projeto cujo aprovado veio da importação e nunca foi alterado ([RN-PME-227](#rn-pme-227)).
-- **Efeito:** a linha mostra "sem dado" no crédito e "—" em início, fim e avanço. Se nenhuma linha tem dado, os indicadores de crédito e avanço e o total mostram "—" e a tela diz "Nenhum projeto listado tem progresso registrado até o fim do ano fiscal {ano}. Ano sem dado não é ano de zero crédito — os dois significam coisas diferentes para o financiador.". Com dado, zero aparece como "0".
+- **Efeito:** a linha mostra "sem dado" no crédito e "—" em início, fim e avanço; se o projeto está "Concluído" sem data de conclusão, a célula do crédito diz "Concluído, sem ano registrado" ([RN-PME-224](#rn-pme-224)). Se nenhuma linha tem dado, os indicadores de crédito e avanço e o total mostram "—" e a tela diz "Nenhum projeto listado tem progresso registrado até o fim do ano fiscal {ano}. Ano sem dado não é ano de zero crédito — os dois significam coisas diferentes para o financiador.". Com dado, zero aparece como "0".
 - **Exceções:** enquanto o relatório carrega aparece "Carregando...", nunca um zero.
 - **Origem:** `app/utils/shema_derivations.py:1078` · `app/services/shema/eten_report.py:292` · `src/components/pages/eten/CreditTable.tsx:31` · `src/components/pages/eten/index.tsx:98` · `src/components/pages/eten/Indicators.tsx:27` · `tests/test_shema/test_eten_rule.py:282`
 
@@ -2229,7 +2232,7 @@ por região", o Ritmo e o nome da sessão leem daqui. Leem a tela os quatro pap�
 ### RN-PME-232 · Cada região tem três assentos, sempre os mesmos
 - **Gatilho:** a pessoa abre `/equipe`.
 - **Condição:** sempre.
-- **Efeito:** cada uma das sete regiões mostra três assentos, cada um com rótulo, descrição e a mesa parceira ("Parceria com …"): "Administrador" — "Finanças e comunicação com as equipes de campo" — a própria região; "Operacional de Línguas" — "Acompanha o progresso da tradução e demandas de treinamentos e workshops" — "Time de Projetos Internacionais"; "Intercessor" — "Recebe pedidos de oração, ora e compartilha com a rede de intercessores" — "Círculo de Recursos". São 21 assentos, preenchidos ou não; a região sem ninguém aparece vazia, não some.
+- **Efeito:** cada região visível para a conta ([RN-PME-235](#rn-pme-235)) mostra três assentos, cada um com rótulo, descrição e a mesa parceira ("Parceria com …"): "Administrador" — "Finanças e comunicação com as equipes de campo" — a própria região; "Operacional de Línguas" — "Acompanha o progresso da tradução e demandas de treinamentos e workshops" — "Time de Projetos Internacionais"; "Intercessor" — "Recebe pedidos de oração, ora e compartilha com a rede de intercessores" — "Círculo de Recursos". São 21 assentos, preenchidos ou não; a região sem ninguém aparece vazia, não some.
 - **Exceções:** nenhuma.
 - **Origem:** `src/constants/roles.ts:4` · `src/constants/team.ts:25` · `src/components/pages/equipe/RegionRoles.tsx:65` · `app/services/shema/list_regions.py:82` · `app/services/shema/list_regions.py:29` · `tests/test_shema/test_org_chart.py:43`
 
@@ -2252,7 +2255,7 @@ por região", o Ritmo e o nome da sessão leem daqui. Leem a tela os quatro pap�
 <a id="rn-pme-235"></a>
 ### RN-PME-235 · A tela mostra só as regiões do escopo de leitura da conta
 - **Gatilho:** a pessoa abre `/equipe`.
-- **Condição:** a conta tem papel no PME.
+- **Condição:** a conta tem um papel do Shemá: Administrador (da região), Operacional de Línguas, Intercessor (papel) ou Admin.
 - **Efeito:** aparecem as regiões do escopo de leitura: as próprias para o Administrador, o Operacional de Línguas e o Intercessor (papel); as sete para o Admin. Cada região mostra "N projetos", contados na lista de projetos que a conta lê, só depois que essa lista foi lida.
 - **Exceções:** o filtro é da tela. O servidor entrega os nomes dos assentos das sete regiões a qualquer conta com papel no PME, sem contato nem e-mail. Sem região visível: "Nenhuma região carregada ainda.".
 - **Origem:** `src/components/pages/equipe/index.tsx:223` · `src/contexts/session.ts:53` · `src/contexts/ApiAuthProvider.tsx:70` · `src/components/pages/equipe/RegionRoles.tsx:47` · `app/api/shema/regions.py:51` · `tests/test_shema/test_org_chart.py:68`
@@ -2332,7 +2335,7 @@ servidor no momento do fato, cada um para as pessoas certas.
 - **Gatilho:** a conta lê o sino.
 - **Condição:** a conta lê saúde (Administrador, Operacional de Línguas ou Intercessor) e há, nas regiões que ela lê, projeto há 120 dias ou mais sem atualização de progresso.
 - **Efeito:** cada projeto nessa situação vira uma linha: "{língua} está sem atualização de progresso há N dias. Abra o projeto para acompanhar.". A linha não é marcada "Urgente". Ela existe enquanto o projeto estiver parado; a marca de lida vale até a próxima atualização de progresso.
-- **Exceções:** projetos concluídos, cancelados, planejados ou de status desconhecido nunca contam como sem notícias. O Admin sozinho não recebe.
+- **Exceções:** projetos concluídos, cancelados, planejados ou de status desconhecido nunca contam como sem notícias. O Admin sozinho não recebe. O Admin que também tem um papel que lê saúde (Administrador, Operacional de Línguas, Intercessor) recebe este aviso de todas as regiões, porque lê todas; os avisos gravados ele só recebe na região do seu papel.
 - **Origem:** `app/services/shema/list_notification_panel.py:133-179,319,331,352-354` · `app/services/shema/_health_audience.py:87,101-115` · `app/utils/shema_derivations.py:89-99,572-588` · `src/utils/servedNotices.ts:59-62`
 
 <a id="rn-pme-245"></a>
@@ -2355,7 +2358,7 @@ servidor no momento do fato, cada um para as pessoas certas.
 ### RN-PME-247 · O aviso de um projeto sensível não diz o lugar nem o nome real da língua
 - **Gatilho:** um aviso de projeto é mostrado.
 - **Condição:** sempre; vale para todo leitor, inclusive a coordenação.
-- **Efeito:** o título é o tipo do aviso ("Atualização de campo", "Avaliação de saúde", "Necessidade urgente", "Projeto sem notícias", "Pedido de oração", "Pedido para revisar"). A frase usa o nome público da língua; sem nome público, diz "Um projeto". Só a necessidade urgente diz onde, e só a quem alcança o projeto: o lugar do projeto, ou a região quando o projeto é sensível. Nenhum aviso traz base, país, contatos ou texto livre. Ver a seção de dados sensíveis.
+- **Efeito:** o título é o tipo do aviso ("Atualização de campo", "Avaliação de saúde", "Necessidade urgente", "Projeto sem notícias", "Pedido de oração", "Pedido para revisar"). A frase usa o nome público da língua; sem nome público, diz "Um projeto". Só a necessidade urgente diz onde: o lugar do projeto a quem alcança o projeto e o projeto não é sensível; a região do projeto a todos os outros (projeto sensível, ou leitor que não alcança mais o projeto). Nenhum aviso traz base, país, contatos ou texto livre. Ver a seção de dados sensíveis.
 - **Exceções:** aviso antigo, gravado antes de o servidor mandar os fatos, mostra só o tipo e uma frase genérica (por exemplo "Um Pulso foi recebido.").
 - **Origem:** `app/services/shema/list_notification_panel.py:152-160,235-286` · `src/utils/servedNotices.ts:9-13,35-39` · `src/components/pages/notificacoes/NotificationLog.tsx:57-58` · `src/constants/notifications.ts:106-127`
 
@@ -2372,7 +2375,7 @@ servidor no momento do fato, cada um para as pessoas certas.
 - **Gatilho:** a pessoa clica no sino.
 - **Condição:** há avisos na lista.
 - **Efeito:** o sino mostra um contador com os avisos não lidos da lista visível (o leitor de tela ouve "Notificações · N não lidas"). Ao abrir o painel, todos os avisos mostrados são marcados como lidos no servidor e o contador zera. A marca é da conta: vale em qualquer aparelho.
-- **Exceções:** as linhas não mudam de aparência entre lidas e não lidas; a diferença é só o contador. Se a marcação falhar, a leitura seguinte corrige o contador.
+- **Exceções:** as linhas não mudam de aparência entre lidas e não lidas; a diferença é só o contador. Se a marcação falhar no servidor, nesta aba o contador continua zerado até recarregar a página; nos outros aparelhos os avisos seguem como não lidos.
 - **Origem:** `src/components/layout/NotificationBell.tsx:18-21,32-43` · `src/components/pages/notificacoes/useNotifications.ts:289-308,325` · `app/api/shema/notifications.py:75-86` · `app/services/shema/mark_notifications_read.py`
 
 <a id="rn-pme-250"></a>
@@ -2415,7 +2418,7 @@ servidor no momento do fato, cada um para as pessoas certas.
 ### RN-PME-254 · As preferências são rascunho até "Salvar e fechar"
 - **Gatilho:** a pessoa mexe nas preferências do painel.
 - **Condição:** com servidor.
-- **Efeito:** nada vale até clicar em "Salvar e fechar" (o botão mostra "Salvando…"). Fechar sem salvar descarta. Se o servidor recusa, a frase da falha aparece no rodapé e o rascunho fica. Salvo, o rodapé diz: "Suas preferências ficam salvas na sua conta e valem em qualquer navegador.". Se as preferências salvas não puderam ser lidas, o painel avisa "Suas preferências salvas não puderam ser lidas — o que aparece abaixo é o padrão, não a sua escolha, e Salvar fica fechado até lê-las.", com "Tentar de novo".
+- **Efeito:** nada vale até clicar em "Salvar e fechar" (o botão mostra "Salvando…"). Fechar sem salvar descarta. Se o servidor recusa, a frase da falha aparece no rodapé e o rascunho fica. Fora de uma recusa, o rodapé diz: "Suas preferências ficam salvas na sua conta e valem em qualquer navegador.". Salvar com sucesso fecha o painel. Se as preferências salvas não puderam ser lidas, o painel avisa "Suas preferências salvas não puderam ser lidas — o que aparece abaixo é o padrão, não a sua escolha, e Salvar fica fechado até lê-las.", com "Tentar de novo".
 - **Exceções:** nenhuma.
 - **Origem:** `src/components/pages/notificacoes/NotificationsPanel.tsx:82-94,133-168,193-207` · `src/components/pages/notificacoes/useNotifications.ts:85-90,247-266,310-320,328` · `app/api/shema/notifications.py:61-72`
 
@@ -2495,7 +2498,7 @@ PME; "Importar" e "Link do líder" só para quem pode usá-los.
 - **Condição:** vale para qualquer pessoa que exporte, inclusive a coordenação.
 - **Efeito:** cada projeto sai com uma lista fechada de campos: identidade (id, nome da língua, código, língua ponte, vitalidade, falantes), base, local, a marca de país sensível, objetivo, tipo de tradução, status, início, prazo, os quatro números de progresso, saúde geral, quantidade de necessidades em aberto, pedidos de oração compartilhados e última atualização. Nunca saem: contatos e nomes de pessoas, notas, mídias, materiais e valores. De um projeto sensível, o local sai como a região, a base sai vazia e o nome sai como o nome público da língua (ver a seção de dados sensíveis). Só entram pedidos de oração autorizados para a rede. A saúde sai como "na" quando quem exporta não lê saúde.
 - **Exceções:** nenhuma; um campo novo na ficha fica fora do arquivo até ser incluído na lista.
-- **Origem:** `app/models/shema_transfer.py:62-64,81-165` · `app/services/shema/export_projects.py:132-183` · `app/services/shema/_health_audience.py:233` · `tests/test_shema/test_transfer.py` · `src/utils/__tests__/exportAssembly.test.ts`
+- **Origem:** `app/models/shema_transfer.py:62-64,81-165` · `app/services/shema/export_projects.py:132-183` · `app/services/shema/_health_audience.py:233` · `tests/test_shema/test_transfer.py`
 
 <a id="rn-pme-264"></a>
 ### RN-PME-264 · O cabeçalho do arquivo exportado
@@ -2541,7 +2544,7 @@ PME; "Importar" e "Link do líder" só para quem pode usá-los.
 ### RN-PME-269 · O servidor mescla, grava tudo ou nada e diz o que ignorou
 - **Gatilho:** a pessoa clica em "Importar e gravar".
 - **Condição:** o arquivo passou na conferência do servidor.
-- **Efeito:** um projeto cujo id a conta alcança é atualizado; os outros são criados; projetos fora do arquivo não mudam. Tudo é gravado de uma vez: se um falhar, nenhum entra. O servidor ignora, e nomeia, o que não aceita de um arquivo: o público e a gravação do pedido de oração, o "compartilhado" e o "reconhecido" de uma necessidade, e tudo o que ele mesmo calcula (saúde, histórico de progresso, mídias, materiais, campos derivados). Um arquivo pode marcar um projeto como sensível, mas não desmarcar. Sucesso: "{{count}} projetos importados." e, se houve campos ignorados, "O servidor não toma de um arquivo e ignorou: {{fields}}."; a lista de projetos é relida.
+- **Efeito:** um projeto cujo id está no escopo de escrita da conta é atualizado; um id que não existe e é um UUID é criado. Um id que já existe fora desse escopo, ou um id novo que não é UUID, recusa o arquivo inteiro; projetos fora do arquivo não mudam. Tudo é gravado de uma vez: se um falhar, nenhum entra. O servidor ignora, e nomeia, o que não aceita de um arquivo: o público e a gravação do pedido de oração, o "compartilhado" e o "reconhecido" de uma necessidade, e tudo o que ele mesmo calcula (saúde, histórico de progresso, mídias, materiais, campos derivados). Um arquivo pode marcar um projeto como sensível, mas não desmarcar. Sucesso: "{{count}} projetos importados." e, se houve campos ignorados, "O servidor não toma de um arquivo e ignorou: {{fields}}."; a lista de projetos é relida.
 - **Exceções:** recusa ou conflito (alguém salvou uma das fichas no meio): a frase aparece no diálogo e num aviso, com "Nada foi importado.".
 - **Origem:** `app/services/shema/import_projects.py:159-177,248-271,361-453` · `app/models/shema_transfer.py:425-436` · `src/components/pages/dados/ImportDialog.tsx:193-231` · `src/services/api/endpoints.ts:1245-1268` · `tests/test_shema/test_transfer.py` · `tests/test_shema/test_import.py`
 
@@ -2596,8 +2599,8 @@ projetos, envia convites, confere os projetos aguardando confirmação, mantém 
 ### RN-PME-275 · Só o Admin abre a tela "Acesso"
 - **Gatilho:** uma conta abre `/acesso` ou olha o cabeçalho.
 - **Condição:** só com servidor (sem ele a rota e o link não existem).
-- **Efeito:** quem tem o papel `admin` na lista de papéis vê o link "Acesso" no cabeçalho e a tela. Qualquer outra conta vê "Esta área é do Admin da plataforma", com o botão "Voltar para os projetos". O servidor recusa (403) todas as rotas de acesso a quem não tem o papel.
-- **Exceções:** o admin da instalação passa nas guardas do servidor, mas a tela só é desenhada para quem tem o papel `admin`. A cada gravação o servidor relê o papel de quem age: um Admin revogado há instantes é recusado, mesmo com a sessão aberta.
+- **Efeito:** quem tem o papel `admin` na lista de papéis vê o link "Acesso" no cabeçalho e a tela. Qualquer outra conta vê "Esta área é do Admin da plataforma", com o botão "Voltar para os projetos"; a conta que só tem Gestor dos Projetos ou Mesa vê, como em toda rota, "Seu acesso é pelo Círculo de Recursos". O servidor recusa (403) todas as rotas de acesso a quem não tem o papel.
+- **Exceções:** o admin da instalação passa nas guardas do servidor, mas a tela só é desenhada para quem tem o papel `admin`. Nas gravações de papéis, convites, projetos aguardando confirmação e da lista de países, o servidor relê o papel de quem age: um Admin revogado há instantes é recusado, mesmo com a sessão aberta. Pôr e tirar alguém da equipe passa só pela guarda comum, que pode levar até 30 segundos para ver a revogação feita em outro processo.
 - **Origem:** `src/utils/access.ts:17` · `src/components/pages/acesso/index.tsx:19` · `src/components/layout/AppHeader.tsx:123` · `src/App.tsx:94` · `app/api/shema/access.py:56` · `app/services/shema/_grant_rules.py:115` · `src/components/pages/acesso/__tests__/acessoRoute.test.ts` · `tests/test_shema/test_admin_gate.py`
 
 <a id="rn-pme-276"></a>
@@ -2725,7 +2728,7 @@ projetos, envia convites, confere os projetos aguardando confirmação, mantém 
 - **Gatilho:** o Admin preenche "E-mail", "App" e "Papel" em "Convites" e clica em "Enviar convite".
 - **Condição:** e-mail e papel preenchidos; papel regional com pelo menos uma região.
 - **Efeito:** o formulário oferece os papéis de cada aplicação menos o Admin, e explica: "O Admin da plataforma não vai por convite: ele é concedido a uma conta que já existe." O convite guarda o papel e as regiões, que só são aplicados quando ele é aceito.
-- **Exceções:** o servidor recusa Admin por convite (422), o próprio e-mail e um segundo convite pendente para o mesmo e-mail, aplicação e papel (409). O servidor não recusa convidar um e-mail que já tem conta: nesse caso `/convite` pede a senha da conta.
+- **Exceções:** o servidor recusa Admin por convite (422), o próprio e-mail (400) e um segundo convite pendente para o mesmo e-mail, aplicação e papel (409). O servidor não recusa convidar um e-mail que já tem conta: nesse caso `/convite` pede a senha da conta.
 - **Origem:** `src/utils/access.ts:337` · `src/components/pages/acesso/InviteForm.tsx:33` · `src/components/pages/acesso/InviteForm.tsx:108` · `app/services/shema/send_invite.py:48` · `app/services/resource_request_access/invite_store.py:111` · `tests/test_shema/test_admin_invites.py:174`
 
 <a id="rn-pme-292"></a>
@@ -2797,7 +2800,7 @@ projetos, envia convites, confere os projetos aguardando confirmação, mantém 
 - **Gatilho:** o Admin abre um projeto aguardando confirmação.
 - **Condição:** sempre.
 - **Efeito:** a tela diz "Do pedido “{nome}”, aprovado em {data}." e traz, preenchidos e editáveis, "Nome da Língua" (obrigatório), "Código ISO", "País / Região / Localização" e "Base / Equipe". Traz a caixa "País sensível para divulgação da Bíblia", sempre enviada ao confirmar. Em "Pessoas da equipe" cada linha tem "Nome" e "E-mail" editáveis, com "Adicionar pessoa" e remover.
-- **Exceções:** a caixa já vem marcada quando o local nomeia um país da lista, e desmarcá-la nesse caso não muda nada (seção 5). Linha sem nome e sem e-mail não é enviada. Sem nome da língua, "Confirmar projeto" fica desligado: "O nome da língua é obrigatório."
+- **Exceções:** a caixa já vem marcada quando o local nomeava um país da lista no dia em que a mesa aprovou o pedido. Ao confirmar, o servidor liga a marca sempre que o local recebido nomeia um país da lista, mesmo com a caixa desmarcada (seção 5); a caixa não muda sozinha quando o Admin edita o local. Linha sem nome e sem e-mail não é enviada. Sem nome da língua, "Confirmar projeto" fica desligado: "O nome da língua é obrigatório."
 - **Origem:** `src/components/pages/acesso/PendingProjectForm.tsx:43` · `src/components/pages/acesso/PendingProjectForm.tsx:72` · `src/components/pages/acesso/pending.ts:16` · `app/models/shema_pending.py:97` · `app/services/shema/confirm_project.py:118` · `tests/test_shema/test_pending_projects.py:646`
 
 <a id="rn-pme-301"></a>
@@ -2866,7 +2869,7 @@ recurso é do documento de integração (blocos INT-A a INT-H). Tudo aqui só ex
 ### RN-PME-308 · O painel "Pedidos de recurso" fica na aba "Recursos Financeiros", com "Solicitar recurso" ou "Continuar"
 - **Gatilho:** alguém abre a aba "Recursos Financeiros" da ficha de um projeto já salvo.
 - **Condição:** só com servidor; ficha nova não tem o painel.
-- **Efeito:** o painel lista os pedidos de recurso do projeto (bloco INT-B). Sem pedido em preenchimento, o Admin e os membros do projeto veem "Solicitar recurso". Com um pedido em preenchimento que a conta pode editar, o botão é "Continuar"; se não pode, a tela diz "Em preenchimento por {nome}" e não há botão. Os dois botões abrem o Formulário numa nova aba.
+- **Efeito:** o painel lista os pedidos de recurso do projeto (bloco INT-B). Sem pedido em preenchimento, o Admin e os membros do projeto veem "Solicitar recurso". Com um pedido em preenchimento que a conta pode editar, o botão é "Continuar"; se não pode, a tela diz "Em preenchimento por {nome}" (ou "Em preenchimento por outra pessoa da equipe" quando o servidor não manda o nome, como num projeto sensível lido pelo Operacional de Línguas) e não há botão. Os dois botões abrem o Formulário numa nova aba.
 - **Exceções:** enquanto confere se a conta é membro, a tela diz "Conferindo se você é membro deste projeto…"; se a conferência falha, diz "Não deu para confirmar se você é membro deste projeto, então o botão de solicitar ainda não aparece." e oferece "Tentar de novo". Quem não é Admin nem membro não vê botão. Só abre a ficha quem tem papel do Shemá, então na prática o botão alcança o Admin e os membros que também têm um papel regional.
 - **Origem:** `src/components/pages/ficha/tabs/Recursos.tsx:13` · `src/components/pages/ficha/pedidos/ProjectRequests.tsx:63` · `src/utils/requests.ts:53` · `src/utils/requests.ts:65` · `src/components/pages/ficha/pedidos/RequestButton.tsx:24` · `app/api/shema/members.py:56` · `app/api/shema/_deps.py:158` · `src/components/pages/ficha/__tests__/pedidos.test.ts`
 
@@ -2934,7 +2937,7 @@ Estados: **não lida** (conta no número do sino) e **lida** (não conta). A lin
 | (não existe) | Não lida | o servidor grava o aviso para a conta; ou, em "Projeto sem notícias", o projeto passa de 120 dias sem atualização |
 | Não lida | Lida | a pessoa abre o painel com o aviso na lista |
 | Lida | Não lida | só em "Projeto sem notícias": uma nova atualização de progresso seguida de novo silêncio de 120 dias gera uma linha nova |
-| qualquer | (fora da lista) | 30 avisos mais novos passam à frente; em "Projeto sem notícias", o projeto volta a ter notícias |
+| qualquer | (fora da lista) | 30 avisos mais novos passam à frente; em "Projeto sem notícias", o projeto volta a ter notícias; em "Avaliação de saúde" e "Projeto sem notícias", a conta deixa de ler saúde |
 
 ```mermaid
 stateDiagram-v2
@@ -2949,7 +2952,7 @@ Origem: `src/components/layout/NotificationBell.tsx:18-21` · `app/services/shem
 ### 4.3 Status do projeto (derivado a cada leitura)
 
 Rótulos: "Não iniciado", "Em andamento", "Fase final", "Concluído", "Pausado", "Cancelado", "Planejado", "Sem informação".
-Seis são gravados pela ficha; "Não iniciado" e "Fase final" só existem quando não há status gravado e saem do progresso.
+Seis podem estar gravados; a ficha escolhe só três ("Em andamento", "Pausado", "Planejado") e mantém os outros três quando já vieram gravados (pela importação, por exemplo); "Não iniciado" e "Fase final" só existem quando não há status gravado e saem do progresso.
 Origem: `app/utils/shema_derivations.py:472` · `app/utils/shema_derivations.py:76` · `src/constants/status.ts:12`.
 
 ```mermaid
@@ -3085,7 +3088,7 @@ stateDiagram-v2
     [*] --> Leitura: abrir pelo cartão
     Leitura --> Edicao: "Editar Projeto"
     Edicao --> Edicao: digitar (rascunho guardado)
-    Edicao --> Leitura: "Descartar rascunho"
+    Edicao --> Edicao: "Descartar rascunho" (o rascunho some, a ficha segue em editar)
     Nova --> [*]: "Descartar rascunho" (volta à lista)
     Nova --> Fechada: "Salvar Projeto" aceito (POST 201)
     Nova --> Falha: sem resposta
@@ -3120,6 +3123,9 @@ stateDiagram-v2
     EmCurso --> NaoMaisNecessario: muda "Status"
     EmCurso --> Aberto: muda "Status"
     Atendido --> Aberto: muda "Status"
+    Atendido --> EmCurso: muda "Status"
+    Atendido --> NaoMaisNecessario: muda "Status"
+    NaoMaisNecessario --> EmCurso: muda "Status"
     NaoMaisNecessario --> Aberto: muda "Status"
 
     state Reconhecimento {
@@ -3224,7 +3230,7 @@ Origem: `src/stores/assessmentStore.ts:24-41` · `src/components/pages/avaliacao
 
 ### 4.15 Recebimento de um arquivo ("Receber Atualização")
 
-Passos do diálogo: escolher → lendo → (recusado | ficha não lida | fora de onde grava | prévia) → enviando → (aplicado | conflito | falha, que volta à prévia com "Tentar de novo"). Fechar o diálogo volta a "escolher".
+Passos do diálogo: escolher → lendo → (recusado | ficha não lida | fora de onde grava | prévia) → enviando → (aplicado | conflito | foto guardada com outra marca | falha, que volta à prévia com "Tentar de novo"). Um arquivo que não pôde mais ser aberto também encerra; nesse caso, e no da foto, só resta "Escolher outro arquivo". Fechar o diálogo volta a "escolher".
 
 ```mermaid
 stateDiagram-v2
@@ -3247,7 +3253,7 @@ Origem: `src/components/pages/dados/receivePulse.ts:23-34,45-92` · `src/compone
 
 Estados, com o rótulo da tela: "A iniciar" (nunca registrada na região), "A fazer" (sem registro no período corrente, com registro no anterior), "Atrasada" (com registro só em período mais antigo), "Em dia" (com registro no período corrente). O estado não é gravado: é derivado do registro a cada leitura.
 
-Transições: "Registrar reunião" com data no período corrente leva a "Em dia"; a virada do período leva de "Em dia" para "A fazer" e, sem novo registro, de "A fazer" para "Atrasada"; "Desfazer" devolve a linha ao estado que os registros restantes derem.
+Transições: "Registrar reunião" com data no período corrente leva a "Em dia"; com data de um período passado leva ao estado que essa data der ("A fazer" se for o período anterior, "Atrasada" se for mais antigo); a virada do período leva de "Em dia" para "A fazer" e, sem novo registro, de "A fazer" para "Atrasada"; "Desfazer" devolve a linha ao estado que os registros restantes derem.
 
 ```mermaid
 stateDiagram-v2
@@ -3257,6 +3263,8 @@ stateDiagram-v2
     EmDia: Em dia
     [*] --> AIniciar
     AIniciar --> EmDia: Registrar reunião (data no período corrente)
+    AIniciar --> AFazer: Registrar reunião (data do período anterior)
+    AIniciar --> Atrasada: Registrar reunião (data mais antiga)
     AFazer --> EmDia: Registrar reunião
     Atrasada --> EmDia: Registrar reunião
     EmDia --> AFazer: vira o período
@@ -3272,7 +3280,7 @@ Origem: `src/utils/rhythm.ts:52` · `src/stores/rhythmStore.ts:203` · `src/stor
 
 Estados: "Só a coordenação" (o padrão; fora do mural); no mural (público "Rede de oração", projeto que não é sensível); aguardando revisão (público "Rede de oração", projeto sensível, na fila "Revisão"); liberado (projeto sensível, no mural com o texto liberado). Nenhum desses estados é gravado como tal: o servidor os calcula a cada leitura a partir do público, do texto e da liberação.
 
-Transições: a equipe escolhe "Rede de oração" (ou marca a necessidade como "Compartilhado em rede de oração"); a coordenação clica em "Liberar para o mural"; a equipe reescreve o texto; o projeto é marcado como sensível; a equipe volta para "Só a coordenação".
+Transições: a equipe escolhe "Rede de oração" (ou marca a necessidade como "Compartilhado em rede de oração"); a coordenação clica em "Liberar para o mural"; a equipe reescreve o texto; o projeto é marcado como sensível; o projeto deixa de ser sensível; a equipe volta para "Só a coordenação".
 
 ```mermaid
 stateDiagram-v2
@@ -3286,6 +3294,8 @@ stateDiagram-v2
     Aguardando --> Liberado: Liberar para o mural
     Liberado --> Aguardando: equipe reescreve o texto
     NoMural --> Aguardando: projeto é marcado como sensível
+    Aguardando --> NoMural: projeto deixa de ser sensível
+    Liberado --> NoMural: projeto deixa de ser sensível (volta o texto da equipe)
     NoMural --> SoCoordenacao: equipe retira a autorização
     Aguardando --> SoCoordenacao: equipe retira a autorização
     Liberado --> SoCoordenacao: equipe retira a autorização
@@ -3316,7 +3326,7 @@ Origem: `app/services/shema/add_intercessor.py:65` · `app/services/shema/admit_
 
 ### 4.19 Convite
 
-Estados, com o rótulo da tela: **"Aguardando"** (pendente), **"Já usado"** (aceito; em `/convite`: "Este convite já foi
+Estados, com o rótulo da tela: **"Aguardando"** (pendente), **aceito** (sem rótulo na lista, de onde sai; em `/convite`: "Este convite já foi
 aceito"), **"Expirado"** (em `/convite`: "Este convite venceu") e **"Revogado"**. A lista "Convites não aceitos" mostra os
 três que não foram aceitos; o aceito sai dela.
 
@@ -3404,7 +3414,7 @@ conteúdo dos arquivos está em Exportar e Importar; o que o navegador guarda e 
 <a id="rn-pme-311"></a>
 ### RN-PME-311 · Um projeto é sensível por duas marcas: pelo país da lista ou por marca própria
 - **Gatilho:** um projeto é criado, salvo ou confirmado; ou a coordenação marca a caixa "País sensível para divulgação da Bíblia".
-- **Condição:** marca por país: o local nomeia um país da lista de países sensíveis, em qualquer trecho entre vírgulas, sem contar maiúsculas, acentos nem as grafias alternativas cadastradas. Marca própria: a caixa foi marcada num projeto cujo país não está na lista.
+- **Condição:** marca por país: o local nomeia um país da lista de países sensíveis, em qualquer trecho entre vírgulas, sem contar maiúsculas nem acentos, pelo nome do país, por qualquer das grafias alternativas cadastradas ou pela grafia que o mapa de países conhece. Marca própria: a caixa foi marcada num projeto cujo país não está na lista.
 - **Efeito:** o servidor liga a marca por país sozinho; ninguém precisa lembrar. A marca própria é uma decisão da coordenação. Com qualquer das duas, o projeto é um projeto sensível e todas as regras desta seção valem.
 - **Exceções:** um trecho que só contém o nome de um país ("Indiana") não é esse país.
 - **Origem:** `app/services/shema/_redaction.py:431` · `app/services/shema/save_project.py:289` · `app/services/shema/confirm_project.py:118` · `app/utils/shema_derivations.py:441` · `src/components/pages/ficha/tabs/identidade/SensitiveFlag.tsx:64` · `tests/test_shema/test_sensitive_countries.py:267`
@@ -3447,7 +3457,7 @@ conteúdo dos arquivos está em Exportar e Importar; o que o navegador guarda e 
 - **Condição:** projeto sensível.
 - **Efeito:** se a coordenação cadastrou o "Nome público da língua" na aba Identidade, é ele que aparece. Sem nome público, a tela escreve "Projeto sensível — {região}", por exemplo "Projeto sensível — África". O nome verdadeiro fica com a coordenação e com o Intercessor (papel). A busca só acha o projeto pelo nome que o leitor lê.
 - **Exceções:** só a coordenação cadastra e altera o nome público. O campo só aparece em projeto marcado.
-- **Origem:** `app/models/shema_privacy.py:423` · `app/services/shema/_redaction.py:169` · `src/utils/region.ts:104` · `src/components/pages/ficha/tabs/identidade/IdentidadeForm.tsx:275` · `tests/test_shema/test_privacy.py`
+- **Origem:** `app/models/shema_privacy.py:423` · `app/services/shema/_redaction.py:169` · `src/utils/region.ts:104` · `src/components/pages/ficha/tabs/identidade/IdentidadeForm.tsx:275` · `tests/test_shema/test_language_name.py:132`
 
 <a id="rn-pme-317"></a>
 ### RN-PME-317 · O texto livre de um projeto sensível chega em branco a quem não lê a verdade; alguns campos continuam à vista
@@ -3478,7 +3488,7 @@ conteúdo dos arquivos está em Exportar e Importar; o que o navegador guarda e 
 - **Gatilho:** uma conta com o papel Intercessor, sem coordenar, abre um projeto da região dela.
 - **Condição:** sempre, sensível ou não.
 - **Efeito:** lê o projeto sensível como a coordenação: lugar, base, contatos, nome verdadeiro, texto livre, saúde e a contagem de projetos recolhidos. Não grava nada de projeto nenhum: não vê "Editar" nem "Novo Projeto", o modo de edição pedido pelo endereço abre como leitura, e o servidor recusa (403) salvar e criar.
-- **Exceções:** dos pedidos de oração, lê só os que a equipe autorizou para a rede ([RN-PME-325](#rn-pme-325)). Não recebe a imagem das fotos de projeto sensível ([RN-PME-126](#rn-pme-126)). O Intercessor que também é Administrador é coordenação e edita.
+- **Exceções:** dos pedidos de oração, lê só os que a equipe autorizou para a rede ([RN-PME-325](#rn-pme-325)). Não recebe a imagem das fotos de projeto sensível ([RN-PME-125](#rn-pme-125)). O Intercessor que também é Administrador é coordenação e edita.
 - **Origem:** `app/services/shema/_scope.py:536` · `app/services/shema/save_project.py:293` · `src/utils/recordAccess.ts:92` · `src/utils/access.ts:196` · `tests/test_shema/test_reader.py` · `tests/test_shema/test_withheld_prayer_request.py:161`
 
 <a id="rn-pme-321"></a>
@@ -3493,7 +3503,7 @@ conteúdo dos arquivos está em Exportar e Importar; o que o navegador guarda e 
 ### RN-PME-322 · O que sai do sistema nunca leva o lugar nem a base de um projeto sensível, seja quem for o leitor
 - **Gatilho:** o sistema monta a exportação, o mural de oração, o Pulso de Oração, uma notificação, o relatório ETEN, o relatório anual ou a página do link do líder.
 - **Condição:** projeto sensível.
-- **Efeito:** no lugar do país vai a região; a base e os contatos não vão; o nome da língua é o nome público ou "Projeto sensível — {região}". Vale até para a coordenação, porque um arquivo ou um aviso pode ser repassado. Cada linha continua dizendo que o lugar foi recolhido.
+- **Efeito:** no lugar do país vai a região; a base e os contatos não vão; o nome da língua é o nome público; sem ele, a tela escreve "Projeto sensível — {região}" (mural, relatórios, link do líder), o aviso do sino diz "um projeto" e o arquivo exportado leva a chave da região (por exemplo `africa`). Vale até para a coordenação, porque um arquivo ou um aviso pode ser repassado. Cada linha continua dizendo que o lugar foi recolhido.
 - **Exceções:** a linha do arquivo exportado que conta quantos projetos foram recolhidos só é escrita quando quem exporta é a coordenação.
 - **Origem:** `app/models/shema_privacy.py:396` · `app/models/shema_privacy.py:455` · `app/services/shema/export_projects.py:152` · `app/services/shema/list_prayer_requests.py:49` · `app/services/shema/eten_report.py:160` · `app/services/shema/read_intake_form.py:102` · `app/services/shema/list_notification_panel.py:247` · `src/utils/region.ts:166` · `src/utils/annualReport.ts:61` · `app/services/shema/_scope.py:564`
 
@@ -3518,7 +3528,7 @@ conteúdo dos arquivos está em Exportar e Importar; o que o navegador guarda e 
 - **Gatilho:** alguém escreve ou lê um pedido de oração.
 - **Condição:** sempre.
 - **Efeito:** em "Quem pode ver este pedido" há duas opções. **"Só a coordenação"**: na ficha, o texto é lido pelo Administrador e pelo Operacional de Línguas da região; o Admin e o Intercessor (papel) recebem o texto em branco; não vai para o mural. **"Rede de oração"**: o pedido vai para o mural de oração e é lido também pelo Admin e pelo Intercessor (papel). Sem nenhuma escolha gravada vale "Só a coordenação", e a tela diz "Sem autorização explícita, o pedido fica só com a coordenação." Ao mural chega só o que foi autorizado, pedido por pedido: o pedido do projeto pelo público dele, e cada necessidade pela sua própria marca de compartilhar.
-- **Exceções:** só o Administrador e o Operacional de Línguas escrevem o pedido e decidem o público; o servidor recusa (403) os demais. Em projeto sensível vale antes [RN-PME-318](#rn-pme-318).
+- **Exceções:** na ficha e na Avaliação de Saúde, só o Administrador e o Operacional de Línguas escrevem o pedido e decidem o público; o servidor recusa (403) os demais. O líder escreve o pedido e escolhe o público pelo Pulso Mensal ([RN-PME-150](#rn-pme-150)). Em projeto sensível vale antes [RN-PME-318](#rn-pme-318).
 - **Origem:** `app/services/shema/_consent.py:91` · `app/services/shema/_consent.py:193` · `app/services/shema/_consent.py:217` · `app/services/shema/_consent.py:422` · `src/utils/prayer.ts:13` · `src/components/pages/ficha/tabs/saude/PrayerConsent.tsx:77` · `tests/test_shema/test_withheld_prayer_request.py:143` · `tests/test_shema/test_prayer.py`
 
 <a id="rn-pme-326"></a>
@@ -3829,6 +3839,30 @@ PRD descrevem a coluna da direita. As linhas que pedem decisão da cliente tamb�
 | DV-74 | Estrutura do repositório e engenharia | `CLAUDE.md:1038`: o serviço publicado não é público; o parágrafo seguinte diz que é. | `.github/workflows/deploy.yml:135`: `--allow-unauthenticated`. Só a segunda metade vale. |
 | DV-75 | Estrutura do repositório e engenharia | `CLAUDE.md` §8 descreve a verificação automática como ESLint e `tsc`. | `.github/workflows/lint.yml:28-32` também monta o pacote e roda `check:bundle`; existe ainda `joaozinho-review.yml`. |
 | DV-76 | Estrutura do repositório e engenharia | `CLAUDE.md` §4 não cita `src/hooks/`, `src/contexts/apiSession.ts` nem `scripts/`. | Existem, com donos únicos: 5 hooks e 6 scripts. |
+| DV-77 | Projetos, Equipe e ETEN | O grupo "País sensível" e o aviso de recolhidos ficam escondidos de quem não lê a verdade ([RN-PME-048](#rn-pme-048), [RN-PME-063](#rn-pme-063)). | O filtro "País" conta o projeto sensível sob a chave da região, e só um projeto sensível tem a chave da região como país: para o Operacional de Línguas, a opção `africa` é o número de projetos recolhidos na África, e `?country=africa` os lista (`app/utils/shema_facets.py:505-508`; `tests/test_shema/test_projects.py:639-645`). |
+| DV-78 | Projetos, Equipe e ETEN | A nota da seção 2.4: o Admin que também é Administrador de uma região age nela como Administrador. | `GET /regions/role-changes` e `GET /regions/{key}/team` usam o escopo de leitura, que para quem tem `admin` são todas as regiões: essa conta lê quem trocou cada assento das sete regiões, embora só edite as suas (`app/api/shema/regions.py:62,72`; `app/services/shema/_scope.py:303-315`). |
+| DV-79 | Projetos, Equipe e ETEN | Texto da tela `src/i18n/locales/pt-BR.json:518`: "O projeto consta como concluído…". | A linha "Concluído, sem ano registrado" também marca o projeto que chegou com o escopo fechado, em qualquer status (`app/utils/shema_derivations.py:1067-1071`; `tests/test_shema/test_eten_rule.py:271`). |
+| DV-80 | Sessão, casca do app, Início e notificações | Comentário de `app/services/shema/_submission_notices.py:96-104`: o Admin lê tudo e não é avisado de tudo. | "Projeto sem notícias" é calculado no escopo de leitura, que é global para quem tem `admin`: o Admin que também lê saúde recebe esse aviso de todas as regiões (`app/services/shema/list_notification_panel.py:319-331`). |
+| DV-81 | Sessão, casca do app, Início e notificações | Comentário de `src/services/api/tokens.ts:51-57`: a limpeza depois de uma entrada recusada não deve custar os rascunhos. | Quando o login passa e a leitura da sessão é recusada, o PME desfaz o login anunciando `signedOut`, e `sessionWipe` apaga o lido e o digitado (`src/contexts/ApiAuthProvider.tsx:44-54`; `src/stores/sessionWipe.ts:112-118`). |
+| DV-82 | Sessão, casca do app, Início e notificações | Comentário de `src/components/pages/notificacoes/useNotifications.ts:303-304`: a próxima leitura corrige uma marca de lido que falhou. | A união `readIds ∪ seen` (`useNotifications.ts:290`) nunca esquece o que a aba já mostrou: o contador fica zerado nesta aba até recarregar a página. |
+| DV-83 | Sessão, casca do app, Início e notificações | [RN-PME-010](#rn-pme-010): "Sair" encerra a sessão no servidor. | O "Sair" do diálogo de sessão expirada esvazia o navegador mas não chama o servidor: se a sessão expirou por queda de rede na renovação, o token de renovação segue válido por até 7 dias (`src/services/api/endpoints.ts:233-244`; `app/core/config.py:21`). |
+| DV-84 | Formulários e dados do cabeçalho | A sessão da conta Admin + Operacional de Línguas diz que ela não grava em região nenhuma, e a tela esconde "Abrir avaliação no app". | `POST /projects/{id}/health-assessments` usa o escopo regional e `append_assessment` não recusa o Admin: o servidor aceita a avaliação dessa conta nas regiões dela (`app/services/shema/append_assessment.py:294-302`; `app/services/shema/_scope.py:594-598`). A tela é mais estreita que o servidor. |
+| DV-85 | Formulários e dados do cabeçalho | [RN-PME-271](#rn-pme-271): o servidor exige o escopo de escrita para o link do líder. | Só gerar e revogar usam o escopo de escrita; `GET /intake-links` usa o de leitura, e o Admin que também é Administrador lista os links de todas as regiões (`app/api/shema/forms.py:173-207`). |
+| DV-86 | Formulários e dados do cabeçalho | Texto da tela `src/i18n/locales/pt-BR.json:1505`: "…e os que não existem serão criados." | O servidor recusa o arquivo inteiro se um id já existe fora do escopo de escrita, ou se um id novo não é UUID (`tests/test_shema/test_transfer.py:1056-1072,1213-1230`). |
+| DV-87 | Formulários e dados do cabeçalho | [RN-PME-266](#rn-pme-266): o admin da instalação vê "Importar". | `canImportProjects` exige o papel Administrador ou Admin (`src/utils/access.ts:25-41`); o admin da instalação só com Operacional de Línguas ou Intercessor (papel) não vê o botão, embora o servidor o admita (`app/services/shema/import_projects.py:336-350`). |
+| DV-88 | Formulários e dados do cabeçalho | [RN-PME-137](#rn-pme-137): todas as respostas de um Pulso Mensal pendente vão ao Administrador da região. | `MayApply` é "tem o papel Administrador em alguma região", sem olhar o escopo de escrita: o Admin que é Administrador da Ásia recebe todas as respostas de um Pulso Mensal da África, que não pode aplicar (`app/api/shema/_deps.py:329-346`). |
+| DV-89 | Ritmo, Oração e rede de intercessores | Comentário de `app/services/shema/_prayer_review.py:4-6`: toda gravação que põe um pedido de oração na fila avisa a coordenação. | A Avaliação de Saúde grava o pedido de oração e o público e não avisa (`app/services/shema/append_assessment.py:350-357`); só a ficha avisa (`app/services/shema/save_project.py:617,780`). |
+| DV-90 | Ritmo, Oração e rede de intercessores | [RN-PME-200](#rn-pme-200): se a equipe trocou o texto, "a tela mostra o motivo". | O motivo é a frase do servidor, em inglês ("the team has changed this prayer request since it was read"), numa tela em português (`app/services/shema/_consent.py:401-402`; `src/services/api/errors.ts:142-153`). |
+| DV-91 | Ritmo, Oração e rede de intercessores | `src/utils/access.ts:150-190`: três conjuntos na rede (ler, escrever, manter). | O servidor também deixa o Intercessor (papel) gravar e retirar os consentimentos `directory` e `partner-export` pelo id (`ConsentWriter`, `app/api/shema/_deps.py:262-275`; `tests/test_shema/test_intercessors.py:499`). Nenhuma tela oferece. |
+| DV-92 | Acesso, Formulário de Recursos e dados sensíveis | [RN-PME-275](#rn-pme-275): a cada gravação o servidor relê o papel do Admin. | Papéis, convites, conferências e países sensíveis releem (`require_admin_in`); pôr e tirar alguém da equipe usa a guarda com cache de até 30 segundos (`app/services/shema/add_project_member.py`, `remove_project_member.py`). |
+| DV-93 | Acesso, Formulário de Recursos e dados sensíveis | A caixa "País sensível" da conferência mostra a marca do projeto aguardando confirmação. | A tela mostra a marca gravada no dia da aprovação; ao confirmar, o servidor liga a marca pelo local recebido, mesmo com a caixa desmarcada (`src/components/pages/acesso/PendingProjectForm.tsx:43`; `app/services/shema/confirm_project.py:118`). |
+| DV-94 | Acesso, Formulário de Recursos e dados sensíveis | Seção 5: o que sai do sistema leva o nome público ou "Projeto sensível — {região}". | Sem nome público, o arquivo exportado leva a chave crua da região (`africa`, `app/models/shema_transfer.py:373`) e o sino diz "um projeto"; só a tela imprime "Projeto sensível — {região}". |
+| DV-95 | Acesso, Formulário de Recursos e dados sensíveis | Matriz 2.4: só o Admin e os membros do projeto veem "Solicitar recurso". | Pela entrada "Círculo de Recursos", Gestor dos Projetos e Mesa abrem pedido de recurso de qualquer projeto no Formulário, e o servidor aceita (`app/services/resource_request/create_draft.py:34-56`). |
+| DV-96 | Acesso, Formulário de Recursos e dados sensíveis | Seção 2.3 (antes da revisão): todo botão pergunta a `src/utils/access.ts`. | "Solicitar recurso" (`src/utils/requests.ts`), "Gerar Pulso de Oração" (`src/components/pages/oracao/index.tsx`) e a aba "Revisão" (`src/hooks/useReviewsPrayer.ts`) decidem pelo papel da sessão no próprio lugar. |
+| DV-97 | Ficha do projeto | [RN-PME-083](#rn-pme-083) e a frase do PME `net_not_found` ("Este registro não existe mais, ou não está na sua região."). | Para um 404 a frase do servidor vence (`src/services/api/errors.ts:37-41`), e o servidor sempre manda "Project not found" (`app/services/shema/_scope.py:707`): com servidor, a ficha mostra a frase em inglês. |
+| DV-98 | Ficha do projeto | Na ficha, o Operacional de Línguas não escreve "Notas sobre a saúde" num projeto sensível (`src/constants/recordFields.ts:227-236`). | Pela Avaliação de Saúde ele as substitui: `append_assessment` projeta as notas da leitura nova e só confere os cinco campos de `RECORD_FIELDS`, que não incluem as notas (`app/services/shema/append_assessment.py:134-145,331`; `app/models/shema_health.py:86-92`). |
+| DV-99 | Ficha do projeto | A tela oferece "Retirar autorização" só numa foto autorizada (`src/utils/mediaLink.ts:103-108`). | A rota aceita qualquer foto do projeto, inclusive sem decisão, e grava a recusa (`app/services/shema/_media_sharing.py:199-215`). Sem dano: só restringe. |
+| DV-100 | Ficha do projeto | [RN-PME-109](#rn-pme-109): a ficha oferece "Concluído" e "Cancelado" só quando já são o status salvo. | O `PATCH /projects/{id}` aceita os oito status de qualquer conta que grava o projeto, o Operacional de Línguas incluído (`app/models/shema.py:204`); a tela é que não oferece. A importação também aceita. |
 
 ## 9. Para a Karina validar
 
@@ -3843,6 +3877,7 @@ primeiro.
 
 | Pergunta | Por que pesa |
 |---|---|
+| [Q-PME-106](#q-pme-106) · O filtro "País" e os projetos sensíveis | Quem não deve saber quantos projetos sensíveis há numa região consegue contá-los e listá-los pelo filtro "País". |
 | [Q-PME-083](#q-pme-083) · Envio dos pedidos de oração à rede | A tela promete envio por WhatsApp ou e-mail. O sistema só gera o arquivo, e nenhum intercessor da rede recebe o link de saída. |
 | [Q-PME-061](#q-pme-061) e [Q-PME-062](#q-pme-062) · O progresso do Pulso Mensal | Pela leitura do código, aplicar um Pulso Mensal troca a tabela de livros da ficha inteira pelos livros que o líder listou, e quem aplica não vê os números antes. |
 | [Q-PME-047](#q-pme-047) · Como um projeto vira "Concluído" | A ficha não oferece "Concluído" nem "Cancelado". A data de conclusão alimenta o crédito ETEN e o relatório anual. |
@@ -3925,7 +3960,7 @@ primeiro.
 - <a id="q-pme-056"></a>**Q-PME-056** · **Quem vê a imagem de uma foto de projeto sensível?** ([RN-PME-125](#rn-pme-125)) (a) Hoje: só a coordenação; o Intercessor (papel), que lê o resto da ficha, não vê a imagem. (b) O Intercessor (papel) também vê.
 - <a id="q-pme-057"></a>**Q-PME-057** · **As frases de recusa do servidor podem aparecer em inglês?** ([RN-PME-090](#rn-pme-090), [RN-PME-107](#rn-pme-107)) (a) Hoje: aparecem como o servidor mandou, em inglês (por exemplo, a do prazo antes do início). (b) Traduzir as recusas mais comuns.
 - <a id="q-pme-058"></a>**Q-PME-058** · **Uma necessidade salva pode ser apagada?** ([RN-PME-119](#rn-pme-119)) (a) Hoje: não; ela muda para "Não é mais necessário" e fica no registro. (b) Permitir apagar um lançamento feito por engano.
-
+- <a id="q-pme-110"></a>**Q-PME-110** · **"Notas sobre a saúde" de projeto sensível pela Avaliação de Saúde (DV-98).** (a) Hoje: o Operacional de Línguas não as escreve na ficha, mas as substitui ao salvar uma Avaliação de Saúde de um projeto sensível. (b) A avaliação dele num projeto sensível não muda essas notas.
 ### Formulários e dados do cabeçalho
 
 - <a id="q-pme-059"></a>**Q-PME-059** · **O que conta como "reportou" no Pulso Mensal** ([RN-PME-130](#rn-pme-130)). (a) Hoje: conta o dia em que a resposta chegou; um Pulso Mensal de setembro que chega em 2 de outubro conta para outubro. (b) Contar pelo mês que o líder declarou em "De qual mês é este Pulso?".
