@@ -3779,8 +3779,10 @@ O que alguém esperaria encontrar e **não existe hoje**. Cada item traz a evid�
 ## 8. Divergências encontradas
 
 Onde um documento, ou um texto da própria tela, diz uma coisa e o código faz outra. **Vale o código**: as regras deste
-PRD descrevem a coluna da direita. As linhas que pedem decisão da cliente também estão na seção 9. As que citam o
-`CLAUDE.md` falam da versão anterior a este PRD; a reescrita do arquivo as resolve.
+PRD descrevem a coluna da direita. As linhas que pedem decisão da cliente também estão na seção 9. As citações
+`CLAUDE.md:nnn` são do `CLAUDE.md` no commit `79958a7`
+([CLAUDE.md no `79958a7`](https://github.com/shemaobt/project-management-ecosystem/blob/79958a7/CLAUDE.md)), a versão
+anterior a este PRD; a reescrita do arquivo as resolve.
 
 | # | Área | O documento (ou a tela) diz | O código faz |
 |---|---|---|---|
