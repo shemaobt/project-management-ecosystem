@@ -244,7 +244,7 @@ Page folders carry the product's own lowercase Portuguese names (`inicio`, `proj
 - **The project list is read once and again after a write.** Every write this console makes to the server's projects
   calls `projectsStore.invalidate()`; screens read through `useProjectListRead()`. `reload()` and `invalidate()` also tell
   the Projetos browses to ask again (`onListReread`). The Início passes `{ everyVisit: true }`.
-- **Persist only what must survive a reload, and never what the server owns.** Persist only what must survive a reload. The record, the submissions, the meeting log, the prayer wall and (against the server) the project list are never stored. Read data that is cached — the org chart and its change trail (`shema-regions-v1`), the intercessor network (`sessionStorage`) — leaves with the session; drafts and preferences are the rest, and every key is accounted for in `src/stores/__tests__/sessionWipe.test.ts` (§8).
+- **Persist only what must survive a reload, and never what the server owns.** The record, the submissions, the meeting log, the prayer wall and (against the server) the project list are never stored. Read data that is cached — the org chart and its change trail (`shema-regions-v1`), the intercessor network (`sessionStorage`) — leaves with the session; drafts and preferences are the rest, and every key is accounted for in `src/stores/__tests__/sessionWipe.test.ts` (§8).
 - **A persisted store has a version, and the version is the invalidation lever** (`PROJECTS_VERSION`,
   `INTERCESSORS_VERSION`, `SUBMISSIONS_VERSION`): bump it when the shape changes, or an old browser keeps the old copy.
 - **A draft is not a write.** Only a save the server accepted consumes a draft.
