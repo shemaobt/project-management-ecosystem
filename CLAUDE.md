@@ -679,7 +679,7 @@ Reference the Linear issue (`OBT-###`) in the branch name and the PR body. Never
 
 ## 14. Known pitfalls the code still has
 
-Things that will surprise you. Each is recorded in the PRD (section 8, or a question in section 9); do not "fix" one in
+Things that will surprise you. Each is recorded in the PRD (sections 7–9, or the area's rules); do not "fix" one in
 passing — it is a product decision or a change with a blast radius.
 
 - **Three record tabs keep what is typed in the browser only** (Saúde's readings, Fotos / Vídeos, Materiais): the server's
