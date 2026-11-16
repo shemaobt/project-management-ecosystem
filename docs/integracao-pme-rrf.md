@@ -4,7 +4,7 @@
 
 ## 0. Como ler este documento
 
-Este documento descreve **só o que cruza as duas aplicações**. O que cada uma faz por dentro está no PRD dela: [PRD](PRD.md), no mesmo diretório `docs/` de cada repositório. Este arquivo é idêntico nos dois.
+Este documento descreve **só o que cruza as duas aplicações**. O que cada uma faz por dentro está no PRD dela: [PRD](PRD.md), no mesmo diretório `docs/` de cada repositório. Este arquivo é idêntico nos dois, e é quem muda um fluxo que o mantém assim: a PR que muda o comportamento de um bloco muda a `RN-INT-*` dele aqui, e uma PR gêmea no outro repositório leva a mesma cópia. As duas cópias nunca divergem.
 
 **Os blocos.** Cada fluxo que cruza as duas é um bloco, de INT-A a INT-H. Os PRDs citam o bloco e apontam para cá; a regra é escrita aqui e em nenhum outro lugar.
 
