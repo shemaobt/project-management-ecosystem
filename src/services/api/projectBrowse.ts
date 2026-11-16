@@ -137,7 +137,7 @@ function mapNeed(need: WireNeed): NeedItem {
  * tabs need but the list endpoint deliberately never sends (progress tables, contacts,
  * `source`, org-chart names, the three guarded prayer fields) stays at its safe empty
  * value, with one owner for what that value is. `team` also fills `ywamBase` — one
- * concept, two names (CLAUDE.md §5.2). Nothing in the Projetos screen reads the fields
+ * concept, two names (docs/PRD.md RN-PME-101). Nothing in the Projetos screen reads the fields
  * left blank; INT-03 reads the full record through BE-06, not this endpoint.
  */
 function mapCard(wire: WireProjectCard): Project {

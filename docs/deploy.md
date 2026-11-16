@@ -35,8 +35,8 @@ próprio app** contra o `shema-api`, não pelo IAM do Cloud Run.
 manhã) saiu assim: `--no-allow-unauthenticated`, `roles/run.invoker` por conta nomeada, e um passo que reprovava
 `allUsers`. Na mesma data Henok decidiu abrir: a URL precisa ser aberta no navegador por quem não tem `gcloud`,
 e o padrão da casa é público. O que a issue temia — 127 projetos reais, equipes e países sensíveis — continua
-verdadeiro e passa a ser responsabilidade do login do app e das regras de `CLAUDE.md` §6.1, não do IAM.
-O registro da decisão está no `CLAUDE.md` §8 e no comentário da issue.
+verdadeiro e passa a ser responsabilidade do login do app e das regras de dados sensíveis ([`docs/PRD.md` §5](PRD.md#sec-5)), não do IAM.
+O registro da decisão está no `CLAUDE.md` §8 no commit [`79958a7`](https://github.com/shemaobt/project-management-ecosystem/blob/79958a7/CLAUDE.md) e no comentário da issue.
 
 **Como voltar a fechar**, se a decisão for revertida: `--no-allow-unauthenticated` no workflow, remover o
 binding `allUsers` com o comando do §6, e devolver o passo de IAM ao workflow — o commit `6153f00` e os

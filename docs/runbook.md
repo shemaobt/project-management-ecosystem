@@ -95,7 +95,7 @@ LIMIT 50;
 npm run build && npm run check:bundle
 ```
 
-O CI roda isso em todo PR. Se falhar, **não suba**: os 127 projetos de exemplo são pessoas reais em lugares reais (§6 do `CLAUDE.md`).
+O CI roda isso em todo PR. Se falhar, **não suba**: os 127 projetos de exemplo são pessoas reais em lugares reais ([`docs/PRD.md` RN-PME-329](PRD.md#rn-pme-329)).
 
 ## 5. Se um dado parece errado ou vazado
 
@@ -110,7 +110,7 @@ O CI roda isso em todo PR. Se falhar, **não suba**: os 127 projetos de exemplo 
 4. **Avise quem decide.** Dado de pessoa que saiu é decisão da Karina, via Daniel: quem avisar, e se a equipe do projeto precisa saber.
 5. **Abra uma issue no Linear com `OBT-###`**, com o caminho, o período e quantas pessoas foram afetadas, sem copiar o dado vazado.
 
-> **Um Pulso enviado não se recolhe.** Retirar a autorização afeta só os próximos (§5.5 do `CLAUDE.md`). Num vazamento por Pulso, o passo 4 é o principal.
+> **Um Pulso enviado não se recolhe.** Retirar a autorização afeta só os próximos ([`docs/PRD.md` §3.8](PRD.md#sec-3-8)). Num vazamento por Pulso, o passo 4 é o principal.
 
 ## 6. Roteiros de verificação antes do lançamento
 
